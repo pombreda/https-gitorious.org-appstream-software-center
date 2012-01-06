@@ -136,7 +136,8 @@ class AppDetailsDebFile(AppDetails):
     def summary(self):
         if self._deb:
             description = self._deb._sections["Description"]
-            return description.split('\n')[0]
+            # ensure its utf8(), see #738771
+            return utf8(description.split('\n')[0])
 
     @property
     def display_summary(self):

@@ -33,9 +33,15 @@ class MenuButton(Gtk.Button):
             
         arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.OUT)
         box.pack_start(arrow, False, False, 1)
+
+        self.menu = menu
             
         self.connect("button-press-event", self.on_button_pressed, menu)
         self.connect("clicked", self.on_keyboard_clicked, menu)
+
+    def get_menu(self):
+        '''Return menu attached to the button'''
+        return self.menu
 
     def on_button_pressed(self, button, event, menu):
         menu.popup(None, None, self.menu_positionner, (button, event.x), event.button, event.time)

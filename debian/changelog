@@ -1,12 +1,68 @@
-software-center (5.1.5) UNRELEASED; urgency=low
+software-center (5.1.5.1) precise; urgency=low
 
   [ Kiwinote ]
+  * utils/submit_review_gtk3.py:
+    - use named argument as per (LP: #841000)
+  * trigger .pot file rebuild
+
+  [ Didier Roche ]
+  * lp:~didrocks/software-center/oneconf-remove-computers-from-share
+    - Enable (from the new spec) removing a host which isn't the 
+      current one from the gui. 
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 06 Jan 2012 13:03:01 +0100
+
+software-center (5.1.5) precise; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/models/appstore2.py:
+    - fix TypeError in load_range (LP: #911886)
+  * softwarecenter/ui/gtk3/panes/historypane.py:
+    - change COL_PKG to an object rather than a str (LP: #905762)
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - fix utf8 oddness to make remote installed panes work
   * softwarecenter/ui/gtk3/widgets/oneconfviews.py:
     - ensure that hostid is always a string (as we declared) (LP: #905605)
   * softwarecenter/ui/gtk3/widgets/thumbnail.py:
     - fix IndexError in set_thumbnails_from_data (LP: #888669)
+  * grab exhibits for the current series only (LP: #899257)
 
- -- Kiwinote <kiwinote@gmail.com> Mon, 02 Jan 2012 14:20:58 +0000
+  [ Michael Vogt ]
+  * Remove explicit GObject.threads_init as initializing the threads
+    explicitely causes a segfault on close but nothing more
+    (LP: #907568)
+  * lp:~mvo/software-center/startup-speed2:
+    - improve the startup speed by moving out the (expensive) channel
+      change test out of the main app into a spawned helper, also
+      delays some computations and adds a cheaper way for getting the
+      appcount
+  * lp:~mvo/software-center/icon-data:
+    - remove the need for inline icon data from the agent, instead
+      download icons directly using the provided URL
+  * softwarecenter/db/debfile.py:
+    - fix encoding error for some debs (based on 
+      lp:~roignac/software-center/bug-738771-summary-unicode), thanks
+      to Vadim Rutkovsky, LP: #738771
+  * softwarecenter/ui/gtk3/views/appdetailsview.py:
+    - fix crash in test/gtk3/test_views.py
+  * lp:~mvo/software-center/replace-restfulclient-with-piston:
+    - replace lazr.restfulclient with piston-mini-client for ubuntu-sso
+      and cleanup the piston-mini-client helper code
+
+  [ Gary Lasker ]
+  * softwarecenter/backend/channel_impl/aptchannels.py:
+    - display the correct label text for the For Purchase menu item
+      in the toolbar (LP: #911964)
+  * lp:~gary-lasker/software-center/date-published-cleanup:
+    - remove no longer needed code
+  * lp:~gary-lasker/software-center/replace-restfulclient-with-piston-tweaks:
+    - tweaks and fixes the branch
+  
+  [ Vadim Rutkovsky ]
+  * lp:~roignac/software-center/bug-632773-selectable-title:
+    - make the app title selectable (LP: #632773)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 06 Jan 2012 10:56:48 +0100
 
 software-center (5.1.4) precise; urgency=low
 

@@ -53,7 +53,6 @@ from softwarecenter.utils import (upstream_version_compare,
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   APP_INSTALL_PATH,
                                   XAPIAN_BASE_PATH,
-                                  PistonHelpers,
                                   )
 from softwarecenter.enums import ReviewSortMethods
 
@@ -107,13 +106,10 @@ class UsefulnessCache(object):
             return False
         
         # run the command and add watcher
-        cmd = [os.path.join(
-                softwarecenter.paths.datadir, PistonHelpers.GET_USEFUL_VOTES),
-               "--username", user, 
-              ]
         spawn_helper = SpawnHelper()
         spawn_helper.connect("data-available", self._on_usefulness_data)
-        spawn_helper.run(cmd)
+        spawn_helper.run_generic_piston_helper(
+            "RatingsAndReviewsAPI", "get_usefulness", username=user)
 
     def _on_usefulness_data(self, spawn_helper, results):
         '''called if usefulness retrieved from server'''

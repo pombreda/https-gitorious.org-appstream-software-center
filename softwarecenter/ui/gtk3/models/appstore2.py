@@ -32,7 +32,6 @@ from softwarecenter.utils import ExecutionTime, SimpleFileDownloader, split_icon
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.db.database import Application
-from softwarecenter.distro import get_distro
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 import softwarecenter.paths
@@ -75,27 +74,38 @@ class UncategorisedRowRef(CategoryRowReference):
         return
 
 
-class _AppPropertiesHelper(object):
+class _AppPropertiesHelper(GObject.GObject):
     """ Baseclass that contains common functions for our
         liststore/treestore, only useful for subclassing
     """
 
-    def _download_icon_and_show_when_ready(self, cache, pkgname, icon_file_name):
+    __gsignals__ = {
+        "needs-refresh" : (GObject.SignalFlags.RUN_LAST,
+                          None, 
+                           (str, ),
+                           ),
+        }
+
+    def __init__(self):
+        GObject.GObject.__init__(self)
+
+    def _download_icon_and_show_when_ready(self, url, pkgname, icon_file_name):
         LOG.debug("did not find the icon locally, must download %s" % icon_file_name)
 
-        def on_image_download_complete(downloader, image_file_path):
+        def on_image_download_complete(downloader, image_file_path, pkgname):
+            LOG.debug("download for '%s' complete" % image_file_path)
             pb = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file_path,
-                                                      self.icon_size,
-                                                      self.icon_size)
+                                                        self.icon_size,
+                                                        self.icon_size)
             # replace the icon in the icon_cache now that we've got the real one
             icon_file = split_icon_ext(os.path.basename(image_file_path))
             self.icon_cache[icon_file] = pb
+            self.emit("needs-refresh", pkgname)
         
-        url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
         if url is not None:
             icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
             image_downloader = SimpleFileDownloader()
-            image_downloader.connect('file-download-complete', on_image_download_complete)
+            image_downloader.connect('file-download-complete', on_image_download_complete, pkgname)
             image_downloader.download_file(url, icon_file_path)
 
     def update_availability(self, doc):
@@ -163,7 +173,8 @@ class _AppPropertiesHelper(object):
 
     def get_icon(self, doc):
         try:
-            icon_file_name = split_icon_ext(self.db.get_iconname(doc))
+            full_icon_file_name = self.db.get_iconname(doc)
+            icon_file_name = split_icon_ext(full_icon_file_name)
             if icon_file_name:
                 icon_name = icon_file_name
                 if icon_name in self.icon_cache:
@@ -178,13 +189,14 @@ class _AppPropertiesHelper(object):
                     if icon:
                         self.icon_cache[icon_name] = icon
                         return icon
-                #~ elif self.db.get_icon_needs_download(doc):
-                    #~ self._download_icon_and_show_when_ready(
-                        #~ self.cache, 
-                        #~ self.get_pkgname(doc),
-                        #~ icon_file_name)
-                    #~ # display the missing icon while the real one downloads
-                    #~ self.icon_cache[icon_name] = self._missing_icon
+                elif self.db.get_icon_download_url(doc):
+                    url = self.db.get_icon_download_url(doc)
+                    self._download_icon_and_show_when_ready(
+                        url,
+                        self.get_pkgname(doc),
+                        full_icon_file_name)
+                    # display the missing icon while the real one downloads
+                    self.icon_cache[icon_name] = self._missing_icon
         except GObject.GError as e:
             LOG.debug("get_icon returned '%s'" % e)
         return self._missing_icon
@@ -230,6 +242,7 @@ class _AppPropertiesHelper(object):
 class AppPropertiesHelper(_AppPropertiesHelper):
 
     def __init__(self, db, cache, icons, icon_size=48, global_icon_cache=False):
+        super(AppPropertiesHelper, self).__init__()
         self.db = db
         self.cache = cache
 
@@ -388,12 +401,15 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         three times faster than the AppTreeStore equivalent
     """
 
-    from gi.repository import GObject
-
     __gsignals__ = {
         "appcount-changed" : (GObject.SignalFlags.RUN_LAST,
                               None, 
                               (GObject.TYPE_PYOBJECT, ),
+                             ),
+        # meh, this is a signal from AppPropertiesHelper
+        "needs-refresh" : (GObject.SignalFlags.RUN_LAST,
+                              None, 
+                              (str, ),
                              ),
         }
 
@@ -439,7 +455,7 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         db = self.db.xapiandb
         matches = self.current_matches
 
-        n_matches = len(matches)
+        n_matches = len(matches or [])
 
         start = indices[0]
         end = start + step

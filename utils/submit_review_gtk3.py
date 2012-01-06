@@ -50,7 +50,7 @@ except ImportError:
 from gettext import gettext as _
 from optparse import OptionParser
 
-from softwarecenter.backend.restfulclient import get_ubuntu_sso_backend
+from softwarecenter.backend.ubuntusso import get_ubuntu_sso_backend
 
 import piston_mini_client
 
@@ -62,7 +62,6 @@ from softwarecenter.backend.login_sso import get_sso_backend
 from softwarecenter.backend.reviews import Review
 from softwarecenter.db.database import Application
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
-from softwarecenter.utils import clear_token_from_ubuntu_sso
 from softwarecenter.i18n import get_language
 from softwarecenter.ui.gtk3.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.ui.gtk3.dialogs import SimpleGtkbuilderDialog
@@ -490,6 +489,8 @@ class BaseApp(SimpleGtkbuilderApp):
         self.ssoapi = get_ubuntu_sso_backend(self.token)
         self.ssoapi.connect("whoami", self._whoami_done)
         self.ssoapi.connect("error", self._whoami_error)
+        # this will automatically verify the token and retrigger login 
+        # if its expired
         self.ssoapi.whoami()
 
     def _whoami_done(self, ssologin, result):
@@ -500,22 +501,6 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def _whoami_error(self, ssologin, e):
         logging.error("whoami error '%s'" % e)
-        # HACK: clear the token from the keyring assuming that it expired
-        #       or got deauthorized by the user on the website
-        # this really should be done by ubuntu-sso-client itself
-        import lazr.restfulclient.errors
-        # compat  with maverick, it does not have Unauthorized yet
-        if hasattr(lazr.restfulclient.errors, "Unauthorized"):
-            errortype = lazr.restfulclient.errors.Unauthorized
-        else:
-            errortype = lazr.restfulclient.errors.HTTPError
-        if (type(e) == errortype and
-            self._whoami_token_reset_nr == 0):
-            logging.warn("authentication error, reseting token and retrying")
-            clear_token_from_ubuntu_sso(self.appname)
-            self._whoami_token_reset_nr += 1
-            self.login(show_register=False)
-            return
         # show error
         self.status_spinner.hide()
         self.login_status_label.set_markup('<b><big>%s</big></b>' % _("Failed to log in"))
@@ -703,7 +688,8 @@ class SubmitReviewsApp(BaseApp):
     
     def _init_modify(self):
         self._populate_review()
-	self.submit_window.set_title(_("Modify Your %s Review") % gettext.dgettext("app-install-data", self.app.name))
+        self.submit_window.set_title(_("Modify Your %(appname)s Review") % {
+            'appname': gettext.dgettext("app-install-data", self.app.name)})
         self.button_post.set_label(_("Modify"))
         self.SUBMIT_MESSAGE = _("Updating your review")
         self.FAILURE_MESSAGE = _("Failed to edit review")

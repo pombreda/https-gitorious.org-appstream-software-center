@@ -21,8 +21,6 @@
 
 import os
 from gi.repository import GObject
-GObject.threads_init()
-from gi.repository import GObject
 import time
 import threading
 

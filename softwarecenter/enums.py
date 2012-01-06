@@ -34,6 +34,15 @@ SOFTWARE_CENTER_SSO_DESCRIPTION = _(
 BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "https://software-center.ubuntu.com"
 BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "http://software-center.ubuntu.com"
 
+# recommender
+RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or "https://recommender.software-center.ubuntu.com"
+
+# for the sso login
+UBUNTU_SSO_SERVICE = os.environ.get(
+    "USSOC_SERVICE_URL", "https://login.ubuntu.com/")
+SSO_LOGIN_HOST = UBUNTU_SSO_SERVICE
+
+
 # version of the database, every time something gets added (like 
 # terms for mime-type) increase this (but keep as a string!)
 DB_SCHEMA_VERSION = "6"

@@ -699,6 +699,7 @@ class AppDetailsView(Viewport):
         self.cache = cache
         self.backend = get_install_backend()
         self.cache.connect("cache-ready", self._on_cache_ready)
+        self.connect("destroy", self._on_destroy)
         self.datadir = datadir
         self.app = None
         self.appdetails = None
@@ -761,6 +762,9 @@ class AppDetailsView(Viewport):
         self.connect('realize', self._on_realize)
         self.loaded = True
         return
+
+    def _on_destroy(self, widget):
+        self.cache.disconnect_by_func(self._on_cache_ready)
 
     def _cache_art_assets(self):
         global _asset_cache
@@ -994,7 +998,9 @@ class AppDetailsView(Viewport):
         self.title.set_alignment(0, 0.5)
         self.subtitle.set_alignment(0, 0.5)
         self.title.set_line_wrap(True)
+        self.title.set_selectable(True)
         self.subtitle.set_line_wrap(True)
+        self.subtitle.set_selectable(True)
         vb_inner=Gtk.VBox()
         vb_inner.pack_start(self.title, False, False, 0)
         vb_inner.pack_start(self.subtitle, False, False, 0)
@@ -1527,7 +1533,10 @@ class AppDetailsView(Viewport):
             self._update_all(self.app_details,
                              skip_update_addons=(type(self.app)==DebFileApplication))
 
-        self.title.grab_focus()
+        # this is a bit silly, but without it and self.title being selectable
+        # gtk will select the entire title (which looks ugly). this grab works
+        # around that
+        self.icon.grab_focus()
 
         self.emit("selected", self.app)
         return

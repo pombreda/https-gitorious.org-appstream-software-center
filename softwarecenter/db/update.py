@@ -17,7 +17,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import base64
 import logging
 import os
 import json
@@ -563,22 +562,6 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
         try:
             # magic channel
             entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
-            # icon is transmitted inline
-            if hasattr(entry, "icon_data") and entry.icon_data:
-                icondata = base64.b64decode(entry.icon_data)
-            elif hasattr(entry, "icon_64_data") and entry.icon_64_data:
-                # workaround for scagent bug #740112
-                icondata = base64.b64decode(entry.icon_64_data)
-            else:
-                icondata = ""
-            # write it if we have data
-            if icondata:
-            # the iconcache gets mightly confused if there is a "." in the name
-                iconname = "sc-agent-%s" % entry.package_name.replace(".", "__")
-                open(os.path.join(
-                        softwarecenter.paths.SOFTWARE_CENTER_ICON_CACHE_DIR,
-                        "%s.png" % iconname),"w").write(icondata)
-                entry.icon = iconname
             # now the normal parser
             parser = SoftwareCenterAgentParser(entry)
             index_app_info_from_parser(parser, db, cache)
@@ -655,16 +638,6 @@ def index_app_info_from_parser(parser, db, cache):
             if pkgname in cataloged_times:
                 doc.add_value(axi_values["catalogedtime"], 
                               xapian.sortable_serialise(cataloged_times[pkgname]))
-            else:
-                #####################################################
-                # TODO: This is just a fallback so that we keep our current
-                #       behavior of having new items for-purchase appear in
-                #       what's new...THIS SHOULD BE REMOVED after support
-                #       for date_purchased in the agent has been deployed
-                #       to the production server
-                doc.add_value(axi_values["catalogedtime"], 
-                              xapian.sortable_serialise(time.time()))
-                #####################################################
         # pocket (main, restricted, ...)
         if parser.has_option_desktop("X-AppInstall-Section"):
             archive_section = parser.get_desktop("X-AppInstall-Section")
@@ -745,7 +718,10 @@ def index_app_info_from_parser(parser, db, cache):
             url = parser.get_desktop("X-AppInstall-Icon-Url")
             doc.add_value(XapianValues.ICON_URL, url)
             if not parser.has_option_desktop("X-AppInstall-Icon"):
-                doc.add_value(XapianValues.ICON, os.path.basename(url))
+                # prefix pkgname to avoid name clashes
+                doc.add_value(XapianValues.ICON, "%s-icon-%s" % (
+                        pkgname, os.path.basename(url)))
+
         # price (pay stuff)
         if parser.has_option_desktop("X-AppInstall-Price"):
             price = parser.get_desktop("X-AppInstall-Price")
