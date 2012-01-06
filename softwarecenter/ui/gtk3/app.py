@@ -1230,6 +1230,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def run(self, args):
         self.window_main.show_all()
+
         # support both "pkg1 pkg" and "pkg1,pkg2" (and pkg1,pkg2 pkg3)
         if args:
             for (i, arg) in enumerate(args[:]):

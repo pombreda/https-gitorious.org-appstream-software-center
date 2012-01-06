@@ -136,17 +136,27 @@ if __name__ == "__main__":
     if options.measure_startup_time:
         logger = logging.getLogger("softwarecenter.performance")
         with ExecutionTime("show() & gtk events until visible"):
-            # run app.run() in event loop
-            GObject.timeout_add(1, app.run, args)
-            # keep monitoring the loop
-            main_visible = False
-            while not (app.available_pane.cat_view and
-                       app.available_pane.cat_view.get_visible()):
-                Gtk.main_iteration_do(True)
+            def are_we_there_yet():
+                """ small helper that monitors the main window appearance """
+                global main_visible
+                # useful to check how often this is run - not often :/
+                #print time.time()
                 if not main_visible and app.window_main.get_visible():
                     logger.debug("** main window visible after: %s seconds" % (
                             time.time() - time_entering_main))
                     main_visible = True
+                    return False
+                return True
+
+            # run watcher for main window
+            main_visible = False
+            GObject.timeout_add(100, are_we_there_yet)
+            app.run(args)
+
+            # keep monitoring the loop
+            while not (app.available_pane.cat_view and
+                       app.available_pane.cat_view.get_visible()):
+                Gtk.main_iteration_do(True)
 
         time_to_ready = time.time() - time_entering_main
         print(time_to_ready)
