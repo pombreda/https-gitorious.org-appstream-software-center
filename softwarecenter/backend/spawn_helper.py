@@ -77,7 +77,7 @@ class SpawnHelper(GObject.GObject):
             cmd.append("--ignore-cache")
         if self.parent_xid:
             cmd.append("--parent-xid")
-            cmd.append(str(xid))
+            cmd.append(str(self.parent_xid))
         cmd += [klass, func]
         if kwargs:
             cmd.append(json.dumps(kwargs))

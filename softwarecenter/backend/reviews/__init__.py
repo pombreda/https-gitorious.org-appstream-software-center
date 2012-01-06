@@ -19,7 +19,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import datetime
-import json
 import logging
 import operator
 import os
@@ -54,7 +53,6 @@ from softwarecenter.utils import (upstream_version_compare,
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   APP_INSTALL_PATH,
                                   XAPIAN_BASE_PATH,
-                                  PistonHelpers,
                                   )
 from softwarecenter.enums import ReviewSortMethods
 
