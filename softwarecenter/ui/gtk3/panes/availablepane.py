@@ -373,7 +373,8 @@ class AvailablePane(SoftwarePane):
         # we only add items to the launcher that have a desktop file
         if not appdetails.desktop_file:
             return
-        # do not add apps without a exec line (like wine, see #848437)
+        # do not add apps that have NoDisplay=true in their desktop file
+        # (e.g. wine, see #848437)
         if (os.path.exists(appdetails.desktop_file) and
             is_no_display_desktop_file(appdetails.desktop_file)):
             return
