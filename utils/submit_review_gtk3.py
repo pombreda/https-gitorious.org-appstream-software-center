@@ -486,7 +486,7 @@ class BaseApp(SimpleGtkbuilderApp):
         """ called after we have the token, then we go and figure out our name """
         logging.debug("_maybe_login_successful")
         self.token = oauth_result
-        self.ssoapi = get_ubuntu_sso_backend(self.token)
+        self.ssoapi = get_ubuntu_sso_backend()
         self.ssoapi.connect("whoami", self._whoami_done)
         self.ssoapi.connect("error", self._whoami_error)
         # this will automatically verify the token and retrigger login 
