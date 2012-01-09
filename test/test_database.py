@@ -363,6 +363,15 @@ app-popcon	4	# app-install .desktop popcon rank
         self.assertNotEqual(axi_values, {})
         print axi_values
 
+    def test_appdetails(self):
+        from softwarecenter.testutils import get_test_db
+        db = get_test_db()
+        if os.path.exists("/var/lib/debtags/"):
+            details = AppDetails(db, application=Application("", "mount"))
+            self.assertTrue(len(details.tags) > 2)
+        else:
+            logging.warn("Skipping debtags test as debtags is not installed")
+
     def test_app_enquire(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
         db.open()

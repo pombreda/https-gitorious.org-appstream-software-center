@@ -43,6 +43,7 @@ Depends: ${python:Depends},
          ubuntu-sso-client (>= 0.99.6),
          python-piston-mini-client (>= 0.1+bzr29),
          oneconf (>= 0.2.6),
+         debtags
 Recommends: lsb-release, 
             gir1.2-launchpad-integration-3.0, 
             apt-xapian-index (>= 0.38ubuntu1), 

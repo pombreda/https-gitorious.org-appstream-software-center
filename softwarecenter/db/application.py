@@ -511,6 +511,16 @@ class AppDetails(GObject.GObject):
                    ]
         return self._screenshot_list
 
+    @property
+    def tags(self):
+        """ return a set() of tags """
+        terms = set()
+        if self._doc:
+            for term_iter in self._doc.termlist():
+                if term_iter.term.startswith("XT"):
+                    terms.add(term_iter.term[2:])
+        return terms
+
     def query_multiple_screenshots(self):
         """ query if multiple screenshots for the given app are available
             and if so, emit "screenshots-available" signal
