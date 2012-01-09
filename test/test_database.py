@@ -117,7 +117,7 @@ class TestDatabase(unittest.TestCase):
                             ppa.count("/") == 1, 
                             "ARCHIVE_PPA value incorrect, got '%s'" % ppa)
             self.assertTrue(
-                doc.get_value(XapianValues.ICON).startswith("sc-agent"))
+                "-icon-" in doc.get_value(XapianValues.ICON))
 
     def test_license_string_data_from_software_center_agent(self):
         from softwarecenter.db.update import update_from_software_center_agent
@@ -249,7 +249,7 @@ class TestDatabase(unittest.TestCase):
         appdetails = app.get_details(db)
         self.assertEqual(appdetails.pkg_state, PkgStates.NEEDS_PURCHASE)
         self.assertEqual(appdetails.icon_url, "http://www.google.com/favicon.ico")
-        self.assertEqual(appdetails.icon, "favicon")
+        self.assertEqual(appdetails.icon, "expensive-gem-icon-favicon")
         # test PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED
         # test PkgStates.UNKNOWN
         app = Application("Scintillant Orange", "scintillant-orange")
