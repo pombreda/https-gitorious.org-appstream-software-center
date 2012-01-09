@@ -311,6 +311,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
+        LOG.debug("show_appview_spinner")
         if not self.state.search_term:
             self.action_bar.clear()
         self.spinner_view.stop()
@@ -320,11 +321,13 @@ class SoftwarePane(Gtk.VBox, BasePane):
         GObject.timeout_add(100, self._unmask_appview_spinner)
         
     def _unmask_appview_spinner(self):
+        LOG.debug("_unmask_appview_spinner")
         self.spinner_view.start()
         return False
         
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
+        LOG.debug("hide_appview_spinner")
         self.spinner_notebook.set_current_page(
                                         SoftwarePane.Pages.APPVIEW)
         self.spinner_view.stop()

@@ -22,7 +22,7 @@ import time
 time_entering_main = time.time()
 
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 
 import gettext
 import glob
@@ -136,16 +136,28 @@ if __name__ == "__main__":
     if options.measure_startup_time:
         logger = logging.getLogger("softwarecenter.performance")
         with ExecutionTime("show() & gtk events until visible"):
-            app.run(args)
-            main_visible = False
-            while not (app.available_pane.cat_view and
-                       app.available_pane.cat_view.get_visible()):
-                if Gtk.events_pending():
-                    Gtk.main_iteration()
+            def are_we_there_yet():
+                """ small helper that monitors the main window appearance """
+                global main_visible
+                # useful to check how often this is run - not often :/
+                print time.time()
                 if not main_visible and app.window_main.get_visible():
                     logger.debug("** main window visible after: %s seconds" % (
                             time.time() - time_entering_main))
                     main_visible = True
+                    return False
+                return True
+
+            # run watcher for main window
+            main_visible = False
+            GObject.timeout_add(100, are_we_there_yet)
+            app.run(args)
+
+            # keep monitoring the loop
+            while not (app.available_pane.cat_view and
+                       app.available_pane.cat_view.get_visible()):
+                Gtk.main_iteration_do(True)
+
         time_to_ready = time.time() - time_entering_main
         print(time_to_ready)
         logger.debug("** main window fully ready after: %s seconds" % time_to_ready)

@@ -1,3 +1,16 @@
+software-center (5.1.6) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/startup-speed2:
+    - additional startup speed improvements, brings up main window
+      much more quickly
+      
+  [Christopher Kyle Horton]
+  * utils/submit_review_gtk3.py:
+    - fix crash when submitting a review (LP: #912855)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 09 Jan 2012 12:34:12 -0500
+
 software-center (5.1.5.1) precise; urgency=low
 
   [ Kiwinote ]
@@ -10,12 +23,7 @@ software-center (5.1.5.1) precise; urgency=low
     - Enable (from the new spec) removing a host which isn't the 
       current one from the gui. 
   
-  [Christopher Kyle Horton]
-  * utils/submit_review_gtk3.py:
-    - use correct signature for get_ubuntu_sso_backend (LP: #912855)
-  
-
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 09 Jan 2012 10:53:13 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 06 Jan 2012 13:03:01 +0100
 
 software-center (5.1.5) precise; urgency=low
 
