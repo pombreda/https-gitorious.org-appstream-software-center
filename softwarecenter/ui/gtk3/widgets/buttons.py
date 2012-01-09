@@ -62,7 +62,7 @@ class _Tile(object):
                 self.image = icon
             else:
                 self.image = Gtk.Image()
-                self.image = _update_icon(icon, icon_size)
+                _update_icon(self.image, icon, icon_size)
             self.box.pack_start(self.image, True, True, 0)
 
         self.label = Gtk.Label.new(label)
