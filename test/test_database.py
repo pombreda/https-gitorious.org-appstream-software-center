@@ -261,6 +261,9 @@ class TestDatabase(unittest.TestCase):
         app = Application("Scintillant Orange", "scintillant-orange")
         appdetails = app.get_details(db)
         self.assertEqual(appdetails.pkg_state, PkgStates.NOT_FOUND)
+        self.assertEqual(
+            appdetails.tags,
+            set(['use::converting', 'role::program', 'implemented-in::perl']))
 
     def test_packagename_is_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)

@@ -154,6 +154,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Video-Url' :  'video_url',
                 'Icon-Url'   : 'icon_url',
                 'Support-Url'   : 'support_url',
+                'Tags'   : 'tags',
               }
 
     # map from requested key to a static data element
@@ -736,6 +737,12 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("Icon"):
             icon = parser.get_desktop("Icon")
             doc.add_value(XapianValues.ICON, icon)
+        # (deb)tags (in addition to the pkgname debtags
+        if parser.has_option_desktop("X-AppInstall-Tags"):
+            tags = parser.get_desktop("X-AppInstall-Tags")
+            if tags:
+                for tag in tags.split(","):
+                    doc.add_term("XT"+tag.strip())
         # write out categories
         for cat in parser.get_desktop_categories():
             doc.add_term("AC"+cat.lower())
