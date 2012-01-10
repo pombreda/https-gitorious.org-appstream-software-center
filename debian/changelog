@@ -1,4 +1,4 @@
-software-center (5.0.3.2) UNRELEASED; urgency=low
+software-center (5.0.4) oneiric-proposed; urgency=low
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-lp891499-for-5.0:
@@ -18,7 +18,7 @@ software-center (5.0.3.2) UNRELEASED; urgency=low
     - remove the need for inline icon data from the agent, instead
       download icons directly using the provided URL (LP: #914054)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 09 Jan 2012 19:58:54 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 10 Jan 2012 09:52:09 +0100
 
 software-center (5.0.3.1) oneiric-proposed; urgency=low
 
