@@ -36,7 +36,7 @@ from softwarecenter.enums import (ActionButtons,
                                   TransactionTypes)
 from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import (wait_for_apt_cache_ready,
-                                  is_no_display_desktop_file,
+                                  get_exec_line_from_desktop,
                                   convert_desktop_file_to_installed_location,
                                   get_file_path_from_iconname)
 from softwarecenter.db.appfilter import AppFilter
@@ -373,10 +373,11 @@ class AvailablePane(SoftwarePane):
         # we only add items to the launcher that have a desktop file
         if not appdetails.desktop_file:
             return
-        # do not add apps that have NoDisplay=true in their desktop file
-        # (e.g. wine, see #848437)
+        # do not add apps that have no Exec entry in their desktop file
+        # (e.g. wine, see LP: #848437 or ubuntu-restricted-extras,
+        # see LP: #913756)
         if (os.path.exists(appdetails.desktop_file) and
-            is_no_display_desktop_file(appdetails.desktop_file)):
+            not get_exec_line_from_desktop(appdetails.desktop_file)):
             return
 
         (icon_size, icon_x, icon_y) = self._get_onscreen_icon_details_for_launcher_service(app)
