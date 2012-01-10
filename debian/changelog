@@ -9,7 +9,13 @@ software-center (5.1.6) UNRELEASED; urgency=low
   * utils/submit_review_gtk3.py:
     - fix crash when submitting a review (LP: #912855)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 09 Jan 2012 12:34:12 -0500
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/fix-lp913756:
+    - do not add an icon to the Unity launcher for packages that do
+      not have an Exec entry in their corresponding desktop file,
+      e.g. ubuntu-restricted-extras, wine (LP: #913756)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 10 Jan 2012 15:56:44 -0500
 
 software-center (5.1.5.1) precise; urgency=low
 
