@@ -390,7 +390,7 @@ class AppStore(gtk.GenericTreeModel):
             # replace the icon in the icon_cache now that we've got the real one
             icon_file = os.path.splitext(os.path.basename(image_file_path))[0]
             self.icon_cache[icon_file] = pb
-        
+
         url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
         if url is not None:
             icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
@@ -514,6 +514,11 @@ class AppStore(gtk.GenericTreeModel):
                             self.icon_cache[icon_name] = icon
                             return icon
                     elif self.db.get_icon_needs_download(doc):
+                        # check if this is a downloadable icon for an
+                        # application provided by the agent
+                        icon_url = self.db.get_icon_url(doc)
+                        if icon_url:
+                            print ">>> icon_url: ", icon_url
                         self._download_icon_and_show_when_ready(self.cache, 
                                                                 app.pkgname,
                                                                 icon_file_name)

@@ -122,6 +122,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Purchased-Date' : 'purchase_date',
                 'PPA'        : 'archive_id',
                 'Icon'       : 'icon',
+                'Icon-Url'   : 'icon_url',
                 'Screenshot-Url' : 'screenshot_url',
                 'Thumbnail-Url' : 'thumbnail_url',
               }
@@ -571,6 +572,15 @@ def index_app_info_from_parser(parser, db, cache):
             # add archive origin data here so that its available even if
             # the PPA is not (yet) enabled
             doc.add_term("XOO"+"lp-ppa-%s" % archive_ppa.replace("/", "-"))
+        # icon (for third party)
+        if parser.has_option_desktop("X-AppInstall-Icon-Url"):
+            doc.add_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD, "1")
+            url = parser.get_desktop("X-AppInstall-Icon-Url")
+            doc.add_value(XAPIAN_VALUE_ICON_URL, url)
+            if not parser.has_option_desktop("X-AppInstall-Icon"):
+                # prefix pkgname to avoid name clashes
+                doc.add_value(XAPIAN_VALUE_ICON, "%s-icon-%s" % (
+                        pkgname, os.path.basename(url)))
         # screenshot (for third party)
         if parser.has_option_desktop("X-AppInstall-Screenshot-Url"):
             url = parser.get_desktop("X-AppInstall-Screenshot-Url")
