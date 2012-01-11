@@ -85,6 +85,13 @@ class AppStore(gtk.GenericTreeModel):
     (NONAPPS_ALWAYS_VISIBLE,
      NONAPPS_MAYBE_VISIBLE,
      NONAPPS_NEVER_VISIBLE) = range (3)
+     
+    __gsignals__ = {
+        "needs-refresh" : (gobject.SIGNAL_RUN_LAST,
+                           None, 
+                           (str, ),
+                           ),
+        }
 
     def __init__(self, cache, db, icons, search_query=None, 
                  limit=DEFAULT_SEARCH_LIMIT,
@@ -390,6 +397,7 @@ class AppStore(gtk.GenericTreeModel):
             # replace the icon in the icon_cache now that we've got the real one
             icon_file = os.path.splitext(os.path.basename(image_file_path))[0]
             self.icon_cache[icon_file] = pb
+            self.emit("needs-refresh", pkgname)
 
         if icon_url:
             url = icon_url
