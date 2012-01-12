@@ -18,7 +18,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import Gdk, Gtk
+from gi.repository import Gtk
 import logging
 import xapian
 from gi.repository import GObject
@@ -588,19 +588,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.notebook.set_current_page(InstalledPane.Pages.LIST)
         self.hide_installed_view_spinner()
         return
-        
-    def on_search_entry_key_press_event(self, event):
-        """callback when a key is pressed in the search entry widget"""
-        if not self.is_applist_view_showing():
-            return
-        if ((event.keyval == Gdk.keyval_from_name("Down") or
-            event.keyval == Gdk.keyval_from_name("KP_Down")) and
-            self.is_applist_view_showing() and
-            len(self.app_view.tree_view.get_model()) > 0):
-            # select the first item in the applist search result
-            self.app_view.tree_view.grab_focus()
-            self.app_view.tree_view.set_cursor(Gtk.TreePath(),
-                                                   None, False)
 
     def _get_vis_cats(self, visids):
         vis_cats = {}

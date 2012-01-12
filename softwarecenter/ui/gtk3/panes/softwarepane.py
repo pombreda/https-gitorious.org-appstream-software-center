@@ -511,11 +511,20 @@ class SoftwarePane(Gtk.VBox, BasePane):
         # use the appview combo
         return self.app_view.get_sort_mode()
 
-    def on_search_terms_changed(self, terms):
-        " stub implementation "
-        pass
-        
     def on_search_entry_key_press_event(self, event):
+        """callback when a key is pressed in the search entry widget"""
+        if not self.is_applist_view_showing():
+            return
+        if ((event.keyval == Gdk.keyval_from_name("Down") or
+            event.keyval == Gdk.keyval_from_name("KP_Down")) and
+            self.is_applist_view_showing() and
+            len(self.app_view.tree_view.get_model()) > 0):
+            # select the first item in the applist search result
+            self.app_view.tree_view.grab_focus()
+            self.app_view.tree_view.set_cursor(Gtk.TreePath(),
+                                                   None, False)
+
+    def on_search_terms_changed(self, terms):
         " stub implementation "
         pass
 

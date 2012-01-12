@@ -18,7 +18,7 @@
 
 import gettext
 from gi.repository import GObject
-from gi.repository import Gdk, Gtk
+from gi.repository import Gtk
 import logging
 import xapian
 import os
@@ -543,19 +543,6 @@ class AvailablePane(SoftwarePane):
             return False
         vm.display_page(self, AvailablePane.Pages.LIST, self.state,
                         self.display_search_page)
-                        
-    def on_search_entry_key_press_event(self, event):
-        """callback when a key is pressed in the search entry widget"""
-        if not self.is_applist_view_showing():
-            return
-        if ((event.keyval == Gdk.keyval_from_name("Down") or
-            event.keyval == Gdk.keyval_from_name("KP_Down")) and
-            self.is_applist_view_showing() and
-            len(self.app_view.tree_view.get_model()) > 0):
-            # select the first item in the applist search result
-            self.app_view.tree_view.grab_focus()
-            self.app_view.tree_view.set_cursor(Gtk.TreePath(),
-                                                   None, False)
 
     def on_db_reopen(self, db):
         " called when the database is reopened"
