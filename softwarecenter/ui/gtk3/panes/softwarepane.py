@@ -514,6 +514,10 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def on_search_terms_changed(self, terms):
         " stub implementation "
         pass
+        
+    def on_search_entry_key_press_event(self, event):
+        " stub implementation "
+        pass
 
     def on_db_reopen(self):
         " stub implementation "
