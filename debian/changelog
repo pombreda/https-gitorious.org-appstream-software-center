@@ -1,4 +1,4 @@
-software-center (4.0.7) UNRELEASED; urgency=low
+software-center (4.0.7) natty-proposed; urgency=low
 
   * lp:~gary-lasker/software-center/icon-data-for-4.0:
     - remove the need for inline icon data from the agent, instead
