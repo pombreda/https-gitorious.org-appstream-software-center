@@ -84,7 +84,8 @@ from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 from softwarecenter.ui.gtk3.panes.historypane import HistoryPane
 from softwarecenter.ui.gtk3.panes.globalpane import GlobalPane
 from softwarecenter.ui.gtk3.panes.pendingpane import PendingPane
-from softwarecenter.ui.gtk3.session.appmanager import ApplicationManager
+from softwarecenter.ui.gtk3.session.appmanager import (ApplicationManager,
+                                                       get_appmanager)
 from softwarecenter.ui.gtk3.session.viewmanager import (
     ViewManager, get_viewmanager)
 
@@ -769,11 +770,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.on_application_request_action(self, app, [], [], AppActions.INSTALL)
+        get_appmanager().request_action(app, [], [], AppActions.INSTALL)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.on_application_request_action(self, app, [], [], AppActions.REMOVE)
+        get_appmanager().request_action(app, [], [], AppActions.REMOVE)
         
     def on_menuitem_close_activate(self, widget):
         Gtk.main_quit()
