@@ -86,5 +86,5 @@ XAPIAN_VALUE_PURCHASED_DATE - the data a for-pay app was purchased (only availab
 XAPIAN_VALUE_SCREENSHOT_URL - a (optional) screenshot url that overrides the default
 XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD - icon needs to be fetched
 XAPIAN_VALUE_THUMBNAIL_URL - thumbnail url 
-XAPIAN_VALUE_ICON_URL - the icon url for an applicaton that has been provided by the agent (only available after the software-center-agent server was queried)
+XAPIAN_VALUE_ICON_URL - the icon url for an application that has been provided by the agent (only available after the software-center-agent server was queried)
 
