@@ -14,8 +14,11 @@ software-center (5.1.6) UNRELEASED; urgency=low
     - do not add an icon to the Unity launcher for packages that do
       not have an Exec entry in their corresponding desktop file,
       e.g. ubuntu-restricted-extras, wine (LP: #913756)
+  * lp:~gary-lasker/software-center/fix-lp896474:
+    - fix crash when attempting to install or remove an item
+      via the menu (LP: #896474) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 10 Jan 2012 15:56:44 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 12 Jan 2012 17:33:06 -0500
 
 software-center (5.1.5.1) precise; urgency=low
 
