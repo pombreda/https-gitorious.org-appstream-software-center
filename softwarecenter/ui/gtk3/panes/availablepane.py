@@ -548,9 +548,10 @@ class AvailablePane(SoftwarePane):
         """callback when a key is pressed in the search entry widget"""
         if not self.is_applist_view_showing():
             return
-        if (event.keyval == Gdk.keyval_from_name("Down") or
-            event.keyval == Gdk.keyval_from_name("KP_Down") and
-            self.is_applist_view_showing()):
+        if ((event.keyval == Gdk.keyval_from_name("Down") or
+            event.keyval == Gdk.keyval_from_name("KP_Down")) and
+            self.is_applist_view_showing() and
+            len(self.app_view.tree_view.get_model()) > 0):
             # select the first item in the applist search result
             self.app_view.tree_view.grab_focus()
             self.app_view.tree_view.set_cursor(Gtk.TreePath(),
