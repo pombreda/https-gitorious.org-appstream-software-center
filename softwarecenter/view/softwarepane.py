@@ -719,6 +719,10 @@ class SoftwarePane(gtk.VBox, BasePane):
         # set model
         self.app_view.set_model(new_model)
         self.app_view.get_model().active = True
+        
+        # connect the refresh signal from the model
+        new_model.connect(
+            "needs-refresh", lambda helper, pkgname: self.app_view.queue_draw())
 
         self.hide_appview_spinner()
         # we can not use "new_model" here, because set_model may actually

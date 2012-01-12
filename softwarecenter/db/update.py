@@ -122,6 +122,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Purchased-Date' : 'purchase_date',
                 'PPA'        : 'archive_id',
                 'Icon'       : 'icon',
+                'Icon-Url'   : 'icon_url',
                 'Screenshot-Url' : 'screenshot_url',
                 'Thumbnail-Url' : 'thumbnail_url',
               }
@@ -472,21 +473,6 @@ def update_from_software_center_agent(db, cache, ignore_etag=False,
         try:
             # magic channel
             entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
-            # icon is transmited inline
-            if hasattr(entry, "icon_data") and entry.icon_data:
-                icondata = base64.b64decode(entry.icon_data)
-            elif hasattr(entry, "icon_64_data") and entry.icon_64_data:
-                # workaround for scagent bug #740112
-                icondata = base64.b64decode(entry.icon_64_data)
-            else:
-                icondata = ""
-            # write it if we have data
-            if icondata:
-		# the iconcache gets mightly confused if there is a "." in the name
-                iconname = "sc-agent-%s" % entry.package_name.replace(".", "__")
-                open(os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
-                                  "%s.png" % iconname),"w").write(icondata)
-                entry.icon = iconname
             # now the normal parser
             parser = SoftwareCenterAgentParser(entry)
             index_app_info_from_parser(parser, db, cache)
@@ -586,6 +572,15 @@ def index_app_info_from_parser(parser, db, cache):
             # add archive origin data here so that its available even if
             # the PPA is not (yet) enabled
             doc.add_term("XOO"+"lp-ppa-%s" % archive_ppa.replace("/", "-"))
+        # icon (for third party)
+        if parser.has_option_desktop("X-AppInstall-Icon-Url"):
+            doc.add_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD, "1")
+            url = parser.get_desktop("X-AppInstall-Icon-Url")
+            doc.add_value(XAPIAN_VALUE_ICON_URL, url)
+            if not parser.has_option_desktop("X-AppInstall-Icon"):
+                # prefix pkgname to avoid name clashes
+                doc.add_value(XAPIAN_VALUE_ICON, "%s-icon-%s" % (
+                        pkgname, os.path.basename(url)))
         # screenshot (for third party)
         if parser.has_option_desktop("X-AppInstall-Screenshot-Url"):
             url = parser.get_desktop("X-AppInstall-Screenshot-Url")

@@ -85,6 +85,13 @@ class AppStore(gtk.GenericTreeModel):
     (NONAPPS_ALWAYS_VISIBLE,
      NONAPPS_MAYBE_VISIBLE,
      NONAPPS_NEVER_VISIBLE) = range (3)
+     
+    __gsignals__ = {
+        "needs-refresh" : (gobject.SIGNAL_RUN_LAST,
+                           None, 
+                           (str, ),
+                           ),
+        }
 
     def __init__(self, cache, db, icons, search_query=None, 
                  limit=DEFAULT_SEARCH_LIMIT,
@@ -381,7 +388,7 @@ class AppStore(gtk.GenericTreeModel):
         if result.pkgname in self.transaction_index_map:
             del self.transaction_index_map[result.pkgname]
 
-    def _download_icon_and_show_when_ready(self, cache, pkgname, icon_file_name):
+    def _download_icon_and_show_when_ready(self, cache, pkgname, icon_file_name, icon_url):
         self._logger.debug("did not find the icon locally, must download %s" % icon_file_name)
         def on_image_download_complete(downloader, image_file_path):
             pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
@@ -390,8 +397,15 @@ class AppStore(gtk.GenericTreeModel):
             # replace the icon in the icon_cache now that we've got the real one
             icon_file = os.path.splitext(os.path.basename(image_file_path))[0]
             self.icon_cache[icon_file] = pb
-        
-        url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
+            self.emit("needs-refresh", pkgname)
+
+        if icon_url:
+            url = icon_url
+        else:
+            # if the icon url has not been provided by the agent, then this
+            # downloadable icon is from the extras repository and so we must
+            # generate the download url
+            url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
         if url is not None:
             icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
             image_downloader = SimpleFileDownloader()
@@ -514,9 +528,13 @@ class AppStore(gtk.GenericTreeModel):
                             self.icon_cache[icon_name] = icon
                             return icon
                     elif self.db.get_icon_needs_download(doc):
+                        # check if this is a downloadable icon for an
+                        # application provided by the agent
+                        icon_url = self.db.get_icon_url(doc)
                         self._download_icon_and_show_when_ready(self.cache, 
                                                                 app.pkgname,
-                                                                icon_file_name)
+                                                                icon_file_name,
+                                                                icon_url)
                         # display the missing icon while the real one downloads
                         self.icon_cache[icon_name] = self._appicon_missing_icon
             except glib.GError, e:

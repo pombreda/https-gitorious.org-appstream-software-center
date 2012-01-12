@@ -335,6 +335,10 @@ class AppDetails(object):
             
     @property
     def icon_url(self):
+        if self._doc:
+            icon_url = self._db.get_icon_url(self._doc)
+            if icon_url:
+                return icon_url
         return self._distro.get_downloadable_icon_url(self._cache, self.pkgname, self.icon_file_name)
 
     @property

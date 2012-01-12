@@ -331,6 +331,11 @@ class StoreDatabase(gobject.GObject):
         """ Return the iconname from the xapian document """
         iconname = doc.get_value(XAPIAN_VALUE_ICON)
         return iconname
+        
+    def get_icon_url(self, doc):
+        """ Return the icon_url from the xapian document """
+        icon_url = doc.get_value(XAPIAN_VALUE_ICON_URL)
+        return icon_url
 
     def pkg_in_category(self, pkgname, cat_query):
         """ Return True if the given pkg is in the given category """

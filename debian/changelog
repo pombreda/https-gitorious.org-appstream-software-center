@@ -1,3 +1,11 @@
+software-center (4.0.7) UNRELEASED; urgency=low
+
+  * lp:~gary-lasker/software-center/icon-data-for-4.0:
+    - remove the need for inline icon data from the agent, instead
+      download icons directly using the provided URL (LP: #914054) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 11 Jan 2012 18:25:49 -0500
+
 software-center (4.0.6) natty-proposed; urgency=low
 
   * cherry pick fix to allow webkit to create additional windows
