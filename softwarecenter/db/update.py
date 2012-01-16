@@ -245,6 +245,10 @@ class SCASubscriptionParser(SoftwareCenterAgentParser):
 
         return getattr(self.sca_subscription, self._apply_mapping(key))
 
+    def has_option_desktop(self, key):
+        return (key in self.STATIC_DATA or
+                hasattr(self.sca_entry, self._apply_mapping(key)))
+
 
 class JsonTagSectionParser(AppInfoParserBase):
 
@@ -560,34 +564,6 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
         #    continue
         # index the item
         try:
-            # XXX 2012-01-16 bug=917109
-            # We can remove these work-arounds once the above bug is fixed on
-            # the server. Until then, we fake a channel here and empty category
-            # to make the parser happy.
-            #item.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
-            #item.categories = ""
-
-            # Currently the SoftwareCenterAgentParser assumes it will be passed
-            # an Application object from SCA, but here we're passing
-            # a subscription object. We update the subscription object with the
-            # application attributes here. Long-term, it would be better to
-            # refactor the parser to handle both objects.
-            # TODO: This could be done in the parser.
-
-            # WARNING: item.name needs to be different than
-            #          the item.name in the DB otherwise the DB
-            #          gets confused about (appname, pkgname) duplication
-            #item.name = utf8(_("%s (already purchased)")) % utf8(
-            #    item.application['name'])
-            #other_app_attributes = (
-            #    'archive_id',
-            #    'signing_key_id',
-            #    'package_name',
-            #    'description',
-            #    )
-            #for attr in other_app_attributes:
-            #    setattr(item, attr, item.application[attr])
-
             parser = SCASubscriptionParser(item)
             index_app_info_from_parser(parser, db_purchased, cache)
         except Exception as e:
