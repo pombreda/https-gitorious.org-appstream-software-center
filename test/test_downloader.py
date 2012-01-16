@@ -8,7 +8,7 @@ import time
 import unittest
 
 sys.path.insert(0,"../")
-from softwarecenter.utils import SimpleFileDownloader, get_http_proxy_string_from_gsettings
+from softwarecenter.utils import SimpleFileDownloader
 
 class TestImageDownloader(unittest.TestCase):
 
