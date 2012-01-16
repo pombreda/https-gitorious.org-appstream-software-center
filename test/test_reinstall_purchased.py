@@ -75,7 +75,8 @@ class TestPurchased(unittest.TestCase):
     def test_reinstall_purchased_mock(self):
         # test if the mocks are ok
         self.assertEqual(len(self.available_to_me), 1)
-        self.assertEqual(self.available_to_me[0].package_name, "hellox")
+        self.assertEqual(
+            self.available_to_me[0].application['package_name'], "hellox")
 
     def test_reinstall_purchased_xapian(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
