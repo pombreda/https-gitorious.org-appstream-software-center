@@ -15,22 +15,33 @@ from softwarecenter.enums import XapianValues
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.update import add_from_purchased_but_needs_reinstall_data
 
-# from
+# The original lucid API (1.0) as documented at:
 #  https://wiki.canonical.com/Ubuntu/SoftwareCenter/10.10/Roadmap/SoftwareCenterAgent
+# is no longer used by USC. The example JSON below should be taken from running
+# USC against production.
+# XXX: Are we missing application series here also? The 1.0 api
+# included it as below. Is it currently required - if so, update
+# bug 917109.
+# "series": {"natty": ["i386", "amd64"], 
+#            "maverick": ["i386", "amd64"], 
+#            "lucid": ["i386", "amd64"]}
 AVAILABLE_FOR_ME_JSON = """
 [
     {
-        "archive_id": "mvo/private-test",
         "deb_line": "deb https://username:randomp3atoken@private-ppa.launchpad.net/mvo/private-test/ubuntu maverick main #Personal access of username to private-test",
         "purchase_price": "19.95",
         "purchase_date": "2010-06-24 20:08:23",
-        "name": "Ubiteme",
-        "description": "One of the best strategy games you\'ll ever play!",
-        "package_name": "hellox",
-        "signing_key_id": "1024R/0EB12F05",
-        "series": {"natty": ["i386", "amd64"], 
-                   "maverick": ["i386", "amd64"], 
-                   "lucid": ["i386", "amd64"]}
+        "state": "Complete",
+        "failures": [],
+        "open_id": "https://login.ubuntu.com/+id/ABCDEF",
+        "application": {
+            "archive_id": "mvo/private-test",
+            "signing_key_id": "1024R/0EB12F05",
+            "name": "Ubiteme",
+            "package_name": "hellox",
+            "description": "One of the best strategy games you\'ll ever play!"
+            },
+        "distro_series": {"version": "10.10", "code_name": "maverick"}
     }
 ]
 """

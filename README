@@ -9,10 +9,20 @@ All non UI code must come with tests in the test/ subdirectoy.
 
 To setup your development environment, you'll need to ensure the following
 extra packages are installed:
- * xvfb, python-coverage, python-mock, python-aptdaemon.test
+
+sudo apt-get install xvfb python-coverage python-mock python-aptdaemon.test \
+     python-qt4
+sudo apt-get build-dep software-center
 
 You can then run tests with:
- $ cd test;make
+
+cd test;make
+
+You can run a developer instance with:
+
+python setup.py build
+./software-center
+
 
 == query parser ==
 
