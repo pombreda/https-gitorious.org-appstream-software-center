@@ -112,32 +112,7 @@ class SoftwareCenterAgentParserTestCase(unittest.TestCase):
 
     # def test_parses_application(self):
     #     self.fail("Unimplemented")
-
-    def test_get_desktop_for_subscription(self):
-        # The parser can handle being passed a subscription, returning
-        # desktop entries without error.
-        subscription = json.loads(AVAILABLE_FOR_ME_JSON)[0]
-        parser = SoftwareCenterAgentParser(subscription)
-
-        # An exception should not be raised for any of the desktop
-        # keys, and we should have the correct value for the ones we have
-        # provided.
-        expected_results = {
-            "Name": "Ubiteme",
-            "Price": "19.95",
-            "Package": "hellox",
-            "Deb-Line": "deb https://username:randomp3atoken@"
-                        "private-ppa.launchpad.net/mvo/private-test/ubuntu "
-                        "maverick main #Personal access of username to "
-                        "private-test",
-            "Signing-Key-Id": "1024R/0EB12F05",
-            "Purchased-Date": "2010-06-24 20:08:23",
-            "PPA": "mvo/private-test",
-            }
-        for key in SoftwareCenterAgentParser.MAPPING:
-            result = parser.get_desktop(key)
-            if key in expected_results:
-                self.assertEqual(expected[key], result)
+    pass
 
 
 class SCASubscriptionParserTestCase(unittest.TestCase):

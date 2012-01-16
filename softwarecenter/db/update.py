@@ -151,6 +151,8 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Video-Url' :  'video_url',
                 'Icon-Url'   : 'icon_url',
                 'Support-Url'   : 'support_url',
+                'Description' : 'Description',
+                'Comment' : 'Comment',
               }
 
     # map from requested key to a static data element
@@ -172,6 +174,20 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         if hasattr(self.sca_entry, "description"):
             self.sca_entry.Comment = self.sca_entry.description.split("\n")[0]
             self.sca_entry.Description = "\n".join(self.sca_entry.description.split("\n")[1:])
+        # WARNING: item.name needs to be different than
+        #          the item.name in the DB otherwise the DB
+        #          gets confused about (appname, pkgname) duplication
+        self.sca_entry.name = utf8(_("%s (already purchased)")) % utf8(
+            self.sca_entry.name)
+
+        # XXX 2012-01-16 bug=917109
+        # We can remove these work-arounds once the above bug is fixed on
+        # the server. Until then, we fake a channel here and empty category
+        # to make the parser happy.
+        if not hasattr(self.sca_entry, 'channel'):
+            self.sca_entry.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
+        if not hasattr(self.sca_entry, 'categories'):
+            self.sca_entry.categories = ""
 
     def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:
@@ -193,18 +209,24 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
 class SCASubscriptionParser(SoftwareCenterAgentParser):
     """A subscription has its own attrs with a subset of the app attributes.
     
-    We inherit from SoftwareCenterAgentParser so that we get other methods
-    for free, and we compose a SoftwareCenterAgentParser because we need
-    the get_desktop method with the correct data.
+    We inherit from SoftwareCenterAgentParser so that we get other methods for
+    free, and we compose a SoftwareCenterAgentParser because we need the
+    get_desktop method with the correct MAPPING. TODO: There must be a nicer
+    way to organise this so that we don't need both inheritance and composition
+    for a DRY implementation.
     """
 
     def __init__(self, sca_subscription):
         # The sca_subscription is a PistonResponseObject, whereas any child
         # objects are normal Python dicts.
         self.sca_subscription = sca_subscription
+        self.application_parser = SoftwareCenterAgentParser(
+            PistonResponseObject.from_dict(sca_subscription.application))
         super(SCASubscriptionParser, self).__init__(
             PistonResponseObject.from_dict(sca_subscription.application))
 
+    # Currently we're not getting 'Name' translated, as MAPPING is set for
+    # both this and the parent :/
     MAPPING = { 'Deb-Line'   : 'deb_line',
                 'Purchased-Date' : 'purchase_date',
                 'License-Key' : 'license_key',
@@ -216,12 +238,12 @@ class SCASubscriptionParser(SoftwareCenterAgentParser):
         if not hasattr(self.sca_subscription, key) and key in optional_attrs:
             return None
 
-        if key in SoftwareCenterAgentParser.MAPPING:
-            return super(SoftwareCenterAgentParser, self).get_desktop(
-                key, translated)
+        key = key.lstrip('X-AppInstall-')
+        if (key in SoftwareCenterAgentParser.MAPPING or
+            key in SoftwareCenterAgentParser.STATIC_DATA):
+            return self.application_parser.get_desktop(key, translated)
 
         return getattr(self.sca_subscription, self._apply_mapping(key))
-
 
 
 class JsonTagSectionParser(AppInfoParserBase):
@@ -542,8 +564,8 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
             # We can remove these work-arounds once the above bug is fixed on
             # the server. Until then, we fake a channel here and empty category
             # to make the parser happy.
-            item.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
-            item.categories = ""
+            #item.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
+            #item.categories = ""
 
             # Currently the SoftwareCenterAgentParser assumes it will be passed
             # an Application object from SCA, but here we're passing
@@ -555,18 +577,18 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
             # WARNING: item.name needs to be different than
             #          the item.name in the DB otherwise the DB
             #          gets confused about (appname, pkgname) duplication
-            item.name = utf8(_("%s (already purchased)")) % utf8(
-                item.application['name'])
-            other_app_attributes = (
-                'archive_id',
-                'signing_key_id',
-                'package_name',
-                'description',
-                )
-            for attr in other_app_attributes:
-                setattr(item, attr, item.application[attr])
+            #item.name = utf8(_("%s (already purchased)")) % utf8(
+            #    item.application['name'])
+            #other_app_attributes = (
+            #    'archive_id',
+            #    'signing_key_id',
+            #    'package_name',
+            #    'description',
+            #    )
+            #for attr in other_app_attributes:
+            #    setattr(item, attr, item.application[attr])
 
-            parser = SoftwareCenterAgentParser(item)
+            parser = SCASubscriptionParser(item)
             index_app_info_from_parser(parser, db_purchased, cache)
         except Exception as e:
             LOG.exception("error processing: %s " % e)
