@@ -1,12 +1,10 @@
 #!/usr/bin/python
 
 from gi.repository import GObject
-
-import sys
-sys.path.insert(0,"../")
-
 import unittest
 
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.backend.launchpad import GLaunchpad
 
 class testUbuntuSSO(unittest.TestCase):

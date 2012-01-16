@@ -1,11 +1,9 @@
 #!/usr/bin/python
 
 from gi.repository import Gtk, GObject
-import sys
 import unittest
 
-sys.path.insert(0,"..")
-from softwarecenter.testutils import setup_test_env
+from testutils import setup_test_env
 setup_test_env()
 
 TIMEOUT=300

@@ -3,13 +3,10 @@
 import os
 import unittest
 
-import sys
-sys.path.insert(0,"../")
-from softwarecenter.testutils import setup_test_env
-setup_test_env()
-
 from gi.repository import GObject
 
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.backend.reviews.rnr import (
     ReviewLoaderSpawningRNRClient as ReviewLoader)
 from softwarecenter.testutils import get_test_pkg_info, get_test_db

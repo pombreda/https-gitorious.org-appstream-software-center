@@ -3,12 +3,10 @@
 import pickle
 import os
 import subprocess
-import sys
 import time
 import unittest
 
-sys.path.insert(0, "..")
-from softwarecenter.testutils import setup_test_env
+from testutils import setup_test_env
 setup_test_env()
 
 

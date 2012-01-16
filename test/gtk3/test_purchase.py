@@ -1,13 +1,11 @@
 #!/usr/bin/python
 
-import sys
 import time
 import unittest
 
 from mock import Mock
 
-sys.path.insert(0,"..")
-from softwarecenter.testutils import setup_test_env, do_events
+from testutils import setup_test_env, do_events
 setup_test_env()
 
 from softwarecenter.ui.gtk3.app import SoftwareCenterAppGtk3

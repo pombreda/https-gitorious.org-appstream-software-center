@@ -1,10 +1,8 @@
 #!/usr/bin/python
 
-import sys
 import unittest
 
-sys.path.insert(0, "..")
-from softwarecenter.testutils import setup_test_env
+from testutils import setup_test_env
 setup_test_env()
 
 from mock import Mock

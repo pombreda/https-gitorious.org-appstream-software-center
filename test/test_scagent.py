@@ -3,10 +3,7 @@
 from gi.repository import GObject
 import unittest
 
-
-import sys
-sys.path.insert(0,"../")
-from softwarecenter.testutils import setup_test_env
+from testutils import setup_test_env
 setup_test_env()
 
 from softwarecenter.backend.scagent import SoftwareCenterAgent

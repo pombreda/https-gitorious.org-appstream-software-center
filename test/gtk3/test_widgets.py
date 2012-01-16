@@ -2,14 +2,11 @@
 
 from gi.repository import Gtk, GdkPixbuf, GObject
 import os
-import sys
 import unittest
 
 from mock import Mock
 
-
-sys.path.insert(0,"..")
-from softwarecenter.testutils import setup_test_env
+from testutils import setup_test_env
 setup_test_env()
 
 

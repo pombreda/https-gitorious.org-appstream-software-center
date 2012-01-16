@@ -1,12 +1,12 @@
 #!/usr/bin/python
 
-
-import sys
-sys.path.insert(0,"../")
-
 import unittest
 import os
 import xapian
+
+from testutils import setup_test_env
+setup_test_env()
+
 from softwarecenter.enums import XapianValues
 from softwarecenter.db.update import rebuild_database
 

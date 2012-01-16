@@ -1,13 +1,11 @@
 #!/usr/bin/python
 
-import sys
 import unittest
 
-sys.path.insert(0,"..")
-from softwarecenter.testutils import setup_test_env
+from testutils import setup_test_env
 setup_test_env()
 
-from softwarecenter.testutils import do_events
+from testutils import do_events
 
 class TestGlobalPane(unittest.TestCase):
 

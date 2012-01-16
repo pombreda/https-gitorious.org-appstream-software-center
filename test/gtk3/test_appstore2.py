@@ -1,13 +1,13 @@
+#!/usr/bin/python
 
-import sys
 import unittest
 import xapian
 
 from gi.repository import Gtk
 
-sys.path.insert(0,"../..")
-sys.path.insert(0,"..")
 
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
 from softwarecenter.db.enquire import AppEnquire
 

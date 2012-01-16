@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
-
-import sys
-sys.path.insert(0,"../")
-
 import os
 import unittest
+
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.backend.ubuntusso import (UbuntuSSOAPIFake,
                                               UbuntuSSOAPI,
                                               get_ubuntu_sso_backend,

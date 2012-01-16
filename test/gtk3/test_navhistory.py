@@ -1,12 +1,11 @@
 #!/usr/bin/python
 
-import sys
 import unittest
 
 from mock import Mock
 
-sys.path.insert(0,"../..")
-sys.path.insert(0,"..")
+from testutils import setup_test_env
+setup_test_env()
 
 from softwarecenter.ui.gtk3.session.navhistory import (
     NavigationHistory, NavigationItem)

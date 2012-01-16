@@ -1,14 +1,12 @@
 #!/usr/bin/python
 
 from gi.repository import Gtk
-import sys
 import time
 import unittest
 
 from mock import Mock
 
-sys.path.insert(0,"..")
-from softwarecenter.testutils import setup_test_env
+from testutils import setup_test_env
 setup_test_env()
 
 # overwrite early
