@@ -1,9 +1,5 @@
 #!/usr/bin/python
 
-
-import sys
-sys.path.insert(0,"../")
-
 import apt_pkg
 import apt
 import logging
@@ -11,6 +7,8 @@ import json
 import unittest
 import xapian
 
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.enums import XapianValues
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.update import add_from_purchased_but_needs_reinstall_data

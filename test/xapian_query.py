@@ -6,6 +6,9 @@ import xapian
 
 from softwarecenter.enums import XAPIAN_VALUE_POPCON
 
+from testutils import setup_test_env
+setup_test_env()
+
 if __name__ == "__main__":
 
     search_term = sys.argv[1]

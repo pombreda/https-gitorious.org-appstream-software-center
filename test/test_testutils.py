@@ -7,8 +7,8 @@ import dbus
 import time
 from gi.repository import GObject
 
-import sys
-sys.path.insert(0,"../")
+from testutils import setup_test_env
+setup_test_env()
 
 from softwarecenter.testutils import start_dummy_backend, stop_dummy_backend
 from softwarecenter.backend.installbackend_impl.aptd import get_dbus_bus

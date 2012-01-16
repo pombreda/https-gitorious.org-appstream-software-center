@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
-import sys
 import unittest
 import logging
 
-sys.path.insert(0, '../')
-
+from testutils import setup_test_env
+setup_test_env()
 
 from softwarecenter.enums import PkgStates
 from softwarecenter.db.debfile import DebFileApplication

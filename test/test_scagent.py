@@ -1,24 +1,18 @@
 #!/usr/bin/python
 
 from gi.repository import GObject
-import os
-import os.path
 import unittest
 
-
-import sys
-sys.path.insert(0,"../")
+from testutils import setup_test_env
+setup_test_env()
 
 from softwarecenter.backend.scagent import SoftwareCenterAgent
-import softwarecenter.paths
 
 class TestSCAgent(unittest.TestCase):
     """ tests software-center-agent """
 
     def setUp(self):
         self.loop = GObject.MainLoop(GObject.main_context_default())
-        softwarecenter.paths.datadir = "../data"
-        os.environ["PYTHONPATH"] = os.path.abspath("..")
         self.error = False
 
     def on_query_done(self, scagent, data):

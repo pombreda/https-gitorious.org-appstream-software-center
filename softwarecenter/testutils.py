@@ -18,7 +18,10 @@
 
 import os
 import subprocess
+import sys
+import tempfile
 import time
+
 
 m_dbus = m_polkit = m_aptd = None
 def start_dummy_backend():
@@ -133,3 +136,18 @@ def get_mock_app_from_real_app(real_app):
     app._details = details_mock
     app.get_details = lambda db: app._details
     return app
+
+def setup_test_env():
+    """ Setup environment suitable for running the test/* code in a checkout.
+        This includes PYTHONPATH, sys.path and softwarecenter.paths.datadir.
+    """
+    basedir = os.path.dirname(__file__)
+    while not os.path.exists(
+        os.path.join(basedir, "softwarecenter/__init__.py")):
+        basedir = os.path.abspath(os.path.join(basedir, ".."))
+    #print basedir, __file__, os.path.realpath(__file__)
+    sys.path.insert(0, basedir)
+    os.environ["PYTHONPATH"] = basedir
+    import softwarecenter.paths
+    softwarecenter.paths.datadir = os.path.join(basedir, "data")
+    softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR = tempfile.mkdtemp()

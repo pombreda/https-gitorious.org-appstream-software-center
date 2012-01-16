@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
-import sys
-import unittest
-sys.path.insert(0,"../")
-
 import apt
+import unittest
+
+from testutils import setup_test_env
+setup_test_env()
 
 class TestOrigins(unittest.TestCase):
     """ tests the origin code """

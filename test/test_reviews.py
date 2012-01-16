@@ -1,21 +1,16 @@
 #!/usr/bin/python
 
 import os
-import tempfile
 import unittest
-
-import sys
-sys.path.insert(0,"../")
 
 from gi.repository import GObject
 
-import softwarecenter.paths
-softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR = tempfile.mkdtemp()
-softwarecenter.paths.datadir = "../data"
-
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.backend.reviews.rnr import (
     ReviewLoaderSpawningRNRClient as ReviewLoader)
-from softwarecenter.testutils import (get_test_pkg_info, get_test_db)
+from softwarecenter.testutils import get_test_pkg_info, get_test_db
+
 
 class TestReviewLoader(unittest.TestCase):
 

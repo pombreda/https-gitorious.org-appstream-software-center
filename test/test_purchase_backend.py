@@ -1,17 +1,15 @@
 #!/usr/bin/python
 
 import os
-import sys
 import time
 import unittest
 
 from gi.repository import GObject, Gtk
 from mock import Mock
 
-sys.path.insert(0, "..")
-
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.db.application import Application
-
 from softwarecenter.backend import get_install_backend
 
 #import softwarecenter.log

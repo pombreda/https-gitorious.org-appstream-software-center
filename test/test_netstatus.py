@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
-import sys
 import unittest
-sys.path.insert(0,"../")
+
+from testutils import setup_test_env
+setup_test_env()
 
 class TestNetstatus(unittest.TestCase):
     """ tests the netstaus utils """

@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
-
-import sys
-sys.path.insert(0,"../")
-
 import unittest
+
+from testutils import setup_test_env
+setup_test_env()
+
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.piston.rnrclient_fake import RatingsAndReviewsAPI as RatingsAndReviewsAPIFake
 

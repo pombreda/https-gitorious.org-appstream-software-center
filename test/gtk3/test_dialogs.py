@@ -1,16 +1,10 @@
 #!/usr/bin/python
 
 from gi.repository import Gtk, GObject
-import os
-import sys
 import unittest
 
-sys.path.insert(0,"..")
-
-# ensure datadir is pointing to the right place
-import softwarecenter.paths
-softwarecenter.paths.datadir = os.path.join(
-    os.path.dirname(__file__), "..", "..", 'data')
+from testutils import setup_test_env
+setup_test_env()
 
 import softwarecenter.ui.gtk3.dialogs
 

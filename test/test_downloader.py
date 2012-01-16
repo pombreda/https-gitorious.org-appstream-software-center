@@ -3,11 +3,11 @@
 from gi.repository import GObject
 
 import os
-import sys
 import time
 import unittest
 
-sys.path.insert(0,"../")
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.utils import SimpleFileDownloader
 
 class TestImageDownloader(unittest.TestCase):
