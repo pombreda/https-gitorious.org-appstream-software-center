@@ -13,7 +13,10 @@ import xapian
 
 from softwarecenter.enums import XapianValues
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.db.update import add_from_purchased_but_needs_reinstall_data
+from softwarecenter.db.update import (
+    add_from_purchased_but_needs_reinstall_data,
+    SoftwareCenterAgentParser,
+    )
 
 # The original lucid API (1.0) as documented at:
 #  https://wiki.canonical.com/Ubuntu/SoftwareCenter/10.10/Roadmap/SoftwareCenterAgent
@@ -22,8 +25,8 @@ from softwarecenter.db.update import add_from_purchased_but_needs_reinstall_data
 # XXX: Are we missing application series here also? The 1.0 api
 # included it as below. Is it currently required - if so, update
 # bug 917109.
-# "series": {"natty": ["i386", "amd64"], 
-#            "maverick": ["i386", "amd64"], 
+# "series": {"natty": ["i386", "amd64"],
+#            "maverick": ["i386", "amd64"],
 #            "lucid": ["i386", "amd64"]}
 AVAILABLE_FOR_ME_JSON = """
 [
@@ -52,7 +55,7 @@ class MockAvailableForMeItem(object):
             setattr(self, key, value)
         self.MimeType = ""
         self.department = []
-            
+
 class MockAvailableForMeList(list):
 
     def __init__(self):
@@ -100,7 +103,40 @@ class TestPurchased(unittest.TestCase):
             self.assertEqual(doc.get_value(XapianValues.ARCHIVE_DEB_LINE),
                                            "deb https://username:randomp3atoken@private-ppa.launchpad.net/mvo/private-test/ubuntu maverick main #Personal access of username to private-test")
             break # only one match
-        
+
+
+class SoftwareCenterAgentParserTestCase(unittest.TestCase):
+
+    # def test_parses_application(self):
+    #     self.fail("Unimplemented")
+
+    def test_get_desktop_for_subscription(self):
+        # The parser can handle being passed a subscription, returning
+        # desktop entries without error.
+        subscription = json.loads(AVAILABLE_FOR_ME_JSON)[0]
+        parser = SoftwareCenterAgentParser(subscription)
+
+        # An exception should not be raised for any of the desktop
+        # keys, and we should have the correct value for the ones we have
+        # provided.
+        expected_results = {
+            "Name": "Ubiteme",
+            "Price": "19.95",
+            "Package": "hellox",
+            "Deb-Line": "deb https://username:randomp3atoken@"
+                        "private-ppa.launchpad.net/mvo/private-test/ubuntu "
+                        "maverick main #Personal access of username to "
+                        "private-test",
+            "Signing-Key-Id": "1024R/0EB12F05",
+            "Purchased-Date": "2010-06-24 20:08:23",
+            "PPA": "mvo/private-test",
+            }
+        for key in SoftwareCenterAgentParser.MAPPING:
+            result = parser.get_desktop(key)
+            if key in expected_results:
+                self.assertEqual(expected[key], result)
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     unittest.main()
