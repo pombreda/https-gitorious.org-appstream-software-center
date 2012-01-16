@@ -107,6 +107,22 @@ class TestPurchased(unittest.TestCase):
 
 class SoftwareCenterAgentParserTestCase(unittest.TestCase):
 
+    def test_is_subscription_with_subscription(self):
+        # If the item has an 'application' key, then we know it is a
+        # subscription, otherwise we assume it's an application item.
+        item = dict(deb_line='foo', application='foo')
+
+        parser = SoftwareCenterAgentParser(item)
+
+        self.assertTrue(parser.is_subscription)
+
+    def test_is_subscription_with_application(self):
+        item = dict(name='foo', price='12.99')
+
+        parser = SoftwareCenterAgentParser(item)
+
+        self.assertFalse(parser.is_subscription)
+
     # def test_parses_application(self):
     #     self.fail("Unimplemented")
 
