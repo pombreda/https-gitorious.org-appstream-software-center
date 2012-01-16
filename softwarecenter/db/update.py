@@ -505,10 +505,13 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
         #    continue
         # index the item
         try:
-            # we fake a channel here
+            # XXX 2012-01-16 bug=917109
+            # We can remove these work-arounds once the above bug is fixed on
+            # the server. Until then, we fake a channel here and empty category
+            # to make the parser happy.
             item.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
-            # and empty category to make the parser happy
             item.categories = ""
+
             # WARNING: item.name needs to be different than
             #          the item.name in the DB otherwise the DB
             #          gets confused about (appname, pkgname) duplication
