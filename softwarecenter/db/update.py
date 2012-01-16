@@ -26,6 +26,7 @@ import xapian
 import time
 
 from gi.repository import GObject
+from piston_mini_client import PistonResponseObject
 
 from softwarecenter.utils import utf8
 
@@ -140,13 +141,9 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Package'    : 'package_name',
                 'Categories' : 'categories',
                 'Channel'    : 'channel',
-                'Deb-Line'   : 'deb_line',
                 'Signing-Key-Id' : 'signing_key_id',
                 'License'    : 'license',
                 'Date-Published' : 'date_published',
-                'Purchased-Date' : 'purchase_date',
-                'License-Key' : 'license_key',
-                'License-Key-Path' : 'license_key_path',
                 'PPA'        : 'archive_id',
                 'Icon'       : 'icon',
                 'Screenshot-Url' : 'screenshot_url',
@@ -176,10 +173,6 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
             self.sca_entry.Comment = self.sca_entry.description.split("\n")[0]
             self.sca_entry.Description = "\n".join(self.sca_entry.description.split("\n")[1:])
 
-    @property
-    def is_subscription(self):
-        return 'application' in self.sca_entry
-
     def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:
             return self.STATIC_DATA[key]
@@ -198,54 +191,36 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
 
 
 class SCASubscriptionParser(SoftwareCenterAgentParser):
-    """A subscription has all the attributes of an application plus extras.
+    """A subscription has its own attrs with a subset of the app attributes.
     
-    As a subscription contains an application, we just pass through the relevant
-    attributes.
+    We inherit from SoftwareCenterAgentParser so that we get other methods
+    for free, and we compose a SoftwareCenterAgentParser because we need
+    the get_desktop method with the correct data.
     """
 
-    # TODO: we could use SCAApplicationParser.MAPPINGS perhaps?
-    APPLICATION_ATTRS = (
-        'name'
-        'package_name',
-        'categories',
-        'channel',
-        'signing_key_id',
-        'license',
-        'date_published',
-        'archive_id',
-        'icon',
-        'screenshot_url',
-        'video_url',
-        'icon_url',
-        'support_url',
-        )
+    def __init__(self, sca_subscription):
+        # The sca_subscription is a PistonResponseObject, whereas any child
+        # objects are normal Python dicts.
+        self.sca_subscription = sca_subscription
+        super(SCASubscriptionParser, self).__init__(
+            PistonResponseObject.from_dict(sca_subscription.application))
 
-    MAPPING = { 'Name'       : 'name',
-                'Price'      : 'price',
-                'Package'    : 'package_name',
-                'Categories' : 'categories',
-                'Channel'    : 'channel',
-                'Deb-Line'   : 'deb_line',
-                'Signing-Key-Id' : 'signing_key_id',
-                'License'    : 'license',
-                'Date-Published' : 'date_published',
+    MAPPING = { 'Deb-Line'   : 'deb_line',
                 'Purchased-Date' : 'purchase_date',
                 'License-Key' : 'license_key',
                 'License-Key-Path' : 'license_key_path',
-                'PPA'        : 'archive_id',
-                'Icon'       : 'icon',
-                'Screenshot-Url' : 'screenshot_url',
-                'Thumbnail-Url' : 'thumbnail_url',
-                'Video-Url' :  'video_url',
-                'Icon-Url'   : 'icon_url',
-                'Support-Url'   : 'support_url',
               }
 
     def get_desktop(self, key, translated=True):
-        if key in self.STATIC_DATA:
-            return self.STATIC_DATA[key]
-        return getattr(self.sca_entry, self._apply_mapping(key))
+        optional_attrs = ('License-Key', 'License-Key-Path')
+        if not hasattr(self.sca_subscription, key) and key in optional_attrs:
+            return None
+
+        if key in SoftwareCenterAgentParser.MAPPING:
+            return super(SoftwareCenterAgentParser, self).get_desktop(
+                key, translated)
+
+        return getattr(self.sca_subscription, self._apply_mapping(key))
 
 
 

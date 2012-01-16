@@ -11,6 +11,8 @@ import json
 import unittest
 import xapian
 
+from piston_mini_client import PistonResponseObject
+
 from softwarecenter.enums import XapianValues
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.update import (
@@ -143,7 +145,8 @@ class SCASubscriptionParserTestCase(unittest.TestCase):
     def test_get_desktop(self):
         # The parser can handle being passed a subscription, returning
         # desktop entries without error.
-        subscription = json.loads(AVAILABLE_FOR_ME_JSON)[0]
+        # TODO: can we use from_response here instead?
+        subscription = PistonResponseObject.from_dict(json.loads(AVAILABLE_FOR_ME_JSON)[0])
         parser = SCASubscriptionParser(subscription)
 
         # An exception should not be raised for any of the desktop
@@ -151,7 +154,6 @@ class SCASubscriptionParserTestCase(unittest.TestCase):
         # provided.
         expected_results = {
             "Name": "Ubiteme",
-            "Price": "19.95",
             "Package": "hellox",
             "Deb-Line": "deb https://username:randomp3atoken@"
                         "private-ppa.launchpad.net/mvo/private-test/ubuntu "
@@ -164,7 +166,7 @@ class SCASubscriptionParserTestCase(unittest.TestCase):
         for key in SCASubscriptionParser.MAPPING:
             result = parser.get_desktop(key)
             if key in expected_results:
-                self.assertEqual(expected[key], result)
+                self.assertEqual(expected_results[key], result)
 
 
 if __name__ == "__main__":
