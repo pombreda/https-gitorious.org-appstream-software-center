@@ -161,34 +161,6 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                   }
 
     def __init__(self, sca_entry):
-            ## XXX 2012-01-16 bug=917109
-            ## We can remove these work-arounds once the above bug is fixed on
-            ## the server. Until then, we fake a channel here and empty category
-            ## to make the parser happy.
-            #item.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
-            #item.categories = ""
-
-            ## Currently the SoftwareCenterAgentParser assumes it will be passed
-            ## an Application object from SCA, but here we're passing
-            ## a subscription object. We update the subscription object with the
-            ## application attributes here. Long-term, it would be better to
-            ## refactor the parser to handle both objects.
-            ## TODO: This could be done in the parser.
-
-            ## WARNING: item.name needs to be different than
-            ##          the item.name in the DB otherwise the DB
-            ##          gets confused about (appname, pkgname) duplication
-            #item.name = utf8(_("%s (already purchased)")) % utf8(
-            #    item.application['name'])
-            #other_app_attributes = (
-            #    'archive_id',
-            #    'signing_key_id',
-            #    'package_name',
-            #    'description',
-            #    )
-            #for attr in other_app_attributes:
-            #    setattr(item, attr, item.application[attr])
-
         self.sca_entry = sca_entry
         self.origin = "software-center-agent"
         self._apply_exceptions()
@@ -223,6 +195,58 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
     @property
     def desktopf(self):
         return self.origin
+
+
+class SCASubscriptionParser(SoftwareCenterAgentParser):
+    """A subscription has all the attributes of an application plus extras.
+    
+    As a subscription contains an application, we just pass through the relevant
+    attributes.
+    """
+
+    # TODO: we could use SCAApplicationParser.MAPPINGS perhaps?
+    APPLICATION_ATTRS = (
+        'name'
+        'package_name',
+        'categories',
+        'channel',
+        'signing_key_id',
+        'license',
+        'date_published',
+        'archive_id',
+        'icon',
+        'screenshot_url',
+        'video_url',
+        'icon_url',
+        'support_url',
+        )
+
+    MAPPING = { 'Name'       : 'name',
+                'Price'      : 'price',
+                'Package'    : 'package_name',
+                'Categories' : 'categories',
+                'Channel'    : 'channel',
+                'Deb-Line'   : 'deb_line',
+                'Signing-Key-Id' : 'signing_key_id',
+                'License'    : 'license',
+                'Date-Published' : 'date_published',
+                'Purchased-Date' : 'purchase_date',
+                'License-Key' : 'license_key',
+                'License-Key-Path' : 'license_key_path',
+                'PPA'        : 'archive_id',
+                'Icon'       : 'icon',
+                'Screenshot-Url' : 'screenshot_url',
+                'Thumbnail-Url' : 'thumbnail_url',
+                'Video-Url' :  'video_url',
+                'Icon-Url'   : 'icon_url',
+                'Support-Url'   : 'support_url',
+              }
+
+    def get_desktop(self, key, translated=True):
+        if key in self.STATIC_DATA:
+            return self.STATIC_DATA[key]
+        return getattr(self.sca_entry, self._apply_mapping(key))
+
 
 
 class JsonTagSectionParser(AppInfoParserBase):
@@ -539,6 +563,34 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
         #    continue
         # index the item
         try:
+            # XXX 2012-01-16 bug=917109
+            # We can remove these work-arounds once the above bug is fixed on
+            # the server. Until then, we fake a channel here and empty category
+            # to make the parser happy.
+            item.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
+            item.categories = ""
+
+            # Currently the SoftwareCenterAgentParser assumes it will be passed
+            # an Application object from SCA, but here we're passing
+            # a subscription object. We update the subscription object with the
+            # application attributes here. Long-term, it would be better to
+            # refactor the parser to handle both objects.
+            # TODO: This could be done in the parser.
+
+            # WARNING: item.name needs to be different than
+            #          the item.name in the DB otherwise the DB
+            #          gets confused about (appname, pkgname) duplication
+            item.name = utf8(_("%s (already purchased)")) % utf8(
+                item.application['name'])
+            other_app_attributes = (
+                'archive_id',
+                'signing_key_id',
+                'package_name',
+                'description',
+                )
+            for attr in other_app_attributes:
+                setattr(item, attr, item.application[attr])
+
             parser = SoftwareCenterAgentParser(item)
             index_app_info_from_parser(parser, db_purchased, cache)
         except Exception as e:

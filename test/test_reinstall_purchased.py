@@ -15,6 +15,7 @@ from softwarecenter.enums import XapianValues
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.update import (
     add_from_purchased_but_needs_reinstall_data,
+    SCASubscriptionParser,
     SoftwareCenterAgentParser,
     )
 
@@ -107,22 +108,6 @@ class TestPurchased(unittest.TestCase):
 
 class SoftwareCenterAgentParserTestCase(unittest.TestCase):
 
-    def test_is_subscription_with_subscription(self):
-        # If the item has an 'application' key, then we know it is a
-        # subscription, otherwise we assume it's an application item.
-        item = dict(deb_line='foo', application='foo')
-
-        parser = SoftwareCenterAgentParser(item)
-
-        self.assertTrue(parser.is_subscription)
-
-    def test_is_subscription_with_application(self):
-        item = dict(name='foo', price='12.99')
-
-        parser = SoftwareCenterAgentParser(item)
-
-        self.assertFalse(parser.is_subscription)
-
     # def test_parses_application(self):
     #     self.fail("Unimplemented")
 
@@ -148,6 +133,35 @@ class SoftwareCenterAgentParserTestCase(unittest.TestCase):
             "PPA": "mvo/private-test",
             }
         for key in SoftwareCenterAgentParser.MAPPING:
+            result = parser.get_desktop(key)
+            if key in expected_results:
+                self.assertEqual(expected[key], result)
+
+
+class SCASubscriptionParserTestCase(unittest.TestCase):
+
+    def test_get_desktop(self):
+        # The parser can handle being passed a subscription, returning
+        # desktop entries without error.
+        subscription = json.loads(AVAILABLE_FOR_ME_JSON)[0]
+        parser = SCASubscriptionParser(subscription)
+
+        # An exception should not be raised for any of the desktop
+        # keys, and we should have the correct value for the ones we have
+        # provided.
+        expected_results = {
+            "Name": "Ubiteme",
+            "Price": "19.95",
+            "Package": "hellox",
+            "Deb-Line": "deb https://username:randomp3atoken@"
+                        "private-ppa.launchpad.net/mvo/private-test/ubuntu "
+                        "maverick main #Personal access of username to "
+                        "private-test",
+            "Signing-Key-Id": "1024R/0EB12F05",
+            "Purchased-Date": "2010-06-24 20:08:23",
+            "PPA": "mvo/private-test",
+            }
+        for key in SCASubscriptionParser.MAPPING:
             result = parser.get_desktop(key)
             if key in expected_results:
                 self.assertEqual(expected[key], result)
