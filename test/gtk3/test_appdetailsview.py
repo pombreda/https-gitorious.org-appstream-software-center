@@ -1,16 +1,13 @@
 #!/usr/bin/python
 
-#import os
 import sys
 import unittest
 
-sys.path.insert(0,"../..")
-sys.path.insert(0,"..")
+sys.path.insert(0, "..")
+from softwarecenter.testutils import setup_test_env
+setup_test_env()
 
 from mock import Mock
-
-import softwarecenter.paths
-softwarecenter.paths.datadir = "../data"
 
 from softwarecenter.db.application import Application
 from softwarecenter.testutils import get_mock_app_from_real_app, do_events

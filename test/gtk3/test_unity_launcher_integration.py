@@ -7,13 +7,12 @@ import unittest
 
 from mock import Mock
 
-sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
+from softwarecenter.testutils import setup_test_env
+setup_test_env()
 
 # overwrite early
-import softwarecenter.paths
 import softwarecenter.utils
-softwarecenter.paths.datadir = "../data"
 
 from softwarecenter.enums import TransactionTypes
 from softwarecenter.utils import convert_desktop_file_to_installed_location

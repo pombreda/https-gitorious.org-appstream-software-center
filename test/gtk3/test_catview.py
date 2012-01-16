@@ -1,16 +1,11 @@
 from gi.repository import Gtk
-import os
 import sys
 import time
 import unittest
 
-sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
-
-import softwarecenter.paths
-# ensure datadir is pointing to the right place
-softwarecenter.paths.datadir = os.path.join(
-    os.path.dirname(__file__), "..", "..", 'data')
+from softwarecenter.testutils import setup_test_env
+setup_test_env()
 
 from softwarecenter.enums import SortMethods
 

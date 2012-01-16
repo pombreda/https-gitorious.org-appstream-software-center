@@ -1,24 +1,18 @@
 #!/usr/bin/python
 
-import os
 import sys
 import time
 import unittest
 
 from mock import Mock
 
-sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
+from softwarecenter.testutils import setup_test_env, do_events
+setup_test_env()
 
-# overwrite early
+from softwarecenter.ui.gtk3.app import SoftwareCenterAppGtk3
+from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 import softwarecenter.paths
-softwarecenter.paths.datadir = "../data"
-
-from softwarecenter.ui.gtk3.app import (
-    SoftwareCenterAppGtk3)
-from softwarecenter.ui.gtk3.panes.availablepane import (
-    AvailablePane)
-from softwarecenter.testutils import do_events
 
 class TestPurchase(unittest.TestCase):
 
@@ -63,7 +57,6 @@ class TestPurchase(unittest.TestCase):
 
 
     def test_reinstall_previous_purchase_display(self):
-        os.environ["PYTHONPATH"]=".."
         mock_options = Mock()
         mock_options.display_navlog = False
         mock_options.disable_apt_xapian_index = False
@@ -71,6 +64,9 @@ class TestPurchase(unittest.TestCase):
         xapiandb = "/var/cache/software-center/"
         app = SoftwareCenterAppGtk3(
             softwarecenter.paths.datadir, xapiandb, mock_options)
+	# real app opens cache async
+	app.cache.open()
+	# show it
         app.window_main.show_all()
         app.available_pane.init_view()
         self._p()

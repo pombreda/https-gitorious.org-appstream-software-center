@@ -133,3 +133,11 @@ def get_mock_app_from_real_app(real_app):
     app._details = details_mock
     app.get_details = lambda db: app._details
     return app
+
+def setup_test_env():
+    import tempfile
+    dirname = os.path.dirname(__file__)
+    os.environ["PYTHONPATH"] = os.path.abspath(os.path.join(dirname, ".."))
+    import softwarecenter.paths
+    softwarecenter.paths.datadir = os.path.join(dirname, "..", "data")
+    softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR = tempfile.mkdtemp()

@@ -3,15 +3,9 @@
 import sys
 import unittest
 
-sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
-
-#from mock import Mock
-
-TIMEOUT=300
-
-import softwarecenter.paths
-softwarecenter.paths.datadir = "../data"
+from softwarecenter.testutils import setup_test_env
+setup_test_env()
 
 from softwarecenter.testutils import do_events
 

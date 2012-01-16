@@ -5,15 +5,11 @@ import sys
 import time
 import unittest
 
-sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
-
-#from mock import Mock
+from softwarecenter.testutils import setup_test_env
+setup_test_env()
 
 TIMEOUT=300
-
-import softwarecenter.paths
-softwarecenter.paths.datadir = "../data"
 
 class TestInstalledPane(unittest.TestCase):
 

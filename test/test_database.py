@@ -3,6 +3,8 @@
 
 import sys
 sys.path.insert(0,"../")
+from softwarecenter.testutils import setup_test_env
+setup_test_env()
 
 import apt
 import os
@@ -106,8 +108,6 @@ class TestDatabase(unittest.TestCase):
         distro.get_codename = lambda: "natty"
         # we test against the real https://software-center.ubuntu.com here
         # so we need network
-        softwarecenter.paths.datadir="../data"
-        os.environ["PYTHONPATH"] = ".."
         res = update_from_software_center_agent(db, cache, ignore_cache=True)
         # check results
         self.assertTrue(res)

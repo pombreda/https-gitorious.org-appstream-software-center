@@ -5,6 +5,8 @@ import unittest
 
 import sys
 sys.path.insert(0,"../")
+from softwarecenter.testutils import setup_test_env
+setup_test_env()
 
 import softwarecenter.paths
 from softwarecenter.db.application import Application

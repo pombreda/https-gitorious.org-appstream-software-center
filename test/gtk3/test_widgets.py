@@ -9,11 +9,9 @@ from mock import Mock
 
 
 sys.path.insert(0,"..")
+from softwarecenter.testutils import setup_test_env
+setup_test_env()
 
-# ensure datadir is pointing to the right place
-import softwarecenter.paths
-softwarecenter.paths.datadir = os.path.join(
-    os.path.dirname(__file__), "..", "..", 'data')
 
 # window destory timeout
 TIMEOUT=100

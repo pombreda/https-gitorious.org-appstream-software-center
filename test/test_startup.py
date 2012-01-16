@@ -8,6 +8,8 @@ import time
 import unittest
 
 sys.path.insert(0, "..")
+from softwarecenter.testutils import setup_test_env
+setup_test_env()
 
 
 # FIXME:
@@ -35,7 +37,6 @@ class SCTestGUI(unittest.TestCase):
         print self.revno_to_times_list 
 
     def create_ui_and_return_time_to_visible(self):
-        os.environ["PYTHONPATH"] = ".."
         now = time.time()
         # we get the time on stdout and detailed stats on stderr
         p = subprocess.Popen(["./software-center", "--measure-startup-time"],
