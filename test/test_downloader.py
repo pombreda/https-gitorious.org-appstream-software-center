@@ -8,7 +8,7 @@ import time
 import unittest
 
 sys.path.insert(0,"../")
-from softwarecenter.utils import SimpleFileDownloader
+from softwarecenter.utils import SimpleFileDownloader, get_http_proxy_string_from_gsettings
 
 class TestImageDownloader(unittest.TestCase):
 
@@ -47,7 +47,8 @@ class TestImageDownloader(unittest.TestCase):
         self.downloader.download_file("http://www.ubuntu.com",
                                       self.DOWNLOAD_FILENAME)
         main_loop = GObject.main_context_default()
-        while self._image_downloaded_filename is None:
+        while (self._image_downloaded_filename is None and
+               self._image_is_reachable != False):
             while main_loop.pending():
                 main_loop.iteration()
             time.sleep(0.1)
