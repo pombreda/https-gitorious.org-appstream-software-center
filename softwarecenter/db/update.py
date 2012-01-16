@@ -192,6 +192,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         self.sca_entry = sca_entry
         self.origin = "software-center-agent"
         self._apply_exceptions()
+
     def _apply_exceptions(self):
         # for items from the agent, we use the full-size screenshot for
         # the thumbnail and scale it for display, this is done because
@@ -202,6 +203,11 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         if hasattr(self.sca_entry, "description"):
             self.sca_entry.Comment = self.sca_entry.description.split("\n")[0]
             self.sca_entry.Description = "\n".join(self.sca_entry.description.split("\n")[1:])
+
+    @property
+    def is_subscription(self):
+        return 'application' in self.sca_entry
+
     def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:
             return self.STATIC_DATA[key]
