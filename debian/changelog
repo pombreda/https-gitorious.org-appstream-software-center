@@ -1,4 +1,4 @@
-software-center (5.1.6) UNRELEASED; urgency=low
+software-center (5.1.6) precise; urgency=low
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/startup-speed2:
@@ -31,7 +31,7 @@ software-center (5.1.6) UNRELEASED; urgency=low
     - fix crash when attempting to install or remove an item
       via the menu (LP: #896474) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 12 Jan 2012 17:33:06 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 17 Jan 2012 14:19:57 +0100
 
 software-center (5.1.5.1) precise; urgency=low
 
