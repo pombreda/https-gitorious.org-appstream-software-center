@@ -719,20 +719,21 @@ def index_app_info_from_parser(parser, db, cache):
         # date published
         if parser.has_option_desktop("X-AppInstall-Date-Published"):
             date_published = parser.get_desktop("X-AppInstall-Date-Published")
-            # strip the subseconds from the end of the published date string
-            date_published = str(date_published).split(".")[0]
-            doc.add_value(XapianValues.DATE_PUBLISHED,
-                          date_published)
-            # we use the date published value for the cataloged time as well
-            if "catalogedtime" in axi_values:
-                LOG.debug(
-                        ("pkgname: %s, date_published cataloged time is: %s" %
-                             (pkgname, parser.get_desktop("date_published"))))
-                date_published_sec = time.mktime(
-                                        time.strptime(date_published,
-                                                      "%Y-%m-%d  %H:%M:%S"))
-                doc.add_value(axi_values["catalogedtime"], 
-                              xapian.sortable_serialise(date_published_sec))
+            if date_published:
+                # strip the subseconds from the end of the published date string
+                date_published = str(date_published).split(".")[0]
+                doc.add_value(XapianValues.DATE_PUBLISHED,
+                              date_published)
+                # we use the date published value for the cataloged time as well
+                if "catalogedtime" in axi_values:
+                    LOG.debug(
+                            ("pkgname: %s, date_published cataloged time is: %s" %
+                                 (pkgname, parser.get_desktop("date_published"))))
+                    date_published_sec = time.mktime(
+                                            time.strptime(date_published,
+                                                          "%Y-%m-%d  %H:%M:%S"))
+                    doc.add_value(axi_values["catalogedtime"], 
+                                  xapian.sortable_serialise(date_published_sec))
         # purchased date
         if parser.has_option_desktop("X-AppInstall-Purchased-Date"):
             date = parser.get_desktop("X-AppInstall-Purchased-Date")
