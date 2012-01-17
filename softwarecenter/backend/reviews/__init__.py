@@ -253,7 +253,7 @@ class ReviewLoader(object):
         return False
 
     def get_reviews(self, application, callback, page=1, language=None,
-                    sort=0):
+                    sort=0, relaxed=False):
         """run callback f(app, review_list) 
            with list of review objects for the given
            db.database.Application object
@@ -456,7 +456,8 @@ class ReviewLoaderFake(ReviewLoader):
         return random.choice(self.LOREM.split("\n\n"))
     def _random_summary(self):
         return random.choice(self.SUMMARIES)
-    def get_reviews(self, application, callback, page=1, language=None, sort=0):
+    def get_reviews(self, application, callback, page=1, language=None,
+        sort=0, relaxed=False):
         if not application in self._review_stats_cache:
             self.get_review_stats(application)
         stats = self._review_stats_cache[application]
@@ -628,7 +629,8 @@ class ReviewLoaderNull(ReviewLoader):
         self._review_stats_cache = {}
         self._reviews_cache = {}
 
-    def get_reviews(self, application, callback, page=1, language=None, sort=0):
+    def get_reviews(self, application, callback, page=1, language=None,
+        sort=0, relaxed=False):
         callback(application, [])
 
     def get_review_stats(self, application):

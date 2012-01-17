@@ -6,7 +6,7 @@ from gi.repository import Gtk, GObject
 from testutils import setup_test_env
 setup_test_env()
 
-from mock import Mock
+from mock import Mock, patch
 
 from softwarecenter.db.application import Application
 from softwarecenter.testutils import get_mock_app_from_real_app, do_events
@@ -169,6 +169,63 @@ class TestAppdetailsView(unittest.TestCase):
         self.view.reviews.emit("review-sort-changed", 1)
 
         self.assertEqual(1, self.view._reviews_server_page)
+
+    @patch('softwarecenter.backend.reviews.rnr.ReviewLoaderSpawningRNRClient'
+           '.get_reviews')
+    def test_no_reviews_returned_attempts_relaxing(self, mock_get_reviews):
+        """AppDetailsView._reviews_ready_callback will attempt to drop the
+           origin and distroseries restriction if no reviews are returned
+           with the restrictions in place.
+        """
+        self.view._do_load_reviews()
+
+        self.assertEqual(1, mock_get_reviews.call_count)
+        kwargs = mock_get_reviews.call_args[1]
+        self.assertEqual(False, kwargs['relaxed'])
+        self.assertEqual(1, kwargs['page'])
+
+        # Now we come back with no data
+        application, callback = mock_get_reviews.call_args[0]
+        callback(application, [])
+
+        self.assertEqual(2, mock_get_reviews.call_count)
+        kwargs = mock_get_reviews.call_args[1]
+        self.assertEqual(True, kwargs['relaxed'])
+        self.assertEqual(1, kwargs['page'])
+
+    @patch('softwarecenter.backend.reviews.rnr.ReviewLoaderSpawningRNRClient'
+           '.get_reviews')
+    def test_all_duplicate_reviews_keeps_going(self, mock_get_reviews):
+        """AppDetailsView._reviews_ready_callback will fetch another page if
+           all data returned was already displayed in the reviews list.
+        """
+        # Fixme: Do we have a test factory?
+        review = Mock()
+        review.rating = 3
+        review.date_created = "2011-01-01 18:00:00"
+        review.version = "1.0"
+        review.summary = 'some summary'
+        review.review_text = 'Some text'
+        review.reviewer_username = "name"
+        review.reviewer_displayname = "displayname"
+
+        reviews = [review]
+        self.view.reviews.reviews = reviews
+        self.view._do_load_reviews()
+
+        self.assertEqual(1, mock_get_reviews.call_count)
+        kwargs = mock_get_reviews.call_args[1]
+        self.assertEqual(False, kwargs['relaxed'])
+        self.assertEqual(1, kwargs['page'])
+
+        # Now we come back with no NEW data
+        application, callback = mock_get_reviews.call_args[0]
+        callback(application, reviews)
+
+        self.assertEqual(2, mock_get_reviews.call_count)
+        kwargs = mock_get_reviews.call_args[1]
+        self.assertEqual(False, kwargs['relaxed'])
+        self.assertEqual(2, kwargs['page'])
 
 
 if __name__ == "__main__":
