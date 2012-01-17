@@ -246,8 +246,11 @@ class SCASubscriptionParser(SoftwareCenterAgentParser):
         return getattr(self.sca_subscription, self._apply_mapping(key))
 
     def has_option_desktop(self, key):
-        return (key in self.STATIC_DATA or
-                hasattr(self.sca_entry, self._apply_mapping(key)))
+        subscription_has_option = hasattr(
+            self.sca_subscription, self._apply_mapping(key))
+        application_has_option = (
+            self.application_parser.has_option_desktop(key))
+        return subscription_has_option or application_has_option
 
 
 class JsonTagSectionParser(AppInfoParserBase):

@@ -98,9 +98,6 @@ class TestPurchased(unittest.TestCase):
         enquire = xapian.Enquire(db.xapiandb)
         enquire.set_query(query)
         matches = enquire.get_mset(0, len(db))
-        # Seems the entry.channel isn't being requested when adding?
-        # Need to override has_option_desktop.
-        import pdb;pdb.set_trace()
         self.assertEqual(len(matches), 1)
         for m in matches:
             doc = db.xapiandb.get_document(m.docid)
