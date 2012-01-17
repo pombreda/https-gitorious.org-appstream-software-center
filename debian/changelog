@@ -4,7 +4,9 @@ software-center (5.1.6) UNRELEASED; urgency=low
   * lp:~mvo/software-center/startup-speed2:
     - additional startup speed improvements, brings up main window
       much more quickly
-      
+  * lp:~mvo/software-center/fix-server-pagination:    
+    - reset reviews "page" when showing a new app
+  
   [Christopher Kyle Horton]
   * utils/submit_review_gtk3.py:
     - fix crash when submitting a review (LP: #912855)
