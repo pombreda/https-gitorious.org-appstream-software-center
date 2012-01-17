@@ -229,8 +229,6 @@ class SCASubscriptionParser(SoftwareCenterAgentParser):
         super(SCASubscriptionParser, self).__init__(
             PistonResponseObject.from_dict(sca_subscription.application))
 
-    # Currently we're not getting 'Name' translated, as MAPPING is set for
-    # both this and the parent :/
     MAPPING = { 'Deb-Line'   : 'deb_line',
                 'Purchased-Date' : 'purchase_date',
                 'License-Key' : 'license_key',
