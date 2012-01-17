@@ -91,22 +91,14 @@ AVAILABLE_APPS_JSON = """
 ]
 """
 
-class MockAvailableForMeItem(object):
-    def __init__(self, entry_dict):
-        for key, value in entry_dict.iteritems():
-            setattr(self, key, value)
-        self.MimeType = ""
-        self.department = []
-
-class MockAvailableForMeList(list):
-
-    def __init__(self):
-        alist = json.loads(SUBSCRIPTIONS_FOR_ME_JSON)
-        for entry_dict in alist:
-            self.append(MockAvailableForMeItem(entry_dict))
 
 class TestPurchased(unittest.TestCase):
     """ tests the store database """
+
+    def _make_available_for_me_list(self):
+        my_subscriptions = json.loads(SUBSCRIPTIONS_FOR_ME_JSON)
+        return list(
+            PistonResponseObject.from_dict(subs) for subs in my_subscriptions)
 
     def setUp(self):
         # use fixture apt data
@@ -114,7 +106,7 @@ class TestPurchased(unittest.TestCase):
         apt_pkg.config.set("Dir::State::status",
                            "./data/appdetails/var/lib/dpkg/status")
         # create mocks
-        self.available_to_me = MockAvailableForMeList()
+        self.available_to_me = self._make_available_for_me_list()
         self.cache = apt.Cache()
 
     def test_reinstall_purchased_mock(self):
