@@ -15,7 +15,7 @@ from softwarecenter.enums import XapianValues
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.update import (
     add_from_purchased_but_needs_reinstall_data,
-    SCASubscriptionParser,
+    SCAPurchasedApplicationParser,
     SoftwareCenterAgentParser,
     )
 
@@ -113,14 +113,14 @@ class SoftwareCenterAgentParserTestCase(unittest.TestCase):
     pass
 
 
-class SCASubscriptionParserTestCase(unittest.TestCase):
+class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
 
     def _make_subscription_parser(self, piston_subscription=None):
         if piston_subscription is None:
             piston_subscription = PistonResponseObject.from_dict(
                 json.loads(AVAILABLE_FOR_ME_JSON)[0])
 
-        return SCASubscriptionParser(piston_subscription)
+        return SCAPurchasedApplicationParser(piston_subscription)
 
     def test_get_desktop_subscription(self):
         parser = self._make_subscription_parser()
@@ -156,7 +156,7 @@ class SCASubscriptionParserTestCase(unittest.TestCase):
                 self.assertEqual(expected_results[key], result)
 
     def test_has_option_desktop_includes_app_keys(self):
-        # The SCASubscriptionParser handles application keys also
+        # The SCAPurchasedApplicationParser handles application keys also
         # (passing them through to the composited application parser).
         parser = self._make_subscription_parser()
 

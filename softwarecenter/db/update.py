@@ -210,7 +210,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         return self.origin
 
 
-class SCASubscriptionParser(SoftwareCenterAgentParser):
+class SCAPurchasedApplicationParser(SoftwareCenterAgentParser):
     """A subscription has its own attrs with a subset of the app attributes.
     
     We inherit from SoftwareCenterAgentParser so that we get other methods for
@@ -226,7 +226,7 @@ class SCASubscriptionParser(SoftwareCenterAgentParser):
         self.sca_subscription = sca_subscription
         self.application_parser = SoftwareCenterAgentParser(
             PistonResponseObject.from_dict(sca_subscription.application))
-        super(SCASubscriptionParser, self).__init__(
+        super(SCAPurchasedApplicationParser, self).__init__(
             PistonResponseObject.from_dict(sca_subscription.application))
 
     MAPPING = { 'Deb-Line'   : 'deb_line',
@@ -563,7 +563,7 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
         #    continue
         # index the item
         try:
-            parser = SCASubscriptionParser(item)
+            parser = SCAPurchasedApplicationParser(item)
             index_app_info_from_parser(parser, db_purchased, cache)
         except Exception as e:
             LOG.exception("error processing: %s " % e)
