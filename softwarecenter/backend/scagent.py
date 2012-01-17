@@ -108,6 +108,7 @@ class SoftwareCenterAgent(GObject.GObject):
         cmd = self.HELPER_CMD[:]
         cmd.append("exhibits")
         cmd.append(get_language())
+        cmd.append(self.distro.get_codename())
         spawner = SpawnHelper()
         spawner.connect("data-available", self._on_exhibits_data_available)
         spawner.connect("error", lambda spawner, err: self.emit("error", err))

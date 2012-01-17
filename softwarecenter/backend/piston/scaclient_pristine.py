@@ -48,8 +48,11 @@ class SoftwareCenterAgentAPI(PistonAPI):
                          scheme=AUTHENTICATED_API_SCHEME)
 
     @validate_pattern('lang', r'[^/]{1,9}$')
+    @validate_pattern('series', r'[^/]{1,20}$', required=False)
     @returns_list_of(PistonResponseObject)
-    def exhibits(self, lang):
+    def exhibits(self, lang, series=''):
         """Retrieve the list of currently published exhibits."""
-        return self._get(
-            'exhibits/%s/' % (lang))
+        url = 'exhibits/%s/' % lang
+        if series != '':
+            url += '%s/' % series
+        return self._get(url)

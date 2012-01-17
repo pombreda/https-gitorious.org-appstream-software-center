@@ -11,6 +11,9 @@ software-center (5.0.5) UNRELEASED; urgency=low
     - reset server side review "page" when switching to a different
       app
 
+  [ Kiwinote ]
+  * grab exhibits for the current series only (LP: #899257)
+  
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 10 Jan 2012 16:00:46 -0500
 
 software-center (5.0.4) oneiric-proposed; urgency=low
