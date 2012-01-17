@@ -3,7 +3,9 @@
 all: check #mago_test
 
 check:
+ifeq (,$(findstring nocheck, $(DEB_BUILD_OPTIONS)))
 	xvfb-run ./test-all.sh
+endif
 
 clean:
 	find  ../data/xapian/ ./data/aptroot/var/lib/apt/lists/ \

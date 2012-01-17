@@ -45,7 +45,6 @@ class TestReviewLoader(unittest.TestCase):
 
     def test_edit_review_screen_has_right_labels(self):
         """Check that LP #880255 stays fixed. """
-        loader = ReviewLoader(self.cache, self.db)
 
         review_app = SubmitReviewsApp(datadir="../data", app=None,
             parent_xid='', iconname='accessories-calculator', origin=None,
