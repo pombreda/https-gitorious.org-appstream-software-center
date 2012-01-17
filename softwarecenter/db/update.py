@@ -184,14 +184,8 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         # We can remove these work-arounds once the above bug is fixed on
         # the server. Until then, we fake a channel here and empty category
         # to make the parser happy.
-        if not hasattr(self.sca_entry, 'channel'):
-            self.sca_entry.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
-        for missing_attribute in (
-                'categories', 'license', 'thumbnail_url', 'price',
-                'date_published', 'icon_url', 'video_url', 'support_url',
-                'screenshot_url', 'icon'):
-            if not hasattr(self.sca_entry, missing_attribute):
-                setattr(self.sca_entry, missing_attribute, "")
+        self.sca_entry.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
+        self.sca_entry.categories = ""
 
     def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:

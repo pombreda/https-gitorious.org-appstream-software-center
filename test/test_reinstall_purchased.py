@@ -23,12 +23,6 @@ from softwarecenter.db.update import (
 #  https://wiki.canonical.com/Ubuntu/SoftwareCenter/10.10/Roadmap/SoftwareCenterAgent
 # is no longer used by USC. The example JSON below should be taken from running
 # USC against production.
-# XXX: Are we missing application series here also? The 1.0 api
-# included it as below. Is it currently required - if so, update
-# bug 917109.
-# "series": {"natty": ["i386", "amd64"],
-#            "maverick": ["i386", "amd64"],
-#            "lucid": ["i386", "amd64"]}
 AVAILABLE_FOR_ME_JSON = """
 [
     {
@@ -115,7 +109,7 @@ class SoftwareCenterAgentParserTestCase(unittest.TestCase):
 
 class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
 
-    def _make_subscription_parser(self, piston_subscription=None):
+    def _make_application_parser(self, piston_subscription=None):
         if piston_subscription is None:
             piston_subscription = PistonResponseObject.from_dict(
                 json.loads(AVAILABLE_FOR_ME_JSON)[0])
@@ -123,7 +117,7 @@ class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
         return SCAPurchasedApplicationParser(piston_subscription)
 
     def test_get_desktop_subscription(self):
-        parser = self._make_subscription_parser()
+        parser = self._make_application_parser()
 
         expected_results = {
             "Deb-Line": "deb https://username:randomp3atoken@"
@@ -139,28 +133,24 @@ class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
     def test_get_desktop_application(self):
         # The parser passes application attributes through to
         # an application parser for handling.
-        parser = self._make_subscription_parser()
+        parser = self._make_application_parser()
 
-        # An exception should not be raised for any of the desktop
-        # keys, and we should have the correct value for the ones we have
-        # provided.
         expected_results = {
             "Name": "Ubiteme (already purchased)",
             "Package": "hellox",
             "Signing-Key-Id": "1024R/0EB12F05",
             "PPA": "mvo/private-test",
             }
-        for key in SoftwareCenterAgentParser.MAPPING:
+        for key in expected_results.keys():
             result = parser.get_desktop(key)
-            if key in expected_results:
-                self.assertEqual(expected_results[key], result)
+            self.assertEqual(expected_results[key], result)
 
     def test_has_option_desktop_includes_app_keys(self):
         # The SCAPurchasedApplicationParser handles application keys also
         # (passing them through to the composited application parser).
-        parser = self._make_subscription_parser()
+        parser = self._make_application_parser()
 
-        for key in SoftwareCenterAgentParser.MAPPING:
+        for key in ('Name', 'Package', 'Signing-Key-Id', 'PPA'):
             self.assertTrue(parser.has_option_desktop(key))
         for key in ('Deb-Line', 'Purchased-Date'):
             self.assertTrue(parser.has_option_desktop(key),
@@ -171,7 +161,7 @@ class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
             json.loads(AVAILABLE_FOR_ME_JSON)[0])
         piston_subscription.license_key = 'abcd'
         piston_subscription.license_key_path = '/foo'
-        parser = self._make_subscription_parser(piston_subscription)
+        parser = self._make_application_parser(piston_subscription)
 
         self.assertTrue(parser.has_option_desktop('License-Key'))
         self.assertTrue(parser.has_option_desktop('License-Key-Path'))
@@ -179,7 +169,7 @@ class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
         self.assertEqual('/foo', parser.get_desktop('License-Key-Path'))
 
     def test_license_key_not_present(self):
-        parser = self._make_subscription_parser()
+        parser = self._make_application_parser()
 
         self.assertFalse(parser.has_option_desktop('License-Key'))
         self.assertFalse(parser.has_option_desktop('License-Key-Path'))
