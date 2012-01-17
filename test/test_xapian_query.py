@@ -4,18 +4,23 @@ import os
 import sys
 import xapian
 
-from softwarecenter.enums import XAPIAN_VALUE_POPCON
-
 from testutils import setup_test_env
 setup_test_env()
 
+from softwarecenter.enums import XapianValues
+import softwarecenter.paths
+
+# this is not a test as such, more a example of how xapian search
+# work and useful features around them
+
 if __name__ == "__main__":
 
-    search_term = sys.argv[1]
+    if len(sys.argv) > 1:
+        search_term = sys.argv[1] 
+    else:
+        search_term = "app"
 
-    xapian_base_path = "/var/cache/software-center"
-    pathname = os.path.join(xapian_base_path, "xapian")
-    db = xapian.Database(pathname)
+    db = xapian.Database(softwarecenter.paths.XAPIAN_PATH)
 
     parser = xapian.QueryParser()
     #parser.set_stemmer(xapian.Stem("english"))
@@ -27,13 +32,13 @@ if __name__ == "__main__":
                                xapian.QueryParser.FLAG_WILDCARD)
 
     enquire = xapian.Enquire(db)
-    enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+    enquire.set_sort_by_value_then_relevance(XapianValues.POPCON)
     enquire.set_query(query)
     matches = enquire.get_mset(0, db.get_doccount())
     print "Matches:"
     for m in matches:
         doc = m.document
-        popcon = doc.get_value(XAPIAN_VALUE_POPCON)
+        popcon = doc.get_value(XapianValues.POPCON)
         print doc.get_data(), "popcon:", xapian.sortable_unserialise(popcon)
         #for t in doc.termlist():
         #    print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
@@ -70,7 +75,7 @@ if __name__ == "__main__":
     print
     print "Popular: "
     query = xapian.Query(xapian.Query.OP_VALUE_GE,
-                         XAPIAN_VALUE_POPCON, "100000")
+                         XapianValues.POPCON, "100000")
     enquire.set_query(query)
     matches = enquire.get_mset(0, 10)
     for m in matches:
