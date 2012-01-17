@@ -9,6 +9,10 @@ software-center (5.1.6) UNRELEASED; urgency=low
   * utils/submit_review_gtk3.py:
     - fix crash when submitting a review (LP: #912855)
 
+  [ Anthony Lenton ]
+  * lp:~elachuni/software-center/test_downloader_fix:
+    - fix test hang on incorrect proxy settings
+  
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-lp913756:
     - do not add an icon to the Unity launcher for packages that do
