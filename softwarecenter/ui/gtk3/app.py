@@ -591,9 +591,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # appmanager needs to know about the oauth token for the reinstall
         # previous purchases add_license_key call
         self.app_manager.oauth_token = oauth_result
-        # consumer key is the openid identifier
-        self.scagent.query_available_for_me(oauth_result["token"],
-                                            oauth_result["consumer_key"])
+        self.scagent.query_available_for_me()
 
     def _on_style_updated(self, widget, init_css_callback, *args):
         init_css_callback(widget, *args)

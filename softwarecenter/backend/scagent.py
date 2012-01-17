@@ -92,7 +92,7 @@ class SoftwareCenterAgent(GObject.GObject):
     def _on_query_available_data(self, spawner, piston_available):
         self.emit("available", piston_available)
 
-    def query_available_for_me(self, oauth_token, openid_identifier):
+    def query_available_for_me(self):
         spawner = SpawnHelper()
         spawner.parent_xid = self.xid
         spawner.ignore_cache = self.ignore_cache
@@ -100,7 +100,9 @@ class SoftwareCenterAgent(GObject.GObject):
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
         spawner.needs_auth = True
         spawner.run_generic_piston_helper(
-            "SoftwareCenterAgentAPI", "subscriptions_for_me")
+            "SoftwareCenterAgentAPI", "subscriptions_for_me",
+            complete_only=True)
+
     def _on_query_available_for_me_data(self, spawner, piston_available_for_me):
         self.emit("available-for-me", piston_available_for_me)
 
@@ -147,7 +149,7 @@ if __name__ == "__main__":
     scagent.connect("exhibits", _exhibits)
     scagent.connect("error", _error)
     #scagent.query_available("natty", "i386")
-    #scagent.query_available_for_me("dummy_oauth", "dummy openid")
+    #scagent.query_available_for_me()
     scagent.query_exhibits()
 
     from gi.repository import Gtk
