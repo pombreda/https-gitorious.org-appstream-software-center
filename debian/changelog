@@ -12,6 +12,10 @@ software-center (5.1.6) UNRELEASED; urgency=low
   [ Anthony Lenton ]
   * lp:~elachuni/software-center/test_downloader_fix:
     - fix test hang on incorrect proxy settings
+  * lp:~elachuni/software-center/check-edit-labels:
+    - add test for correct labels in "Modify review" mode
+    - move main RnR Helper GUI into softwarecenter.backend.rnr 
+      to make testing easier
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-lp913756:
