@@ -39,7 +39,7 @@ from softwarecenter.utils import (
     )
 
 
-from softwarecenter.i18n import get_language, get_languages
+from softwarecenter.i18n import get_languages
 
 from softwarecenter.netstatus import network_state_is_connected, get_network_watcher
 from softwarecenter.enums import (
