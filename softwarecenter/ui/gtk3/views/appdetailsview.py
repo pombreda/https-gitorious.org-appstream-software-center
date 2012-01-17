@@ -1510,7 +1510,7 @@ class AppDetailsView(Viewport):
         # init data
         self.app = app
         self.app_details = app.get_details(self.db)
-        
+
         # check if app just became available and if so, force full
         # refresh
         if (same_app and
@@ -1527,6 +1527,8 @@ class AppDetailsView(Viewport):
         if same_app and not force:
             self._update_minimal(self.app_details)
         else:
+            # reset reviews_page
+            self._reviews_server_page = 1
             # update all (but skip the addons calculation if this is a
             # DebFileApplication as this is not useful for this case and it
             # increases the view load time dramatically)

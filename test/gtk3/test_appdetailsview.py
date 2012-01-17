@@ -92,6 +92,20 @@ class TestAppdetailsView(unittest.TestCase):
         view._add_where_is_it_launcher("/usr/share/applications/ubuntu-software-center.desktop")
         do_events()
 
+    def test_reviews_page(self):
+        win = get_test_window_appdetails()
+        view = win.get_data("view")
+        # show s-c and click on more review
+        app = Application("", "software-center")
+        view.show_app(app)
+        self.assertEqual(view._reviews_server_page, 1)
+        view._on_more_reviews_clicked(None)
+        self.assertEqual(view._reviews_server_page, 2)
+        # show different app, ensure page is reset
+        app = Application("", "apt")
+        view.show_app(app)
+        self.assertEqual(view._reviews_server_page, 1)
+
     def test_pkgstatus_bar(self):
         # make sure configure is run with the various states
         # test
