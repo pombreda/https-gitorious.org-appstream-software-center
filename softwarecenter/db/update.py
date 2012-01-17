@@ -132,7 +132,7 @@ class AppInfoParserBase(object):
     def desktopf(self):
         """ return the file that the AppInfo comes from """
 
-class SoftwareCenterAgentParser(AppInfoParserBase):
+class SCAApplicationParser(AppInfoParserBase):
     """ map the data we get from the software-center-agent """
 
     # map from requested key to sca_entry attribute
@@ -210,11 +210,11 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         return self.origin
 
 
-class SCAPurchasedApplicationParser(SoftwareCenterAgentParser):
+class SCAPurchasedApplicationParser(SCAApplicationParser):
     """A subscription has its own attrs with a subset of the app attributes.
     
-    We inherit from SoftwareCenterAgentParser so that we get other methods for
-    free, and we compose a SoftwareCenterAgentParser because we need the
+    We inherit from SCAApplicationParser so that we get other methods for
+    free, and we compose a SCAApplicationParser because we need the
     get_desktop method with the correct MAPPING. TODO: There must be a nicer
     way to organise this so that we don't need both inheritance and composition
     for a DRY implementation.
@@ -224,7 +224,7 @@ class SCAPurchasedApplicationParser(SoftwareCenterAgentParser):
         # The sca_subscription is a PistonResponseObject, whereas any child
         # objects are normal Python dicts.
         self.sca_subscription = sca_subscription
-        self.application_parser = SoftwareCenterAgentParser(
+        self.application_parser = SCAApplicationParser(
             PistonResponseObject.from_dict(sca_subscription.application))
         super(SCAPurchasedApplicationParser, self).__init__(
             PistonResponseObject.from_dict(sca_subscription.application))
@@ -613,7 +613,7 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
             # magic channel
             entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
             # now the normal parser
-            parser = SoftwareCenterAgentParser(entry)
+            parser = SCAApplicationParser(entry)
             index_app_info_from_parser(parser, db, cache)
         except Exception as e:
             LOG.warning("error processing: %s " % e)

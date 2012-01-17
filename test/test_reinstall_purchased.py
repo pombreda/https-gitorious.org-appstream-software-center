@@ -16,7 +16,7 @@ from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.update import (
     add_from_purchased_but_needs_reinstall_data,
     SCAPurchasedApplicationParser,
-    SoftwareCenterAgentParser,
+    SCAApplicationParser,
     )
 
 # Example taken from running:
@@ -150,18 +150,18 @@ class TestPurchased(unittest.TestCase):
                  "/photobomb/ubuntu natty main")
 
 
-class SoftwareCenterAgentParserTestCase(unittest.TestCase):
+class SCAApplicationParserTestCase(unittest.TestCase):
 
     def _make_application_parser(self, piston_application=None):
         if piston_application is None:
             piston_application = PistonResponseObject.from_dict(
                 json.loads(AVAILABLE_APPS_JSON)[0])
-        return SoftwareCenterAgentParser(piston_application)
+        return SCAApplicationParser(piston_application)
 
     def test_parses_application_from_available_apps(self):
         parser = self._make_application_parser()
         inverse_map = dict(
-            (val, key) for key, val in SoftwareCenterAgentParser.MAPPING.items())
+            (val, key) for key, val in SCAApplicationParser.MAPPING.items())
 
         # Delete the keys which are not yet provided via the API:
         del(inverse_map['video_url'])
