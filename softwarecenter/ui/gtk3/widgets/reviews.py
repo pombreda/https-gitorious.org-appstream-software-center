@@ -130,6 +130,7 @@ class UIReviewsList(Gtk.VBox):
         self.review_language = Gtk.ComboBoxText.new()
         for lang in get_languages():
             self.review_language.append_text(lang)
+        self.review_language.append_text(_('Any language'))
         self.review_language.set_active(0)
         self.review_language.connect(
             "changed", self._on_different_review_language_clicked)
@@ -269,22 +270,14 @@ class UIReviewsList(Gtk.VBox):
                 self.new_review.set_label(_("Write your own review"))
         else:
             # no reviews, either offer to write one or show "none"
-            if is_installed and is_connected:
+            if (self.get_active_review_language() != 'any' and
+                self.global_review_stats and
+                self.global_review_stats.ratings_total > 0):
+                self.vbox.pack_start(NoReviewRelaxLanguage(), True, True, 0)
+            elif is_installed and is_connected:
                 self._be_the_first_to_review()
             else:
                 self.vbox.pack_start(NoReviewYet(), True, True, 0)
-
-        # if there are no reviews, try english as fallback
-        language = get_language()
-        if (len(self.reviews) == 0 and
-            self.global_review_stats and
-            self.global_review_stats.ratings_total > 0 and
-            language != "en"):
-            button = Gtk.Button(_("Show reviews in english"))
-            button.connect(
-                "clicked", self._on_show_reviews_in_english_clicked)
-            button.show()
-            self.vbox.pack_start(button, True, True, 0)                
 
         # aaronp: removed check to see if the length of reviews is divisible by
         # the batch size to allow proper fixing of LP: #794060 as when a review
@@ -307,16 +300,17 @@ class UIReviewsList(Gtk.VBox):
         self.vbox.remove(button)
         self.emit("more-reviews-clicked")
 
-    def _on_show_reviews_in_english_clicked(self, button):
-        self.vbox.remove(button)
-        self.emit("different-review-language-clicked", "en")
-
     def _on_different_review_language_clicked(self, combo):
-        # and set them
-        language = combo.get_active_text()
+        language = self.get_active_review_language()
         # clean reviews so that we can show the new language
         self.clear()
         self.emit("different-review-language-clicked", language)
+
+    def get_active_review_language(self):
+        language = self.review_language.get_active_text()
+        if language == _('Any language'):
+            language = 'any'
+        return language
 
     def get_all_review_ids(self):
         ids = []
@@ -887,6 +881,18 @@ class EmbeddedMessage(UIReview):
 
     def draw(self, cr, a):
         return
+
+
+class NoReviewRelaxLanguage(EmbeddedMessage):
+    """ represents if there are no reviews yet and the app is not installed """
+    def __init__(self, *args, **kwargs):
+        # TRANSLATORS: displayed if there are no reviews for the app in
+        #              the current language, but there are some in other
+        #              languages
+        title = _("This app has not been reviewed yet in your language")
+        msg = _('Try selecting a different language, or even "Any language"'
+            ' in the language dropdown')
+        EmbeddedMessage.__init__(self, title, msg)
 
 
 class NoReviewYet(EmbeddedMessage):
