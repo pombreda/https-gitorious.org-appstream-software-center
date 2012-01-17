@@ -1,0 +1,17 @@
+When debugging server issues or inspecting the expected results
+its often useful to run
+"utils/piston-helpers/piston_generic_helper.py" in debug mode.
+
+Some examples:
+$ PYTHONPATH=. utils/piston-helpers/piston_generic_helper.py \
+   --output=text --debug --needs-auth \
+   SoftwareCenterAgentAPI subscriptions_for_me
+
+$ PYTHONPATH=. utils/piston-helpers/piston_generic_helper.py \
+   --output=text --debug \
+   SoftwareCenterRecommenderAPI recommend_top
+
+
+
+Any piston-mini-client API should work, first name is the class
+second the method to run, optional is a json encoded kwargs string.
