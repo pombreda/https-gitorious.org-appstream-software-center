@@ -183,9 +183,12 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         # XXX 2012-01-16 bug=917109
         # We can remove these work-arounds once the above bug is fixed on
         # the server. Until then, we fake a channel here and empty category
-        # to make the parser happy.
+        # to make the parser happy. Note: available_apps api call includes
+        # these already, it's just the apps with subscriptions_for_me which
+        # don't currently.
         self.sca_entry.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
-        self.sca_entry.categories = ""
+        if not hasattr(self.sca_entry, 'categories'):
+            self.sca_entry.categories = ""
 
     def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:
@@ -197,9 +200,11 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
             return ['DEPARTMENT:' + self.sca_entry.department[-1]] + self._get_desktop_list("Categories")
         except:
             return self._get_desktop_list("Categories")
+
     def has_option_desktop(self, key):
         return (key in self.STATIC_DATA or
                 hasattr(self.sca_entry, self._apply_mapping(key)))
+
     @property
     def desktopf(self):
         return self.origin

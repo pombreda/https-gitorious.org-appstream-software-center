@@ -211,6 +211,14 @@ class SoftwareCenterAgentParserTestCase(unittest.TestCase):
         self.assertEqual([u'DEPARTMENT:Sound & Video', "AudioVideo"],
             parser.get_desktop_categories())
 
+    def test_desktop_categories_no_department(self):
+        piston_app = PistonResponseObject.from_dict(
+            json.loads(AVAILABLE_APPS_JSON)[0])
+        del(piston_app.department)
+        parser = self._make_application_parser(piston_app)
+
+        self.assertEqual(["AudioVideo"], parser.get_desktop_categories())
+
 
 class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
 
