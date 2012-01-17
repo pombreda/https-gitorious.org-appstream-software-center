@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
-import sys
-sys.path.insert(0,"../")
-
 import logging
 import unittest
 
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.db.pkginfo import _Package, _Version
 from softwarecenter.db.pkginfo_impl.aptcache import AptCache
 # from softwarecenter.db.pkginfo_impl.packagekit import PackagekitInfo

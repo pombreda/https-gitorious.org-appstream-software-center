@@ -1,9 +1,5 @@
 #!/usr/bin/python
 
-
-import sys
-sys.path.insert(0,"../")
-
 import apt_pkg
 import apt
 import logging
@@ -12,6 +8,8 @@ import unittest
 import xapian
 
 from piston_mini_client import PistonResponseObject
+from testutils import setup_test_env
+setup_test_env()
 
 from softwarecenter.enums import XapianValues
 from softwarecenter.db.database import StoreDatabase

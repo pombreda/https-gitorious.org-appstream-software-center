@@ -1,12 +1,12 @@
 #!/usr/bin/python
 
 import os
-import sys
 import time
 import unittest
 
+from testutils import setup_test_env
+setup_test_env()
 
-sys.path.insert(0,"../")
 from softwarecenter.backend.installbackend_impl.aptd import AptdaemonBackend
 from defer import inline_callbacks
 from mock import Mock

@@ -1,19 +1,15 @@
 #!/usr/bin/python
 
 from gi.repository import Gtk, GObject
-import sys
 import time
 import unittest
 
-sys.path.insert(0,"../..")
-sys.path.insert(0,"..")
+from testutils import setup_test_env
+setup_test_env()
 
 #from mock import Mock
 
 TIMEOUT=300
-
-import softwarecenter.paths
-softwarecenter.paths.datadir = "../data"
 
 class TestViews(unittest.TestCase):
 

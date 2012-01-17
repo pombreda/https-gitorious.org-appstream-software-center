@@ -2,16 +2,17 @@
 
 from gi.repository import GObject
 
-import sys
-sys.path.insert(0,"../")
-
 import apt
 import datetime
 import logging
 import os
 import subprocess
+import sys
 import time
 import unittest
+
+from testutils import setup_test_env
+setup_test_env()
 
 from softwarecenter.db.history_impl.apthistory import AptHistory
 from softwarecenter.utils import ExecutionTime

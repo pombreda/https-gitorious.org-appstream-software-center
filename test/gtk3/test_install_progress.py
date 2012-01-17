@@ -1,17 +1,12 @@
 #!/usr/bin/python
 
 from gi.repository import Gtk
-import sys
 import time
 import unittest
 
-sys.path.insert(0,"../..")
-sys.path.insert(0,"..")
+from testutils import setup_test_env
+setup_test_env()
 
-#from mock import Mock
-
-import softwarecenter.paths
-softwarecenter.paths.datadir = "../data"
 
 from softwarecenter.db.application import Application
 from softwarecenter.testutils import start_dummy_backend, stop_dummy_backend

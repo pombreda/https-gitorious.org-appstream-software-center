@@ -1,19 +1,11 @@
 #!/usr/bin/python
 
-import sys
 import unittest
 
-sys.path.insert(0,"../..")
-sys.path.insert(0,"..")
+from testutils import setup_test_env
+setup_test_env()
 
-#from mock import Mock
-
-TIMEOUT=300
-
-import softwarecenter.paths
-softwarecenter.paths.datadir = "../data"
-
-from softwarecenter.testutils import do_events
+from testutils import do_events
 
 class TestGlobalPane(unittest.TestCase):
 

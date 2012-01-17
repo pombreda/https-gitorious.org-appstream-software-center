@@ -3,11 +3,11 @@
 from gi.repository import GObject
 
 import os
-import sys
 import time
 import unittest
 
-sys.path.insert(0,"../")
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.utils import SimpleFileDownloader
 
 class TestImageDownloader(unittest.TestCase):
@@ -20,8 +20,11 @@ class TestImageDownloader(unittest.TestCase):
                                 self._cb_image_url_reachable)
         self.downloader.connect("file-download-complete",
                                 self._cb_image_download_complete)
+        self.downloader.connect("error",
+                                self._cb_image_download_error)
         self._image_is_reachable = None
         self._image_downloaded_filename = None
+        self._error = False
         if os.path.exists(self.DOWNLOAD_FILENAME):
             os.unlink(self.DOWNLOAD_FILENAME)
 
@@ -30,6 +33,9 @@ class TestImageDownloader(unittest.TestCase):
 
     def _cb_image_download_complete(self, downloader, filename):
         self._image_downloaded_filename = filename
+
+    def _cb_image_download_error(self, downloader, gerror, exc):
+        self._error = True
 
     def test_download_unreachable(self):
         self.downloader.download_file("http://www.ubuntu.com/really-not-there",
@@ -47,7 +53,8 @@ class TestImageDownloader(unittest.TestCase):
         self.downloader.download_file("http://www.ubuntu.com",
                                       self.DOWNLOAD_FILENAME)
         main_loop = GObject.main_context_default()
-        while self._image_downloaded_filename is None:
+        while (self._image_downloaded_filename is None and
+               not self._error):
             while main_loop.pending():
                 main_loop.iteration()
             time.sleep(0.1)

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
-import sys
-sys.path.insert(0, "..")
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.utils import htmlize_package_description
 
 #file-roller

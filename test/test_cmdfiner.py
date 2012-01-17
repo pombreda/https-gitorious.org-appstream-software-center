@@ -3,9 +3,8 @@
 import apt
 import unittest
 
-import sys
-sys.path.insert(0,"../")
-
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.cmdfinder import CmdFinder
 
 class TestCmdFinder(unittest.TestCase):

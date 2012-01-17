@@ -2,18 +2,13 @@
 
 from gi.repository import Gtk, GdkPixbuf, GObject
 import os
-import sys
 import unittest
 
 from mock import Mock
 
+from testutils import setup_test_env
+setup_test_env()
 
-sys.path.insert(0,"..")
-
-# ensure datadir is pointing to the right place
-import softwarecenter.paths
-softwarecenter.paths.datadir = os.path.join(
-    os.path.dirname(__file__), "..", "..", 'data')
 
 # window destory timeout
 TIMEOUT=100

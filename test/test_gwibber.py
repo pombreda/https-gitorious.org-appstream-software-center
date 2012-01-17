@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
 import os
-import sys
 import unittest
-sys.path.insert(0,"../")
+
+from testutils import setup_test_env
+setup_test_env()
 
 class TestGwibber(unittest.TestCase):
     """ tests the "where is it in the menu" code """
