@@ -123,12 +123,8 @@ class SCASubscriptionParserTestCase(unittest.TestCase):
         return SCASubscriptionParser(piston_subscription)
 
     def test_get_desktop_subscription(self):
-        # The parser includes both the subscription attributes.
         parser = self._make_subscription_parser()
 
-        # An exception should not be raised for any of the desktop
-        # keys, and we should have the correct value for the ones we have
-        # provided.
         expected_results = {
             "Deb-Line": "deb https://username:randomp3atoken@"
                         "private-ppa.launchpad.net/mvo/private-test/ubuntu "
@@ -136,10 +132,9 @@ class SCASubscriptionParserTestCase(unittest.TestCase):
                         "private-test",
             "Purchased-Date": "2010-06-24 20:08:23",
             }
-        for key in SCASubscriptionParser.MAPPING:
+        for key in expected_results:
             result = parser.get_desktop(key)
-            if key in expected_results:
-                self.assertEqual(expected_results[key], result)
+            self.assertEqual(expected_results[key], result)
 
     def test_get_desktop_application(self):
         # The parser passes application attributes through to
@@ -159,6 +154,35 @@ class SCASubscriptionParserTestCase(unittest.TestCase):
             result = parser.get_desktop(key)
             if key in expected_results:
                 self.assertEqual(expected_results[key], result)
+
+    def test_has_option_desktop_includes_app_keys(self):
+        # The SCASubscriptionParser handles application keys also
+        # (passing them through to the composited application parser).
+        parser = self._make_subscription_parser()
+
+        for key in SoftwareCenterAgentParser.MAPPING:
+            self.assertTrue(parser.has_option_desktop(key))
+        for key in ('Deb-Line', 'Purchased-Date'):
+            self.assertTrue(parser.has_option_desktop(key),
+                    'Key: {0} was not an option.'.format(key))
+
+    def test_license_key_present(self):
+        piston_subscription = PistonResponseObject.from_dict(
+            json.loads(AVAILABLE_FOR_ME_JSON)[0])
+        piston_subscription.license_key = 'abcd'
+        piston_subscription.license_key_path = '/foo'
+        parser = self._make_subscription_parser(piston_subscription)
+
+        self.assertTrue(parser.has_option_desktop('License-Key'))
+        self.assertTrue(parser.has_option_desktop('License-Key-Path'))
+        self.assertEqual('abcd', parser.get_desktop('License-Key'))
+        self.assertEqual('/foo', parser.get_desktop('License-Key-Path'))
+
+    def test_license_key_not_present(self):
+        parser = self._make_subscription_parser()
+
+        self.assertFalse(parser.has_option_desktop('License-Key'))
+        self.assertFalse(parser.has_option_desktop('License-Key-Path'))
 
 
 if __name__ == "__main__":

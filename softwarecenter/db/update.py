@@ -236,10 +236,6 @@ class SCASubscriptionParser(SoftwareCenterAgentParser):
               }
 
     def get_desktop(self, key, translated=True):
-        optional_attrs = ('License-Key', 'License-Key-Path')
-        if not hasattr(self.sca_subscription, key) and key in optional_attrs:
-            return None
-
         if self.application_parser.has_option_desktop(key):
             return self.application_parser.get_desktop(key, translated)
 
