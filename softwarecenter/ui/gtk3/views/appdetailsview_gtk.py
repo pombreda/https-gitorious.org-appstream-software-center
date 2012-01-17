@@ -1410,6 +1410,8 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         if same_app and not force:
             self._update_minimal(self.app_details)
         else:
+            # reset reviews_page
+            self._reviews_server_page = 1
             # update all (but skip the addons calculation if this is a
             # DebFileApplication as this is not useful for this case and it
             # increases the view load time dramatically)

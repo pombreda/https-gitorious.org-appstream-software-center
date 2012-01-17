@@ -1,9 +1,15 @@
 software-center (5.0.5) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-lp913756-for-5.0:
     - do not offer to add an icon to the Unity launcher for packages
       that do not have an Exec entry in their corresponding desktop
       file, e.g. ubuntu-restricted-extras, wine (LP: #913756)
+  
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/fix-server-pagination:
+    - reset server side review "page" when switching to a different
+      app
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 10 Jan 2012 16:00:46 -0500
 
