@@ -813,12 +813,13 @@ class AppDetailsView(Viewport):
         self._do_load_reviews()
     
     def _on_review_sort_method_changed(self, uilist, sort_method):
-        self._review_server_page = 1
+        self._reviews_server_page = 1
         self._review_sort_method = sort_method
         self.reviews.clear()
         self._do_load_reviews()
 
     def _on_reviews_in_different_language_clicked(self, uilist, language):
+        self._reviews_server_page = 1
         self._reviews_server_language = language
         self.reviews.clear()
         self._do_load_reviews()
