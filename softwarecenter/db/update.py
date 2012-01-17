@@ -145,7 +145,6 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'License'    : 'license',
                 'Date-Published' : 'date_published',
                 'PPA'        : 'archive_id',
-                'Icon'       : 'icon',
                 'Screenshot-Url' : 'screenshot_url',
                 'Thumbnail-Url' : 'thumbnail_url',
                 'Video-Url' :  'video_url',
@@ -172,8 +171,9 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
             not hasattr(self.sca_entry, "thumbnail_url")):
             self.sca_entry.thumbnail_url = self.sca_entry.screenshot_url
         if hasattr(self.sca_entry, "description"):
-            self.sca_entry.Comment = self.sca_entry.description.split("\n")[0]
-            self.sca_entry.Description = "\n".join(self.sca_entry.description.split("\n")[1:])
+            self.sca_entry.Comment = self.sca_entry.description.split("\n")[0].strip()
+            self.sca_entry.Description = "\n".join(
+                self.sca_entry.description.split("\n")[1:]).strip()
         # WARNING: item.name needs to be different than
         #          the item.name in the DB otherwise the DB
         #          gets confused about (appname, pkgname) duplication
@@ -191,6 +191,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         if key in self.STATIC_DATA:
             return self.STATIC_DATA[key]
         return getattr(self.sca_entry, self._apply_mapping(key))
+
     def get_desktop_categories(self):
         try:
             return ['DEPARTMENT:' + self.sca_entry.department[-1]] + self._get_desktop_list("Categories")

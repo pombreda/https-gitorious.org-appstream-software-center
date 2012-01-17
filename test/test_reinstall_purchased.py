@@ -86,7 +86,7 @@ AVAILABLE_APPS_JSON = """
         "tos_url": "https://software-center.ubuntu.com/licenses/3/",
         "icon_url": "http://software-center.ubuntu.com/site_media/icons/2011/05/fluendo-dvd.png",
         "categories": "AudioVideo",
-        "description": "Play DVD-Videos\r\n\r\nFluendo DVD Player is a software application specially designed to\r\nreproduce DVD on Linux/Unix platforms, which provides end users with\r\nhigh quality standards.\r\n\r\nThe following features are provided:\r\n* Full DVD Playback\r\n* DVD Menu support\r\n* Fullscreen support\r\n* Dolby Digital pass-through\r\n* Dolby Digital 5.1 output and stereo downmixing support\r\n* Resume from last position support\r\n* Subtitle support\r\n* Audio selection support\r\n* Multiple Angles support\r\n* Support for encrypted discs\r\n* Multiregion, works in all regions\r\n* Multiple video deinterlacing algorithms"
+        "description": "Play DVD-Videos\\r\\n\\r\\nFluendo DVD Player is a software application specially designed to\\r\\nreproduce DVD on Linux/Unix platforms, which provides end users with\\r\\nhigh quality standards.\\r\\n\\r\\nThe following features are provided:\\r\\n* Full DVD Playback\\r\\n* DVD Menu support\\r\\n* Fullscreen support\\r\\n* Dolby Digital pass-through\\r\\n* Dolby Digital 5.1 output and stereo downmixing support\\r\\n* Resume from last position support\\r\\n* Subtitle support\\r\\n* Audio selection support\\r\\n* Multiple Angles support\\r\\n* Support for encrypted discs\\r\\n* Multiregion, works in all regions\\r\\n* Multiple video deinterlacing algorithms"
     }
 ]
 """
@@ -152,8 +152,64 @@ class TestPurchased(unittest.TestCase):
 
 class SoftwareCenterAgentParserTestCase(unittest.TestCase):
 
+    def _make_application_parser(self, piston_application=None):
+        if piston_application is None:
+            piston_application = PistonResponseObject.from_dict(
+                json.loads(AVAILABLE_APPS_JSON)[0])
+        return SoftwareCenterAgentParser(piston_application)
+
     def test_parses_application_from_available_apps(self):
-        pass
+        parser = self._make_application_parser()
+        inverse_map = dict(
+            (val, key) for key, val in SoftwareCenterAgentParser.MAPPING.items())
+
+        # Delete the keys which are not yet provided via the API:
+        del(inverse_map['video_url'])
+
+        for key in inverse_map:
+            self.assertTrue(parser.has_option_desktop(inverse_map[key]))
+            self.assertEqual(
+                getattr(parser.sca_entry, key),
+                parser.get_desktop(inverse_map[key]))
+
+    def test_keys_not_provided_by_api(self):
+        parser = self._make_application_parser()
+
+        self.assertFalse(parser.has_option_desktop('Video-Url'))
+        self.assertTrue(parser.has_option_desktop('Type'))
+        self.assertEqual('Application', parser.get_desktop('Type'))
+
+    def test_thumbnail_is_screenshot(self):
+        parser = self._make_application_parser()
+
+        self.assertEqual(
+            "http://software-center.ubuntu.com/site_media/screenshots/"
+            "2011/05/fluendo-dvd-maverick_.png",
+            parser.get_desktop('Thumbnail-Url'))
+
+    def test_extracts_description(self):
+        parser = self._make_application_parser()
+
+        self.assertEqual("Play DVD-Videos", parser.get_desktop('Comment'))
+        self.assertEqual(
+            "Fluendo DVD Player is a software application specially designed "
+            "to\r\nreproduce DVD on Linux/Unix platforms, which provides end "
+            "users with\r\nhigh quality standards.\r\n\r\nThe following "
+            "features are provided:\r\n* Full DVD Playback\r\n* DVD Menu "
+            "support\r\n* Fullscreen support\r\n* Dolby Digital pass-through"
+            "\r\n* Dolby Digital 5.1 output and stereo downmixing support\r\n"
+            "* Resume from last position support\r\n* Subtitle support\r\n"
+            "* Audio selection support\r\n* Multiple Angles support\r\n"
+            "* Support for encrypted discs\r\n"
+            "* Multiregion, works in all regions\r\n"
+            "* Multiple video deinterlacing algorithms",
+            parser.get_desktop('Description'))
+
+    def test_desktop_categories_uses_department(self):
+        parser = self._make_application_parser()
+
+        self.assertEqual([u'DEPARTMENT:Sound & Video', "AudioVideo"],
+            parser.get_desktop_categories())
 
 
 class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
