@@ -186,8 +186,12 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         # to make the parser happy.
         if not hasattr(self.sca_entry, 'channel'):
             self.sca_entry.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
-        if not hasattr(self.sca_entry, 'categories'):
-            self.sca_entry.categories = ""
+        for missing_attribute in (
+                'categories', 'license', 'thumbnail_url', 'price',
+                'date_published', 'icon_url', 'video_url', 'support_url',
+                'screenshot_url', 'icon'):
+            if not hasattr(self.sca_entry, missing_attribute):
+                setattr(self.sca_entry, missing_attribute, "")
 
     def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:
@@ -238,9 +242,7 @@ class SCASubscriptionParser(SoftwareCenterAgentParser):
         if not hasattr(self.sca_subscription, key) and key in optional_attrs:
             return None
 
-        key = key.lstrip('X-AppInstall-')
-        if (key in SoftwareCenterAgentParser.MAPPING or
-            key in SoftwareCenterAgentParser.STATIC_DATA):
+        if self.application_parser.has_option_desktop(key):
             return self.application_parser.get_desktop(key, translated)
 
         return getattr(self.sca_subscription, self._apply_mapping(key))

@@ -117,28 +117,47 @@ class SoftwareCenterAgentParserTestCase(unittest.TestCase):
 
 class SCASubscriptionParserTestCase(unittest.TestCase):
 
-    def test_get_desktop(self):
-        # The parser can handle being passed a subscription, returning
-        # desktop entries without error.
-        # TODO: can we use from_response here instead?
-        subscription = PistonResponseObject.from_dict(json.loads(AVAILABLE_FOR_ME_JSON)[0])
-        parser = SCASubscriptionParser(subscription)
+    def _make_subscription_parser(self, piston_subscription=None):
+        if piston_subscription is None:
+            piston_subscription = PistonResponseObject.from_dict(
+                json.loads(AVAILABLE_FOR_ME_JSON)[0])
+
+        return SCASubscriptionParser(piston_subscription)
+
+    def test_get_desktop_subscription(self):
+        # The parser includes both the subscription attributes.
+        parser = self._make_subscription_parser()
 
         # An exception should not be raised for any of the desktop
         # keys, and we should have the correct value for the ones we have
         # provided.
         expected_results = {
-            "Name": "Ubiteme",
-            "Package": "hellox",
             "Deb-Line": "deb https://username:randomp3atoken@"
                         "private-ppa.launchpad.net/mvo/private-test/ubuntu "
                         "maverick main #Personal access of username to "
                         "private-test",
-            "Signing-Key-Id": "1024R/0EB12F05",
             "Purchased-Date": "2010-06-24 20:08:23",
-            "PPA": "mvo/private-test",
             }
         for key in SCASubscriptionParser.MAPPING:
+            result = parser.get_desktop(key)
+            if key in expected_results:
+                self.assertEqual(expected_results[key], result)
+
+    def test_get_desktop_application(self):
+        # The parser passes application attributes through to
+        # an application parser for handling.
+        parser = self._make_subscription_parser()
+
+        # An exception should not be raised for any of the desktop
+        # keys, and we should have the correct value for the ones we have
+        # provided.
+        expected_results = {
+            "Name": "Ubiteme (already purchased)",
+            "Package": "hellox",
+            "Signing-Key-Id": "1024R/0EB12F05",
+            "PPA": "mvo/private-test",
+            }
+        for key in SoftwareCenterAgentParser.MAPPING:
             result = parser.get_desktop(key)
             if key in expected_results:
                 self.assertEqual(expected_results[key], result)
