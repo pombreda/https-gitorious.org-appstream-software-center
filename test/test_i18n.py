@@ -1,0 +1,37 @@
+#!/usr/bin/python
+
+import os
+import unittest
+
+
+from testutils import setup_test_env
+setup_test_env()
+from softwarecenter.i18n import get_language,  langcode_to_name
+
+
+class TestI18n(unittest.TestCase):
+    """ tests the sc i18n """
+
+    def test_langcode_to_name(self):
+        self.assertEqual(langcode_to_name("de"), "German")
+
+    def test_locale(self):
+        # needs lang + country code
+        os.environ["LANGUAGE"] = "zh_TW"
+        self.assertEqual(get_language(), "zh_TW")
+        # language only
+        os.environ["LANGUAGE"] = "fr_FR"
+        self.assertEqual(get_language(), "fr")
+        # not existing one
+        os.environ["LANGUAGE"] = "xx_XX"
+        self.assertEqual(get_language(), "en")
+        # LC_ALL, no language
+        del os.environ["LANGUAGE"]
+        os.environ["LC_ALL"] = "C"
+        os.environ["LANG"] = "C"
+        self.assertEqual(get_language(), "en")
+
+if __name__ == "__main__":
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    unittest.main()

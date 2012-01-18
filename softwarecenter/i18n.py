@@ -26,6 +26,7 @@ FALLBACK = "en"
 # can be abbreved
 FULL = ["pt_BR", 
         "zh_CN", "zh_TW"]
+
 def get_languages():
     """Helper that returns the split up languages"""
     if not "LANGUAGE" in os.environ:
@@ -51,3 +52,16 @@ def get_language():
     if language in FULL:
         return language
     return language.split("_")[0]
+
+def langcode_to_name(langcode):
+    import xml.etree.ElementTree
+    from gettext import dgettext
+    for iso in ["iso_639_3", "iso_639"]:
+        path = os.path.join("/usr/share/xml/iso-codes/", iso+".xml")
+        if os.path.exists(path):
+            root = xml.etree.ElementTree.parse(path)
+            xpath = ".//iso_639_3_entry[@part1_code='%s']" % langcode
+            match = root.find(xpath)
+            if match is not None:
+                return dgettext(iso, match.attrib["name"])
+    return langcode
