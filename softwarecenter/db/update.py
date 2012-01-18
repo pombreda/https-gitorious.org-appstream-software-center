@@ -186,7 +186,7 @@ class SCAApplicationParser(AppInfoParserBase):
         # to make the parser happy. Note: available_apps api call includes
         # these already, it's just the apps with subscriptions_for_me which
         # don't currently.
-        self.sca_entry.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
+        self.sca_entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
         if not hasattr(self.sca_entry, 'categories'):
             self.sca_entry.categories = ""
 
@@ -228,6 +228,8 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
             PistonResponseObject.from_dict(sca_subscription.application))
         super(SCAPurchasedApplicationParser, self).__init__(
             PistonResponseObject.from_dict(sca_subscription.application))
+        self.application_parser.sca_entry.channel = (
+            PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
 
     MAPPING = { 'Deb-Line'   : 'deb_line',
                 'Purchased-Date' : 'purchase_date',
@@ -610,8 +612,6 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
         while context.pending():
             context.iteration()
         try:
-            # magic channel
-            entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
             # now the normal parser
             parser = SCAApplicationParser(entry)
             index_app_info_from_parser(parser, db, cache)

@@ -11,7 +11,10 @@ from piston_mini_client import PistonResponseObject
 from testutils import setup_test_env
 setup_test_env()
 
-from softwarecenter.enums import XapianValues
+from softwarecenter.enums import (XapianValues,
+                                  AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
+                                  PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME,
+                                  )
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.update import (
     add_from_purchased_but_needs_reinstall_data,
@@ -211,6 +214,13 @@ class SCAApplicationParserTestCase(unittest.TestCase):
 
         self.assertEqual(["AudioVideo"], parser.get_desktop_categories())
 
+    def test_magic_channel(self):
+        parser = self._make_application_parser()
+
+        self.assertEqual(
+            AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
+            parser.get_desktop('Channel'))
+
 
 class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
 
@@ -277,6 +287,13 @@ class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
 
         self.assertFalse(parser.has_option_desktop('License-Key'))
         self.assertFalse(parser.has_option_desktop('License-Key-Path'))
+
+    def test_magic_channel(self):
+        parser = self._make_application_parser()
+
+        self.assertEqual(
+            PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME,
+            parser.get_desktop('Channel'))
 
 
 if __name__ == "__main__":
