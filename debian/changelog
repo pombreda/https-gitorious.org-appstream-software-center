@@ -14,7 +14,8 @@ software-center (5.1.7) UNRELEASED; urgency=low
       with examples how it can be used to debug server side issues
   
   [ Michael Nelson ]
-  * lp:~michael.nelson/software-center/833982-purchased-app-not-available:
+  * lp:~michael.nelson/software-center/833982-purchased-app-not-available,
+    lp:~michael.nelson/software-center/917137-previous-purchases-empty-precise-2:
     - refactor/cleanup parser code and update for API 2.0
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 17 Jan 2012 15:36:33 -0500

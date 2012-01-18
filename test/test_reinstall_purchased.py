@@ -19,7 +19,7 @@ from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.update import (
     add_from_purchased_but_needs_reinstall_data,
     SCAPurchasedApplicationParser,
-    SoftwareCenterAgentParser,
+    SCAApplicationParser,
     )
 
 # Example taken from running:
@@ -94,22 +94,14 @@ AVAILABLE_APPS_JSON = """
 ]
 """
 
-class MockAvailableForMeItem(object):
-    def __init__(self, entry_dict):
-        for key, value in entry_dict.iteritems():
-            setattr(self, key, value)
-        self.MimeType = ""
-        self.department = []
-
-class MockAvailableForMeList(list):
-
-    def __init__(self):
-        alist = json.loads(SUBSCRIPTIONS_FOR_ME_JSON)
-        for entry_dict in alist:
-            self.append(MockAvailableForMeItem(entry_dict))
 
 class TestPurchased(unittest.TestCase):
     """ tests the store database """
+
+    def _make_available_for_me_list(self):
+        my_subscriptions = json.loads(SUBSCRIPTIONS_FOR_ME_JSON)
+        return list(
+            PistonResponseObject.from_dict(subs) for subs in my_subscriptions)
 
     def setUp(self):
         # use fixture apt data
@@ -117,7 +109,7 @@ class TestPurchased(unittest.TestCase):
         apt_pkg.config.set("Dir::State::status",
                            "./data/appdetails/var/lib/dpkg/status")
         # create mocks
-        self.available_to_me = MockAvailableForMeList()
+        self.available_to_me = self._make_available_for_me_list()
         self.cache = apt.Cache()
 
     def test_reinstall_purchased_mock(self):
@@ -153,18 +145,18 @@ class TestPurchased(unittest.TestCase):
                  "/photobomb/ubuntu natty main")
 
 
-class SoftwareCenterAgentParserTestCase(unittest.TestCase):
+class SCAApplicationParserTestCase(unittest.TestCase):
 
     def _make_application_parser(self, piston_application=None):
         if piston_application is None:
             piston_application = PistonResponseObject.from_dict(
                 json.loads(AVAILABLE_APPS_JSON)[0])
-        return SoftwareCenterAgentParser(piston_application)
+        return SCAApplicationParser(piston_application)
 
     def test_parses_application_from_available_apps(self):
         parser = self._make_application_parser()
         inverse_map = dict(
-            (val, key) for key, val in SoftwareCenterAgentParser.MAPPING.items())
+            (val, key) for key, val in SCAApplicationParser.MAPPING.items())
 
         # Delete the keys which are not yet provided via the API:
         del(inverse_map['video_url'])
@@ -172,7 +164,7 @@ class SoftwareCenterAgentParserTestCase(unittest.TestCase):
         for key in inverse_map:
             self.assertTrue(parser.has_option_desktop(inverse_map[key]))
             self.assertEqual(
-                getattr(parser.sca_entry, key),
+                getattr(parser.sca_application, key),
                 parser.get_desktop(inverse_map[key]))
 
     def test_keys_not_provided_by_api(self):

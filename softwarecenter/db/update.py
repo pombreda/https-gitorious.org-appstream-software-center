@@ -132,11 +132,10 @@ class AppInfoParserBase(object):
     def desktopf(self):
         """ return the file that the AppInfo comes from """
 
-
-class SoftwareCenterAgentParser(AppInfoParserBase):
+class SCAApplicationParser(AppInfoParserBase):
     """ map the data we get from the software-center-agent """
 
-    # map from requested key to sca_entry attribute
+    # map from requested key to sca_application attribute
     MAPPING = { 'Name'       : 'name',
                 'Price'      : 'price',
                 'Package'    : 'package_name',
@@ -159,8 +158,8 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
     STATIC_DATA = { 'Type' : 'Application',
                   }
 
-    def __init__(self, sca_entry):
-        self.sca_entry = sca_entry
+    def __init__(self, sca_application):
+        self.sca_application = sca_application
         self.origin = "software-center-agent"
         self._apply_exceptions()
 
@@ -168,18 +167,18 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         # for items from the agent, we use the full-size screenshot for
         # the thumbnail and scale it for display, this is done because
         # we no longer keep thumbnail versions of screenshots on the server
-        if (hasattr(self.sca_entry, "screenshot_url") and 
-            not hasattr(self.sca_entry, "thumbnail_url")):
-            self.sca_entry.thumbnail_url = self.sca_entry.screenshot_url
-        if hasattr(self.sca_entry, "description"):
-            self.sca_entry.Comment = self.sca_entry.description.split("\n")[0].strip()
-            self.sca_entry.Description = "\n".join(
-                self.sca_entry.description.split("\n")[1:]).strip()
+        if (hasattr(self.sca_application, "screenshot_url") and 
+            not hasattr(self.sca_application, "thumbnail_url")):
+            self.sca_application.thumbnail_url = self.sca_application.screenshot_url
+        if hasattr(self.sca_application, "description"):
+            self.sca_application.Comment = self.sca_application.description.split("\n")[0].strip()
+            self.sca_application.Description = "\n".join(
+                self.sca_application.description.split("\n")[1:]).strip()
         # WARNING: item.name needs to be different than
         #          the item.name in the DB otherwise the DB
         #          gets confused about (appname, pkgname) duplication
-        self.sca_entry.name = utf8(_("%s (already purchased)")) % utf8(
-            self.sca_entry.name)
+        self.sca_application.name = utf8(_("%s (already purchased)")) % utf8(
+            self.sca_application.name)
 
         # XXX 2012-01-16 bug=917109
         # We can remove these work-arounds once the above bug is fixed on
@@ -187,68 +186,65 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         # to make the parser happy. Note: available_apps api call includes
         # these already, it's just the apps with subscriptions_for_me which
         # don't currently.
-        self.sca_entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
-        if not hasattr(self.sca_entry, 'categories'):
-            self.sca_entry.categories = ""
+        self.sca_application.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
+        if not hasattr(self.sca_application, 'categories'):
+            self.sca_application.categories = ""
 
     def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:
             return self.STATIC_DATA[key]
-        return getattr(self.sca_entry, self._apply_mapping(key))
+        return getattr(self.sca_application, self._apply_mapping(key))
 
     def get_desktop_categories(self):
         try:
-            return ['DEPARTMENT:' + self.sca_entry.department[-1]] + self._get_desktop_list("Categories")
+            return ['DEPARTMENT:' + self.sca_application.department[-1]] + self._get_desktop_list("Categories")
         except:
             return self._get_desktop_list("Categories")
 
     def has_option_desktop(self, key):
         return (key in self.STATIC_DATA or
-                hasattr(self.sca_entry, self._apply_mapping(key)))
+                hasattr(self.sca_application, self._apply_mapping(key)))
 
     @property
     def desktopf(self):
         return self.origin
 
 
-class SCAPurchasedApplicationParser(SoftwareCenterAgentParser):
-    """A subscription has its own attrs with a subset of the app attributes.
-    
-    We inherit from SoftwareCenterAgentParser so that we get other methods for
-    free, and we compose a SoftwareCenterAgentParser because we need the
-    get_desktop method with the correct MAPPING. TODO: There must be a nicer
-    way to organise this so that we don't need both inheritance and composition
-    for a DRY implementation.
-    """
+class SCAPurchasedApplicationParser(SCAApplicationParser):
+    """A purchased application hase some additional subscription attributes."""
 
     def __init__(self, sca_subscription):
         # The sca_subscription is a PistonResponseObject, whereas any child
         # objects are normal Python dicts.
         self.sca_subscription = sca_subscription
-        self.application_parser = SoftwareCenterAgentParser(
-            PistonResponseObject.from_dict(sca_subscription.application))
         super(SCAPurchasedApplicationParser, self).__init__(
             PistonResponseObject.from_dict(sca_subscription.application))
-        self.application_parser.sca_entry.channel = (
+        self.sca_application.channel = (
             PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
 
-    MAPPING = { 'Deb-Line'   : 'deb_line',
-                'Purchased-Date' : 'purchase_date',
-                'License-Key' : 'license_key',
-                'License-Key-Path' : 'license_key_path',
-              }
+    SUBSCRIPTION_MAPPING = { 
+        'Deb-Line'   : 'deb_line',
+        'Purchased-Date' : 'purchase_date',
+        'License-Key' : 'license_key',
+        'License-Key-Path' : 'license_key_path',
+        }
+
+    MAPPING = dict(
+        SCAApplicationParser.MAPPING.items() + SUBSCRIPTION_MAPPING.items())
 
     def get_desktop(self, key, translated=True):
-        if self.application_parser.has_option_desktop(key):
-            return self.application_parser.get_desktop(key, translated)
+        if self._subscription_has_option_desktop(key):
+            return getattr(self.sca_subscription, self._apply_mapping(key))
+        return super(SCAPurchasedApplicationParser, self).get_desktop(key)
 
-        return getattr(self.sca_subscription, self._apply_mapping(key))
+    def _subscription_has_option_desktop(self, key):
+        return hasattr(
+            self.sca_subscription, self._apply_mapping(key))
 
     def has_option_desktop(self, key):
-        subscription_has_option = hasattr(
-            self.sca_subscription, self._apply_mapping(key))
-        application_has_option = (
-            self.application_parser.has_option_desktop(key))
+        subscription_has_option = self._subscription_has_option_desktop(key)
+        application_has_option = super(
+            SCAPurchasedApplicationParser, self).has_option_desktop(key)
         return subscription_has_option or application_has_option
 
 
@@ -614,7 +610,7 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
             context.iteration()
         try:
             # now the normal parser
-            parser = SoftwareCenterAgentParser(entry)
+            parser = SCAApplicationParser(entry)
             index_app_info_from_parser(parser, db, cache)
         except Exception as e:
             LOG.warning("error processing: %s " % e)
