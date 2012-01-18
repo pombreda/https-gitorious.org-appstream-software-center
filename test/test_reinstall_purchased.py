@@ -164,7 +164,7 @@ class SCAApplicationParserTestCase(unittest.TestCase):
         for key in inverse_map:
             self.assertTrue(parser.has_option_desktop(inverse_map[key]))
             self.assertEqual(
-                getattr(parser.sca_entry, key),
+                getattr(parser.sca_application, key),
                 parser.get_desktop(inverse_map[key]))
 
     def test_keys_not_provided_by_api(self):
