@@ -6,8 +6,8 @@ import unittest
 
 from testutils import setup_test_env
 setup_test_env()
-from softwarecenter.i18n import get_language,  langcode_to_name
-
+from softwarecenter.i18n import (
+    init_locale, get_language,  get_languages, langcode_to_name)
 
 class TestI18n(unittest.TestCase):
     """ tests the sc i18n """
@@ -30,6 +30,21 @@ class TestI18n(unittest.TestCase):
         os.environ["LC_ALL"] = "C"
         os.environ["LANG"] = "C"
         self.assertEqual(get_language(), "en")
+
+    def test_invalid_get_languages(self):
+        # set LANGUAGE to a invalid language and verify that it correctly
+        # falls back to english
+        os.environ["LANGUAGE"] = "yxy_YYY"
+        self.assertEqual(get_languages(), ["en"])
+
+    def test_init_locale(self):
+        import locale
+        os.environ["LANGUAGE"] = ""
+        os.environ["LANG"] = "en_US.UTF-8"
+        init_locale()
+        self.assertEqual(locale.getlocale(locale.LC_ALL), ("en_US", "UTF-8"))
+        
+
 
 if __name__ == "__main__":
     import logging
