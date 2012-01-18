@@ -108,6 +108,10 @@ class TestAppdetailsView(unittest.TestCase):
         view.show_app(app)
         self.assertEqual(view._reviews_server_page, 1)
 
+    def test_human_readable_name_in_view(self):
+        model = self.view.reviews.review_language.get_model()
+        self.assertEqual(model[0][0], "English")
+
     def test_pkgstatus_bar(self):
         # make sure configure is run with the various states
         # test
@@ -154,7 +158,6 @@ class TestAppdetailsView(unittest.TestCase):
                 getattr(mock, func).called,
                 "for state %s the function %s was not called" % (state, func))
             mock.reset()
-
 
     def test_switch_language_resets_page(self):
         self.view._reviews_server_page = 4
