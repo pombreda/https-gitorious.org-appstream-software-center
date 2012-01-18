@@ -27,12 +27,12 @@ SOFTWARE_CENTER_NAME_KEYRING = "Ubuntu Software Center Store"
 SOFTWARE_CENTER_SSO_DESCRIPTION = _(
     "To reinstall previous purchases, sign in to the "
     "Ubuntu Single Sign-On account you used to pay for them.")
-        
+
 
 # buy-something base url
 #BUY_SOMETHING_HOST = "http://localhost:8000/"
-BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "https://software-center.ubuntu.com"
-BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "http://software-center.ubuntu.com"
+BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_AGENT_HOST") or os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "https://software-center.ubuntu.com"
+BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_AGENT_HOST") or os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "http://software-center.ubuntu.com"
 
 # recommender
 RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or "https://recommender.software-center.ubuntu.com"
@@ -43,7 +43,7 @@ UBUNTU_SSO_SERVICE = os.environ.get(
 SSO_LOGIN_HOST = UBUNTU_SSO_SERVICE
 
 
-# version of the database, every time something gets added (like 
+# version of the database, every time something gets added (like
 # terms for mime-type) increase this (but keep as a string!)
 DB_SCHEMA_VERSION = "6"
 
@@ -175,7 +175,7 @@ class PkgStates:
     PURCHASED_BUT_REPO_MUST_BE_ENABLED,
     ERROR,
     # the package is not found in the DB or cache
-    NOT_FOUND, 
+    NOT_FOUND,
     # this *needs* to be last (for test_appdetails.py) and means
     # something went wrong and we don't have a state for this PKG
     UNKNOWN,
@@ -218,8 +218,8 @@ APP_INSTALL_PATH_DELIMITER = "__"
 TOP_RATED_CAROUSEL_LIMIT = 12
 
 from .version import VERSION, DISTRO, RELEASE, CODENAME
-USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 
-                                                   DISTRO, 
+USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION,
+                                                   DISTRO,
                                                    RELEASE,
                                                    CODENAME)
 
