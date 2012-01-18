@@ -7,6 +7,9 @@ software-center (5.1.7) UNRELEASED; urgency=low
     - Small bugfix to ensure that switching language or 
       reviews sort method resets the reviews page, and 
       added tests.
+  * lp:~elachuni/software-center/relax-origin-distroseries:
+    - provide "relaxed" mode for fetching reviews if the exact
+      review matcher does not find anything (LP: #766951)
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/improve-debug-in-piston-generic-helper:
