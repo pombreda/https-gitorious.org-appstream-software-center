@@ -26,6 +26,7 @@ import xapian
 import time
 
 from gi.repository import GObject
+from piston_mini_client import PistonResponseObject
 
 from softwarecenter.utils import utf8
 
@@ -131,6 +132,7 @@ class AppInfoParserBase(object):
     def desktopf(self):
         """ return the file that the AppInfo comes from """
 
+
 class SoftwareCenterAgentParser(AppInfoParserBase):
     """ map the data we get from the software-center-agent """
 
@@ -140,20 +142,17 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Package'    : 'package_name',
                 'Categories' : 'categories',
                 'Channel'    : 'channel',
-                'Deb-Line'   : 'deb_line',
                 'Signing-Key-Id' : 'signing_key_id',
                 'License'    : 'license',
                 'Date-Published' : 'date_published',
-                'Purchased-Date' : 'purchase_date',
-                'License-Key' : 'license_key',
-                'License-Key-Path' : 'license_key_path',
                 'PPA'        : 'archive_id',
-                'Icon'       : 'icon',
                 'Screenshot-Url' : 'screenshot_url',
                 'Thumbnail-Url' : 'thumbnail_url',
                 'Video-Url' :  'video_url',
                 'Icon-Url'   : 'icon_url',
                 'Support-Url'   : 'support_url',
+                'Description' : 'Description',
+                'Comment' : 'Comment',
               }
 
     # map from requested key to a static data element
@@ -164,6 +163,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         self.sca_entry = sca_entry
         self.origin = "software-center-agent"
         self._apply_exceptions()
+
     def _apply_exceptions(self):
         # for items from the agent, we use the full-size screenshot for
         # the thumbnail and scale it for display, this is done because
@@ -172,23 +172,84 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
             not hasattr(self.sca_entry, "thumbnail_url")):
             self.sca_entry.thumbnail_url = self.sca_entry.screenshot_url
         if hasattr(self.sca_entry, "description"):
-            self.sca_entry.Comment = self.sca_entry.description.split("\n")[0]
-            self.sca_entry.Description = "\n".join(self.sca_entry.description.split("\n")[1:])
+            self.sca_entry.Comment = self.sca_entry.description.split("\n")[0].strip()
+            self.sca_entry.Description = "\n".join(
+                self.sca_entry.description.split("\n")[1:]).strip()
+        # WARNING: item.name needs to be different than
+        #          the item.name in the DB otherwise the DB
+        #          gets confused about (appname, pkgname) duplication
+        self.sca_entry.name = utf8(_("%s (already purchased)")) % utf8(
+            self.sca_entry.name)
+
+        # XXX 2012-01-16 bug=917109
+        # We can remove these work-arounds once the above bug is fixed on
+        # the server. Until then, we fake a channel here and empty category
+        # to make the parser happy. Note: available_apps api call includes
+        # these already, it's just the apps with subscriptions_for_me which
+        # don't currently.
+        self.sca_entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
+        if not hasattr(self.sca_entry, 'categories'):
+            self.sca_entry.categories = ""
+
     def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:
             return self.STATIC_DATA[key]
         return getattr(self.sca_entry, self._apply_mapping(key))
+
     def get_desktop_categories(self):
         try:
             return ['DEPARTMENT:' + self.sca_entry.department[-1]] + self._get_desktop_list("Categories")
         except:
             return self._get_desktop_list("Categories")
+
     def has_option_desktop(self, key):
         return (key in self.STATIC_DATA or
                 hasattr(self.sca_entry, self._apply_mapping(key)))
+
     @property
     def desktopf(self):
         return self.origin
+
+
+class SCAPurchasedApplicationParser(SoftwareCenterAgentParser):
+    """A subscription has its own attrs with a subset of the app attributes.
+    
+    We inherit from SoftwareCenterAgentParser so that we get other methods for
+    free, and we compose a SoftwareCenterAgentParser because we need the
+    get_desktop method with the correct MAPPING. TODO: There must be a nicer
+    way to organise this so that we don't need both inheritance and composition
+    for a DRY implementation.
+    """
+
+    def __init__(self, sca_subscription):
+        # The sca_subscription is a PistonResponseObject, whereas any child
+        # objects are normal Python dicts.
+        self.sca_subscription = sca_subscription
+        self.application_parser = SoftwareCenterAgentParser(
+            PistonResponseObject.from_dict(sca_subscription.application))
+        super(SCAPurchasedApplicationParser, self).__init__(
+            PistonResponseObject.from_dict(sca_subscription.application))
+        self.application_parser.sca_entry.channel = (
+            PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
+
+    MAPPING = { 'Deb-Line'   : 'deb_line',
+                'Purchased-Date' : 'purchase_date',
+                'License-Key' : 'license_key',
+                'License-Key-Path' : 'license_key_path',
+              }
+
+    def get_desktop(self, key, translated=True):
+        if self.application_parser.has_option_desktop(key):
+            return self.application_parser.get_desktop(key, translated)
+
+        return getattr(self.sca_subscription, self._apply_mapping(key))
+
+    def has_option_desktop(self, key):
+        subscription_has_option = hasattr(
+            self.sca_subscription, self._apply_mapping(key))
+        application_has_option = (
+            self.application_parser.has_option_desktop(key))
+        return subscription_has_option or application_has_option
 
 
 class JsonTagSectionParser(AppInfoParserBase):
@@ -505,15 +566,7 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
         #    continue
         # index the item
         try:
-            # we fake a channel here
-            item.channel = PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME
-            # and empty category to make the parser happy
-            item.categories = ""
-            # WARNING: item.name needs to be different than
-            #          the item.name in the DB otherwise the DB
-            #          gets confused about (appname, pkgname) duplication
-            item.name = utf8(_("%s (already purchased)")) % utf8(item.name)
-            parser = SoftwareCenterAgentParser(item)
+            parser = SCAPurchasedApplicationParser(item)
             index_app_info_from_parser(parser, db_purchased, cache)
         except Exception as e:
             LOG.exception("error processing: %s " % e)
@@ -560,8 +613,6 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
         while context.pending():
             context.iteration()
         try:
-            # magic channel
-            entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
             # now the normal parser
             parser = SoftwareCenterAgentParser(entry)
             index_app_info_from_parser(parser, db, cache)
@@ -663,20 +714,21 @@ def index_app_info_from_parser(parser, db, cache):
         # date published
         if parser.has_option_desktop("X-AppInstall-Date-Published"):
             date_published = parser.get_desktop("X-AppInstall-Date-Published")
-            # strip the subseconds from the end of the published date string
-            date_published = str(date_published).split(".")[0]
-            doc.add_value(XapianValues.DATE_PUBLISHED,
-                          date_published)
-            # we use the date published value for the cataloged time as well
-            if "catalogedtime" in axi_values:
-                LOG.debug(
-                        ("pkgname: %s, date_published cataloged time is: %s" %
-                             (pkgname, parser.get_desktop("date_published"))))
-                date_published_sec = time.mktime(
-                                        time.strptime(date_published,
-                                                      "%Y-%m-%d  %H:%M:%S"))
-                doc.add_value(axi_values["catalogedtime"], 
-                              xapian.sortable_serialise(date_published_sec))
+            if date_published:
+                # strip the subseconds from the end of the published date string
+                date_published = str(date_published).split(".")[0]
+                doc.add_value(XapianValues.DATE_PUBLISHED,
+                              date_published)
+                # we use the date published value for the cataloged time as well
+                if "catalogedtime" in axi_values:
+                    LOG.debug(
+                            ("pkgname: %s, date_published cataloged time is: %s" %
+                                 (pkgname, parser.get_desktop("date_published"))))
+                    date_published_sec = time.mktime(
+                                            time.strptime(date_published,
+                                                          "%Y-%m-%d  %H:%M:%S"))
+                    doc.add_value(axi_values["catalogedtime"], 
+                                  xapian.sortable_serialise(date_published_sec))
         # purchased date
         if parser.has_option_desktop("X-AppInstall-Purchased-Date"):
             date = parser.get_desktop("X-AppInstall-Purchased-Date")

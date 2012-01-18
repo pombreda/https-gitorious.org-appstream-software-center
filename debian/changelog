@@ -12,6 +12,10 @@ software-center (5.1.7) UNRELEASED; urgency=low
   * lp:~mvo/software-center/improve-debug-in-piston-generic-helper:
     - improve debug output of piston-generic-helper and a README 
       with examples how it can be used to debug server side issues
+  
+  [ Michael Nelson ]
+  * lp:~michael.nelson/software-center/833982-purchased-app-not-available:
+    - refactor/cleanup parser code and update for API 2.0
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 17 Jan 2012 15:36:33 -0500
 
