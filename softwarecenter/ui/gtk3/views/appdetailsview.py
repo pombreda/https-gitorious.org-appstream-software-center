@@ -1767,7 +1767,11 @@ class AppDetailsView(Viewport):
                     logging.debug("_get_icon_as_pixbuf:image_downloaded() %s" % image_file_path)
                     try:
                         pb = GdkPixbuf.Pixbuf.new_from_file(image_file_path)
-                        self.icon.set_from_pixbuf(pb)
+                        # fixes crash in testsuite if window is destroyed
+                        # and after that this callback is called (wouldn't
+                        # it be nice if gtk would do that automatically?)
+                        if self.icon.get_property("visible"):
+                            self.icon.set_from_pixbuf(pb)
                     except Exception as e:
                         LOG.warning("couldn't load downloadable icon file '%s': %s" % (image_file_path, e))
                     
