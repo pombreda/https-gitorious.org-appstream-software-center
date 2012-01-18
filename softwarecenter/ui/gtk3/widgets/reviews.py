@@ -39,7 +39,7 @@ from softwarecenter.utils import (
     )
 
 
-from softwarecenter.i18n import get_languages
+from softwarecenter.i18n import get_languages, langcode_to_name
 
 from softwarecenter.netstatus import network_state_is_connected, get_network_watcher
 from softwarecenter.enums import (
@@ -54,6 +54,9 @@ from softwarecenter.ui.gtk3.widgets.buttons import Link
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
 LOG = logging.getLogger(__name__)
+
+(COL_LANGNAME,
+ COL_LANGCODE) = range(2)
 
 class UIReviewsList(Gtk.VBox):
 
@@ -127,10 +130,15 @@ class UIReviewsList(Gtk.VBox):
         self.header.pack_end(self.sort_combo, False, False, 3)
 
         # change language
-        self.review_language = Gtk.ComboBoxText.new()
+        self.review_language = Gtk.ComboBox()
+        cell = Gtk.CellRendererText()
+        self.review_language.pack_start(cell, True)
+        self.review_language.add_attribute(cell, "text", COL_LANGNAME)
+        self.review_language_model = Gtk.ListStore(str, str)
         for lang in get_languages():
-            self.review_language.append_text(lang)
-        self.review_language.append_text(_('Any language'))
+            self.review_language_model.append( (langcode_to_name(lang), lang) )
+        self.review_language_model.append( (_('Any language'), 'any') )
+        self.review_language.set_model(self.review_language_model)
         self.review_language.set_active(0)
         self.review_language.connect(
             "changed", self._on_different_review_language_clicked)
@@ -307,9 +315,8 @@ class UIReviewsList(Gtk.VBox):
         self.emit("different-review-language-clicked", language)
 
     def get_active_review_language(self):
-        language = self.review_language.get_active_text()
-        if language == _('Any language'):
-            language = 'any'
+        model = self.review_language.get_model()
+        language = model[self.review_language.get_active_iter()][COL_LANGCODE]
         return language
 
     def get_all_review_ids(self):
