@@ -15,13 +15,16 @@ software-center (5.1.7) UNRELEASED; urgency=low
   * lp:~mvo/software-center/improve-debug-in-piston-generic-helper:
     - improve debug output of piston-generic-helper and a README 
       with examples how it can be used to debug server side issues
+  * lp:~mvo/software-center/review-language-i18n:
+    - make the language selection combo in the reviews widget
+      nicer by adding a proper i18n name to it
   
   [ Michael Nelson ]
   * lp:~michael.nelson/software-center/833982-purchased-app-not-available,
     lp:~michael.nelson/software-center/917137-previous-purchases-empty-precise-2:
     - refactor/cleanup parser code and update for API 2.0 (LP: #917137)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 18 Jan 2012 10:03:08 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 18 Jan 2012 15:12:25 -0500
 
 software-center (5.1.6) precise; urgency=low
 
