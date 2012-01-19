@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import locale
 import logging
 import os
 LOG = logging.getLogger(__name__)
@@ -26,14 +27,29 @@ FALLBACK = "en"
 # can be abbreved
 FULL = ["pt_BR", 
         "zh_CN", "zh_TW"]
+
+def init_locale():
+    try:
+        locale.setlocale(locale.LC_ALL, "")
+        # we need this for bug #846038, with en_NG setlocale() is fine
+        # but the next getlocale() will crash (fun!)
+        locale.getlocale()
+    except:
+        LOG.exception("setlocale failed, resetting to C")
+        locale.setlocale(locale.LC_ALL, "C")
+
+
 def get_languages():
     """Helper that returns the split up languages"""
-    if not "LANGUAGE" in os.environ:
+    langs = []
+    if "LANGUAGE" in os.environ:
+        langs = os.environ["LANGUAGE"].split(":")
+        for lang in langs[:]:
+            if "_" in lang and not lang in FULL:
+                langs.remove(lang)
+    # fallback
+    if not langs:
         return [get_language()]
-    langs = os.environ["LANGUAGE"].split(":")
-    for lang in langs[:]:
-        if "_" in lang and not lang in FULL:
-            langs.remove(lang)
     return langs
 
 def get_language():
@@ -51,3 +67,16 @@ def get_language():
     if language in FULL:
         return language
     return language.split("_")[0]
+
+def langcode_to_name(langcode):
+    import xml.etree.ElementTree
+    from gettext import dgettext
+    for iso in ["iso_639_3", "iso_639"]:
+        path = os.path.join("/usr/share/xml/iso-codes/", iso+".xml")
+        if os.path.exists(path):
+            root = xml.etree.ElementTree.parse(path)
+            xpath = ".//iso_639_3_entry[@part1_code='%s']" % langcode
+            match = root.find(xpath)
+            if match is not None:
+                return dgettext(iso, match.attrib["name"])
+    return langcode

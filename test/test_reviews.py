@@ -45,11 +45,15 @@ class TestReviewLoader(unittest.TestCase):
 
     def test_edit_review_screen_has_right_labels(self):
         """Check that LP #880255 stays fixed. """
-        loader = ReviewLoader(self.cache, self.db)
 
         review_app = SubmitReviewsApp(datadir="../data", app=None,
             parent_xid='', iconname='accessories-calculator', origin=None,
             version=None, action='modify', review_id=10000)
+        # monkey patch away login to avoid that we actually login
+        # and the UI changes because of that
+        review_app.login = lambda: True
+
+        # run the main app
         review_app.run()
 
         self._p()
@@ -60,7 +64,8 @@ class TestReviewLoader(unittest.TestCase):
             review_app.review_summary_label.get_label())
         self.assertEqual(_('Review by: %s') % 'foobar',
             review_app.review_label.get_label())
-        review_app.submit_window.unrealize()
+        review_app.submit_window.hide()
+
 
     def _p(self):
         main_loop = GObject.main_context_default()

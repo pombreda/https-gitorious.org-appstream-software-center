@@ -11,7 +11,7 @@ To setup your development environment, you'll need to ensure the following
 extra packages are installed:
 
 sudo apt-get install xvfb python-coverage python-mock python-aptdaemon.test \
-     python-qt4 python-unittest2
+     python-qt4 python-unittest2 python-lxml
 sudo apt-get build-dep software-center
 
 You can then run tests with:
@@ -23,6 +23,8 @@ You can run a developer instance with:
 python setup.py build
 ./software-center
 
+The initial launch of this will take a bit as it will build a private
+search database but this is only needed once.
 
 == query parser ==
 
@@ -43,7 +45,7 @@ SOFTWARE_CENTER_USE_GCONF_PROXY - set user proxy instead of using system-wide
 SOFTWARE_CENTER_USE_BUILTIN_LOGIN - use built-in login instead of ubuntu-sso-client
 SOFTWARE_CENTER_APPDETAILS_WEBKIT - use the webkit appdetails instead of gtk
 APPVIEW_DEBUG_TERMS - show debug output for the terms in a search
-SOFTWARE_CENTER_BUY_HOST - use a alternative hosts to query for pay software
+SOFTWARE_CENTER_AGENT_HOST - use a alternative hosts to query for pay software
 SOFTWARE_CENTER_REVIEWS_HOST - a alternative host for the ratings&reviews
 SOFTWARE_CENTER_DEBUG_HTTP - enable httplib2 debuging
 

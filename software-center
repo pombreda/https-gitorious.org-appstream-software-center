@@ -45,6 +45,8 @@ from optparse import OptionParser
 # Enable Xapian's CJK tokenizer (see LP: #745243)
 os.environ['XAPIAN_CJK_NGRAM'] = '1'
 
+LOG = logging.getLogger("softwarecenter")
+
 if __name__ == "__main__":
 
     parser = OptionParser("usage: %prog [options] [package-name | apturl | deb-file]", 
@@ -124,8 +126,15 @@ if __name__ == "__main__":
     # on exit. However its IMPORTANT to set it as libsoup is *not* secure
     # by default (see bugzilla #666280 and #666276)
     from gi.repository import WebKit as webkit
-    session = webkit.get_default_session()
-    session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
+    # enable certificates validation in webkit views unless specified otherwise
+    if not "SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK" in os.environ:
+        session = webkit.get_default_session()
+        session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
+    else:
+        # WARN the user!! Do not remove this
+        LOG.warning("SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK " +
+                    "has been specified, all purchase transactions " + 
+                    "are now INSECURE and UNENCRYPTED!!")
 
     # create the app
     from softwarecenter.ui.gtk3.app import SoftwareCenterAppGtk3
