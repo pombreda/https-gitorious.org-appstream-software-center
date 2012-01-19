@@ -216,7 +216,6 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(app.pkgname, 'linux-headers-'+os.uname()[2])
         # $distro
         details = app.get_details(db)
-        from softwarecenter.distro import get_distro
         distro = get_distro().get_codename()
         self.assertEqual(app.request, 'channel=' + distro + '-partner')
 

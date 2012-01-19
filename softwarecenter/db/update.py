@@ -25,6 +25,7 @@ import shutil
 import xapian
 import time
 
+from aptsources.sourceslist import SourceEntry
 from gi.repository import GObject
 from piston_mini_client import PistonResponseObject
 
@@ -238,14 +239,13 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
 
     @classmethod
     def update_debline(cls, debline):
-        # Be careful to handle deblines with pockets. Is there an existing
-        # parser for this?
-        parts = debline.split(" ")
-        distro_pocket = parts[2].split('-')
+        # Be careful to handle deblines with pockets.
+        source_entry = SourceEntry(debline)
+        distro_pocket = source_entry.dist.split('-')
         distro_pocket[0] = get_distro().get_codename()
-        parts[2] = "-".join(distro_pocket)
-        
-        return " ".join(parts)
+        source_entry.dist = "-".join(distro_pocket)
+
+        return unicode(source_entry)
 
     def get_desktop(self, key, translated=True):
         if self._subscription_has_option_desktop(key):
