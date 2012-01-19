@@ -33,6 +33,7 @@ softwarecenter/utils.py
 softwarecenter/db/debfile.py
 softwarecenter/distro/SUSELINUX.py
 softwarecenter/ui/gtk3/app.py
+softwarecenter/ui/gtk3/review_gui_helper.py
 softwarecenter/ui/gtk3/dialogs/__init__.py
 softwarecenter/ui/gtk3/dialogs/deauthorize_dialog.py
 softwarecenter/ui/gtk3/dialogs/dependency_dialogs.py
