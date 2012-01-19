@@ -236,7 +236,8 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
     MAPPING = dict(
         SCAApplicationParser.MAPPING.items() + SUBSCRIPTION_MAPPING.items())
 
-    def update_debline(self, debline):
+    @classmethod
+    def update_debline(cls, debline):
         # TODO: check for a parser for deblines?
         return debline.replace(
             'natty', get_distro().get_codename())
