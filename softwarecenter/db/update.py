@@ -634,10 +634,6 @@ def make_doc_from_parser(parser, cache):
     else:
         name = parser.get_desktop("Name")
         untranslated_name = parser.get_desktop("Name", translated=False)
-    if name in seen:
-        LOG.debug("duplicated name '%s' (%s)" % (name, parser.desktopf))
-    LOG.debug("indexing app '%s'" % name)
-    seen.add(name)
     doc.set_data(name)
     doc.add_value(XapianValues.APPNAME_UNTRANSLATED, untranslated_name)
 
@@ -837,6 +833,11 @@ def index_app_info_from_parser(parser, db, cache):
         doc = make_doc_from_parser(parser, cache)
         term_generator.set_document(doc)
         name = doc.get_data()
+
+        if name in seen:
+            LOG.debug("duplicated name '%s' (%s)" % (name, parser.desktopf))
+        LOG.debug("indexing app '%s'" % name)
+        seen.add(name)
 
         index_name(doc, name, term_generator)
 
