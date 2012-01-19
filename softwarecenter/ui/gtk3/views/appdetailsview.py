@@ -854,6 +854,9 @@ class AppDetailsView(Viewport):
         else:
             self.review_stats_widget.hide()
 
+    def _submit_reviews_done_callback(self, spawner, error):
+        self.reviews.new_review.enable()
+
     def _reviews_ready_callback(self, app, reviews_data, my_votes=None,
                                 action=None, single_review=None):
         """ callback when new reviews are ready, cleans out the
@@ -1607,10 +1610,12 @@ class AppDetailsView(Viewport):
         # call the loader to do call out the right helper and collect the result
         parent_xid = ''
         #parent_xid = get_parent_xid(self)
+        self.reviews.new_review.disable()
         self.review_loader.spawn_write_new_review_ui(
             self.app, version, self.appdetails.icon, origin,
             parent_xid, self.datadir,
-            self._reviews_ready_callback)
+            self._reviews_ready_callback,
+            done_callback=self._submit_reviews_done_callback)
                          
     def _review_report_abuse(self, review_id):
         parent_xid = ''

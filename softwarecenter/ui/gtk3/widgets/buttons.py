@@ -580,6 +580,13 @@ class Link(Gtk.Label):
         self.emit("clicked")
         return
 
+    def disable(self):
+        self.set_sensitive(False)
+        self.set_name("subtle-label")
+
+    def enable(self):
+        self.set_sensitive(True)
+        self.set_name("label")
 
 class MoreLink(Gtk.Button):
 

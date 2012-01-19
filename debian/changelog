@@ -10,6 +10,10 @@ software-center (5.1.7) UNRELEASED; urgency=low
   * lp:~elachuni/software-center/relax-origin-distroseries:
     - provide "relaxed" mode for fetching reviews if the exact
       review matcher does not find anything (LP: #766951)
+  * lp:~elachuni/software-center/disable-new-review:
+    - This branch disables the "Submit a new review" button when 
+      you click it, and reenables it when the submit review dialog
+      closes
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/improve-debug-in-piston-generic-helper:
