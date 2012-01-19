@@ -854,6 +854,9 @@ class AppDetailsView(Viewport):
         else:
             self.review_stats_widget.hide()
 
+    def _submit_reviews_done_callback(self, spawner, error):
+        self.reviews.new_review.enable()
+
     def _reviews_ready_callback(self, app, reviews_data, my_votes=None,
                                 action=None, single_review=None):
         """ callback when new reviews are ready, cleans out the
@@ -1579,6 +1582,7 @@ class AppDetailsView(Viewport):
 
     # common code
     def _review_write_new(self):
+        self.reviews.new_review.disable()
         if (not self.app or
             not self.app.pkgname in self.cache or
             not self.cache[self.app.pkgname].candidate):
@@ -1610,7 +1614,8 @@ class AppDetailsView(Viewport):
         self.review_loader.spawn_write_new_review_ui(
             self.app, version, self.appdetails.icon, origin,
             parent_xid, self.datadir,
-            self._reviews_ready_callback)
+            self._reviews_ready_callback,
+            done_callback=self._submit_reviews_done_callback)
                          
     def _review_report_abuse(self, review_id):
         parent_xid = ''
