@@ -32,6 +32,9 @@ software-center (5.1.7) UNRELEASED; urgency=low
     - rename the env variable SOFTWARE_CENTER_BUY_HOST  to the more
       correct SOFTWARE_CENTER_AGENT_HOST, but support the former as a
       fallback, update corresponding unit test (LP: #918270)
+  * lp:~zematynnad/software-center/version_number_833877:
+    - show version number of apps from the software-center-agent as
+      well (LP: #833877)
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/staging-certs-2:

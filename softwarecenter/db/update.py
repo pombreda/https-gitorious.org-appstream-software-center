@@ -152,6 +152,7 @@ class SCAApplicationParser(AppInfoParserBase):
                 'Support-Url'   : 'support_url',
                 'Description' : 'Description',
                 'Comment' : 'Comment',
+                'Version' : 'version',
               }
 
     # map from requested key to a static data element
@@ -167,7 +168,7 @@ class SCAApplicationParser(AppInfoParserBase):
         # for items from the agent, we use the full-size screenshot for
         # the thumbnail and scale it for display, this is done because
         # we no longer keep thumbnail versions of screenshots on the server
-        if (hasattr(self.sca_application, "screenshot_url") and 
+        if (hasattr(self.sca_application, "screenshot_url") and
             not hasattr(self.sca_application, "thumbnail_url")):
             self.sca_application.thumbnail_url = self.sca_application.screenshot_url
         if hasattr(self.sca_application, "description"):
@@ -222,7 +223,7 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
         self.sca_application.channel = (
             PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
 
-    SUBSCRIPTION_MAPPING = { 
+    SUBSCRIPTION_MAPPING = {
         'Deb-Line'   : 'deb_line',
         'Purchased-Date' : 'purchase_date',
         'License-Key' : 'license_key',
@@ -277,7 +278,7 @@ class AppStreamXMLParser(AppInfoParserBase):
                 'Keywords'   : 'keywords',
                 'MimeType'   : 'mimetypes',
                 'Icon'       : 'icon',
-              } 
+              }
 
     LISTS = { "appcategories" : "appcategory",
               "keywords"  : "keyword",
@@ -327,7 +328,7 @@ class AppStreamXMLParser(AppInfoParserBase):
                 l.append(child.text)
         return ",".join(l)
     def has_option_desktop(self, key):
-        if key in self.STATIC_DATA: 
+        if key in self.STATIC_DATA:
             return True
         key = self._apply_mapping(key)
         return not self.appinfo_xml.find(key) is None
@@ -399,7 +400,7 @@ class DesktopConfigParser(RawConfigParser, AppInfoParserBase):
                 translated_value = gettext.dgettext(domain, value)
                 if value != translated_value:
                     return translated_value
-        # then try app-install-data 
+        # then try app-install-data
         value = self.get(self.DE, key)
         if value:
             translated_value = gettext.dgettext("app-install-data", value)
@@ -509,7 +510,7 @@ def update_from_appstream_xml(db, cache, xmldir=None):
             context.iteration()
         update_from_single_appstream_file(db, cache, appstream_xml)
     return True
-        
+
 def update_from_app_install_data(db, cache, datadir=None):
     """ index the desktop files in $datadir/desktop/*.desktop """
     if not datadir:
@@ -538,7 +539,7 @@ def update_from_app_install_data(db, cache, datadir=None):
 
 def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall_list, db, cache):
     """Add application that have been purchased but may require a reinstall
-    
+
     This adds a inmemory database to the main db with the special
     PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME channel prefix
 
@@ -598,7 +599,7 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
         sca.query_available_qa()
     else:
         sca.query_available()
-    # create event loop and run it until data is available 
+    # create event loop and run it until data is available
     # (the _available_cb and _error_cb will quit it)
     context = GObject.main_context_default()
     loop = GObject.MainLoop(context)
@@ -617,7 +618,7 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
     # return true if we have updated entries (this can also be an empty list)
     # but only if we did not got a error from the agent
     return sca.good_data
-        
+
 def index_app_info_from_parser(parser, db, cache):
         term_generator = xapian.TermGenerator()
         term_generator.set_database(db)
@@ -683,7 +684,7 @@ def index_app_info_from_parser(parser, db, cache):
         # cataloged_times
         if "catalogedtime" in axi_values:
             if pkgname in cataloged_times:
-                doc.add_value(axi_values["catalogedtime"], 
+                doc.add_value(axi_values["catalogedtime"],
                               xapian.sortable_serialise(cataloged_times[pkgname]))
         # pocket (main, restricted, ...)
         if parser.has_option_desktop("X-AppInstall-Section"):
@@ -723,7 +724,7 @@ def index_app_info_from_parser(parser, db, cache):
                     date_published_sec = time.mktime(
                                             time.strptime(date_published,
                                                           "%Y-%m-%d  %H:%M:%S"))
-                    doc.add_value(axi_values["catalogedtime"], 
+                    doc.add_value(axi_values["catalogedtime"],
                                   xapian.sortable_serialise(date_published_sec))
         # purchased date
         if parser.has_option_desktop("X-AppInstall-Purchased-Date"):
@@ -761,6 +762,10 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Video-Url"):
             url = parser.get_desktop("X-AppInstall-Video-Url")
             doc.add_value(XapianValues.VIDEO_URL, url)
+        # version support (for e.g. the scagent)
+        if parser.has_option_desktop("X-AppInstall-Version"):
+            ver = parser.get_desktop("X-AppInstall-Version")
+            doc.add_value(XapianValues.VERSION_INFO, ver)
         # icon (for third party)
         if parser.has_option_desktop("X-AppInstall-Icon-Url"):
             url = parser.get_desktop("X-AppInstall-Icon-Url")
@@ -809,7 +814,7 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Popcon"):
             popcon = float(parser.get_desktop("X-AppInstall-Popcon"))
             # sort_by_value uses string compare, so we need to pad here
-            doc.add_value(XapianValues.POPCON, 
+            doc.add_value(XapianValues.POPCON,
                           xapian.sortable_serialise(popcon))
             global popcon_max
             popcon_max = max(popcon_max, popcon)
@@ -873,7 +878,7 @@ def rebuild_database(pathname, debian_sources=True, appstream_sources=False):
     cache.open()
     old_path = pathname+"_old"
     rebuild_path = pathname+"_rb"
-    
+
     if not os.path.exists(rebuild_path):
         try:
             os.makedirs(rebuild_path)
@@ -881,13 +886,13 @@ def rebuild_database(pathname, debian_sources=True, appstream_sources=False):
             LOG.warn("Problem creating rebuild path '%s'." % rebuild_path)
             LOG.warn("Please check you have the relevant permissions.")
             return False
-    
+
     # check permission
     if not os.access(pathname, os.W_OK):
         LOG.warn("Cannot write to '%s'." % pathname)
         LOG.warn("Please check you have the relevant permissions.")
         return False
-    
+
     #check if old unrequired version of db still exists on filesystem
     if os.path.exists(old_path):
         LOG.warn("Existing xapian old db was not previously cleaned: '%s'." % old_path)
@@ -899,7 +904,7 @@ def rebuild_database(pathname, debian_sources=True, appstream_sources=False):
             LOG.warn("Please check you have the relevant permissions.")
             return False
 
-            
+
     # write it
     db = xapian.WritableDatabase(rebuild_path, xapian.DB_CREATE_OR_OVERWRITE)
 
@@ -919,7 +924,7 @@ def rebuild_database(pathname, debian_sources=True, appstream_sources=False):
         mo_time = os.path.getctime(mofile)
         db.set_metadata("app-install-mo-time", str(mo_time))
     db.flush()
-    
+
     # use shutil.move() instead of os.rename() as this will automatically
     # figure out if it can use os.rename or needs to do the move "manually"
     try:
