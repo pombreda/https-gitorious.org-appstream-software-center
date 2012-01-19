@@ -20,14 +20,12 @@
 from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import WebKit as webkit
 import logging
 import os
 import json
 import sys
 import urllib
-from gi.repository import WebKit as webkit
-session = webkit.get_default_session()
-session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
 
 from gettext import gettext as _
 
@@ -35,6 +33,16 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.utils import get_language
 
 LOG = logging.getLogger(__name__)
+
+# enable certificates validation in webkit views unless specified otherwise
+if not "SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK" in os.environ:
+    session = webkit.get_default_session()
+    session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
+else:
+    # WARN the user!! Do not remove this
+    LOG.warning("SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK " +
+                "has been specified, all purchase transactions " + 
+                "are now INSECURE and UNENCRYPTED!!")
 
 class LocaleAwareWebView(webkit.WebView):
     
