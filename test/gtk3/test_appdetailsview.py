@@ -230,6 +230,24 @@ class TestAppdetailsView(unittest.TestCase):
         self.assertEqual(False, kwargs['relaxed'])
         self.assertEqual(2, kwargs['page'])
 
+    @patch('softwarecenter.backend.spawn_helper.SpawnHelper.run')
+    def test_submit_new_review_disables_button(self, mock_run):
+        button = self.view.reviews.new_review
+        self.assertTrue(button.is_sensitive())
+
+        button.emit('clicked')
+
+        self.assertFalse(button.is_sensitive())
+
+    def test_new_review_dialog_closes_reenables_submit_button(self):
+        button = self.view.reviews.new_review
+        button.disable()
+
+        self.view._submit_reviews_done_callback(None, 0)
+
+        self.assertTrue(button.is_sensitive())
+
+    
 
 if __name__ == "__main__":
     import logging

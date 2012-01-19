@@ -1582,7 +1582,6 @@ class AppDetailsView(Viewport):
 
     # common code
     def _review_write_new(self):
-        self.reviews.new_review.disable()
         if (not self.app or
             not self.app.pkgname in self.cache or
             not self.cache[self.app.pkgname].candidate):
@@ -1611,6 +1610,7 @@ class AppDetailsView(Viewport):
         # call the loader to do call out the right helper and collect the result
         parent_xid = ''
         #parent_xid = get_parent_xid(self)
+        self.reviews.new_review.disable()
         self.review_loader.spawn_write_new_review_ui(
             self.app, version, self.appdetails.icon, origin,
             parent_xid, self.datadir,
