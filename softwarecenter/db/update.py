@@ -227,6 +227,7 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
 
     SUBSCRIPTION_MAPPING = { 
         'Deb-Line'   : 'deb_line',
+        'Deb-Line-Orig' : 'deb_line',
         'Purchased-Date' : 'purchase_date',
         'License-Key' : 'license_key',
         'License-Key-Path' : 'license_key_path',
@@ -235,8 +236,21 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
     MAPPING = dict(
         SCAApplicationParser.MAPPING.items() + SUBSCRIPTION_MAPPING.items())
 
+    def update_debline(self, debline):
+        # TODO: check for a parser for deblines?
+        return debline.replace(
+            'natty', get_distro().get_codename())
+
     def get_desktop(self, key, translated=True):
         if self._subscription_has_option_desktop(key):
+            if key.startswith('Deb-Line'):
+                debline_orig = getattr(
+                    self.sca_subscription, self._apply_mapping('Deb-Line'))
+                if key == 'Deb-Line-Orig':
+                    return debline_orig
+                else:
+                    return self.update_debline(debline_orig)
+
             return getattr(self.sca_subscription, self._apply_mapping(key))
         return super(SCAPurchasedApplicationParser, self).get_desktop(key)
 
