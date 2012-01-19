@@ -34,7 +34,7 @@ from optparse import OptionParser
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.db.database import Application
 
-from softwarecenter.backend.reviews.rnr_helpers import (
+from softwarecenter.ui.gtk3.review_gui_helper import (
     DeleteReviewApp,
     ReportReviewApp,
     SubmitReviewsApp,

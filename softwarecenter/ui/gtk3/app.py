@@ -22,7 +22,6 @@ from gi.repository import Gtk
 
 import atexit
 import collections
-import locale
 import dbus
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
@@ -48,6 +47,7 @@ softwarecenter.netstatus.NETWORK_STATE
 # db imports
 from softwarecenter.db.application import Application
 from softwarecenter.db import DebFileApplication
+from softwarecenter.i18n import init_locale
 
 # misc imports
 from softwarecenter.plugin import PluginManager
@@ -187,15 +187,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         gettext.bindtextdomain("software-center", "/usr/share/locale")
         gettext.textdomain("software-center")
 
-        try:
-            locale.setlocale(locale.LC_ALL, "")
-            # we need this for bug #846038, with en_NG setlocale() is fine
-            # but the next getlocale() will crash (fun!)
-            locale.getlocale()
-        except:
-            LOG.exception("setlocale failed, resetting to C")
-            locale.setlocale(locale.LC_ALL, "C")
-
+        init_locale()
 
         if "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
             self.notebook_view.set_show_tabs(True)
@@ -591,9 +583,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # appmanager needs to know about the oauth token for the reinstall
         # previous purchases add_license_key call
         self.app_manager.oauth_token = oauth_result
-        # consumer key is the openid identifier
-        self.scagent.query_available_for_me(oauth_result["token"],
-                                            oauth_result["consumer_key"])
+        self.scagent.query_available_for_me()
 
     def _on_style_updated(self, widget, init_css_callback, *args):
         init_css_callback(widget, *args)

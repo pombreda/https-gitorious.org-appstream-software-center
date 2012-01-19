@@ -10,7 +10,6 @@ from softwarecenter.utils import (decode_xml_char_reference,
                                   release_filename_in_lists_from_deb_line,
                                   get_http_proxy_string_from_libproxy,
                                   )
-from softwarecenter.i18n import get_language
 
 
 class TestSCUtils(unittest.TestCase):
@@ -27,22 +26,6 @@ class TestSCUtils(unittest.TestCase):
         debline = "deb http://foo:pass@security.ubuntu.com/ubuntu maverick-security main restricted"
         self.assertEqual(release_filename_in_lists_from_deb_line(debline),
                          "security.ubuntu.com_ubuntu_dists_maverick-security_Release")
-
-    def test_locale(self):
-        # needs lang + country code
-        os.environ["LANGUAGE"] = "zh_TW"
-        self.assertEqual(get_language(), "zh_TW")
-        # language only
-        os.environ["LANGUAGE"] = "fr_FR"
-        self.assertEqual(get_language(), "fr")
-        # not existing one
-        os.environ["LANGUAGE"] = "xx_XX"
-        self.assertEqual(get_language(), "en")
-        # LC_ALL, no language
-        del os.environ["LANGUAGE"]
-        os.environ["LC_ALL"] = "C"
-        os.environ["LANG"] = "C"
-        self.assertEqual(get_language(), "en")
 
     def test_get_http_proxy_from_gsettings(self):
         from softwarecenter.utils import get_http_proxy_string_from_gsettings

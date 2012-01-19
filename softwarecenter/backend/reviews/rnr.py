@@ -65,7 +65,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
 
     # reviews
     def get_reviews(self, translated_app, callback, page=1, 
-                    language=None, sort=0):
+                    language=None, sort=0, relaxed=False):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
@@ -77,23 +77,27 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         if language is None:
             language = self.language
         # gather args for the helper
-        try:
-            origin = self.cache.get_origin(app.pkgname)
-        except:
-            # this can happen if e.g. the app has multiple origins, this
-            # will be handled later
-            origin = None
-        # special case for not-enabled PPAs
-        if not origin and self.db:
-            details = app.get_details(self.db)
-            ppa = details.ppaname
-            if ppa:
-                origin = "lp-ppa-%s" % ppa.replace("/", "-")
-        # if there is no origin, there is nothing to do
-        if not origin:
-            callback(app, [])
-            return
-        distroseries = self.distro.get_codename()
+        if relaxed:
+            origin = 'any'
+            distroseries = 'any'
+        else:
+            try:
+                origin = self.cache.get_origin(app.pkgname)
+            except:
+                # this can happen if e.g. the app has multiple origins, this
+                # will be handled later
+                origin = None
+            # special case for not-enabled PPAs
+            if not origin and self.db:
+                details = app.get_details(self.db)
+                ppa = details.ppaname
+                if ppa:
+                    origin = "lp-ppa-%s" % ppa.replace("/", "-")
+            # if there is no origin, there is nothing to do
+            if not origin:
+                callback(app, [])
+                return
+            distroseries = self.distro.get_codename()
         # run the command and add watcher
         cmd = [os.path.join(softwarecenter.paths.datadir, PistonHelpers.GET_REVIEWS),
                "--language", language, 

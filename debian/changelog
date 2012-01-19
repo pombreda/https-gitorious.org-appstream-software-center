@@ -7,13 +7,39 @@ software-center (5.1.7) UNRELEASED; urgency=low
     - Small bugfix to ensure that switching language or 
       reviews sort method resets the reviews page, and 
       added tests.
+  * lp:~elachuni/software-center/relax-origin-distroseries:
+    - provide "relaxed" mode for fetching reviews if the exact
+      review matcher does not find anything (LP: #766951)
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/improve-debug-in-piston-generic-helper:
     - improve debug output of piston-generic-helper and a README 
       with examples how it can be used to debug server side issues
+  * lp:~mvo/software-center/review-language-i18n:
+    - make the language selection combo in the reviews widget
+      nicer by adding a proper i18n name to it
+  * lp:~mvo/software-center/trivial-move-gui-helpers:
+    - move rnr_helpers.py to softwarecenter/ui/gtk3/review_gui_helper.py
+      as it belongs there and add to POTFILE.in
+  
+  [ Michael Nelson ]
+  * lp:~michael.nelson/software-center/833982-purchased-app-not-available,
+    lp:~michael.nelson/software-center/917137-previous-purchases-empty-precise-2:
+    - refactor/cleanup parser code and update for API 2.0 (LP: #917137)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 17 Jan 2012 15:36:33 -0500
+  [ Danny Tamez ]
+  * lp:~zematynnad/software-center/rename_host_var_918270:
+    - rename the env variable SOFTWARE_CENTER_BUY_HOST  to the more
+      correct SOFTWARE_CENTER_AGENT_HOST, but support the former as a
+      fallback, update corresponding unit test (LP: #918270)
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/staging-certs-2:
+    - add new SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK environment that
+      can be used to disable cert checking to run e.g. against a local dev
+      instance (LP: #918746)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 19 Jan 2012 10:52:04 -0500
 
 software-center (5.1.6) precise; urgency=low
 
