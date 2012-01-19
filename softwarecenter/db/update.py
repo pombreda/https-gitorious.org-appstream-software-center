@@ -238,9 +238,14 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
 
     @classmethod
     def update_debline(cls, debline):
-        # TODO: check for a parser for deblines?
-        return debline.replace(
-            'natty', get_distro().get_codename())
+        # Be careful to handle deblines with pockets. Is there an existing
+        # parser for this?
+        parts = debline.split(" ")
+        distro_pocket = parts[2].split('-')
+        distro_pocket[0] = get_distro().get_codename()
+        parts[2] = "-".join(distro_pocket)
+        
+        return " ".join(parts)
 
     def get_desktop(self, key, translated=True):
         if self._subscription_has_option_desktop(key):
