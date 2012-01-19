@@ -28,6 +28,7 @@ import time
 from gi.repository import GObject
 from piston_mini_client import PistonResponseObject
 
+from softwarecenter.distro import get_distro
 from softwarecenter.utils import utf8
 
 # py3 compat
@@ -131,6 +132,7 @@ class AppInfoParserBase(object):
     @property
     def desktopf(self):
         """ return the file that the AppInfo comes from """
+
 
 class SCAApplicationParser(AppInfoParserBase):
     """ map the data we get from the software-center-agent """

@@ -7,6 +7,7 @@ import json
 import unittest
 import xapian
 
+from mock import patch
 from piston_mini_client import PistonResponseObject
 from testutils import setup_test_env
 setup_test_env()
@@ -314,6 +315,30 @@ class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
         self.assertEqual(
             supported_distros,
             parser.get_desktop('Supported-Distros'))
+
+    @patch('softwarecenter.db.update.get_distro')
+    def test_debline_uses_current_series(self, mock_get_distro):
+        mock_get_distro.get_codename.return_value = 'zotty'
+        parser = self._make_application_parser()
+
+        debline = parser.get_desktop('Deb-Line')
+
+        expected_debline = (
+            "deb https://username:random3atoken@private-ppa.launchpad.net"
+            "/commercial-ppa-uploaders/photobomb/ubuntu zotty main")
+        self.assertEqual(expected_debline, debline)
+
+    @patch('softwarecenter.db.update.get_distro')
+    def test_original_debline_available(self, mock_get_distro):
+        mock_get_distro.get_codename.return_value = 'zotty'
+        parser = self._make_application_parser()
+
+        orig_debline = parser.get_desktop('Deb-Line-Orig')
+
+        expected_orig_debline = (
+            "deb https://username:random3atoken@private-ppa.launchpad.net"
+            "/commercial-ppa-uploaders/photobomb/ubuntu natty main")
+        self.assertEqual(expected_orig_debline, debline_orig)
 
 
 if __name__ == "__main__":
