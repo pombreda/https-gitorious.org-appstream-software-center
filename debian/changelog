@@ -37,9 +37,9 @@ software-center (5.1.7) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/staging-certs-2:
     - add new SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK environment that
       can be used to disable cert checking to run e.g. against a local dev
-      instance
+      instance (LP: #918746)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 18 Jan 2012 17:09:29 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 19 Jan 2012 10:52:04 -0500
 
 software-center (5.1.6) precise; urgency=low
 
