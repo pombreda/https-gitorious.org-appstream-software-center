@@ -5,6 +5,9 @@ software-center (5.0.5) UNRELEASED; urgency=low
     - do not offer to add an icon to the Unity launcher for packages
       that do not have an Exec entry in their corresponding desktop
       file, e.g. ubuntu-restricted-extras, wine (LP: #913756)
+  * lp:~gary-lasker/software-center/staging-certs-2-for-5.0:
+    - add SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK to allow QA easier
+      testing
   
   [ Michael Vogt ]
   * lp:~mvo/software-center/fix-server-pagination:
