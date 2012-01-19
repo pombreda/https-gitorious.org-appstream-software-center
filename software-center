@@ -135,8 +135,6 @@ if __name__ == "__main__":
         LOG.warning("SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK " +
                     "has been specified, all purchase transactions " + 
                     "are now INSECURE and UNENCRYPTED!!")
-    session = webkit.get_default_session()
-    session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
 
     # create the app
     from softwarecenter.ui.gtk3.app import SoftwareCenterAppGtk3
