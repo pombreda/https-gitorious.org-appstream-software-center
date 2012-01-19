@@ -18,6 +18,9 @@ software-center (5.1.7) UNRELEASED; urgency=low
   * lp:~mvo/software-center/review-language-i18n:
     - make the language selection combo in the reviews widget
       nicer by adding a proper i18n name to it
+  * lp:~mvo/software-center/trivial-move-gui-helpers:
+    - move rnr_helpers.py to softwarecenter/ui/gtk3/review_gui_helper.py
+      as it belongs there and add to POTFILE.in
   
   [ Michael Nelson ]
   * lp:~michael.nelson/software-center/833982-purchased-app-not-available,
