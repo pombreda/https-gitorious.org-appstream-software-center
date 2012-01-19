@@ -152,6 +152,7 @@ class SCAApplicationParser(AppInfoParserBase):
                 'Support-Url'   : 'support_url',
                 'Description' : 'Description',
                 'Comment' : 'Comment',
+                'Supported-Distros': 'series',
               }
 
     # map from requested key to a static data element
@@ -787,6 +788,10 @@ def make_doc_from_parser(parser, cache):
     if parser.has_option_desktop("X-AppInstall-Description"):
         descr = parser.get_desktop("X-AppInstall-Description")
         doc.add_value(XapianValues.SC_DESCRIPTION, descr)
+    if parser.has_option_desktop("Supported-Distros"):
+        doc.add_value(XapianValues.SC_SUPPORTED_DISTROS,
+            json.dumps(parser.get_desktop("Supported-Distros")))
+
     # popcon
     # FIXME: popularity not only based on popcon but also
     #        on archive section, third party app etc

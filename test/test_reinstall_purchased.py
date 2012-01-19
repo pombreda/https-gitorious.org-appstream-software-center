@@ -295,6 +295,26 @@ class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
             PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME,
             parser.get_desktop('Channel'))
 
+    def test_will_handle_supported_distros_when_available(self):
+        # When the fix for bug 917109 reaches production, we will be
+        # able to use the supported series.
+        parser = self._make_application_parser()
+        supported_distros = {
+            "maverick": [
+                "i386",
+                "amd64"
+                ],
+            "natty": [
+                "i386",
+                "amd64"
+                ],
+            }
+        parser.sca_application.series = supported_distros
+
+        self.assertEqual(
+            supported_distros,
+            parser.get_desktop('Supported-Distros'))
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

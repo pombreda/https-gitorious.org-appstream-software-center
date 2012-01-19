@@ -18,7 +18,6 @@ from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.database import parse_axi_values_file
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.update import (
-    index_app_info_from_parser,
     make_doc_from_parser,
     update_from_app_install_data,
     update_from_var_lib_apt_lists,
@@ -443,7 +442,7 @@ class AppDetailsPkgStateTestCase(unittest.TestCase):
         app_details = self._make_app_details(
             supported_series={
                 'current-1': ['i386', 'amd64'],
-                'current-2': ['i386', 'amd64'],
+                self.distro.get_codename(): ['newarch', 'amdm128'],
                 })
 
         state = app_details.pkg_state
@@ -453,7 +452,7 @@ class AppDetailsPkgStateTestCase(unittest.TestCase):
             state)
 
     def test_package_state_no_series(self):
-        # Until the fix for bug ... is deployed on production, we
+        # Until the fix for bug 917109 is deployed on production, we
         # should default to the current (broken) behaviour of
         # indicating that the repo just needs enabling.
         app_details = self._make_app_details(supported_series=None)
@@ -463,6 +462,22 @@ class AppDetailsPkgStateTestCase(unittest.TestCase):
         self.assertEqual(
             PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
             state)
+
+    def test_package_state_arch_any(self):
+        # In the future the supported arches returned by sca will include
+        # any - let's not break when that happens.
+        app_details = self._make_app_details(
+            supported_series={
+                'current-1': ['i386', 'amd64'],
+                self.distro.get_codename(): ['newarch', 'any'],
+                })
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+            state)
+
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@
 
 from gi.repository import GObject, Gio
 
+import json
 import locale
 import logging
 import os
@@ -457,7 +458,23 @@ class AppDetails(GObject.GObject):
                     return PkgStates.NEEDS_PURCHASE
                 if (self.purchase_date and
                     self._doc.get_value(XapianValues.ARCHIVE_DEB_LINE)):
-                    return PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED
+                    supported_distros = self.supported_distros
+
+                    # Until bug 917109 is fixed on the server we won't have
+                    # any supported_distros for a for-purchase app, so we
+                    # follow the current behaviour in this case.
+                    if not supported_distros:
+                        return PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED
+
+                    current_distro = self._distro.get_codename()
+                    current_arch = self._distro.get_architecture()
+                    if current_distro in supported_distros and (
+                        current_arch in supported_distros[current_distro] or
+                        'any' in supported_distros[current_distro]):
+                        return PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED
+                    else:
+                        return PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES
+
                 if self.component:
                     components = self.component.split('&')
                     for component in components:
@@ -472,6 +489,15 @@ class AppDetails(GObject.GObject):
     def price(self):
         if self._doc:
             return self._doc.get_value(XapianValues.PRICE)
+
+    @property
+    def supported_distros(self):
+        if self._doc:
+            supported_series = self._doc.get_value(XapianValues.SC_SUPPORTED_DISTROS)
+            if not supported_series:
+                return {}
+
+            return json.loads(supported_series)
 
     @property
     def ppaname(self):
