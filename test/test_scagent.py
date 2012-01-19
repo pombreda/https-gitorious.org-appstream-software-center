@@ -1,24 +1,19 @@
 #!/usr/bin/python
 
 from gi.repository import GObject
-import os
-import os.path
+from mock import patch
 import unittest
 
-
-import sys
-sys.path.insert(0,"../")
+from testutils import setup_test_env
+setup_test_env()
 
 from softwarecenter.backend.scagent import SoftwareCenterAgent
-import softwarecenter.paths
 
 class TestSCAgent(unittest.TestCase):
     """ tests software-center-agent """
 
     def setUp(self):
         self.loop = GObject.MainLoop(GObject.main_context_default())
-        softwarecenter.paths.datadir = "../data"
-        os.environ["PYTHONPATH"] = os.path.abspath("..")
         self.error = False
 
     def on_query_done(self, scagent, data):
@@ -37,14 +32,25 @@ class TestSCAgent(unittest.TestCase):
         self.loop.run()        
         self.assertFalse(self.error)
 
-    # disabled for now as this is not yet on staging or production
-    def disabled_test_scagent_query_exhibits(self):
+    def test_scagent_query_exhibits(self):
         sca = SoftwareCenterAgent()
         sca.connect("exhibits", self.on_query_done)
         sca.connect("error", self.on_query_error)
         sca.query_exhibits()
         self.loop.run()  
         self.assertFalse(self.error)
+
+    def test_scaagent_query_available_for_me_uses_complete_only(self):
+        run_generic_piston_helper_fn = (
+            'softwarecenter.backend.spawn_helper.SpawnHelper.'
+            'run_generic_piston_helper')
+        with patch(run_generic_piston_helper_fn) as mock_run_piston_helper:
+            sca = SoftwareCenterAgent()
+            sca.query_available_for_me()
+
+            mock_run_piston_helper.assert_called_with(
+                'SoftwareCenterAgentAPI', 'subscriptions_for_me',
+                complete_only=True)
 
 
 if __name__ == "__main__":

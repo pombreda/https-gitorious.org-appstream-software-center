@@ -17,6 +17,26 @@ if ! python -c 'import mock'; then
     exit 1
 fi
 
+if ! python -c 'import unittest2'; then
+    echo "please install python-unittest2"
+    exit 1
+fi
+
+if ! python -c 'import aptdaemon.test'; then
+    echo "please install python-aptdaemon.test"
+    exit 1
+fi
+
+if ! python -c 'import lxml'; then
+    echo "please install python-lxml"
+    exit 1
+fi
+
+if ! python -c 'import PyQt4'; then
+    echo "please install python-qt4"
+    exit 1
+fi
+
 
 # clear coverage data
 # coverage erase will not erase the files from --parallel-mode 

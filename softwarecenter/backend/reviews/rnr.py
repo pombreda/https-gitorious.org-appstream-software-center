@@ -65,7 +65,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
 
     # reviews
     def get_reviews(self, translated_app, callback, page=1, 
-                    language=None, sort=0):
+                    language=None, sort=0, relaxed=False):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
@@ -77,23 +77,27 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         if language is None:
             language = self.language
         # gather args for the helper
-        try:
-            origin = self.cache.get_origin(app.pkgname)
-        except:
-            # this can happen if e.g. the app has multiple origins, this
-            # will be handled later
-            origin = None
-        # special case for not-enabled PPAs
-        if not origin and self.db:
-            details = app.get_details(self.db)
-            ppa = details.ppaname
-            if ppa:
-                origin = "lp-ppa-%s" % ppa.replace("/", "-")
-        # if there is no origin, there is nothing to do
-        if not origin:
-            callback(app, [])
-            return
-        distroseries = self.distro.get_codename()
+        if relaxed:
+            origin = 'any'
+            distroseries = 'any'
+        else:
+            try:
+                origin = self.cache.get_origin(app.pkgname)
+            except:
+                # this can happen if e.g. the app has multiple origins, this
+                # will be handled later
+                origin = None
+            # special case for not-enabled PPAs
+            if not origin and self.db:
+                details = app.get_details(self.db)
+                ppa = details.ppaname
+                if ppa:
+                    origin = "lp-ppa-%s" % ppa.replace("/", "-")
+            # if there is no origin, there is nothing to do
+            if not origin:
+                callback(app, [])
+                return
+            distroseries = self.distro.get_codename()
         # run the command and add watcher
         cmd = [os.path.join(softwarecenter.paths.datadir, PistonHelpers.GET_REVIEWS),
                "--language", language, 
@@ -128,22 +132,20 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         except OSError:
             days_delta = 0
         LOG.debug("refresh with days_delta: %s" % days_delta)
+        # FIXME: the server currently has bug (#757695) so we
+        #        can not turn this on just yet and need to use
+        #        the old "catch-all" review-stats for now
         #origin = "any"
         #distroseries = self.distro.get_codename()
-        cmd = [os.path.join(
-                softwarecenter.paths.datadir, PistonHelpers.GET_REVIEW_STATS),
-               # FIXME: the server currently has bug (#757695) so we
-               #        can not turn this on just yet and need to use
-               #        the old "catch-all" review-stats for now
-               #"--origin", origin, 
-               #"--distroseries", distroseries, 
-              ]
-        if days_delta:
-            cmd += ["--days-delta", str(days_delta)]
         spawn_helper = SpawnHelper()
         spawn_helper.connect("data-available", self._on_review_stats_data, callback)
-        spawn_helper.run(cmd)
-
+        if days_delta:
+            spawn_helper.run_generic_piston_helper(
+                "RatingsAndReviewsAPI", "review_stats", days=days_delta)
+        else:
+            spawn_helper.run_generic_piston_helper(
+                "RatingsAndReviewsAPI", "review_stats")
+                                                              
     def _on_review_stats_data(self, spawn_helper, piston_review_stats, callback):
         """ process stdout from the helper """
         review_stats = self.REVIEW_STATS_CACHE

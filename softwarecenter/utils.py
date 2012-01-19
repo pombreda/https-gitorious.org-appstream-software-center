@@ -398,8 +398,8 @@ def clear_token_from_ubuntu_sso(appname):
     """
     import dbus
     bus = dbus.SessionBus()
-    proxy = bus.get_object('com.ubuntu.sso', '/credentials')
-    proxy.clear_token(appname)
+    proxy = bus.get_object('com.ubuntu.sso', '/com/ubuntu/sso/credentials')
+    proxy.clear_credentials(appname, {})
 
 def get_nice_date_string(cur_t):
     """ return a "nice" human readable date, like "2 minutes ago"  """

@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
-import sys
-sys.path.insert(0,"../")
-
 import logging
 import unittest
 
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.plugin import PluginManager
 
 class MockApp(object):

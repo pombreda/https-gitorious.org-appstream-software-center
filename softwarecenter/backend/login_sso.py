@@ -73,6 +73,7 @@ class LoginBackendDbusSSO(LoginBackend):
         self.proxy.register(self.appname, self._get_params())
 
     def _on_credentials_found(self, app_name, credentials):
+        LOG.debug("_on_credentials_found for '%s'" % app_name)
         if app_name != self.appname:
             return
         # only emit signal here once, otherwise it may happen that a
@@ -156,6 +157,8 @@ def get_sso_backend(window_id, appname, help_text):
     return sso_class
    
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+
     from softwarecenter.enums import SOFTWARE_CENTER_NAME_KEYRING
     login = get_sso_backend(0, SOFTWARE_CENTER_NAME_KEYRING, "login-text")
     login.login()

@@ -1,18 +1,16 @@
 #!/usr/bin/python
 
-
-import sys
-sys.path.insert(0,"../")
+from gi.repository import Gtk
 
 import time
 import unittest
 import xapian
 
-from softwarecenter.db.enquire import AppEnquire
-
-from gi.repository import Gtk
-from softwarecenter.testutils import get_test_db, get_test_pkg_info
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.db.appfilter import AppFilter
+from softwarecenter.db.enquire import AppEnquire
+from softwarecenter.testutils import get_test_db, get_test_pkg_info
 
 class TestEnquire(unittest.TestCase):
 

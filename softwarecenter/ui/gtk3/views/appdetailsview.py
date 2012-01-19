@@ -699,6 +699,7 @@ class AppDetailsView(Viewport):
         self.cache = cache
         self.backend = get_install_backend()
         self.cache.connect("cache-ready", self._on_cache_ready)
+        self.connect("destroy", self._on_destroy)
         self.datadir = datadir
         self.app = None
         self.appdetails = None
@@ -750,6 +751,7 @@ class AppDetailsView(Viewport):
         # reviews
         self._reviews_server_page = 1
         self._reviews_server_language = None
+        self._reviews_relaxed = False
         self._review_sort_method = 0
         
         # switches
@@ -761,6 +763,9 @@ class AppDetailsView(Viewport):
         self.connect('realize', self._on_realize)
         self.loaded = True
         return
+
+    def _on_destroy(self, widget):
+        self.cache.disconnect_by_func(self._on_cache_ready)
 
     def _cache_art_assets(self):
         global _asset_cache
@@ -809,12 +814,15 @@ class AppDetailsView(Viewport):
         self._do_load_reviews()
     
     def _on_review_sort_method_changed(self, uilist, sort_method):
-        self._review_server_page = 1
+        self._reviews_server_page = 1
+        self._reviews_relaxed = False
         self._review_sort_method = sort_method
         self.reviews.clear()
         self._do_load_reviews()
 
     def _on_reviews_in_different_language_clicked(self, uilist, language):
+        self._reviews_server_page = 1
+        self._reviews_relaxed = False
         self._reviews_server_language = language
         self.reviews.clear()
         self._do_load_reviews()
@@ -825,7 +833,8 @@ class AppDetailsView(Viewport):
             self.app, self._reviews_ready_callback, 
             page=self._reviews_server_page,
             language=self._reviews_server_language,
-            sort=self._review_sort_method)
+            sort=self._review_sort_method,
+            relaxed=self._reviews_relaxed)
 
     def _review_update_single(self, action, review):
         if action == 'replace':
@@ -858,6 +867,19 @@ class AppDetailsView(Viewport):
         if self.app.pkgname != app.pkgname:
             return
 
+        # Start fetching relaxed reviews if we retrieved no data
+        # (and if we weren't already relaxed)
+        if not reviews_data and not self._reviews_relaxed:
+            self._reviews_relaxed = True
+            self._reviews_server_page = 1
+            self.review_loader.get_reviews(
+                self.app, self._reviews_ready_callback, 
+                page=self._reviews_server_page,
+                language=self._reviews_server_language,
+                sort=self._review_sort_method,
+                relaxed=self._reviews_relaxed)
+            return
+
         # update the stats (if needed). the caching can make them
         # wrong, so if the reviews we have in the list are more than the
         # stats we update manually
@@ -883,10 +905,22 @@ class AppDetailsView(Viewport):
         if action:
             self._review_update_single(action, single_review)
         else:
-            curr_list = self.reviews.get_all_review_ids()
+            curr_list = set(self.reviews.get_all_review_ids())
+            retrieved_a_new_review = False
             for review in reviews_data:
                 if not review.id in curr_list:
+                    retrieved_a_new_review = True
                     self.reviews.add_review(review)
+            if reviews_data and not retrieved_a_new_review:
+                # We retrieved data, but nothing new.  Keep going.
+                self._reviews_server_page += 1
+                self.review_loader.get_reviews(
+                    self.app, self._reviews_ready_callback, 
+                    page=self._reviews_server_page,
+                    language=self._reviews_server_language,
+                    sort=self._review_sort_method,
+                    relaxed=self._reviews_relaxed)
+
         self.reviews.configure_reviews_ui()
 
     def on_weblive_progress(self, weblive, progress):
@@ -994,7 +1028,9 @@ class AppDetailsView(Viewport):
         self.title.set_alignment(0, 0.5)
         self.subtitle.set_alignment(0, 0.5)
         self.title.set_line_wrap(True)
+        self.title.set_selectable(True)
         self.subtitle.set_line_wrap(True)
+        self.subtitle.set_selectable(True)
         vb_inner=Gtk.VBox()
         vb_inner.pack_start(self.title, False, False, 0)
         vb_inner.pack_start(self.subtitle, False, False, 0)
@@ -1504,7 +1540,7 @@ class AppDetailsView(Viewport):
         # init data
         self.app = app
         self.app_details = app.get_details(self.db)
-        
+
         # check if app just became available and if so, force full
         # refresh
         if (same_app and
@@ -1521,13 +1557,18 @@ class AppDetailsView(Viewport):
         if same_app and not force:
             self._update_minimal(self.app_details)
         else:
+            # reset reviews_page
+            self._reviews_server_page = 1
             # update all (but skip the addons calculation if this is a
             # DebFileApplication as this is not useful for this case and it
             # increases the view load time dramatically)
             self._update_all(self.app_details,
                              skip_update_addons=(type(self.app)==DebFileApplication))
 
-        self.title.grab_focus()
+        # this is a bit silly, but without it and self.title being selectable
+        # gtk will select the entire title (which looks ugly). this grab works
+        # around that
+        self.icon.grab_focus()
 
         self.emit("selected", self.app)
         return
@@ -1755,7 +1796,11 @@ class AppDetailsView(Viewport):
                     logging.debug("_get_icon_as_pixbuf:image_downloaded() %s" % image_file_path)
                     try:
                         pb = GdkPixbuf.Pixbuf.new_from_file(image_file_path)
-                        self.icon.set_from_pixbuf(pb)
+                        # fixes crash in testsuite if window is destroyed
+                        # and after that this callback is called (wouldn't
+                        # it be nice if gtk would do that automatically?)
+                        if self.icon.get_property("visible"):
+                            self.icon.set_from_pixbuf(pb)
                     except Exception as e:
                         LOG.warning("couldn't load downloadable icon file '%s': %s" % (image_file_path, e))
                     

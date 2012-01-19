@@ -41,6 +41,8 @@ class ViewManager(GObject.GObject):
         self.search_entry = SearchEntry()
         self.search_entry.connect(
             "terms-changed", self.on_search_terms_changed)
+        self.search_entry.connect(
+            "key-press-event", self.on_search_entry_key_press_event)
 
         self.back_forward = BackForwardButton()
         self.back_forward.connect(
@@ -79,6 +81,13 @@ class ViewManager(GObject.GObject):
         pane = self.get_current_view_widget()
         if hasattr(pane, "on_nav_forward_clicked"):
             pane.on_nav_forward_clicked(widget)
+        return
+        
+    def on_search_entry_key_press_event(self, widget, event):
+    
+        pane = self.get_current_view_widget()
+        if hasattr(pane, "on_search_entry_key_press_event"):
+            pane.on_search_entry_key_press_event(event)
         return
 
     def register(self, pane, view_id):

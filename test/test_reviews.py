@@ -1,20 +1,19 @@
 #!/usr/bin/python
 
 import os
-import tempfile
 import unittest
-
-import sys
-sys.path.insert(0,"../")
 
 from gi.repository import GObject
 
-import softwarecenter.paths
-softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR = tempfile.mkdtemp()
+from testutils import setup_test_env
+setup_test_env()
+from gettext import gettext as _
 
 from softwarecenter.backend.reviews.rnr import (
     ReviewLoaderSpawningRNRClient as ReviewLoader)
-from softwarecenter.testutils import (get_test_pkg_info, get_test_db)
+from softwarecenter.testutils import get_test_pkg_info, get_test_db
+from softwarecenter.backend.reviews.rnr_helpers import SubmitReviewsApp
+
 
 class TestReviewLoader(unittest.TestCase):
 
@@ -43,7 +42,30 @@ class TestReviewLoader(unittest.TestCase):
         top_cat = review_loader.get_top_rated_apps(
             quantity=8, category="Internet")
         self.assertEqual(len(top_cat), 8)
-    
+
+    def test_edit_review_screen_has_right_labels(self):
+        """Check that LP #880255 stays fixed. """
+
+        review_app = SubmitReviewsApp(datadir="../data", app=None,
+            parent_xid='', iconname='accessories-calculator', origin=None,
+            version=None, action='modify', review_id=10000)
+        # monkey patch away login to avoid that we actually login
+        # and the UI changes because of that
+        review_app.login = lambda: True
+
+        # run the main app
+        review_app.run()
+
+        self._p()
+        review_app.login_successful('foobar')
+        self._p()
+        self.assertEqual(_('Rating:'), review_app.rating_label.get_label())
+        self.assertEqual(_('Summary:'),
+            review_app.review_summary_label.get_label())
+        self.assertEqual(_('Review by: %s') % 'foobar',
+            review_app.review_label.get_label())
+        review_app.submit_window.hide()
+
 
     def _p(self):
         main_loop = GObject.main_context_default()
@@ -51,6 +73,6 @@ class TestReviewLoader(unittest.TestCase):
             main_loop.iteration()
 
 if __name__ == "__main__":
-    #import logging
-    #logging.basicConfig(level=logging.DEBUG)
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
     unittest.main()

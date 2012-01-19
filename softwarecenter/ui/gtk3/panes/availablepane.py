@@ -36,7 +36,7 @@ from softwarecenter.enums import (ActionButtons,
                                   TransactionTypes)
 from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import (wait_for_apt_cache_ready,
-                                  is_no_display_desktop_file,
+                                  get_exec_line_from_desktop,
                                   get_file_path_from_iconname)
 from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.database import Application
@@ -370,9 +370,11 @@ class AvailablePane(SoftwarePane):
         # we only add items to the launcher that have a desktop file
         if not appdetails.desktop_file:
             return
-        # do not add apps without a exec line (like wine, see #848437)
+        # do not add apps that have no Exec entry in their desktop file
+        # (e.g. wine, see LP: #848437 or ubuntu-restricted-extras,
+        # see LP: #913756)
         if (os.path.exists(appdetails.desktop_file) and
-            is_no_display_desktop_file(appdetails.desktop_file)):
+            not get_exec_line_from_desktop(appdetails.desktop_file)):
             return
 
         # now gather up the unity launcher info items and send the app to the

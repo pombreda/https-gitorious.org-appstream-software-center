@@ -2,18 +2,15 @@
 
 from gi.repository import Gtk, GdkPixbuf, GObject
 import os
-import sys
 import unittest
+from gettext import gettext as _
 
-from mock import Mock
+from mock import Mock, patch
 
+from testutils import setup_test_env, do_events
+setup_test_env()
+from softwarecenter.ui.gtk3.widgets.reviews import get_test_reviews_window
 
-sys.path.insert(0,"..")
-
-# ensure datadir is pointing to the right place
-import softwarecenter.paths
-softwarecenter.paths.datadir = os.path.join(
-    os.path.dirname(__file__), "..", "..", 'data')
 
 # window destory timeout
 TIMEOUT=100
@@ -81,12 +78,6 @@ class TestWidgets(unittest.TestCase):
         GObject.timeout_add(TIMEOUT, lambda: d.destroy())
         d.run()
 
-    def test_reviews(self):
-        from softwarecenter.ui.gtk3.widgets.reviews import get_test_reviews_window
-        win = get_test_reviews_window()
-        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
-        Gtk.main()
-
     def test_searchentry(self):
         from softwarecenter.ui.gtk3.widgets.searchentry import get_test_searchentry_window
         win = get_test_searchentry_window()
@@ -132,7 +123,68 @@ class TestWidgets(unittest.TestCase):
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
 
-        
+
+class TestUIReviewsList(unittest.TestCase):
+    def setUp(self):
+        self.win = get_test_reviews_window()
+        self.rl = self.win.get_children()[0]
+
+    def tearDown(self):
+        GObject.timeout_add(TIMEOUT, lambda: self.win.destroy())
+        Gtk.main()
+
+    def assertComboBoxTextIncludes(self, combo, option):
+        store = combo.get_model()
+        self.assertTrue(option in [x[0] for x in store])
+
+    def assertEmbeddedMessageLabel(self, title, message):
+        markup = self.rl.vbox.get_children()[1].label.get_label()
+        self.assertTrue(title in markup)
+        self.assertTrue(message in markup)
+
+    def test_reviews_includes_any_language(self):
+        review_language = self.rl.review_language
+        self.assertComboBoxTextIncludes(review_language, _('Any language'))
+
+    def test_reviews_offers_to_relax_language(self):
+        # No reviews found, but there are some in other languages:
+        self.rl.clear()
+        self.rl.global_review_stats = Mock()
+        self.rl.global_review_stats.ratings_total = 4
+        self.rl.configure_reviews_ui()
+        do_events()
+
+        self.assertEmbeddedMessageLabel(
+            _("This app has not been reviewed yet in your language"),
+            _('Try selecting a different language, or even "Any language"'
+            ' in the language dropdown'))
+
+    @patch('softwarecenter.ui.gtk3.widgets.reviews.network_state_is_connected')
+    def test_reviews_no_reviews_but_app_not_installed(self, mock_connected):
+        mock_connected.return_value = True
+        # No reviews found, and the app isn't installed
+        self.rl.clear()
+        self.rl.configure_reviews_ui()
+        do_events()
+
+        self.assertEmbeddedMessageLabel(
+            _("This app has not been reviewed yet"),
+            _('You need to install this before you can review it'))
+
+    @patch('softwarecenter.ui.gtk3.widgets.reviews.network_state_is_connected')
+    def test_reviews_no_reviews_offer_to_write_one(self, mock_connected):
+        from softwarecenter.enums import PkgStates
+        mock_connected.return_value = True
+        # No reviews found, and the app is installed
+        self.rl.clear()
+        self.rl._parent.app_details.pkg_state = PkgStates.INSTALLED
+        self.rl.configure_reviews_ui()
+        do_events()
+
+        self.assertEmbeddedMessageLabel(
+            _('Got an opinion?'),
+            _('Be the first to contribute a review for this application'))
+
 
 if __name__ == "__main__":
     import logging

@@ -1,8 +1,95 @@
-software-center (5.1.5) UNRELEASED; urgency=low
+software-center (5.1.7) UNRELEASED; urgency=low
+
+  [ Anthony Lenton ]
+  * lp:~elachuni/software-center/any-language:
+    - add support to display reviews in any language
+  * lp:~elachuni/software-center/reset-review-page:
+    - Small bugfix to ensure that switching language or 
+      reviews sort method resets the reviews page, and 
+      added tests.
+  * lp:~elachuni/software-center/relax-origin-distroseries:
+    - provide "relaxed" mode for fetching reviews if the exact
+      review matcher does not find anything (LP: #766951)
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/improve-debug-in-piston-generic-helper:
+    - improve debug output of piston-generic-helper and a README 
+      with examples how it can be used to debug server side issues
+  * lp:~mvo/software-center/review-language-i18n:
+    - make the language selection combo in the reviews widget
+      nicer by adding a proper i18n name to it
+  
+  [ Michael Nelson ]
+  * lp:~michael.nelson/software-center/833982-purchased-app-not-available,
+    lp:~michael.nelson/software-center/917137-previous-purchases-empty-precise-2:
+    - refactor/cleanup parser code and update for API 2.0 (LP: #917137)
+
+  [ Danny Tamez ]
+  * lp:~zematynnad/software-center/rename_host_var_918270:
+    - rename the env variable SOFTWARE_CENTER_BUY_HOST  to the more
+      correct SOFTWARE_CENTER_AGENT_HOST, but support the former as a
+      fallback, update corresponding unit test (LP: #918270)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 18 Jan 2012 17:09:29 -0500
+
+software-center (5.1.6) precise; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/startup-speed2:
+    - additional startup speed improvements, brings up main window
+      much more quickly
+  * lp:~mvo/software-center/fix-server-pagination:    
+    - reset reviews "page" when showing a new app
+  
+  [Christopher Kyle Horton]
+  * utils/submit_review_gtk3.py:
+    - fix crash when submitting a review (LP: #912855)
+
+  [ Anthony Lenton ]
+  * lp:~elachuni/software-center/test_downloader_fix:
+    - fix test hang on incorrect proxy settings
+  * lp:~elachuni/software-center/check-edit-labels:
+    - add test for correct labels in "Modify review" mode
+    - move main RnR Helper GUI into softwarecenter.backend.rnr 
+      to make testing easier
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/fix-lp913756:
+    - do not add an icon to the Unity launcher for packages that do
+      not have an Exec entry in their corresponding desktop file,
+      e.g. ubuntu-restricted-extras, wine (LP: #913756)
+  * lp:~gary-lasker/software-center/search-down-arrow-lp842711:
+    - select the first item in the result list when the down
+      arrow is pressed during a search (LP: #842711)
+  * lp:~gary-lasker/software-center/fix-lp896474:
+    - fix crash when attempting to install or remove an item
+      via the menu (LP: #896474) 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 17 Jan 2012 14:19:57 +0100
+
+software-center (5.1.5.1) precise; urgency=low
 
   [ Kiwinote ]
+  * utils/submit_review_gtk3.py:
+    - use named argument as per (LP: #841000)
+  * trigger .pot file rebuild
+
+  [ Didier Roche ]
+  * lp:~didrocks/software-center/oneconf-remove-computers-from-share
+    - Enable (from the new spec) removing a host which isn't the 
+      current one from the gui. 
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 06 Jan 2012 13:03:01 +0100
+
+software-center (5.1.5) precise; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/models/appstore2.py:
+    - fix TypeError in load_range (LP: #911886)
   * softwarecenter/ui/gtk3/panes/historypane.py:
     - change COL_PKG to an object rather than a str (LP: #905762)
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - fix utf8 oddness to make remote installed panes work
   * softwarecenter/ui/gtk3/widgets/oneconfviews.py:
     - ensure that hostid is always a string (as we declared) (LP: #905605)
   * softwarecenter/ui/gtk3/widgets/thumbnail.py:
@@ -21,8 +108,30 @@ software-center (5.1.5) UNRELEASED; urgency=low
   * lp:~mvo/software-center/icon-data:
     - remove the need for inline icon data from the agent, instead
       download icons directly using the provided URL
+  * softwarecenter/db/debfile.py:
+    - fix encoding error for some debs (based on 
+      lp:~roignac/software-center/bug-738771-summary-unicode), thanks
+      to Vadim Rutkovsky, LP: #738771
+  * softwarecenter/ui/gtk3/views/appdetailsview.py:
+    - fix crash in test/gtk3/test_views.py
+  * lp:~mvo/software-center/replace-restfulclient-with-piston:
+    - replace lazr.restfulclient with piston-mini-client for ubuntu-sso
+      and cleanup the piston-mini-client helper code
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 20:43:32 -0500
+  [ Gary Lasker ]
+  * softwarecenter/backend/channel_impl/aptchannels.py:
+    - display the correct label text for the For Purchase menu item
+      in the toolbar (LP: #911964)
+  * lp:~gary-lasker/software-center/date-published-cleanup:
+    - remove no longer needed code
+  * lp:~gary-lasker/software-center/replace-restfulclient-with-piston-tweaks:
+    - tweaks and fixes the branch
+  
+  [ Vadim Rutkovsky ]
+  * lp:~roignac/software-center/bug-632773-selectable-title:
+    - make the app title selectable (LP: #632773)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 06 Jan 2012 10:56:48 +0100
 
 software-center (5.1.4) precise; urgency=low
 

@@ -53,7 +53,6 @@ from softwarecenter.utils import (upstream_version_compare,
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   APP_INSTALL_PATH,
                                   XAPIAN_BASE_PATH,
-                                  PistonHelpers,
                                   )
 from softwarecenter.enums import ReviewSortMethods
 
@@ -107,13 +106,10 @@ class UsefulnessCache(object):
             return False
         
         # run the command and add watcher
-        cmd = [os.path.join(
-                softwarecenter.paths.datadir, PistonHelpers.GET_USEFUL_VOTES),
-               "--username", user, 
-              ]
         spawn_helper = SpawnHelper()
         spawn_helper.connect("data-available", self._on_usefulness_data)
-        spawn_helper.run(cmd)
+        spawn_helper.run_generic_piston_helper(
+            "RatingsAndReviewsAPI", "get_usefulness", username=user)
 
     def _on_usefulness_data(self, spawn_helper, results):
         '''called if usefulness retrieved from server'''
@@ -257,7 +253,7 @@ class ReviewLoader(object):
         return False
 
     def get_reviews(self, application, callback, page=1, language=None,
-                    sort=0):
+                    sort=0, relaxed=False):
         """run callback f(app, review_list) 
            with list of review objects for the given
            db.database.Application object
@@ -460,7 +456,8 @@ class ReviewLoaderFake(ReviewLoader):
         return random.choice(self.LOREM.split("\n\n"))
     def _random_summary(self):
         return random.choice(self.SUMMARIES)
-    def get_reviews(self, application, callback, page=1, language=None, sort=0):
+    def get_reviews(self, application, callback, page=1, language=None,
+        sort=0, relaxed=False):
         if not application in self._review_stats_cache:
             self.get_review_stats(application)
         stats = self._review_stats_cache[application]
@@ -632,7 +629,8 @@ class ReviewLoaderNull(ReviewLoader):
         self._review_stats_cache = {}
         self._reviews_cache = {}
 
-    def get_reviews(self, application, callback, page=1, language=None, sort=0):
+    def get_reviews(self, application, callback, page=1, language=None,
+        sort=0, relaxed=False):
         callback(application, [])
 
     def get_review_stats(self, application):

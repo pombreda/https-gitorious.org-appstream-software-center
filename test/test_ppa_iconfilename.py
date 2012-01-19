@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
-import sys
 import unittest
 
-sys.path.insert(0,"../")
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.distro.Ubuntu import Ubuntu
 
 class MockCache(object):
