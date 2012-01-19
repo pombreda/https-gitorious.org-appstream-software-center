@@ -260,6 +260,51 @@ class TestDatabase(unittest.TestCase):
         appdetails = app.get_details(db)
         self.assertEqual(appdetails.pkg_state, PkgStates.NOT_FOUND)
 
+    def test_package_state_purchased_not_available(self):
+        # TODO: better approach - actually create an application parser
+        # and index it in the db, then fetch it? use test_reinstall_purchased_xapian
+        # use fixture apt data
+        #db
+        from piston_mini_client import PistonResponseObject
+        item = PistonResponseObject.from_dict({
+            u'application': {
+                u'archive_id': u'commercial-ppa-uploaders/photobomb',
+                u'description': u"Easy and Social Image Editor\nPhotobomb "
+                                u"give you easy access to images in your "
+                                u"social networking feeds, pictures on ...",
+                u'name': u'Photobomb',
+                u'package_name': u'photobomb',
+                u'signing_key_id': u'1024R/75254D99'
+                },
+            u'deb_line': u'deb https://some.user:ABCDEFGHIJKLMNOP@'
+                         u'private-ppa.launchpad.net/commercial-ppa-uploaders/'
+                         u'photobomb/ubuntu natty main',
+            u'distro_series': {u'code_name': u'natty', u'version': u'11.04'},
+            u'failures': [],
+            u'open_id': u'https://login.ubuntu.com/+id/ABCDEF',
+            u'purchase_date': u'2011-09-16 06:37:52',
+            u'purchase_price': u'2.99',
+            u'state': u'Complete',
+            })
+        from softwarecenter.db.update import (
+            index_app_info_from_parser,
+            SCAPurchasedApplicationParser,
+            )
+        parser = SCAPurchasedApplicationParser(item)
+        from softwarecenter.testutils import get_test_db
+        db = get_test_db()
+        from softwarecenter.db.update import make_doc_from_parser
+        doc = make_doc_from_parser(parser, db._aptcache)
+        from softwarecenter.db.application import AppDetails
+        app_details = AppDetails(db, doc)
+
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES,
+            state)
+
     def test_packagename_is_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
         db.open()
