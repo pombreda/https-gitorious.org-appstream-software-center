@@ -7,7 +7,7 @@ software-center (5.0.5) UNRELEASED; urgency=low
       file, e.g. ubuntu-restricted-extras, wine (LP: #913756)
   * lp:~gary-lasker/software-center/staging-certs-2-for-5.0:
     - add SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK to allow QA easier
-      testing
+      testing (LP: #918746)
   
   [ Michael Vogt ]
   * lp:~mvo/software-center/fix-server-pagination:
@@ -17,7 +17,7 @@ software-center (5.0.5) UNRELEASED; urgency=low
   [ Kiwinote ]
   * grab exhibits for the current series only (LP: #899257)
   
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 10 Jan 2012 16:00:46 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 19 Jan 2012 10:54:47 -0500
 
 software-center (5.0.4) oneiric-proposed; urgency=low
 
