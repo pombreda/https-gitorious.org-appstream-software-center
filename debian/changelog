@@ -29,6 +29,12 @@ software-center (5.1.7) UNRELEASED; urgency=low
     - rename the env variable SOFTWARE_CENTER_BUY_HOST  to the more
       correct SOFTWARE_CENTER_AGENT_HOST, but support the former as a
       fallback, update corresponding unit test (LP: #918270)
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/staging-certs-2:
+    - add new SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK environment that
+      can be used to disable cert checking to run e.g. against a local dev
+      instance
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 18 Jan 2012 17:09:29 -0500
 
