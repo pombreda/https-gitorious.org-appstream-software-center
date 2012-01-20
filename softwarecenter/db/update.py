@@ -175,11 +175,6 @@ class SCAApplicationParser(AppInfoParserBase):
             self.sca_application.Comment = self.sca_application.description.split("\n")[0].strip()
             self.sca_application.Description = "\n".join(
                 self.sca_application.description.split("\n")[1:]).strip()
-        # WARNING: item.name needs to be different than
-        #          the item.name in the DB otherwise the DB
-        #          gets confused about (appname, pkgname) duplication
-        self.sca_application.name = utf8(_("%s (already purchased)")) % utf8(
-            self.sca_application.name)
 
         # XXX 2012-01-16 bug=917109
         # We can remove these work-arounds once the above bug is fixed on
@@ -220,8 +215,6 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
         self.sca_subscription = sca_subscription
         super(SCAPurchasedApplicationParser, self).__init__(
             PistonResponseObject.from_dict(sca_subscription.application))
-        self.sca_application.channel = (
-            PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
 
     SUBSCRIPTION_MAPPING = {
         'Deb-Line'   : 'deb_line',
@@ -247,6 +240,16 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
         application_has_option = super(
             SCAPurchasedApplicationParser, self).has_option_desktop(key)
         return subscription_has_option or application_has_option
+
+    def _apply_exceptions(self):
+        super(SCAPurchasedApplicationParser, self)._apply_exceptions()
+        # WARNING: item.name needs to be different than
+        #          the item.name in the DB otherwise the DB
+        #          gets confused about (appname, pkgname) duplication
+        self.sca_application.name = utf8(_("%s (already purchased)")) % utf8(
+            self.sca_application.name)
+        self.sca_application.channel = (
+            PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
 
 
 class JsonTagSectionParser(AppInfoParserBase):
