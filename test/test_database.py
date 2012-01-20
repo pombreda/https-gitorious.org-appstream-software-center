@@ -369,11 +369,9 @@ app-popcon	4	# app-install .desktop popcon rank
     def test_appdetails(self):
         from softwarecenter.testutils import get_test_db
         db = get_test_db()
-        if os.path.exists("/var/lib/debtags/"):
-            details = AppDetails(db, application=Application("", "mount"))
-            self.assertTrue(len(details.tags) > 2)
-        else:
-            logging.warn("Skipping debtags test as debtags is not installed")
+        # see "apt-cache show casper|grep ^Tag"
+        details = AppDetails(db, application=Application("", "casper"))
+        self.assertTrue(len(details.tags) > 2)
 
     def test_app_enquire(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
