@@ -169,6 +169,11 @@ class SCAApplicationParserTestCase(unittest.TestCase):
                 getattr(parser.sca_application, key),
                 parser.get_desktop(inverse_map[key]))
 
+    def test_name_not_updated_for_non_purchased_apps(self):
+        parser = self._make_application_parser()
+
+        self.assertEqual('Fluendo DVD Player', parser.get_desktop('Name'))
+
     def test_keys_not_provided_by_api(self):
         parser = self._make_application_parser()
 
@@ -251,6 +256,7 @@ class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
         # an application parser for handling.
         parser = self._make_application_parser()
 
+        # We're testing here also that the name is updated automatically.
         expected_results = {
             "Name": "Photobomb (already purchased)",
             "Package": "photobomb",
