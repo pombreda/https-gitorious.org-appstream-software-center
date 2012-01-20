@@ -36,6 +36,8 @@ software-center (5.1.7) UNRELEASED; urgency=low
   * lp:~michael.nelson/software-center/833982-previous-purchase-no-feedback-really-this-time:
     - Implements the backend for bug 833982 so that a purchased application 
       that is unsupported on the current system will be detected
+  * lp:~michael.nelson/software-center/833982-previous-purchase-no-feedback-2:
+    - ensure that the deb_line for the app points to the current distroseries
 
   [ Danny Tamez ]
   * lp:~zematynnad/software-center/rename_host_var_918270:

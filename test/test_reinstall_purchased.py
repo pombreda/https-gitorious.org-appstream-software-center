@@ -7,6 +7,7 @@ import json
 import unittest
 import xapian
 
+from mock import patch
 from piston_mini_client import PistonResponseObject
 from testutils import setup_test_env
 setup_test_env()
@@ -238,11 +239,21 @@ class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
 
         return SCAPurchasedApplicationParser(piston_subscription)
 
+    def setUp(self):
+        get_distro_patcher = patch('softwarecenter.db.update.get_distro')
+        self.addCleanup(get_distro_patcher.stop)
+        mock_get_distro = get_distro_patcher.start()
+        mock_get_distro.return_value.get_codename.return_value = 'quintessential'
+
     def test_get_desktop_subscription(self):
         parser = self._make_application_parser()
 
         expected_results = {
              "Deb-Line": "deb https://username:random3atoken@"
+                         "private-ppa.launchpad.net/commercial-ppa-uploaders"
+                         "/photobomb/ubuntu quintessential main",
+             "Deb-Line-Orig": 
+                         "deb https://username:random3atoken@"
                          "private-ppa.launchpad.net/commercial-ppa-uploaders"
                          "/photobomb/ubuntu natty main",
              "Purchased-Date": "2011-09-16 06:37:52",
@@ -322,6 +333,32 @@ class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
         self.assertEqual(
             supported_distros,
             parser.get_desktop('Supported-Distros'))
+
+    def test_update_debline_other_series(self):
+        orig_debline = (
+            "deb https://username:random3atoken@"
+            "private-ppa.launchpad.net/commercial-ppa-uploaders"
+            "/photobomb/ubuntu karmic main")
+        expected_debline = (
+            "deb https://username:random3atoken@"
+            "private-ppa.launchpad.net/commercial-ppa-uploaders"
+            "/photobomb/ubuntu quintessential main")
+
+        self.assertEqual(expected_debline,
+            SCAPurchasedApplicationParser.update_debline(orig_debline))
+
+    def test_update_debline_with_pocket(self):
+        orig_debline = (
+            "deb https://username:random3atoken@"
+            "private-ppa.launchpad.net/commercial-ppa-uploaders"
+            "/photobomb/ubuntu karmic-security main")
+        expected_debline = (
+            "deb https://username:random3atoken@"
+            "private-ppa.launchpad.net/commercial-ppa-uploaders"
+            "/photobomb/ubuntu quintessential-security main")
+
+        self.assertEqual(expected_debline,
+            SCAPurchasedApplicationParser.update_debline(orig_debline))
 
 
 if __name__ == "__main__":

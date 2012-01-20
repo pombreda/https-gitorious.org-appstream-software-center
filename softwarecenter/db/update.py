@@ -25,9 +25,11 @@ import shutil
 import xapian
 import time
 
+from aptsources.sourceslist import SourceEntry
 from gi.repository import GObject
 from piston_mini_client import PistonResponseObject
 
+from softwarecenter.distro import get_distro
 from softwarecenter.utils import utf8
 
 # py3 compat
@@ -132,6 +134,7 @@ class AppInfoParserBase(object):
     def desktopf(self):
         """ return the file that the AppInfo comes from """
 
+
 class SCAApplicationParser(AppInfoParserBase):
     """ map the data we get from the software-center-agent """
 
@@ -218,6 +221,13 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
             PistonResponseObject.from_dict(sca_subscription.application))
 
     SUBSCRIPTION_MAPPING = {
+        # this key can be used to get the original deb_line that the 
+        # server returns, it will be at the distroseries that was current
+        # at purchase time
+        'Deb-Line-Orig' : 'deb_line',
+        # this is what s-c will always use, the deb_line updated to the
+        # current distroseries, note that you should ensure that the app
+        # is not in state: PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES
         'Deb-Line'   : 'deb_line',
         'Purchased-Date' : 'purchase_date',
         'License-Key' : 'license_key',
@@ -227,8 +237,26 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
     MAPPING = dict(
         SCAApplicationParser.MAPPING.items() + SUBSCRIPTION_MAPPING.items())
 
+    @classmethod
+    def update_debline(cls, debline):
+        # Be careful to handle deblines with pockets.
+        source_entry = SourceEntry(debline)
+        distro_pocket = source_entry.dist.split('-')
+        distro_pocket[0] = get_distro().get_codename()
+        source_entry.dist = "-".join(distro_pocket)
+
+        return unicode(source_entry)
+
     def get_desktop(self, key, translated=True):
         if self._subscription_has_option_desktop(key):
+            if key.startswith('Deb-Line'):
+                debline_orig = getattr(
+                    self.sca_subscription, self._apply_mapping('Deb-Line'))
+                if key == 'Deb-Line-Orig':
+                    return debline_orig
+                else:
+                    return self.update_debline(debline_orig)
+
             return getattr(self.sca_subscription, self._apply_mapping(key))
         return super(SCAPurchasedApplicationParser, self).get_desktop(key)
 
