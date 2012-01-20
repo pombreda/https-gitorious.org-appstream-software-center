@@ -597,6 +597,7 @@ class AppDetails(GObject.GObject):
                 return self._pkg.installed.version
             else:
                 return self._pkg.candidate.version
+              
 
     @property
     def warning(self):
@@ -652,6 +653,17 @@ class AppDetails(GObject.GObject):
     def license_key_path(self):
         if self._doc:
             return self._doc.get_value(XapianValues.LICENSE_KEY_PATH)
+
+    @property
+    def hardware_requirements(self):
+        missing = set()
+        try:
+            from debtagshw.debtagshw import DebtagsAvailableHW
+            result =  DebtagsAvailableHW.get_hardware_support_for_tags(
+                self.tags)
+        except ImportError:
+            return
+        return result
 
     def _unavailable_channel(self):
         """ Check if the given doc refers to a channel that is currently not enabled """
