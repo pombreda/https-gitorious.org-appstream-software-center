@@ -33,6 +33,9 @@ software-center (5.1.7) UNRELEASED; urgency=low
   * lp:~michael.nelson/software-center/every-comm-app-already-purchased:
     - non-purchased apps should not have '(already purchased)' 
       appended to name.
+  * lp:~michael.nelson/software-center/833982-previous-purchase-no-feedback-really-this-time:
+    - Implements the backend for bug 833982 so that a purchased application 
+      that is unsupported on the current system will be detected
 
   [ Danny Tamez ]
   * lp:~zematynnad/software-center/rename_host_var_918270:

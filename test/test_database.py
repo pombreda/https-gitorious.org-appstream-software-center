@@ -10,19 +10,28 @@ import re
 import unittest
 import xapian
 
+from piston_mini_client import PistonResponseObject
+
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.database import parse_axi_values_file
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.db.update import (update_from_app_install_data,
-                                      update_from_var_lib_apt_lists,
-                                      update_from_appstream_xml,
-                                      update_from_software_center_agent)
+from softwarecenter.db.update import (
+    make_doc_from_parser,
+    update_from_app_install_data,
+    update_from_var_lib_apt_lists,
+    update_from_appstream_xml,
+    update_from_software_center_agent,
+    SCAPurchasedApplicationParser,
+    )
+from softwarecenter.distro import get_distro
 from softwarecenter.enums import (
     XapianValues,
     PkgStates,
     )
+from softwarecenter.testutils import get_test_db
+
 
 class TestDatabase(unittest.TestCase):
     """ tests the store database """
@@ -370,6 +379,106 @@ app-popcon	4	# app-install .desktop popcon rank
                            nonblocking_load=False)
         self.assertTrue(len(enquirer.get_docids()) > 0)
         # FIXME: test more of the interface
+
+
+class AppDetailsPkgStateTestCase(unittest.TestCase):
+
+    def _make_app_details(self, supported_series=None):
+        subscription = {
+            u'application': {
+                u'archive_id': u'commercial-ppa-uploaders/photobomb',
+                u'description': u"Easy and Social Image Editor\nPhotobomb "
+                                u"give you easy access to images in your "
+                                u"social networking feeds, pictures on ...",
+                u'name': u'Photobomb',
+                u'package_name': u'photobomb',
+                u'signing_key_id': u'1024R/75254D99'
+                },
+            u'deb_line': u'deb https://some.user:ABCDEFGHIJKLMNOP@'
+                         u'private-ppa.launchpad.net/commercial-ppa-uploaders/'
+                         u'photobomb/ubuntu natty main',
+            u'distro_series': {u'code_name': u'natty', u'version': u'11.04'},
+            u'failures': [],
+            u'open_id': u'https://login.ubuntu.com/+id/ABCDEF',
+            u'purchase_date': u'2011-09-16 06:37:52',
+            u'purchase_price': u'2.99',
+            u'state': u'Complete',
+            }
+
+        if supported_series != None:
+            subscription['application']['series'] = supported_series
+
+        item = PistonResponseObject.from_dict(subscription)
+        parser = SCAPurchasedApplicationParser(item)
+        doc = make_doc_from_parser(parser, self.db._aptcache)
+        app_details = AppDetails(self.db, doc)
+        return app_details
+
+    @classmethod
+    def setUpClass(cls):
+        # Set these as class attributes as we don't modify either
+        # during the tests.
+        cls.distro = get_distro()
+        cls.db = get_test_db()
+   
+    def test_package_state_purchased_enable_repo(self):
+        # If the current series is supported by the app, the state should
+        # be PURCHASED_BUT_REPO_MUST_BE_ENABLED.
+        app_details = self._make_app_details(
+            supported_series={
+                'current-1': ['i386', 'amd64'],
+                self.distro.get_codename(): [self.distro.get_architecture()]
+                })
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+            state)
+
+    def test_package_state_purchased_not_available(self):
+        # If the current series is NOT supported by the app, the state should
+        # be PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES.
+        app_details = self._make_app_details(
+            supported_series={
+                'current-1': ['i386', 'amd64'],
+                self.distro.get_codename(): ['newarch', 'amdm128'],
+                })
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES,
+            state)
+
+    def test_package_state_no_series(self):
+        # Until the fix for bug 917109 is deployed on production, we
+        # should default to the current (broken) behaviour of
+        # indicating that the repo just needs enabling.
+        app_details = self._make_app_details(supported_series=None)
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+            state)
+
+    def test_package_state_arch_any(self):
+        # In the future the supported arches returned by sca will include
+        # any - let's not break when that happens.
+        app_details = self._make_app_details(
+            supported_series={
+                'current-1': ['i386', 'amd64'],
+                self.distro.get_codename(): ['newarch', 'any'],
+                })
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+            state)
+
+
 
 if __name__ == "__main__":
     import logging

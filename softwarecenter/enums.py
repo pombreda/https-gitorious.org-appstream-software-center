@@ -141,6 +141,7 @@ class XapianValues:
     DATE_PUBLISHED = 196
     SUPPORT_SITE_URL = 197
     VERSION_INFO = 198
+    SC_SUPPORTED_DISTROS = 199
 
 # fake channels
 PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
@@ -180,7 +181,8 @@ class PkgStates:
     # this *needs* to be last (for test_appdetails.py) and means
     # something went wrong and we don't have a state for this PKG
     UNKNOWN,
-    ) = range(15)
+    PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES,
+    ) = range(16)
 
 # visibility of non applications in the search results
 class NonAppVisibility:
