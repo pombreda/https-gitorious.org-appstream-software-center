@@ -44,7 +44,8 @@ SUBSCRIPTIONS_FOR_ME_JSON = """
               "signing_key_id": "1024R/75254D99",
               "name": "Photobomb",
               "package_name": "photobomb",
-              "description": "Easy and Social Image Editor\\nPhotobomb give you easy access to images in your social networking feeds, pictures on your computer and peripherals, and pictures on the web, and let\'s you draw, write, crop, combine, and generally have a blast mashing \'em all up. Then you can save off your photobomb, or tweet your creation right back to your social network."
+              "description": "Easy and Social Image Editor\\nPhotobomb give you easy access to images in your social networking feeds, pictures on your computer and peripherals, and pictures on the web, and let\'s you draw, write, crop, combine, and generally have a blast mashing \'em all up. Then you can save off your photobomb, or tweet your creation right back to your social network.",
+              "version": "1.2.1"
          },
          "distro_series": {"code_name": "natty", "version": "11.04"}
     }
@@ -89,7 +90,8 @@ AVAILABLE_APPS_JSON = """
         "tos_url": "https://software-center.ubuntu.com/licenses/3/",
         "icon_url": "http://software-center.ubuntu.com/site_media/icons/2011/05/fluendo-dvd.png",
         "categories": "AudioVideo",
-        "description": "Play DVD-Videos\\r\\n\\r\\nFluendo DVD Player is a software application specially designed to\\r\\nreproduce DVD on Linux/Unix platforms, which provides end users with\\r\\nhigh quality standards.\\r\\n\\r\\nThe following features are provided:\\r\\n* Full DVD Playback\\r\\n* DVD Menu support\\r\\n* Fullscreen support\\r\\n* Dolby Digital pass-through\\r\\n* Dolby Digital 5.1 output and stereo downmixing support\\r\\n* Resume from last position support\\r\\n* Subtitle support\\r\\n* Audio selection support\\r\\n* Multiple Angles support\\r\\n* Support for encrypted discs\\r\\n* Multiregion, works in all regions\\r\\n* Multiple video deinterlacing algorithms"
+        "description": "Play DVD-Videos\\r\\n\\r\\nFluendo DVD Player is a software application specially designed to\\r\\nreproduce DVD on Linux/Unix platforms, which provides end users with\\r\\nhigh quality standards.\\r\\n\\r\\nThe following features are provided:\\r\\n* Full DVD Playback\\r\\n* DVD Menu support\\r\\n* Fullscreen support\\r\\n* Dolby Digital pass-through\\r\\n* Dolby Digital 5.1 output and stereo downmixing support\\r\\n* Resume from last position support\\r\\n* Subtitle support\\r\\n* Audio selection support\\r\\n* Multiple Angles support\\r\\n* Support for encrypted discs\\r\\n* Multiregion, works in all regions\\r\\n* Multiple video deinterlacing algorithms",
+        "version": "1.2.1"
     }
 ]
 """
@@ -166,6 +168,11 @@ class SCAApplicationParserTestCase(unittest.TestCase):
             self.assertEqual(
                 getattr(parser.sca_application, key),
                 parser.get_desktop(inverse_map[key]))
+
+    def test_name_not_updated_for_non_purchased_apps(self):
+        parser = self._make_application_parser()
+
+        self.assertEqual('Fluendo DVD Player', parser.get_desktop('Name'))
 
     def test_keys_not_provided_by_api(self):
         parser = self._make_application_parser()
@@ -249,6 +256,7 @@ class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
         # an application parser for handling.
         parser = self._make_application_parser()
 
+        # We're testing here also that the name is updated automatically.
         expected_results = {
             "Name": "Photobomb (already purchased)",
             "Package": "photobomb",
