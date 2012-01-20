@@ -16,10 +16,8 @@ from softwarecenter.backend.reviews.rnr_helpers import SubmitReviewsApp
 
 
 class TestReviewLoader(unittest.TestCase):
-
-    def setUp(self):
-        self.cache = get_test_pkg_info()
-        self.db = get_test_db()
+    cache = get_test_pkg_info()
+    db = get_test_db()
 
     def _review_stats_ready_callback(self, review_stats):
         self._stats_ready = True
@@ -66,6 +64,30 @@ class TestReviewLoader(unittest.TestCase):
             review_app.review_label.get_label())
         review_app.submit_window.hide()
 
+    def test_get_fade_colour_markup(self):
+        review_app = SubmitReviewsApp(datadir="../data", app=None,
+            parent_xid='', iconname='accessories-calculator', origin=None,
+            version=None, action='modify', review_id=10000)
+        cases = (
+            (('006000', '00A000', 40, 60, 50), ('008000', 10)),
+            (('000000', 'FFFFFF', 40, 40, 40), ('000000', 0)),
+            (('000000', '808080', 100, 400, 40), ('000000', 360)),
+            (('000000', '808080', 100, 400, 1000), ('808080', -600)),
+            (('123456', '5294D6', 10, 90, 70), ('427CB6', 20)),
+            )
+        for args, return_value in cases:
+            result = review_app._get_fade_colour_markup(*args)
+            expected = '<span fgcolor="#%s">%s</span>' % return_value
+            self.assertEqual(expected, result)
+
+    def test_modify_review_is_the_same_supports_unicode(self):
+        """_modify_review_is_the_same should return True if we haven't changed
+        the review at all, even if the review text contains non-ascii chars.
+        """
+        review_app = SubmitReviewsApp(datadir="../data", app=None,
+            parent_xid='', iconname='accessories-calculator', origin=None,
+            version=None, action='modify', review_id=10000)
+        self.assertTrue(review_app._modify_review_is_the_same())
 
     def _p(self):
         main_loop = GObject.main_context_default()

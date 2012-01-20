@@ -781,13 +781,13 @@ class SubmitReviewsApp(BaseApp):
         if self.star_rating.get_rating() != self.orig_star_rating:
             return False
         #compare summary text
-        if self.review_summary_entry.get_text() != self.orig_summary_text:
+        if self.review_summary_entry.get_text().decode('utf-8') != self.orig_summary_text:
             return False
         #compare review text
         if self.review_buffer.get_text(
             self.review_buffer.get_start_iter(),
             self.review_buffer.get_end_iter(),
-            include_hidden_chars=False) != self.orig_review_text:
+            include_hidden_chars=False).decode('utf-8') != self.orig_review_text:
             return False
         return True
 
@@ -822,9 +822,7 @@ class SubmitReviewsApp(BaseApp):
         markup = '<span fgcolor="#%s">%s</span>'
         if curr > cmax:
             return markup % (empty_col, str(cmax-curr))
-        elif curr < cmin:
-            return markup % (full_col, str(cmax-curr))
-        elif cmax == cmin:  #saves division by 0 later if same value was passed as min and max
+        elif curr <= cmin:  #saves division by 0 later if same value was passed as min and max
             return markup % (full_col, str(cmax-curr))
         else:
             #distance between min and max values to fade colours
