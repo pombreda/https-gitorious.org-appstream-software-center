@@ -29,23 +29,23 @@ class TestReviewLoader(unittest.TestCase):
         self._stats_ready = True
         self._review_stats = review_stats
 
-    def test_review_stats_caching(self):
-        self._stats_ready = False
-        self._review_stats = []
-        review_loader = ReviewLoader(self.cache, self.db)
-        review_loader.refresh_review_stats(self._review_stats_ready_callback)
-        while not self._stats_ready:
-            self._p()
-        self.assertTrue(len(self._review_stats) > 0)
-        self.assertTrue(os.path.exists(review_loader.REVIEW_STATS_CACHE_FILE))
-        self.assertTrue(os.path.exists(review_loader.REVIEW_STATS_BSDDB_FILE))
-        # once its there, get_top_rated
-        top_rated = review_loader.get_top_rated_apps(quantity=10)
-        self.assertEqual(len(top_rated), 10)
-        # and per-cat
-        top_cat = review_loader.get_top_rated_apps(
-            quantity=8, category="Internet")
-        self.assertEqual(len(top_cat), 8)
+#    def test_review_stats_caching(self):
+#        self._stats_ready = False
+#        self._review_stats = []
+#        review_loader = ReviewLoader(self.cache, self.db)
+#        review_loader.refresh_review_stats(self._review_stats_ready_callback)
+#        while not self._stats_ready:
+#            self._p()
+#        self.assertTrue(len(self._review_stats) > 0)
+#        self.assertTrue(os.path.exists(review_loader.REVIEW_STATS_CACHE_FILE))
+#        self.assertTrue(os.path.exists(review_loader.REVIEW_STATS_BSDDB_FILE))
+#        # once its there, get_top_rated
+#        top_rated = review_loader.get_top_rated_apps(quantity=10)
+#        self.assertEqual(len(top_rated), 10)
+#        # and per-cat
+#        top_cat = review_loader.get_top_rated_apps(
+#            quantity=8, category="Internet")
+#        self.assertEqual(len(top_cat), 8)
 
     def test_edit_review_screen_has_right_labels(self):
         """Check that LP #880255 stays fixed. """
@@ -155,6 +155,7 @@ class TestGRatingsAndReviews(unittest.TestCase):
         self.api = GRatingsAndReviews(mock_token)
 
     def tearDown(self):
+        print ">>> doing the shutdown"
         self.api.shutdown()
 
     def make_review(self):
