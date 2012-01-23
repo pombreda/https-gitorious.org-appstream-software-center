@@ -299,6 +299,7 @@ class PackageStatusBar(StatusBar):
             if state == PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES:
                 label += _(' but not available for your current '
                            'Ubuntu version')
+                self.button.hide()
             self.set_label(label)
 
         elif state == PkgStates.UNINSTALLED:
