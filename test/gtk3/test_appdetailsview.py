@@ -355,7 +355,7 @@ class AppDetailsStatusBarTestCase(unittest.TestCase):
 
         self.assertEqual(
             "Purchased on 2011-09-16 but not available for your current "
-            "Ubuntu version",
+            "Ubuntu version. Please contact the vendor for an update.",
             statusbar_view.label.get_text())
         self.assertFalse(statusbar_view.button.get_visible())
 
