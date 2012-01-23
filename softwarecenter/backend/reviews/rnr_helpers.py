@@ -200,12 +200,6 @@ class Worker(threading.Thread):
                 self.pending_delete.empty()):
                 return
 
-    # usefulness
-    def queue_usefulness(self, usefulness):
-        """ queue a new usefulness report for sending to LP """
-        logging.debug("queue_usefulness %s %s %s" % usefulness)
-        self.pending_usefulness.put(usefulness)
-
     def _submit_usefulness_if_pending(self):
         """ the actual usefulness function """
         while not self.pending_usefulness.empty():
@@ -224,12 +218,6 @@ class Worker(threading.Thread):
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
             self.pending_usefulness.task_done()
-    
-    #modify
-    def queue_modify(self, modification):
-        """ queue a new review modification request for sending to LP """
-        logging.debug("queue_modify %s %s" % modification)
-        self.pending_modify.put(modification)
 
     def _submit_modify_if_pending(self):
         """ the actual modify function """
@@ -254,13 +242,7 @@ class Worker(threading.Thread):
                 self._transmit_state = TRANSMIT_STATE_ERROR
                 self._transmit_error_str = err_str
             self.pending_modify.task_done() 
-                       
-    #delete
-    def queue_delete(self, deletion):
-        """ queue a new deletion request for sending to LP """
-        logging.debug("queue_delete review id: %s" % deletion)
-        self.pending_delete.put(deletion)
-    
+
     def _submit_delete_if_pending(self):
         """ the actual deletion """
         while not self.pending_delete.empty():
@@ -277,12 +259,6 @@ class Worker(threading.Thread):
                 self._transmit_error_str = _("Failed to delete review")
                 self._transmit_state = TRANSMIT_STATE_ERROR
             self.pending_delete.task_done()
-
-    # reports
-    def queue_report(self, report):
-        """ queue a new report for sending to LP """
-        logging.debug("queue_report %s %s %s" % report)
-        self.pending_reports.put(report)
 
     def _submit_reports_if_pending(self):
         """ the actual report function """
@@ -532,7 +508,7 @@ class BaseApp(SimpleGtkbuilderApp):
             
     def _change_status(self, type,  message):
         """method to separate the updating of status icon/spinner and message in the submit review window,
-         takes a type (progress, fail, success) as a string and a message string then updates status area accordingly"""
+         takes a type (progress, fail, success, clear, warning) as a string and a message string then updates status area accordingly"""
         self._clear_status_imagery()
         self.label_transmit_status.set_text("")
         
