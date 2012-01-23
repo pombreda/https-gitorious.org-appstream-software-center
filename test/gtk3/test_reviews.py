@@ -174,7 +174,7 @@ class TestGRatingsAndReviews(unittest.TestCase):
         while self.api.worker_thread._transmit_state != TRANSMIT_STATE_DONE:
             sleep(0.1)
 
-    @patch('softwarecenter.backend.reviews.rnr_helpers.RatingsAndReviewsAPI'
+    @patch('softwarecenter.ui.gtk3.review_gui_helper.RatingsAndReviewsAPI'
         '.submit_review')
     def test_submit_review(self, mock_submit_review):
         mock_submit_review.return_value = ReviewDetails.from_dict(
@@ -188,7 +188,7 @@ class TestGRatingsAndReviews(unittest.TestCase):
         review_arg = mock_submit_review.call_args[1]['review']
         self.assertEqual(review.text, review_arg.review_text)
 
-    @patch('softwarecenter.backend.reviews.rnr_helpers.RatingsAndReviewsAPI'
+    @patch('softwarecenter.ui.gtk3.review_gui_helper.RatingsAndReviewsAPI'
         '.flag_review')
     def test_flag_review(self, mock_flag_review):
         mock_flag_review.return_value = 'Something'
@@ -199,7 +199,7 @@ class TestGRatingsAndReviews(unittest.TestCase):
         self.assertTrue(mock_flag_review.called)
         self.assertEqual(1234, mock_flag_review.call_args[1]['review_id'])
 
-    @patch('softwarecenter.backend.reviews.rnr_helpers.RatingsAndReviewsAPI'
+    @patch('softwarecenter.ui.gtk3.review_gui_helper.RatingsAndReviewsAPI'
         '.submit_usefulness')
     def test_submit_usefulness(self, mock_submit_usefulness):
         mock_submit_usefulness.return_value = 'Something'
@@ -210,7 +210,7 @@ class TestGRatingsAndReviews(unittest.TestCase):
         self.assertTrue(mock_submit_usefulness.called)
         self.assertEqual(1234, mock_submit_usefulness.call_args[1]['review_id'])
 
-    @patch('softwarecenter.backend.reviews.rnr_helpers.RatingsAndReviewsAPI'
+    @patch('softwarecenter.ui.gtk3.review_gui_helper.RatingsAndReviewsAPI'
         '.modify_review')
     def test_modify_review(self, mock_modify_review):
         mock_modify_review.return_value = ReviewDetails.from_dict(
@@ -229,7 +229,7 @@ class TestGRatingsAndReviews(unittest.TestCase):
         self.assertEqual(4, mock_modify_review.call_args[1]['rating'])
         self.assertEqual('Cool', mock_modify_review.call_args[1]['summary'])
 
-    @patch('softwarecenter.backend.reviews.rnr_helpers.RatingsAndReviewsAPI'
+    @patch('softwarecenter.ui.gtk3.review_gui_helper.RatingsAndReviewsAPI'
         '.delete_review')
     def test_delete_review(self, mock_delete_review):
         mock_delete_review.return_value = 'Something'
