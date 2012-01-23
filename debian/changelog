@@ -14,6 +14,8 @@ software-center (5.1.7) UNRELEASED; urgency=low
     - This branch disables the "Submit a new review" button when 
       you click it, and reenables it when the submit review dialog
       closes
+  * lp:~elachuni/software-center/reviews-tests:
+    - add several new tests for code in the review_gui_helper module
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/improve-debug-in-piston-generic-helper:
@@ -54,7 +56,7 @@ software-center (5.1.7) UNRELEASED; urgency=low
       can be used to disable cert checking to run e.g. against a local dev
       instance (LP: #918746)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 19 Jan 2012 10:52:04 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 23 Jan 2012 18:14:43 -0500
 
 software-center (5.1.6) precise; urgency=low
 
