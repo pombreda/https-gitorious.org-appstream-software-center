@@ -155,7 +155,6 @@ class TestGRatingsAndReviews(unittest.TestCase):
         self.api = GRatingsAndReviews(mock_token)
 
     def tearDown(self):
-        print ">>> doing the shutdown"
         self.api.shutdown()
 
     def make_review(self):
