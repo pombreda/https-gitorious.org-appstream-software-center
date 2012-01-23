@@ -419,7 +419,7 @@ class AppDetailsPkgStateTestCase(unittest.TestCase):
         # during the tests.
         cls.distro = get_distro()
         cls.db = get_test_db()
-   
+
     def test_package_state_purchased_enable_repo(self):
         # If the current series is supported by the app, the state should
         # be PURCHASED_BUT_REPO_MUST_BE_ENABLED.

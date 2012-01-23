@@ -248,6 +248,13 @@ class TestAppdetailsView(unittest.TestCase):
 
 class AppDetailsStatusBarTestCase(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        # Set these as class attributes as we don't modify either
+        # during the tests.
+        from softwarecenter.testutils import get_test_db
+        cls.db = get_test_db()
+
     def setUp(self):
         self.win = get_test_window_appdetails()
     
@@ -256,33 +263,80 @@ class AppDetailsStatusBarTestCase(unittest.TestCase):
         Gtk.main()
 
     def _make_statusbar_view_for_state(self, state):
-        # XXX Copied from TestAppdetailsView.test_pkgstatus_bar above.
-        # make sure configure is run with the various states
-        # TODO: try creating the doc manually as per other tests to see if
-        # it's faster, as it may not need the DB.
-        app = Application("", "software-center")
+        app_details = self._make_app_details()
+        # XXX 2011-01-23 It's unfortunate we need multiple mocks to test this
+        # correctly, but I don't know the code well enough to refactor
+        # dependencies yet. In this case, we need a *real* app details object
+        # for displaying in the view, but want to specify its state for the
+        # purpose of the test. As an Application normally loads its details
+        # from the database, we patch Application.get_details also.
+        # Patch app_details.pkg_state for the test.
+        pkg_state_fn = 'softwarecenter.db.application.AppDetails.pkg_state'
+        pkg_state_patcher = patch(pkg_state_fn)
+        self.addCleanup(pkg_state_patcher.stop)
+        mock_pkg_state = pkg_state_patcher.start()
+        mock_pkg_state.__get__ = Mock(return_value=state)
+
+        get_details_fn = 'softwarecenter.db.application.Application.get_details'
+        get_details_patcher = patch(get_details_fn)
+        self.addCleanup(get_details_patcher.stop)
+        mock_get_details = get_details_patcher.start()
+        mock_get_details.return_value = app_details
+
+        app = app_details._app
         details_view = self.win.get_data("view")
         details_view.show_app(app)
         do_events()
 
-        # create mock app
-        mock_app = get_mock_app_from_real_app(app)
-        details_view.app = mock_app
-        mock_details = mock_app.get_details(None)
-        mock_details.purchase_date = "2011-11-20 17:45:01"
-        details_view.app_details = mock_details
-
-        # FIXME: this just ensures we are not crashing, also
-        # add functional tests to ensure on error we show
-        # the right info etc
-        mock_details.pkg_state = state
-        # FIXME2: we should make configure simpler and/or explain
-        #         why it gets the state instead of just reading it
-        #         from the app_details
         statusbar_view = details_view.pkg_statusbar
-        statusbar_view.configure(mock_details, state)
+        statusbar_view.configure(app_details, state)
 
         return statusbar_view
+
+    def _make_app_details(self, supported_series=None):
+        subscription = {
+            u'application': {
+                u'archive_id': u'commercial-ppa-uploaders/photobomb',
+                u'description': u"Easy and Social Image Editor\nPhotobomb "
+                                u"give you easy access to images in your "
+                                u"social networking feeds, pictures on ...",
+                u'name': u'Photobomb',
+                u'package_name': u'photobomb',
+                u'signing_key_id': u'1024R/75254D99'
+                },
+            u'deb_line': u'deb https://some.user:ABCDEFGHIJKLMNOP@'
+                         u'private-ppa.launchpad.net/commercial-ppa-uploaders/'
+                         u'photobomb/ubuntu natty main',
+            u'distro_series': {u'code_name': u'natty', u'version': u'11.04'},
+            u'failures': [],
+            u'open_id': u'https://login.ubuntu.com/+id/ABCDEF',
+            u'purchase_date': u'2011-09-16 06:37:52',
+            u'purchase_price': u'2.99',
+            u'state': u'Complete',
+            }
+
+        from softwarecenter.distro import get_distro
+        distro = get_distro()
+        if supported_series != None:
+            subscription['application']['series'] = supported_series
+        else:
+            # If no supportod_series kwarg was provided, we ensure the
+            # current series/arch is supported.
+            subscription['application']['series'] = {
+                distro.get_codename(): [distro.get_architecture()]
+                }
+
+        from piston_mini_client import PistonResponseObject
+        from softwarecenter.db.update import (
+            make_doc_from_parser,
+            SCAPurchasedApplicationParser,
+            )
+        item = PistonResponseObject.from_dict(subscription)
+        parser = SCAPurchasedApplicationParser(item)
+        doc = make_doc_from_parser(parser, self.db._aptcache)
+        from softwarecenter.db.application import AppDetails
+        app_details = AppDetails(self.db, doc)
+        return app_details
 
     def test_NOT_AVAILABLE_FOR_SERIES_no_action_for_click_event(self):
         statusbar_view = self._make_statusbar_view_for_state(
