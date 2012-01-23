@@ -140,8 +140,6 @@ class TestAppdetailsView(unittest.TestCase):
             self.view.pkg_statusbar.configure(mock_details, state)
 
         # make sure the various states are tested for click
-        self.view.pkg_statusbar.app_manager = mock = Mock()
-        mock_button = Mock()
         button_to_function_tests = (
             (PkgStates.INSTALLED, "remove"),
             (PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED, "reinstall_purchased"),
@@ -152,12 +150,12 @@ class TestAppdetailsView(unittest.TestCase):
             (PkgStates.NEEDS_SOURCE, "enable_software_source")
         )
         for state, func in button_to_function_tests:
+            self.view.pkg_statusbar.app_manager = mock = Mock()
             self.view.pkg_statusbar.pkg_state = state
-            self.view.pkg_statusbar._on_button_clicked(mock_button)
+            self.view.pkg_statusbar._on_button_clicked(Mock())
             self.assertTrue(
                 getattr(mock, func).called,
                 "for state %s the function %s was not called" % (state, func))
-            mock.reset()
 
     def test_switch_language_resets_page(self):
         self.view._reviews_server_page = 4
@@ -247,7 +245,65 @@ class TestAppdetailsView(unittest.TestCase):
 
         self.assertTrue(button.is_sensitive())
 
+
+class AppDetailsStatusBarTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.win = get_test_window_appdetails()
     
+    def tearDown(self):
+        GObject.timeout_add(TIMEOUT, lambda: self.win.destroy())
+        Gtk.main()
+
+    def _make_statusbar_view_for_state(self, state):
+        # XXX Copied from TestAppdetailsView.test_pkgstatus_bar above.
+        # make sure configure is run with the various states
+        # TODO: try creating the doc manually as per other tests to see if
+        # it's faster, as it may not need the DB.
+        app = Application("", "software-center")
+        details_view = self.win.get_data("view")
+        details_view.show_app(app)
+        do_events()
+
+        # create mock app
+        mock_app = get_mock_app_from_real_app(app)
+        details_view.app = mock_app
+        mock_details = mock_app.get_details(None)
+        mock_details.purchase_date = "2011-11-20 17:45:01"
+        details_view.app_details = mock_details
+
+        # FIXME: this just ensures we are not crashing, also
+        # add functional tests to ensure on error we show
+        # the right info etc
+        mock_details.pkg_state = state
+        # FIXME2: we should make configure simpler and/or explain
+        #         why it gets the state instead of just reading it
+        #         from the app_details
+        statusbar_view = details_view.pkg_statusbar
+        statusbar_view.configure(mock_details, state)
+
+        return statusbar_view
+
+    def test_NOT_AVAILABLE_FOR_SERIES_no_action_for_click_event(self):
+        statusbar_view = self._make_statusbar_view_for_state(
+            PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES)
+        mock_app_manager = Mock()
+        statusbar_view.app_manager = mock_app_manager
+        mock_button = Mock()
+
+        statusbar_view._on_button_clicked(mock_button)
+
+        self.assertEqual([], mock_app_manager.method_calls)
+
+    def test_NOT_AVAILABLE_FOR_SERIES_sets_label_and_button(self):
+        statusbar_view = self._make_statusbar_view_for_state(
+            PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES)
+
+        self.assertEqual(
+            "Purchased on 2011-11-20 (Not available for your current Ubuntu "
+            "version)",
+            statusbar_view.label.get_text())
+
 
 if __name__ == "__main__":
     import logging
