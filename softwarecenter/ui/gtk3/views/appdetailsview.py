@@ -297,8 +297,8 @@ class PackageStatusBar(StatusBar):
             label = pdate.strftime(_('Purchased on %Y-%m-%d'))
             self.set_button_label(_('Install'))
             if state == PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES:
-                label += _(' (Not available for your current Ubuntu version)')
-
+                label += _(' but not available for your current '
+                           'Ubuntu version')
             self.set_label(label)
 
         elif state == PkgStates.UNINSTALLED:

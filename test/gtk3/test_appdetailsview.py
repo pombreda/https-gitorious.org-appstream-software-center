@@ -354,9 +354,10 @@ class AppDetailsStatusBarTestCase(unittest.TestCase):
             PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES)
 
         self.assertEqual(
-            "Purchased on 2011-09-16 (Not available for your current Ubuntu "
-            "version)",
+            "Purchased on 2011-09-16 but not available for your current "
+            "Ubuntu version",
             statusbar_view.label.get_text())
+        self.assertFalse(statusbar_view.button.get_visible())
 
 
 if __name__ == "__main__":
