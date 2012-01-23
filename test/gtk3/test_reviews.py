@@ -13,9 +13,9 @@ from mock import Mock, patch
 from softwarecenter.backend.piston.rnrclient_pristine import ReviewDetails
 from softwarecenter.backend.reviews.rnr import (
     ReviewLoaderSpawningRNRClient as ReviewLoader)
-from softwarecenter.backend.reviews.rnr_helpers import TRANSMIT_STATE_DONE
 from softwarecenter.testutils import get_test_pkg_info, get_test_db
-from softwarecenter.backend.reviews.rnr_helpers import (
+from softwarecenter.ui.gtk3.review_gui_helper import (
+    TRANSMIT_STATE_DONE,
     GRatingsAndReviews,
     SubmitReviewsApp,
     )

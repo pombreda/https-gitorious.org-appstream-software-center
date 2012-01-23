@@ -10,6 +10,10 @@ software-center (5.1.7) UNRELEASED; urgency=low
   * lp:~elachuni/software-center/relax-origin-distroseries:
     - provide "relaxed" mode for fetching reviews if the exact
       review matcher does not find anything (LP: #766951)
+  * lp:~elachuni/software-center/disable-new-review:
+    - This branch disables the "Submit a new review" button when 
+      you click it, and reenables it when the submit review dialog
+      closes
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/improve-debug-in-piston-generic-helper:
@@ -18,25 +22,39 @@ software-center (5.1.7) UNRELEASED; urgency=low
   * lp:~mvo/software-center/review-language-i18n:
     - make the language selection combo in the reviews widget
       nicer by adding a proper i18n name to it
+  * lp:~mvo/software-center/trivial-move-gui-helpers:
+    - move rnr_helpers.py to softwarecenter/ui/gtk3/review_gui_helper.py
+      as it belongs there and add to POTFILE.in
   
   [ Michael Nelson ]
   * lp:~michael.nelson/software-center/833982-purchased-app-not-available,
     lp:~michael.nelson/software-center/917137-previous-purchases-empty-precise-2:
     - refactor/cleanup parser code and update for API 2.0 (LP: #917137)
+  * lp:~michael.nelson/software-center/every-comm-app-already-purchased:
+    - non-purchased apps should not have '(already purchased)' 
+      appended to name.
+  * lp:~michael.nelson/software-center/833982-previous-purchase-no-feedback-really-this-time:
+    - Implements the backend for bug 833982 so that a purchased application 
+      that is unsupported on the current system will be detected
+  * lp:~michael.nelson/software-center/833982-previous-purchase-no-feedback-2:
+    - ensure that the deb_line for the app points to the current distroseries
 
   [ Danny Tamez ]
   * lp:~zematynnad/software-center/rename_host_var_918270:
     - rename the env variable SOFTWARE_CENTER_BUY_HOST  to the more
       correct SOFTWARE_CENTER_AGENT_HOST, but support the former as a
       fallback, update corresponding unit test (LP: #918270)
+  * lp:~zematynnad/software-center/version_number_833877:
+    - show version number of apps from the software-center-agent as
+      well (LP: #833877)
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/staging-certs-2:
     - add new SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK environment that
       can be used to disable cert checking to run e.g. against a local dev
-      instance
+      instance (LP: #918746)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 18 Jan 2012 17:09:29 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 19 Jan 2012 10:52:04 -0500
 
 software-center (5.1.6) precise; urgency=low
 
