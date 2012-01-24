@@ -248,10 +248,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.right_column = Gtk.Box.new(Gtk.Orientation.VERTICAL, self.SPACING)
         self.top_hbox.pack_start(self.right_column, True, True, 0)
 
-        self._append_new()
-        #~ self._append_recommendations()
+        self._append_whats_new()
         self._append_top_rated()
-
+        self._append_recommended_for_you()
         self._append_appcount()
 
         #self._append_video_clips()
@@ -363,18 +362,18 @@ class LobbyViewGtk(CategoriesViewGtk):
             cat_vbox.pack_start(label, False, False, 0)
         return
 
-    def _get_toprated_category_content(self):
-        toprated_cat = get_category_by_name(self.categories, 
-                                            u"Top Rated")  # unstranslated name
-        if toprated_cat is None:
-            LOG.warn("No 'toprated' category found!!")
+    def _get_top_rated_category_content(self):
+        top_rated_cat = get_category_by_name(self.categories, 
+                                             u"Top Rated")  # unstranslated name
+        if top_rated_cat is None:
+            LOG.warn("No 'top_rated' category found!!")
             return None, []
 
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
-        enq.set_query(toprated_cat.query,
+        enq.set_query(top_rated_cat.query,
                       limit=TOP_RATED_CAROUSEL_LIMIT,
-                      sortmode=toprated_cat.sortmode,
+                      sortmode=top_rated_cat.sortmode,
                       filter=app_filter,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                       nonblocking_load=False)
@@ -384,39 +383,41 @@ class LobbyViewGtk(CategoriesViewGtk):
                                               self.cache,
                                               self.icons)
 
-        return toprated_cat, enq.get_documents()
+        return top_rated_cat, enq.get_documents()
 
-    def _update_toprated_content(self):
+    def _update_top_rated_content(self):
         # remove any existing children from the grid widget
-        self.toprated.remove_all()
-        # get toprated category and docs
-        toprated_cat, docs = self._get_toprated_category_content()
+        self.top_rated.remove_all()
+        # get top_rated category and docs
+        top_rated_cat, docs = self._get_top_rated_category_content()
         # display docs
-        self._add_tiles_to_flowgrid(docs, self.toprated,
+        self._add_tiles_to_flowgrid(docs, self.top_rated,
                                     TOP_RATED_CAROUSEL_LIMIT)
-        self.toprated.show_all()
-        return toprated_cat
+        self.top_rated.show_all()
+        return top_rated_cat
 
     def _append_top_rated(self):
-        self.toprated = FlowableGrid()
-        #~ self.featured.row_spacing = StockEms.SMALL
+        self.top_rated = FlowableGrid()
+        #~ self.top_rated.row_spacing = StockEms.SMALL
         frame = FramedHeaderBox()
         frame.set_header_label(_("Top Rated"))
-        frame.add(self.toprated)
-        self.toprated_frame = frame
+        frame.add(self.top_rated)
+        self.top_rated_frame = frame
         self.right_column.pack_start(frame, True, True, 0)
 
-        toprated_cat = self._update_toprated_content()
-        # only display the 'More' LinkButton if we have toprated content
-        if toprated_cat is not None:
+        top_rated_cat = self._update_top_rated_content()
+        # only display the 'More' LinkButton if we have top_rated content
+        if top_rated_cat is not None:
             frame.header_implements_more_button()
-            frame.more.connect('clicked', self.on_category_clicked, toprated_cat) 
+            frame.more.connect('clicked', 
+                               self.on_category_clicked, top_rated_cat) 
         return
 
-    def _get_new_category_content(self):
-        whatsnew_cat = get_category_by_name(self.categories, 
-                                            u"What\u2019s New") # unstranslated name
-        if whatsnew_cat is None:
+    def _get_whats_new_category_content(self):
+        whats_new_cat = get_category_by_name(
+                                        self.categories, 
+                                        u"What\u2019s New") # unstranslated name
+        if whats_new_cat is None:
             LOG.warn("No 'new' category found!!")
             return None, []
 
@@ -424,7 +425,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         app_filter = AppFilter(self.db, self.cache)
         app_filter.set_available_only(True)
         app_filter.set_not_installed_only(True)
-        enq.set_query(whatsnew_cat.query,
+        enq.set_query(whats_new_cat.query,
                       limit=8,
                       filter=app_filter,
                       sortmode=SortMethods.BY_CATALOGED_TIME,
@@ -436,31 +437,31 @@ class LobbyViewGtk(CategoriesViewGtk):
                                               self.cache,
                                               self.icons)
 
-        return whatsnew_cat, enq.get_documents()
+        return whats_new_cat, enq.get_documents()
 
-    def _update_new_content(self):
+    def _update_whats_new_content(self):
         # remove any existing children from the grid widget
-        self.featured.remove_all()
-        # get toprated category and docs
-        whatsnew_cat, docs = self._get_new_category_content()
+        self.whats_new.remove_all()
+        # get top_rated category and docs
+        whats_new_cat, docs = self._get_whats_new_category_content()
         # display docs
-        self._add_tiles_to_flowgrid(docs, self.featured, 8)
-        self.featured.show_all()
-        return whatsnew_cat
+        self._add_tiles_to_flowgrid(docs, self.whats_new, 8)
+        self.whats_new.show_all()
+        return whats_new_cat
 
-    def _append_new(self):
-        self.featured = FlowableGrid()
+    def _append_whats_new(self):
+        self.whats_new = FlowableGrid()
         frame = FramedHeaderBox()
         frame.set_header_label(_(u"What\u2019s New"))
-        frame.add(self.featured)
+        frame.add(self.whats_new)
         self.new_frame = frame
 
-        whatsnew_cat = self._update_new_content()
-        if whatsnew_cat is not None:
+        whats_new_cat = self._update_whats_new_content()
+        if whats_new_cat is not None:
             # only add to the visible right_frame if we actually have it
             self.right_column.pack_start(frame, True, True, 0)
             frame.header_implements_more_button()
-            frame.more.connect('clicked', self.on_category_clicked, whatsnew_cat) 
+            frame.more.connect('clicked', self.on_category_clicked, whats_new_cat) 
         return
 
     #~ def _append_recommendations(self):
@@ -486,6 +487,26 @@ class LobbyViewGtk(CategoriesViewGtk):
         #~ docs = enq.get_documents()
         #~ self._add_tiles_to_flowgrid(docs, self.featured, 12)
         #~ return
+        
+    def _update_recommended_for_you(self):
+        pass
+        
+    def _append_recommended_for_you(self):
+        self.recommended_for_you = FlowableGrid()
+        frame = FramedHeaderBox()
+        frame.set_header_label(_(u"Recommended for You"))
+        frame.add(self.recommended_for_you)
+        
+        # TODO: show a spinner while we grab the recommendations from the server
+        
+        recommended_for_you_cat = self._update_recommended_for_you()
+        if recommended_for_you_cat:
+            # TODO: During development, place the Recommended for You panel
+            # at the bottom, but swap this with the Top Rated panel once it
+            # is all ready
+            # see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
+            self.vbox.pack_start(self.appcount, False, True, 0)
+        
 
     def _update_appcount(self):
         enq = AppEnquire(self.cache, self.db)
@@ -523,8 +544,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             return
         self._supported_only = supported_only
 
-        self._update_toprated_content()
-        self._update_new_content()
+        self._update_top_rated_content()
+        self._update_whats_new_content()
         self._update_appcount()
         return
 
@@ -554,7 +575,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # sections
         self.current_category = None
         self.departments = None
-        self.toprated = None
+        self.top_rated = None
+        self.recommended_for_you = None
         self.appcount = None
 
         # widgetry
