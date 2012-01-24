@@ -284,15 +284,26 @@ class PackageStatusBar(StatusBar):
             #        it translated
             self.set_label("US$ %s" % app_details.price)
             self.set_button_label(_(u'Buy\u2026'))
-        elif state == PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+        elif state in (
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+            PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES):
+
             # purchase_date is a string, must first convert to datetime.datetime
             pdate = self._convert_purchase_date_str_to_datetime(
                 app_details.purchase_date)
             # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please 
             # specify a format per your locale (if you prefer, %x can be used 
             # to provide a default locale-specific date representation)
-            self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')))
+            label = pdate.strftime(_('Purchased on %Y-%m-%d'))
             self.set_button_label(_('Install'))
+            if state == PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES:
+                label = pdate.strftime(
+                    _('Purchased on %Y-%m-%d but not available for your '
+                      'current Ubuntu version. Please contact the vendor '
+                      'for an update.'))
+                self.button.hide()
+            self.set_label(label)
+
         elif state == PkgStates.UNINSTALLED:
             #special label only if the app being viewed is software centre
             # itself

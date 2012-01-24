@@ -13,6 +13,8 @@ from softwarecenter.testutils import get_mock_app_from_real_app, do_events
 from softwarecenter.ui.gtk3.views.appdetailsview import get_test_window_appdetails
 from softwarecenter.enums import PkgStates
 
+from test.test_database import make_purchased_app_details
+
 # window destory timeout
 TIMEOUT=100
 
@@ -112,53 +114,6 @@ class TestAppdetailsView(unittest.TestCase):
         model = self.view.reviews.review_language.get_model()
         self.assertEqual(model[0][0], "English")
 
-    def test_pkgstatus_bar(self):
-        # make sure configure is run with the various states
-        # test
-        # show app 
-        app = Application("", "software-center")
-        self.view.show_app(app)
-        do_events()
-
-        # create mock app
-        mock_app = get_mock_app_from_real_app(app)
-        self.view.app = mock_app
-        mock_details = mock_app.get_details(None)
-        mock_details.purchase_date = "2011-11-20 17:45:01"
-        self.view.app_details = mock_details
-
-        # run the configure on the various states for the pkgstatus bar
-        for var in vars(PkgStates):
-            # FIXME: this just ensures we are not crashing, also
-            # add functional tests to ensure on error we show
-            # the right info etc
-            state = getattr(PkgStates, var)
-            mock_details.pkg_state = state
-            # FIXME2: we should make configure simpler and/or explain
-            #         why it gets the state instead of just reading it
-            #         from the app_details
-            self.view.pkg_statusbar.configure(mock_details, state)
-
-        # make sure the various states are tested for click
-        self.view.pkg_statusbar.app_manager = mock = Mock()
-        mock_button = Mock()
-        button_to_function_tests = (
-            (PkgStates.INSTALLED, "remove"),
-            (PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED, "reinstall_purchased"),
-            (PkgStates.NEEDS_PURCHASE, "buy_app"),
-            (PkgStates.UNINSTALLED, "install"),
-            (PkgStates.REINSTALLABLE, "install"),
-            (PkgStates.UPGRADABLE, "upgrade"),
-            (PkgStates.NEEDS_SOURCE, "enable_software_source")
-        )
-        for state, func in button_to_function_tests:
-            self.view.pkg_statusbar.pkg_state = state
-            self.view.pkg_statusbar._on_button_clicked(mock_button)
-            self.assertTrue(
-                getattr(mock, func).called,
-                "for state %s the function %s was not called" % (state, func))
-            mock.reset()
-
     def test_switch_language_resets_page(self):
         self.view._reviews_server_page = 4
 
@@ -247,7 +202,99 @@ class TestAppdetailsView(unittest.TestCase):
 
         self.assertTrue(button.is_sensitive())
 
-    
+
+class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        # Set these as class attributes as we don't modify either
+        # during the tests.
+        from softwarecenter.testutils import get_test_db
+        cls.db = get_test_db()
+        cls.win = get_test_window_appdetails()
+
+    @classmethod
+    def tearDownClass(cls):
+        GObject.timeout_add(TIMEOUT, lambda: cls.win.destroy())
+        Gtk.main()
+
+    def _make_statusbar_view_for_state(self, state):
+        app_details = make_purchased_app_details(db=self.db)
+        # XXX 2011-01-23 It's unfortunate we need multiple mocks to test this
+        # correctly, but I don't know the code well enough to refactor
+        # dependencies yet so that it wouldn't be necessary. In this case, we
+        # need a *real* app details object for displaying in the view, but want
+        # to specify its state for the purpose of the test. As an Application
+        # normally loads its details from the database, we patch
+        # Application.get_details also.  Patch app_details.pkg_state for the
+        # test.
+        pkg_state_fn = 'softwarecenter.db.application.AppDetails.pkg_state'
+        pkg_state_patcher = patch(pkg_state_fn)
+        self.addCleanup(pkg_state_patcher.stop)
+        mock_pkg_state = pkg_state_patcher.start()
+        mock_pkg_state.__get__ = Mock(return_value=state)
+
+        get_details_fn = 'softwarecenter.db.application.Application.get_details'
+        get_details_patcher = patch(get_details_fn)
+        self.addCleanup(get_details_patcher.stop)
+        mock_get_details = get_details_patcher.start()
+        mock_get_details.return_value = app_details
+
+        app = app_details._app
+        details_view = self.win.get_data("view")
+        details_view.show_app(app)
+        do_events()
+
+        statusbar_view = details_view.pkg_statusbar
+        statusbar_view.configure(app_details, state)
+
+        return statusbar_view
+
+    def test_NOT_AVAILABLE_FOR_SERIES_no_action_for_click_event(self):
+        statusbar_view = self._make_statusbar_view_for_state(
+            PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES)
+        mock_app_manager = Mock()
+        statusbar_view.app_manager = mock_app_manager
+
+        statusbar_view._on_button_clicked(Mock())
+
+        self.assertEqual([], mock_app_manager.method_calls)
+
+    def test_NOT_AVAILABLE_FOR_SERIES_sets_label_and_button(self):
+        statusbar_view = self._make_statusbar_view_for_state(
+            PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES)
+
+        self.assertEqual(
+            "Purchased on 2011-09-16 but not available for your current "
+            "Ubuntu version. Please contact the vendor for an update.",
+            statusbar_view.label.get_text())
+        self.assertFalse(statusbar_view.button.get_visible())
+
+    def test_actions_for_purchased_apps(self):
+        button_to_function_tests = (
+            (PkgStates.INSTALLED, "remove"),
+            (PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED, "reinstall_purchased"),
+            (PkgStates.NEEDS_PURCHASE, "buy_app"),
+            (PkgStates.UNINSTALLED, "install"),
+            (PkgStates.REINSTALLABLE, "install"),
+            (PkgStates.UPGRADABLE, "upgrade"),
+            (PkgStates.NEEDS_SOURCE, "enable_software_source")
+        )
+        for state, func in button_to_function_tests:
+            statusbar_view = self._make_statusbar_view_for_state(state)
+            mock_app_manager = Mock()
+            statusbar_view.app_manager = mock_app_manager
+
+            statusbar_view._on_button_clicked(Mock())
+
+            # If we want to also check the args/kwargs, we can update the above
+            # button_to_function_tests.
+            all_method_calls = [method_name for method_name, args, kwargs in (
+                mock_app_manager.method_calls)]
+            self.assertEqual(
+                [method_name],
+                all_method_calls)
+
 
 if __name__ == "__main__":
     import logging
