@@ -501,12 +501,15 @@ class LobbyViewGtk(CategoriesViewGtk):
         
         recommended_for_you_cat = self._update_recommended_for_you()
         if recommended_for_you_cat:
-            # TODO: During development, place the Recommended for You panel
+            # TODO: During development, place the "Recommended for You" panel
             # at the bottom, but swap this with the Top Rated panel once it
             # is all ready
             # see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
-            self.vbox.pack_start(self.appcount, False, True, 0)
-        
+            self.vbox.pack_start(self.recommended_for_you, True, True, 0)
+            frame.header_implements_more_button()
+            frame.more.connect('clicked',
+                               self.on_category_clicked,
+                               recommended_for_you_cat)
 
     def _update_appcount(self):
         enq = AppEnquire(self.cache, self.db)
