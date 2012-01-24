@@ -212,7 +212,7 @@ class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
         from softwarecenter.testutils import get_test_db
         cls.db = get_test_db()
         cls.win = get_test_window_appdetails()
-    
+
     @classmethod
     def tearDownClass(cls):
         GObject.timeout_add(TIMEOUT, lambda: cls.win.destroy())

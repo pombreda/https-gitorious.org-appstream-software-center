@@ -297,9 +297,10 @@ class PackageStatusBar(StatusBar):
             label = pdate.strftime(_('Purchased on %Y-%m-%d'))
             self.set_button_label(_('Install'))
             if state == PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES:
-                label += _(' but not available for your current '
-                           'Ubuntu version. Please contact the vendor for an '
-                           'update.')
+                label = pdate.strftime(
+                    _('Purchased on %Y-%m-%d but not available for your '
+                      'current Ubuntu version. Please contact the vendor '
+                      'for an update.'))
                 self.button.hide()
             self.set_label(label)
 
