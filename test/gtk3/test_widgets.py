@@ -142,7 +142,10 @@ class TestHWRequirements(unittest.TestCase):
         self.assertEqual(len(label.get_children()), 2)
         self.assertEqual(type(label.get_children()[1]), Gtk.Image)
         self.assertEqual(type(label.get_children()[0]), Gtk.Label)
-    
+        # test setting it again
+        label.set_hardware_requirement('hardware::video:opengl', 'yes')
+        self.assertEqual(len(label.get_children()), 2)
+
     def test_hardware_requirements_box(self):
         box = HardwareRequirementsBox()
         box.set_hardware_requirements(self.HW_TEST_RESULT)
