@@ -7,6 +7,25 @@ the computer easy and consistent.
 
 All non UI code must come with tests in the test/ subdirectoy.
 
+To setup your development environment, you'll need to ensure the following
+extra packages are installed:
+
+sudo apt-get install xvfb python-coverage python-mock python-aptdaemon.test \
+     python-qt4 python-unittest2 python-lxml
+sudo apt-get build-dep software-center
+
+You can then run tests with:
+
+cd test;make
+
+You can run a developer instance with:
+
+python setup.py build
+./software-center
+
+The initial launch of this will take a bit as it will build a private
+search database but this is only needed once.
+
 == query parser ==
 
 The query parser understands :
@@ -15,7 +34,7 @@ prefixes.
 
 == aptdaemon ==
  * the dbus limits for the system bus are rather low, this means that
-   adding  <limit name="max_match_rules_per_connection">512</limit> 
+   adding  <limit name="max_match_rules_per_connection">512</limit>
    and using something bigger than 512 is a good idea
 
 == environment ==
@@ -26,7 +45,7 @@ SOFTWARE_CENTER_USE_GCONF_PROXY - set user proxy instead of using system-wide
 SOFTWARE_CENTER_USE_BUILTIN_LOGIN - use built-in login instead of ubuntu-sso-client
 SOFTWARE_CENTER_APPDETAILS_WEBKIT - use the webkit appdetails instead of gtk
 APPVIEW_DEBUG_TERMS - show debug output for the terms in a search
-SOFTWARE_CENTER_BUY_HOST - use a alternative hosts to query for pay software
+SOFTWARE_CENTER_AGENT_HOST - use a alternative hosts to query for pay software
 SOFTWARE_CENTER_REVIEWS_HOST - a alternative host for the ratings&reviews
 SOFTWARE_CENTER_DEBUG_HTTP - enable httplib2 debuging
 
@@ -54,7 +73,7 @@ SCSection - e.g. "net"
 SCPkgname - e.g. "gimp"
 
 Additional .menu files can be added in:
-/usr/share/app-install/menu.d 
+/usr/share/app-install/menu.d
 that software-center will read and parse.
 
 == XAPIAN ==
@@ -66,9 +85,9 @@ AP - package name (abiword)
 AS - archive pocket (main)
 AE - archive section (mail, base, ...)
 AC - category (AudioVideo)
-AM - MimeType (application/x-ogg) 
+AM - MimeType (application/x-ogg)
 AT - type (Application)
-AH - channel 
+AH - channel
 
 
 The following values are used:
@@ -89,5 +108,5 @@ XAPIAN_VALUE_ARCHIVE_SIGNING_KEYID - signing key id for the repository
 XAPIAN_VALUE_PURCHASED_DATE - the data a for-pay app was purchased (only available after the software-center-agent server was queried)
 XAPIAN_VALUE_SCREENSHOT_URL - a (optional) screenshot url that overrides the default
 XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD - icon needs to be fetched
-XAPIAN_VALUE_THUMBNAIL_URL - thumbnail url 
+XAPIAN_VALUE_THUMBNAIL_URL - thumbnail url
 

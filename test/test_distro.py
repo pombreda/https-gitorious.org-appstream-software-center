@@ -1,11 +1,9 @@
 #!/usr/bin/python
 
-
-import sys
-sys.path.insert(0,"../")
-
 import unittest
 
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.distro import get_distro
 
 class TestDistro(unittest.TestCase):

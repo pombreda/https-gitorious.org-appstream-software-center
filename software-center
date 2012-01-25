@@ -22,7 +22,7 @@ import time
 time_entering_main = time.time()
 
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 
 import gettext
 import glob
@@ -44,6 +44,8 @@ from optparse import OptionParser
 
 # Enable Xapian's CJK tokenizer (see LP: #745243)
 os.environ['XAPIAN_CJK_NGRAM'] = '1'
+
+LOG = logging.getLogger("softwarecenter")
 
 if __name__ == "__main__":
 
@@ -124,8 +126,15 @@ if __name__ == "__main__":
     # on exit. However its IMPORTANT to set it as libsoup is *not* secure
     # by default (see bugzilla #666280 and #666276)
     from gi.repository import WebKit as webkit
-    session = webkit.get_default_session()
-    session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
+    # enable certificates validation in webkit views unless specified otherwise
+    if not "SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK" in os.environ:
+        session = webkit.get_default_session()
+        session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
+    else:
+        # WARN the user!! Do not remove this
+        LOG.warning("SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK " +
+                    "has been specified, all purchase transactions " + 
+                    "are now INSECURE and UNENCRYPTED!!")
 
     # create the app
     from softwarecenter.ui.gtk3.app import SoftwareCenterAppGtk3
@@ -136,16 +145,28 @@ if __name__ == "__main__":
     if options.measure_startup_time:
         logger = logging.getLogger("softwarecenter.performance")
         with ExecutionTime("show() & gtk events until visible"):
-            app.run(args)
-            main_visible = False
-            while not (app.available_pane.cat_view and
-                       app.available_pane.cat_view.get_visible()):
-                if Gtk.events_pending():
-                    Gtk.main_iteration()
+            def are_we_there_yet():
+                """ small helper that monitors the main window appearance """
+                global main_visible
+                # useful to check how often this is run - not often :/
+                print time.time()
                 if not main_visible and app.window_main.get_visible():
                     logger.debug("** main window visible after: %s seconds" % (
                             time.time() - time_entering_main))
                     main_visible = True
+                    return False
+                return True
+
+            # run watcher for main window
+            main_visible = False
+            GObject.timeout_add(100, are_we_there_yet)
+            app.run(args)
+
+            # keep monitoring the loop
+            while not (app.available_pane.cat_view and
+                       app.available_pane.cat_view.get_visible()):
+                Gtk.main_iteration_do(True)
+
         time_to_ready = time.time() - time_entering_main
         print(time_to_ready)
         logger.debug("** main window fully ready after: %s seconds" % time_to_ready)

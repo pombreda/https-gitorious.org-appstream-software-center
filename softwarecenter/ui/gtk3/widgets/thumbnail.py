@@ -159,7 +159,16 @@ class ScreenshotGallery(Gtk.VBox):
             self._on_screenshot_download_complete)
 
         self._build_ui()
-        return
+        # add cleanup handler to avoid signals after we are destroyed
+        self.connect("destroy", self._on_destroy)
+
+    def _on_destroy(self, widget):
+        # we need to disconnect here otherwise gtk segfaults when it
+        # tries to set a already destroyed gtk image
+        self.loader.disconnect_by_func(
+            self._on_screenshot_download_complete)
+        self.loader.disconnect_by_func(
+            self._on_screenshot_load_error)
 
     # overrides
     def do_get_preferred_width(self):

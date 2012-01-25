@@ -200,6 +200,13 @@ if __name__ == "__main__":
         LOG.warn("no data")
         sys.exit(0)
 
+    if args.debug:
+        for itm in piston_reply:
+            s = "** itm: %s\n" % itm
+            for var in vars(itm):
+                s += "%s: '%s'\n" % (var, getattr(itm, var))
+            LOG.debug(s)
+
     # check what format to use
     if args.output == "pickle":
         res = pickle.dumps(piston_reply)

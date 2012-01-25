@@ -18,6 +18,7 @@
 
 from gi.repository import GObject, Gio
 
+import json
 import locale
 import logging
 import os
@@ -38,10 +39,10 @@ LOG = logging.getLogger(__name__)
 # this is a very lean class as its used in the main listview
 # and there are a lot of application objects in memory
 class Application(object):
-    """ The central software item abstraction. it contains a 
+    """ The central software item abstraction. it contains a
         pkgname that is always available and a optional appname
         for packages with multiple applications
-        
+
         There is also a __cmp__ method and a name property
     """
     def __init__(self, appname="", pkgname="", request="", popcon=0):
@@ -78,7 +79,7 @@ class Application(object):
 
     def get_untranslated_app(self, db):
         """ return a Application object with the untranslated application
-            name 
+            name
         """
         try:
             doc = db.get_xapian_document(self.appname, self.pkgname)
@@ -111,7 +112,7 @@ class Application(object):
                 return db.get_summary(doc)
             else:
                 return db.get_pkgname(doc)
-        
+
     # special methods
     def __hash__(self):
         return ("%s:%s" % (self.appname, self.pkgname)).__hash__()
@@ -172,8 +173,8 @@ class AppDetails(GObject.GObject):
         # load application
         self._app = application
         if doc:
-            self._app = Application(self._db.get_appname(doc), 
-                                    self._db.get_pkgname(doc), 
+            self._app = Application(self._db.get_appname(doc),
+                                    self._db.get_pkgname(doc),
                                     "")
 
         # sustitute for apturl
@@ -183,7 +184,7 @@ class AppDetails(GObject.GObject):
 
         # load pkg cache
         self._pkg = None
-        if (self._app.pkgname in self._cache and 
+        if (self._app.pkgname in self._cache and
             self._cache[self._app.pkgname].candidate):
             self._pkg = self._cache[self._app.pkgname]
 
@@ -197,13 +198,13 @@ class AppDetails(GObject.GObject):
                 # if there is no document and no apturl request,
                 # set error state
                 debfile_matches = re.findall(r'/', self._app.request)
-                channel_matches = re.findall(r'channel=[a-z,-]*', 
+                channel_matches = re.findall(r'channel=[a-z,-]*',
                                              self._app.request)
-                section_matches = re.findall(r'section=[a-z]*', 
+                section_matches = re.findall(r'section=[a-z]*',
                                              self._app.request)
-                if (not self._pkg and 
-                    not debfile_matches and 
-                    not channel_matches and 
+                if (not self._pkg and
+                    not debfile_matches and
+                    not channel_matches and
                     not section_matches):
                     self._error = _("Not found")
                     self._error_not_found = utf8(_(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.")) % utf8(self.pkgname)
@@ -253,10 +254,10 @@ class AppDetails(GObject.GObject):
 
     @property
     def component(self):
-        """ 
+        """
         get the component (main, universe, ..)
-        
-        this uses the data from apt, if there is none it uses the 
+
+        this uses the data from apt, if there is none it uses the
         data from the app-install-data files
         """
         # try apt first
@@ -318,12 +319,12 @@ class AppDetails(GObject.GObject):
             return split_icon_ext(self._db.get_iconname(self._doc))
         if not self.summary:
             return Icons.MISSING_PKG
-            
+
     @property
     def icon_file_name(self):
         if self._doc:
             return self._db.get_iconname(self._doc)
-    
+
     @property
     def icon_url(self):
         if self._doc:
@@ -368,7 +369,7 @@ class AppDetails(GObject.GObject):
     @property
     def maintenance_status(self):
         return self._distro.get_maintenance_status(
-            self._cache, self.display_name, self.pkgname, self.component, 
+            self._cache, self.display_name, self.pkgname, self.component,
             self.channelname)
 
     @property
@@ -457,7 +458,23 @@ class AppDetails(GObject.GObject):
                     return PkgStates.NEEDS_PURCHASE
                 if (self.purchase_date and
                     self._doc.get_value(XapianValues.ARCHIVE_DEB_LINE)):
-                    return PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED
+                    supported_distros = self.supported_distros
+
+                    # Until bug 917109 is fixed on the server we won't have
+                    # any supported_distros for a for-purchase app, so we
+                    # follow the current behaviour in this case.
+                    if not supported_distros:
+                        return PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED
+
+                    current_distro = self._distro.get_codename()
+                    current_arch = self._distro.get_architecture()
+                    if current_distro in supported_distros and (
+                        current_arch in supported_distros[current_distro] or
+                        'any' in supported_distros[current_distro]):
+                        return PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED
+                    else:
+                        return PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES
+
                 if self.component:
                     components = self.component.split('&')
                     for component in components:
@@ -472,6 +489,15 @@ class AppDetails(GObject.GObject):
     def price(self):
         if self._doc:
             return self._doc.get_value(XapianValues.PRICE)
+
+    @property
+    def supported_distros(self):
+        if self._doc:
+            supported_series = self._doc.get_value(XapianValues.SC_SUPPORTED_DISTROS)
+            if not supported_series:
+                return {}
+
+            return json.loads(supported_series)
 
     @property
     def ppaname(self):
@@ -496,7 +522,7 @@ class AppDetails(GObject.GObject):
             if self._doc.get_value(XapianValues.SCREENSHOT_URL):
                 return self._doc.get_value(XapianValues.SCREENSHOT_URL)
         # else use the default
-        return self._distro.SCREENSHOT_LARGE_URL % { 'pkgname' : self.pkgname, 
+        return self._distro.SCREENSHOT_LARGE_URL % { 'pkgname' : self.pkgname,
                                                      'version' : self.version or 0 }
 
     @property
@@ -576,7 +602,7 @@ class AppDetails(GObject.GObject):
             if self._doc.get_value(XapianValues.THUMBNAIL_URL):
                 return self._doc.get_value(XapianValues.THUMBNAIL_URL)
         # else use the default
-        return self._distro.SCREENSHOT_THUMB_URL % { 'pkgname' : self.pkgname, 
+        return self._distro.SCREENSHOT_THUMB_URL % { 'pkgname' : self.pkgname,
                                                      'version' : self.version or 0}
 
     @property
@@ -586,7 +612,7 @@ class AppDetails(GObject.GObject):
             if self._doc.get_value(XapianValues.VIDEO_URL):
                 return self._doc.get_value(XapianValues.VIDEO_URL)
         # else use the video server
-        #return self._distro.VIDEO_URL % { 'pkgname' : self.pkgname, 
+        #return self._distro.VIDEO_URL % { 'pkgname' : self.pkgname,
         #                                  'version' : self.version or 0}
         return None
 
@@ -597,7 +623,8 @@ class AppDetails(GObject.GObject):
                 return self._pkg.installed.version
             else:
                 return self._pkg.candidate.version
-              
+        elif self._doc:
+            return self._doc.get_value(XapianValues.VERSION_INFO)
 
     @property
     def warning(self):
@@ -615,7 +642,7 @@ class AppDetails(GObject.GObject):
             source_to_enable = None
             if self.channelname and self._unavailable_channel():
                 source_to_enable = self.channelname
-            elif (self.component and 
+            elif (self.component and
                   self.component not in ("independent", "commercial")):
                 source_to_enable = self.component
             if source_to_enable:
@@ -624,9 +651,9 @@ class AppDetails(GObject.GObject):
                 if sources_length == 1:
                     warning = _("Available from the \"%s\" source.") % sources[0]
                 elif sources_length > 1:
-                    # Translators: the visible string is constructed concatenating 
-                    # the following 3 strings like this: 
-                    # Available from the following sources: %s, ... %s, %s.                
+                    # Translators: the visible string is constructed concatenating
+                    # the following 3 strings like this:
+                    # Available from the following sources: %s, ... %s, %s.
                     warning = _("Available from the following sources: ")
                     # Cycle through all, but the last
                     for source in sources[:-1]:
@@ -643,7 +670,7 @@ class AppDetails(GObject.GObject):
     def supportsite(self):
         if self._doc:
             return self._doc.get_value(XapianValues.SUPPORT_SITE_URL)
-    
+
     @property
     def license_key(self):
         if self._doc:
@@ -656,13 +683,14 @@ class AppDetails(GObject.GObject):
 
     @property
     def hardware_requirements(self):
-        missing = set()
+        result = {}
         try:
             from debtagshw.debtagshw import DebtagsAvailableHW
-            result =  DebtagsAvailableHW.get_hardware_support_for_tags(
+            hw = DebtagsAvailableHW()
+            result =  hw.get_hardware_support_for_tags(
                 self.tags)
         except ImportError:
-            return
+            return result
         return result
 
     def _unavailable_channel(self):

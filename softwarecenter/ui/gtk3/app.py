@@ -22,7 +22,6 @@ from gi.repository import Gtk
 
 import atexit
 import collections
-import locale
 import dbus
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
@@ -48,6 +47,7 @@ softwarecenter.netstatus.NETWORK_STATE
 # db imports
 from softwarecenter.db.application import Application
 from softwarecenter.db import DebFileApplication
+from softwarecenter.i18n import init_locale
 
 # misc imports
 from softwarecenter.plugin import PluginManager
@@ -84,7 +84,8 @@ from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 from softwarecenter.ui.gtk3.panes.historypane import HistoryPane
 from softwarecenter.ui.gtk3.panes.globalpane import GlobalPane
 from softwarecenter.ui.gtk3.panes.pendingpane import PendingPane
-from softwarecenter.ui.gtk3.session.appmanager import ApplicationManager
+from softwarecenter.ui.gtk3.session.appmanager import (ApplicationManager,
+                                                       get_appmanager)
 from softwarecenter.ui.gtk3.session.viewmanager import (
     ViewManager, get_viewmanager)
 
@@ -186,15 +187,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         gettext.bindtextdomain("software-center", "/usr/share/locale")
         gettext.textdomain("software-center")
 
-        try:
-            locale.setlocale(locale.LC_ALL, "")
-            # we need this for bug #846038, with en_NG setlocale() is fine
-            # but the next getlocale() will crash (fun!)
-            locale.getlocale()
-        except:
-            LOG.exception("setlocale failed, resetting to C")
-            locale.setlocale(locale.LC_ALL, "C")
-
+        init_locale()
 
         if "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
             self.notebook_view.set_show_tabs(True)
@@ -213,7 +206,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         with ExecutionTime("opening the pkginfo"):
             # a main iteration friendly apt cache
             self.cache = get_pkg_info()
-            self.cache.open()
+            # cache is opened later in run()
             self.cache.connect("cache-broken", self._on_apt_cache_broken)
 
         with ExecutionTime("opening the xapiandb"):
@@ -590,9 +583,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # appmanager needs to know about the oauth token for the reinstall
         # previous purchases add_license_key call
         self.app_manager.oauth_token = oauth_result
-        # consumer key is the openid identifier
-        self.scagent.query_available_for_me(oauth_result["token"],
-                                            oauth_result["consumer_key"])
+        self.scagent.query_available_for_me()
 
     def _on_style_updated(self, widget, init_css_callback, *args):
         init_css_callback(widget, *args)
@@ -769,11 +760,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.on_application_request_action(self, app, [], [], AppActions.INSTALL)
+        get_appmanager().request_action(app, [], [], AppActions.INSTALL)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.on_application_request_action(self, app, [], [], AppActions.REMOVE)
+        get_appmanager().request_action(app, [], [], AppActions.REMOVE)
         
     def on_menuitem_close_activate(self, widget):
         Gtk.main_quit()
@@ -1229,7 +1220,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.config.write()
 
     def run(self, args):
+        # show window as early as possible
         self.window_main.show_all()
+
+        # delay cache open
+        GObject.timeout_add(1, self.cache.open)
+
         # support both "pkg1 pkg" and "pkg1,pkg2" (and pkg1,pkg2 pkg3)
         if args:
             for (i, arg) in enumerate(args[:]):

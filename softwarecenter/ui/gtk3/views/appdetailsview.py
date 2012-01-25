@@ -284,15 +284,26 @@ class PackageStatusBar(StatusBar):
             #        it translated
             self.set_label("US$ %s" % app_details.price)
             self.set_button_label(_(u'Buy\u2026'))
-        elif state == PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+        elif state in (
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+            PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES):
+
             # purchase_date is a string, must first convert to datetime.datetime
             pdate = self._convert_purchase_date_str_to_datetime(
                 app_details.purchase_date)
             # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please 
             # specify a format per your locale (if you prefer, %x can be used 
             # to provide a default locale-specific date representation)
-            self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')))
+            label = pdate.strftime(_('Purchased on %Y-%m-%d'))
             self.set_button_label(_('Install'))
+            if state == PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES:
+                label = pdate.strftime(
+                    _('Purchased on %Y-%m-%d but not available for your '
+                      'current Ubuntu version. Please contact the vendor '
+                      'for an update.'))
+                self.button.hide()
+            self.set_label(label)
+
         elif state == PkgStates.UNINSTALLED:
             #special label only if the app being viewed is software centre
             # itself
@@ -751,6 +762,7 @@ class AppDetailsView(Viewport):
         # reviews
         self._reviews_server_page = 1
         self._reviews_server_language = None
+        self._reviews_relaxed = False
         self._review_sort_method = 0
         
         # switches
@@ -813,12 +825,15 @@ class AppDetailsView(Viewport):
         self._do_load_reviews()
     
     def _on_review_sort_method_changed(self, uilist, sort_method):
-        self._review_server_page = 1
+        self._reviews_server_page = 1
+        self._reviews_relaxed = False
         self._review_sort_method = sort_method
         self.reviews.clear()
         self._do_load_reviews()
 
     def _on_reviews_in_different_language_clicked(self, uilist, language):
+        self._reviews_server_page = 1
+        self._reviews_relaxed = False
         self._reviews_server_language = language
         self.reviews.clear()
         self._do_load_reviews()
@@ -829,7 +844,8 @@ class AppDetailsView(Viewport):
             self.app, self._reviews_ready_callback, 
             page=self._reviews_server_page,
             language=self._reviews_server_language,
-            sort=self._review_sort_method)
+            sort=self._review_sort_method,
+            relaxed=self._reviews_relaxed)
 
     def _review_update_single(self, action, review):
         if action == 'replace':
@@ -849,6 +865,9 @@ class AppDetailsView(Viewport):
         else:
             self.review_stats_widget.hide()
 
+    def _submit_reviews_done_callback(self, spawner, error):
+        self.reviews.new_review.enable()
+
     def _reviews_ready_callback(self, app, reviews_data, my_votes=None,
                                 action=None, single_review=None):
         """ callback when new reviews are ready, cleans out the
@@ -860,6 +879,19 @@ class AppDetailsView(Viewport):
         # (we only check for pkgname currently to avoid breaking on
         #  software-center totem)
         if self.app.pkgname != app.pkgname:
+            return
+
+        # Start fetching relaxed reviews if we retrieved no data
+        # (and if we weren't already relaxed)
+        if not reviews_data and not self._reviews_relaxed:
+            self._reviews_relaxed = True
+            self._reviews_server_page = 1
+            self.review_loader.get_reviews(
+                self.app, self._reviews_ready_callback, 
+                page=self._reviews_server_page,
+                language=self._reviews_server_language,
+                sort=self._review_sort_method,
+                relaxed=self._reviews_relaxed)
             return
 
         # update the stats (if needed). the caching can make them
@@ -887,10 +919,22 @@ class AppDetailsView(Viewport):
         if action:
             self._review_update_single(action, single_review)
         else:
-            curr_list = self.reviews.get_all_review_ids()
+            curr_list = set(self.reviews.get_all_review_ids())
+            retrieved_a_new_review = False
             for review in reviews_data:
                 if not review.id in curr_list:
+                    retrieved_a_new_review = True
                     self.reviews.add_review(review)
+            if reviews_data and not retrieved_a_new_review:
+                # We retrieved data, but nothing new.  Keep going.
+                self._reviews_server_page += 1
+                self.review_loader.get_reviews(
+                    self.app, self._reviews_ready_callback, 
+                    page=self._reviews_server_page,
+                    language=self._reviews_server_language,
+                    sort=self._review_sort_method,
+                    relaxed=self._reviews_relaxed)
+
         self.reviews.configure_reviews_ui()
 
     def on_weblive_progress(self, weblive, progress):
@@ -1510,7 +1554,7 @@ class AppDetailsView(Viewport):
         # init data
         self.app = app
         self.app_details = app.get_details(self.db)
-        
+
         # check if app just became available and if so, force full
         # refresh
         if (same_app and
@@ -1527,6 +1571,8 @@ class AppDetailsView(Viewport):
         if same_app and not force:
             self._update_minimal(self.app_details)
         else:
+            # reset reviews_page
+            self._reviews_server_page = 1
             # update all (but skip the addons calculation if this is a
             # DebFileApplication as this is not useful for this case and it
             # increases the view load time dramatically)
@@ -1575,10 +1621,12 @@ class AppDetailsView(Viewport):
         # call the loader to do call out the right helper and collect the result
         parent_xid = ''
         #parent_xid = get_parent_xid(self)
+        self.reviews.new_review.disable()
         self.review_loader.spawn_write_new_review_ui(
             self.app, version, self.appdetails.icon, origin,
             parent_xid, self.datadir,
-            self._reviews_ready_callback)
+            self._reviews_ready_callback,
+            done_callback=self._submit_reviews_done_callback)
                          
     def _review_report_abuse(self, review_id):
         parent_xid = ''
@@ -1764,7 +1812,11 @@ class AppDetailsView(Viewport):
                     logging.debug("_get_icon_as_pixbuf:image_downloaded() %s" % image_file_path)
                     try:
                         pb = GdkPixbuf.Pixbuf.new_from_file(image_file_path)
-                        self.icon.set_from_pixbuf(pb)
+                        # fixes crash in testsuite if window is destroyed
+                        # and after that this callback is called (wouldn't
+                        # it be nice if gtk would do that automatically?)
+                        if self.icon.get_property("visible"):
+                            self.icon.set_from_pixbuf(pb)
                     except Exception as e:
                         LOG.warning("couldn't load downloadable icon file '%s': %s" % (image_file_path, e))
                     

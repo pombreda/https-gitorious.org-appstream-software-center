@@ -1,3 +1,98 @@
+software-center (5.1.7) precise; urgency=low
+
+  [ Anthony Lenton ]
+  * lp:~elachuni/software-center/any-language:
+    - add support to display reviews in any language
+  * lp:~elachuni/software-center/reset-review-page:
+    - Small bugfix to ensure that switching language or 
+      reviews sort method resets the reviews page, and 
+      added tests.
+  * lp:~elachuni/software-center/relax-origin-distroseries:
+    - provide "relaxed" mode for fetching reviews if the exact
+      review matcher does not find anything (LP: #766951)
+  * lp:~elachuni/software-center/disable-new-review:
+    - This branch disables the "Submit a new review" button when 
+      you click it, and reenables it when the submit review dialog
+      closes
+  * lp:~elachuni/software-center/reviews-tests:
+    - add several new tests for code in the review_gui_helper module
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/improve-debug-in-piston-generic-helper:
+    - improve debug output of piston-generic-helper and a README 
+      with examples how it can be used to debug server side issues
+  * lp:~mvo/software-center/review-language-i18n:
+    - make the language selection combo in the reviews widget
+      nicer by adding a proper i18n name to it
+  * lp:~mvo/software-center/trivial-move-gui-helpers:
+    - move rnr_helpers.py to softwarecenter/ui/gtk3/review_gui_helper.py
+      as it belongs there and add to POTFILE.in
+  
+  [ Michael Nelson ]
+  * lp:~michael.nelson/software-center/833982-purchased-app-not-available,
+    lp:~michael.nelson/software-center/917137-previous-purchases-empty-precise-2:
+    - refactor/cleanup parser code and update for API 2.0 (LP: #917137)
+  * lp:~michael.nelson/software-center/every-comm-app-already-purchased:
+    - non-purchased apps should not have '(already purchased)' 
+      appended to name.
+  * lp:~michael.nelson/software-center/833982-previous-purchase-no-feedback-really-this-time:
+    - Implements the backend for bug 833982 so that a purchased application 
+      that is unsupported on the current system will be detected
+  * lp:~michael.nelson/software-center/833982-previous-purchase-no-feedback-2:
+    - ensure that the deb_line for the app points to the current distroseries
+
+  [ Danny Tamez ]
+  * lp:~zematynnad/software-center/rename_host_var_918270:
+    - rename the env variable SOFTWARE_CENTER_BUY_HOST  to the more
+      correct SOFTWARE_CENTER_AGENT_HOST, but support the former as a
+      fallback, update corresponding unit test (LP: #918270)
+  * lp:~zematynnad/software-center/version_number_833877:
+    - show version number of apps from the software-center-agent as
+      well (LP: #833877)
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/staging-certs-2:
+    - add new SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK environment that
+      can be used to disable cert checking to run e.g. against a local dev
+      instance (LP: #918746)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 24 Jan 2012 16:13:36 +0100
+
+software-center (5.1.6) precise; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/startup-speed2:
+    - additional startup speed improvements, brings up main window
+      much more quickly
+  * lp:~mvo/software-center/fix-server-pagination:    
+    - reset reviews "page" when showing a new app
+  
+  [Christopher Kyle Horton]
+  * utils/submit_review_gtk3.py:
+    - fix crash when submitting a review (LP: #912855)
+
+  [ Anthony Lenton ]
+  * lp:~elachuni/software-center/test_downloader_fix:
+    - fix test hang on incorrect proxy settings
+  * lp:~elachuni/software-center/check-edit-labels:
+    - add test for correct labels in "Modify review" mode
+    - move main RnR Helper GUI into softwarecenter.backend.rnr 
+      to make testing easier
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/fix-lp913756:
+    - do not add an icon to the Unity launcher for packages that do
+      not have an Exec entry in their corresponding desktop file,
+      e.g. ubuntu-restricted-extras, wine (LP: #913756)
+  * lp:~gary-lasker/software-center/search-down-arrow-lp842711:
+    - select the first item in the result list when the down
+      arrow is pressed during a search (LP: #842711)
+  * lp:~gary-lasker/software-center/fix-lp896474:
+    - fix crash when attempting to install or remove an item
+      via the menu (LP: #896474) 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 17 Jan 2012 14:19:57 +0100
+
 software-center (5.1.5.1) precise; urgency=low
 
   [ Kiwinote ]

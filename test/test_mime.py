@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
-import sys
-sys.path.insert(0,"../")
-
 import os
 import unittest
 
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.update import rebuild_database

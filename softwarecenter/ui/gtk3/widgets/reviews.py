@@ -39,7 +39,7 @@ from softwarecenter.utils import (
     )
 
 
-from softwarecenter.i18n import get_language, get_languages
+from softwarecenter.i18n import get_languages, langcode_to_name
 
 from softwarecenter.netstatus import network_state_is_connected, get_network_watcher
 from softwarecenter.enums import (
@@ -54,6 +54,9 @@ from softwarecenter.ui.gtk3.widgets.buttons import Link
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
 LOG = logging.getLogger(__name__)
+
+(COL_LANGNAME,
+ COL_LANGCODE) = range(2)
 
 class UIReviewsList(Gtk.VBox):
 
@@ -127,9 +130,15 @@ class UIReviewsList(Gtk.VBox):
         self.header.pack_end(self.sort_combo, False, False, 3)
 
         # change language
-        self.review_language = Gtk.ComboBoxText.new()
+        self.review_language = Gtk.ComboBox()
+        cell = Gtk.CellRendererText()
+        self.review_language.pack_start(cell, True)
+        self.review_language.add_attribute(cell, "text", COL_LANGNAME)
+        self.review_language_model = Gtk.ListStore(str, str)
         for lang in get_languages():
-            self.review_language.append_text(lang)
+            self.review_language_model.append( (langcode_to_name(lang), lang) )
+        self.review_language_model.append( (_('Any language'), 'any') )
+        self.review_language.set_model(self.review_language_model)
         self.review_language.set_active(0)
         self.review_language.connect(
             "changed", self._on_different_review_language_clicked)
@@ -269,22 +278,14 @@ class UIReviewsList(Gtk.VBox):
                 self.new_review.set_label(_("Write your own review"))
         else:
             # no reviews, either offer to write one or show "none"
-            if is_installed and is_connected:
+            if (self.get_active_review_language() != 'any' and
+                self.global_review_stats and
+                self.global_review_stats.ratings_total > 0):
+                self.vbox.pack_start(NoReviewRelaxLanguage(), True, True, 0)
+            elif is_installed and is_connected:
                 self._be_the_first_to_review()
             else:
                 self.vbox.pack_start(NoReviewYet(), True, True, 0)
-
-        # if there are no reviews, try english as fallback
-        language = get_language()
-        if (len(self.reviews) == 0 and
-            self.global_review_stats and
-            self.global_review_stats.ratings_total > 0 and
-            language != "en"):
-            button = Gtk.Button(_("Show reviews in english"))
-            button.connect(
-                "clicked", self._on_show_reviews_in_english_clicked)
-            button.show()
-            self.vbox.pack_start(button, True, True, 0)                
 
         # aaronp: removed check to see if the length of reviews is divisible by
         # the batch size to allow proper fixing of LP: #794060 as when a review
@@ -307,16 +308,16 @@ class UIReviewsList(Gtk.VBox):
         self.vbox.remove(button)
         self.emit("more-reviews-clicked")
 
-    def _on_show_reviews_in_english_clicked(self, button):
-        self.vbox.remove(button)
-        self.emit("different-review-language-clicked", "en")
-
     def _on_different_review_language_clicked(self, combo):
-        # and set them
-        language = combo.get_active_text()
+        language = self.get_active_review_language()
         # clean reviews so that we can show the new language
         self.clear()
         self.emit("different-review-language-clicked", language)
+
+    def get_active_review_language(self):
+        model = self.review_language.get_model()
+        language = model[self.review_language.get_active_iter()][COL_LANGCODE]
+        return language
 
     def get_all_review_ids(self):
         ids = []
@@ -887,6 +888,18 @@ class EmbeddedMessage(UIReview):
 
     def draw(self, cr, a):
         return
+
+
+class NoReviewRelaxLanguage(EmbeddedMessage):
+    """ represents if there are no reviews yet and the app is not installed """
+    def __init__(self, *args, **kwargs):
+        # TRANSLATORS: displayed if there are no reviews for the app in
+        #              the current language, but there are some in other
+        #              languages
+        title = _("This app has not been reviewed yet in your language")
+        msg = _('Try selecting a different language, or even "Any language"'
+            ' in the language dropdown')
+        EmbeddedMessage.__init__(self, title, msg)
 
 
 class NoReviewYet(EmbeddedMessage):

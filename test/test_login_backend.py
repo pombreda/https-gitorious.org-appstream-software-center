@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
-
-import sys
-sys.path.insert(0,"../")
-
 import os
 import unittest
+
+from testutils import setup_test_env
+setup_test_env()
 from softwarecenter.backend.login_sso import (get_sso_backend,
                                               LoginBackendDbusSSO,
                                               LoginBackendDbusSSOFake)

@@ -21,7 +21,7 @@ from gi.repository import GObject
 from gettext import gettext as _
 
 from softwarecenter.backend.login_sso import get_sso_backend
-from softwarecenter.backend.restfulclient import UbuntuSSOAPI
+from softwarecenter.backend.ubuntusso import UbuntuSSOAPI
 from softwarecenter.enums import (SOFTWARE_CENTER_NAME_KEYRING,
                                   SOFTWARE_CENTER_SSO_DESCRIPTION,
                                   )
@@ -48,7 +48,7 @@ class SSOLoginHelper(object):
             #print "ERRR", err
             self.loop.quit()
         self._whoami = None
-        sso = UbuntuSSOAPI(token)
+        sso = UbuntuSSOAPI()
         sso.connect("whoami", _whoami_done)
         sso.connect("error", _whoami_error)
         sso.whoami()

@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 
-import sys
-sys.path.insert(0,"../")
+from testutils import setup_test_env
+setup_test_env()
 
 import apt
 import os
@@ -10,19 +10,28 @@ import re
 import unittest
 import xapian
 
+from piston_mini_client import PistonResponseObject
+
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.database import parse_axi_values_file
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.db.update import (update_from_app_install_data,
-                                      update_from_var_lib_apt_lists,
-                                      update_from_appstream_xml,
-                                      update_from_software_center_agent)
+from softwarecenter.db.update import (
+    make_doc_from_parser,
+    update_from_app_install_data,
+    update_from_var_lib_apt_lists,
+    update_from_appstream_xml,
+    update_from_software_center_agent,
+    SCAPurchasedApplicationParser,
+    )
+from softwarecenter.distro import get_distro
 from softwarecenter.enums import (
     XapianValues,
     PkgStates,
     )
+from softwarecenter.testutils import get_test_db
+
 
 class TestDatabase(unittest.TestCase):
     """ tests the store database """
@@ -36,7 +45,7 @@ class TestDatabase(unittest.TestCase):
     def test_update_from_desktop_file(self):
         # ensure we index with german locales to test i18n
         os.environ["LANGUAGE"] = "de"
-        db = xapian.WritableDatabase("./data/test.db", 
+        db = xapian.WritableDatabase("./data/test.db",
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_app_install_data(db, self.cache, datadir="./data/desktop")
         self.assertTrue(res)
@@ -48,7 +57,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(i, 1)
 
     def test_update_from_appstream_xml(self):
-        db = xapian.WritableDatabase("./data/test.db", 
+        db = xapian.WritableDatabase("./data/test.db",
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_appstream_xml(db, self.cache, "./data/app-info/")
         self.assertTrue(res)
@@ -64,7 +73,7 @@ class TestDatabase(unittest.TestCase):
     def test_update_from_var_lib_apt_lists(self):
         # ensure we index with german locales to test i18n
         os.environ["LANGUAGE"] = "de"
-        db = xapian.WritableDatabase("./data/test.db", 
+        db = xapian.WritableDatabase("./data/test.db",
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_var_lib_apt_lists(db, self.cache, listsdir="./data/app-info/")
         self.assertTrue(res)
@@ -88,7 +97,7 @@ class TestDatabase(unittest.TestCase):
 
     def test_update_from_json_string(self):
         from softwarecenter.db.update import update_from_json_string
-        db = xapian.WritableDatabase("./data/test.db", 
+        db = xapian.WritableDatabase("./data/test.db",
                                      xapian.DB_CREATE_OR_OVERWRITE)
         cache = apt.Cache()
         p = os.path.abspath("./data/app-info-json/apps.json")
@@ -97,7 +106,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(db.get_doccount(), 1)
 
     def test_build_from_software_center_agent(self):
-        db = xapian.WritableDatabase("./data/test.db", 
+        db = xapian.WritableDatabase("./data/test.db",
                                      xapian.DB_CREATE_OR_OVERWRITE)
         cache = apt.Cache()
         # monkey patch distro to ensure we get data
@@ -106,8 +115,6 @@ class TestDatabase(unittest.TestCase):
         distro.get_codename = lambda: "natty"
         # we test against the real https://software-center.ubuntu.com here
         # so we need network
-        softwarecenter.paths.datadir="../data"
-        os.environ["PYTHONPATH"] = ".."
         res = update_from_software_center_agent(db, cache, ignore_cache=True)
         # check results
         self.assertTrue(res)
@@ -116,7 +123,7 @@ class TestDatabase(unittest.TestCase):
             doc = db.get_document(p.docid)
             ppa = doc.get_value(XapianValues.ARCHIVE_PPA)
             self.assertTrue(ppa.startswith("commercial-ppa") and
-                            ppa.count("/") == 1, 
+                            ppa.count("/") == 1,
                             "ARCHIVE_PPA value incorrect, got '%s'" % ppa)
             self.assertTrue(
                 "-icon-" in doc.get_value(XapianValues.ICON))
@@ -129,11 +136,11 @@ class TestDatabase(unittest.TestCase):
     def test_license_string_data_from_software_center_agent(self):
         from softwarecenter.testutils import get_test_pkg_info
         #os.environ["SOFTWARE_CENTER_DEBUG_HTTP"] = "1"
-        os.environ["SOFTWARE_CENTER_BUY_HOST"] = "http://sc.staging.ubuntu.com/"
+        os.environ["SOFTWARE_CENTER_AGENT_HOST"] = "http://sc.staging.ubuntu.com/"
         # staging does not have a valid cert
         os.environ["PISTON_MINI_CLIENT_DISABLE_SSL_VALIDATION"] = "1"
         cache = get_test_pkg_info()
-        db = xapian.WritableDatabase("./data/test.db", 
+        db = xapian.WritableDatabase("./data/test.db",
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_software_center_agent(db, cache, ignore_cache=True)
         self.assertTrue(res)
@@ -142,7 +149,7 @@ class TestDatabase(unittest.TestCase):
             license = doc.get_value(XapianValues.LICENSE)
             self.assertNotEqual(license, "")
             self.assertNotEqual(license, None)
-        del os.environ["SOFTWARE_CENTER_BUY_HOST"]
+        del os.environ["SOFTWARE_CENTER_AGENT_HOST"]
 
     def test_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
@@ -151,7 +158,7 @@ class TestDatabase(unittest.TestCase):
         self.assertRaises(ValueError, AppDetails, db)
 
     def test_application_details(self):
-        db = xapian.WritableDatabase("./data/test.db", 
+        db = xapian.WritableDatabase("./data/test.db",
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_app_install_data(db, self.cache, datadir="./data/desktop")
         self.assertTrue(res)
@@ -193,7 +200,7 @@ class TestDatabase(unittest.TestCase):
         self.assertTrue(len(appdetails.version) > 2)
         # FIXME: screenshots will only work on ubuntu
         self.assertTrue(re.match(
-                "http://screenshots.ubuntu.com/screenshot-with-version/software-center/[\d.]+", 
+                "http://screenshots.ubuntu.com/screenshot-with-version/software-center/[\d.]+",
                 appdetails.screenshot))
         self.assertTrue(re.match(
                 "http://screenshots.ubuntu.com/thumbnail-with-version/software-center/[\d.]+",
@@ -209,12 +216,11 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(app.pkgname, 'linux-headers-'+os.uname()[2])
         # $distro
         details = app.get_details(db)
-        from softwarecenter.distro import get_distro
         distro = get_distro().get_codename()
         self.assertEqual(app.request, 'channel=' + distro + '-partner')
-        
+
     def ensure_installation_date_and_lazy_history_loading(self, appdetails):
-        # we run two tests, the first is to ensure that we get a 
+        # we run two tests, the first is to ensure that we get a
         # result from installation_data immediately (at this point the
         # history is not loaded yet) so we expect "None"
         self.assertEqual(appdetails.installation_date, None)
@@ -229,7 +235,7 @@ class TestDatabase(unittest.TestCase):
         self.assertNotEqual(appdetails.installation_date, None)
 
     def test_package_states(self):
-        db = xapian.WritableDatabase("./data/test.db", 
+        db = xapian.WritableDatabase("./data/test.db",
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_app_install_data(db, self.cache, datadir="./data/desktop")
         self.assertTrue(res)
@@ -287,37 +293,37 @@ class TestDatabase(unittest.TestCase):
             doc = m.document
             doc.get_value(value_time) >= last_time
             last_time = doc.get_value(value_time)
-            
+
     # FIXME: re-enable both tests once sc.staging.ubuntu.com has the new
     #        version of scagent with support for the publication date
     def disabled_test_for_purchase_apps_date_published(self):
         from softwarecenter.testutils import get_test_pkg_info
         #os.environ["SOFTWARE_CENTER_DEBUG_HTTP"] = "1"
-        os.environ["SOFTWARE_CENTER_BUY_HOST"] = "http://sc.staging.ubuntu.com/"
+        os.environ["SOFTWARE_CENTER_AGENT_HOST"] = "http://sc.staging.ubuntu.com/"
         # staging does not have a valid cert
         os.environ["PISTON_MINI_CLIENT_DISABLE_SSL_VALIDATION"] = "1"
         cache = get_test_pkg_info()
-        db = xapian.WritableDatabase("./data/test.db", 
+        db = xapian.WritableDatabase("./data/test.db",
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_software_center_agent(db, cache, ignore_cache=True)
         self.assertTrue(res)
-        
+
         for p in db.postlist(""):
             doc = db.get_document(p.docid)
             date_published = doc.get_value(XapianValues.DATE_PUBLISHED)
             # make sure that a date_published value is provided
             self.assertNotEqual(date_published, "")
             self.assertNotEqual(date_published, None)
-        del os.environ["SOFTWARE_CENTER_BUY_HOST"]
-        
+        del os.environ["SOFTWARE_CENTER_AGENT_HOST"]
+
     def disabled_test_for_purchase_apps_cataloged_time(self):
         from softwarecenter.testutils import get_test_pkg_info
         #os.environ["SOFTWARE_CENTER_DEBUG_HTTP"] = "1"
-        os.environ["SOFTWARE_CENTER_BUY_HOST"] = "http://sc.staging.ubuntu.com/"
+        os.environ["SOFTWARE_CENTER_AGENT_HOST"] = "http://sc.staging.ubuntu.com/"
         # staging does not have a valid cert
         os.environ["PISTON_MINI_CLIENT_DISABLE_SSL_VALIDATION"] = "1"
         cache = get_test_pkg_info()
-        db = xapian.WritableDatabase("./data/test.db", 
+        db = xapian.WritableDatabase("./data/test.db",
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_software_center_agent(db, cache, ignore_cache=True)
         self.assertTrue(res)
@@ -338,7 +344,7 @@ class TestDatabase(unittest.TestCase):
         # later time than axi package Ubuntu Software Center
         self.assertTrue(for_purch_cataloged_time > sc_cataloged_time)
 
-        del os.environ["SOFTWARE_CENTER_BUY_HOST"]
+        del os.environ["SOFTWARE_CENTER_AGENT_HOST"]
 
     def test_parse_axi_values_file(self):
         s = """
@@ -382,6 +388,119 @@ app-popcon	4	# app-install .desktop popcon rank
                            nonblocking_load=False)
         self.assertTrue(len(enquirer.get_docids()) > 0)
         # FIXME: test more of the interface
+
+
+def make_purchased_app_details(db=None, supported_series=None):
+    """Return an AppDetail instance with the required attributes."""
+    subscription = {
+        u'application': {
+            u'archive_id': u'commercial-ppa-uploaders/photobomb',
+            u'description': u"Easy and Social Image Editor\nPhotobomb "
+                            u"give you easy access to images in your "
+                            u"social networking feeds, pictures on ...",
+            u'name': u'Photobomb',
+            u'package_name': u'photobomb',
+            u'signing_key_id': u'1024R/75254D99'
+            },
+        u'deb_line': u'deb https://some.user:ABCDEFGHIJKLMNOP@'
+                     u'private-ppa.launchpad.net/commercial-ppa-uploaders/'
+                     u'photobomb/ubuntu natty main',
+        u'distro_series': {u'code_name': u'natty', u'version': u'11.04'},
+        u'failures': [],
+        u'open_id': u'https://login.ubuntu.com/+id/ABCDEF',
+        u'purchase_date': u'2011-09-16 06:37:52',
+        u'purchase_price': u'2.99',
+        u'state': u'Complete',
+        }
+
+    if supported_series != None:
+        subscription['application']['series'] = supported_series
+    else:
+        # If no supportod_series kwarg was provided, we ensure the
+        # current series/arch is supported.
+        distro = get_distro()
+        subscription['application']['series'] = {
+            distro.get_codename(): [distro.get_architecture()]
+            }
+
+    item = PistonResponseObject.from_dict(subscription)
+    parser = SCAPurchasedApplicationParser(item)
+
+    if db is None:
+        db = get_test_db()
+
+    doc = make_doc_from_parser(parser, db._aptcache)
+    app_details = AppDetails(db, doc)
+    return app_details
+
+
+class AppDetailsPkgStateTestCase(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        # Set these as class attributes as we don't modify either
+        # during the tests.
+        cls.distro = get_distro()
+        cls.db = get_test_db()
+
+    def test_package_state_purchased_enable_repo(self):
+        # If the current series is supported by the app, the state should
+        # be PURCHASED_BUT_REPO_MUST_BE_ENABLED.
+        app_details = make_purchased_app_details(self.db,
+            supported_series={
+                'current-1': ['i386', 'amd64'],
+                self.distro.get_codename(): [self.distro.get_architecture()]
+                })
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+            state)
+
+    def test_package_state_purchased_not_available(self):
+        # If the current series is NOT supported by the app, the state should
+        # be PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES.
+        app_details = make_purchased_app_details(self.db,
+            supported_series={
+                'current-1': ['i386', 'amd64'],
+                self.distro.get_codename(): ['newarch', 'amdm128'],
+                })
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES,
+            state)
+
+    def test_package_state_no_series(self):
+        # Until the fix for bug 917109 is deployed on production, we
+        # should default to the current (broken) behaviour of
+        # indicating that the repo just needs enabling.
+        app_details = make_purchased_app_details(self.db, supported_series=None)
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+            state)
+
+    def test_package_state_arch_any(self):
+        # In the future the supported arches returned by sca will include
+        # any - let's not break when that happens.
+        app_details = make_purchased_app_details(self.db,
+            supported_series={
+                'current-1': ['i386', 'amd64'],
+                self.distro.get_codename(): ['newarch', 'any'],
+                })
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+            state)
+
+
 
 if __name__ == "__main__":
     import logging
