@@ -138,6 +138,10 @@ class TestHWRequirements(unittest.TestCase):
         label.set_hardware_requirement('hardware::gps', 'yes')
         self.assertEqual(label.get_label(), "GPS")
         self.assertEqual(label.get_icon_name(), Gtk.STOCK_APPLY)
+        # test the gtk bits
+        self.assertEqual(len(label.get_children()), 2)
+        self.assertEqual(type(label.get_children()[1]), Gtk.Image)
+        self.assertEqual(type(label.get_children()[0]), Gtk.Label)
     
     def test_hardware_requirements_box(self):
         box = HardwareRequirementsBox()
@@ -149,6 +153,8 @@ class TestHWRequirements(unittest.TestCase):
                          "GPS")
         self.assertEqual(box.hw_labels[0].get_icon_name(), 
                          Gtk.STOCK_APPLY)
+        # test the gtk bits
+        self.assertEqual(len(box.get_children()), 2)
         
 
 class TestUIReviewsList(unittest.TestCase):
