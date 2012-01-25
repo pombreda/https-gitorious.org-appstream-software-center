@@ -19,8 +19,6 @@
 from gi.repository import Gtk
 from gettext import gettext as _
 
-from softwarecenter.ui.gtk3.em import EM
-
 TAG_DESCRIPTION = {
     'hardware::gps' : _('GPS'),
     'hardware::video:opengl' : _('OpenGL hardware acceleration'),
@@ -39,6 +37,7 @@ class HardwareRequirementsLabel(Gtk.HBox):
     """ contains a single HW requirement string and a image that shows if 
         the requirements are meet 
     """
+
     ICON_SUPPORTED = Gtk.STOCK_APPLY
     ICON_MISSING = Gtk.STOCK_CANCEL
 
@@ -50,13 +49,10 @@ class HardwareRequirementsLabel(Gtk.HBox):
     def _build_ui(self):
         self._img = Gtk.Image()
         self._label = Gtk.Label()
-        self.pack_start(self._label, True, True, 0)
-        self.pack_start(self._img, True, True, 0)
+        self.pack_start(self._img, True, True, 1)
+        self.pack_start(self._label, True, True, 1)
     def get_label(self):
-        if self.result == "yes":
-            return _(TAG_DESCRIPTION[self.tag])
-        elif self.result == "no":
-            return _(TAG_MISSING_DESCRIPTION[self.tag])
+        return _(TAG_DESCRIPTION[self.tag])
     def get_icon_name(self):
         if self.result == "yes":
             return self.ICON_SUPPORTED
@@ -66,7 +62,7 @@ class HardwareRequirementsLabel(Gtk.HBox):
         self.tag = tag
         self.result = result
         self._label.set_text(self.get_label())
-        self._img.set_from_stock(self.get_icon_name(), EM)
+        self._img.set_from_stock(self.get_icon_name(),  Gtk.IconSize.MENU)
 
 class HardwareRequirementsBox(Gtk.HBox):
     """ A collection of HW requirement labels """
@@ -87,8 +83,30 @@ class HardwareRequirementsBox(Gtk.HBox):
             label = HardwareRequirementsLabel()
             label.set_hardware_requirement(tag, supported)
             label.show()
-            self.pack_start(label, True, True, 0)
+            self.pack_start(label, True, True, 6)
 
     @property
     def hw_labels(self):
         return self.get_children()
+
+
+def get_test_window():
+    win = Gtk.Window()
+    win.set_size_request(300, 200)
+
+    HW_TEST_RESULT = { 'hardware::gps' : 'yes',
+                       'hardware::video:opengl' : 'no',
+                       }
+
+    # add it
+    hwbox = HardwareRequirementsBox()
+    hwbox.set_hardware_requirements(HW_TEST_RESULT)
+    win.add(hwbox)
+
+    win.show_all()
+    win.connect("destroy", Gtk.main_quit)
+    return win
+
+if __name__ == "__main__":
+    win = get_test_window()
+    Gtk.main()

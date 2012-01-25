@@ -140,8 +140,8 @@ class TestHWRequirements(unittest.TestCase):
         self.assertEqual(label.get_icon_name(), Gtk.STOCK_APPLY)
         # test the gtk bits
         self.assertEqual(len(label.get_children()), 2)
-        self.assertEqual(type(label.get_children()[1]), Gtk.Image)
-        self.assertEqual(type(label.get_children()[0]), Gtk.Label)
+        self.assertEqual(type(label.get_children()[0]), Gtk.Image)
+        self.assertEqual(type(label.get_children()[1]), Gtk.Label)
         # test setting it again
         label.set_hardware_requirement('hardware::video:opengl', 'yes')
         self.assertEqual(len(label.get_children()), 2)
@@ -157,6 +157,10 @@ class TestHWRequirements(unittest.TestCase):
         self.assertEqual(box.hw_labels[0].get_icon_name(), 
                          Gtk.STOCK_APPLY)
         # test the gtk bits
+        self.assertEqual(len(box.get_children()), 2)
+
+        # test seting it again
+        box.set_hardware_requirements(self.HW_TEST_RESULT)
         self.assertEqual(len(box.get_children()), 2)
         
 
