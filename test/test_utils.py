@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 import os
+import datetime
 import unittest
-
 
 from testutils import setup_test_env
 setup_test_env()
@@ -98,6 +98,26 @@ class TestSCUtils(unittest.TestCase):
         for changed in ["foo.png", "foo.tiff", "foo.jpg", "foo.jpeg"]:
             self.assertEqual(split_icon_ext(changed), 
                             os.path.splitext(changed)[0])
+
+    def test_get_nice_date_string(self):
+        from softwarecenter.utils import get_nice_date_string
+
+        now = datetime.datetime.utcnow()
+
+        ten_secs_ago = now + datetime.timedelta(seconds=-10)
+        self.assertEqual(get_nice_date_string(ten_secs_ago), 'a few minutes ago')
+
+        two_mins_ago = now + datetime.timedelta(minutes=-2)
+        self.assertEqual(get_nice_date_string(two_mins_ago), '2 minutes ago')
+
+        under_a_day = now + datetime.timedelta(hours=-23, minutes=-59, seconds=-59)
+        self.assertEqual(get_nice_date_string(under_a_day), '23 hours ago')
+
+        under_a_week = now + datetime.timedelta(days=-4, hours=-23, minutes=-59, seconds=-59)
+        self.assertEqual(get_nice_date_string(under_a_week), '4 days ago')
+
+        over_a_week = now + datetime.timedelta(days=-7)
+        self.assertEqual(get_nice_date_string(over_a_week), over_a_week.isoformat().split('T')[0])
 
 
 if __name__ == "__main__":
