@@ -87,7 +87,7 @@ class TestAppdetailsView(unittest.TestCase):
         # FIXME: ensure that the icon is really downloaded
         #self.assertTrue(os.path.exists(mock_details.cached_icon_file_path))
         #os.unlink(mock_details.cached_icon_file_path)
-        
+
     def test_add_where_is_it(self):
         app = Application("", "software-center")
         self.view.show_app(app)

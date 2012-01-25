@@ -11,6 +11,9 @@ from testutils import setup_test_env, do_events
 setup_test_env()
 from softwarecenter.ui.gtk3.widgets.reviews import get_test_reviews_window
 
+from softwarecenter.ui.gtk3.widgets.labels import (
+    HardwareRequirementsLabel, HardwareRequirementsBox)
+
 
 # window destory timeout
 TIMEOUT=100
@@ -123,6 +126,30 @@ class TestWidgets(unittest.TestCase):
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
 
+class TestHWRequirements(unittest.TestCase):
+
+    HW_TEST_RESULT = { 'hardware::gps' : 'yes',
+                       'hardware::xxx' : 'unknown',
+                       'hardware::video:opengl' : 'no',
+                       }
+
+    def test_hardware_requirements_label(self):
+        label = HardwareRequirementsLabel()
+        label.set_hardware_requirement(*self.HW_TEST_RESULT.items()[0])
+        self.assertEqual(label.get_label(), "GPS")
+        self.assertEqual(label.get_icon_name(), Gtk.STOCK_APPLY)
+    
+    def test_hardware_requirements_box(self):
+        box = HardwareRequirementsBox()
+        box.set_hardware_requirements(self.HW_TEST_RESULT)
+        # its 2 because we do not display "unknown" currently
+        self.assertEqual(len(box.hw_labels), 2)
+        # test a individual item
+        self.assertEqual(label.hw_labels[0].get_label(), 
+                         "GPS")
+        self.assertEqual(label.hw_labels[0].get_icon(), 
+                         Gtk.STOCK_APPLY)
+        
 
 class TestUIReviewsList(unittest.TestCase):
     def setUp(self):
@@ -184,6 +211,8 @@ class TestUIReviewsList(unittest.TestCase):
         self.assertEmbeddedMessageLabel(
             _('Got an opinion?'),
             _('Be the first to contribute a review for this application'))
+
+
 
 
 if __name__ == "__main__":
