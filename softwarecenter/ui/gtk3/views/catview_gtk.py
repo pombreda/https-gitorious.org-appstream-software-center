@@ -495,6 +495,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         if recommended_for_you_cat is None:
             LOG.warn("No 'recommended_for_you' category found!!")
             return None, []
+            
+        # TODO: Kick off an update from the RecommenderAgent here and hide
+        #       the spinner/load the tileview on the callback
 
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
@@ -503,7 +506,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         enq.set_query(recommended_for_you_cat.query,
                       limit=8,
                       filter=app_filter,
-                      sortmode=SortMethods.BY_CATALOGED_TIME,
+                      sortmode=SortMethods.UNSORTED,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                       nonblocking_load=False)
 
