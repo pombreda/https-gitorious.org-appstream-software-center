@@ -17,24 +17,61 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gi.repository import Gtk
+from gettext import gettext as _
+
+TAG_DESCRIPTION = {
+    'hardware::gps' : _('GPS'),
+    # FIXME: fill in more
+}
+
+TAG_MISSING_DESCRIPTION = {
+    'hardware::gps' : _('This software requires a GPS, '
+                        'but the computer does not have one.'),
+    # FIXME: fill in more
+}
 
 class HardwareRequirementsLabel(Gtk.HBox):
     """ contains a single HW requirement string and a image that shows if 
         the requirements are meet 
     """
+    ICON_SUPPORTED = Gtk.STOCK_APPLY
+    ICON_MISSING = Gtk.STOCK_CANCEL
+
+    def __init__(self):
+        super(HardwareRequirementsLabel, self).__init__()
+        self.tag = None
+        self.result = None
     def get_label(self):
-        return ""
+        if self.result == "yes":
+            return _(TAG_DESCRIPTION[self.tag])
+        elif self.result == "no":
+            return _(TAG_MISSING_DESCRIPTION[self.tag])
     def get_icon_name(self):
-        return ""
+        if self.result == "yes":
+            return self.ICON_SUPPORTED
+        elif self.result == "no":
+            return self.ICON_MISSING
     def set_hardware_requirement(self, tag, result):
-        pass
+        self.tag = tag
+        self.result = result
 
 class HardwareRequirementsBox(Gtk.HBox):
     """ A collection of HW requirement labels """
 
+    def __init__(self):
+        super(HardwareRequirementsBox, self).__init__()
+        self._labels = []
+
     def set_hardware_requirements(self, hw_requirements_result):
-        pass
+        self._labels = []
+        for tag, supported in hw_requirements_result.iteritems():
+            # ignore unknown for now
+            if not supported in ("yes", "no"):
+                continue
+            label = HardwareRequirementsLabel()
+            label.set_hardware_requirement(tag, supported)
+            self._labels.append(label)
 
     @property
     def hw_labels(self):
-        return []
+        return self._labels

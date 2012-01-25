@@ -135,7 +135,7 @@ class TestHWRequirements(unittest.TestCase):
 
     def test_hardware_requirements_label(self):
         label = HardwareRequirementsLabel()
-        label.set_hardware_requirement(*self.HW_TEST_RESULT.items()[0])
+        label.set_hardware_requirement('hardware::gps', 'yes')
         self.assertEqual(label.get_label(), "GPS")
         self.assertEqual(label.get_icon_name(), Gtk.STOCK_APPLY)
     
@@ -145,9 +145,9 @@ class TestHWRequirements(unittest.TestCase):
         # its 2 because we do not display "unknown" currently
         self.assertEqual(len(box.hw_labels), 2)
         # test a individual item
-        self.assertEqual(label.hw_labels[0].get_label(), 
+        self.assertEqual(box.hw_labels[0].get_label(), 
                          "GPS")
-        self.assertEqual(label.hw_labels[0].get_icon(), 
+        self.assertEqual(box.hw_labels[0].get_icon_name(), 
                          Gtk.STOCK_APPLY)
         
 
