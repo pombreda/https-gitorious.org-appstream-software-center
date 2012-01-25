@@ -874,7 +874,7 @@ def index_app_info_from_parser(parser, db, cache):
         doc = make_doc_from_parser(parser, cache)
         if not doc:
             LOG.debug("make_doc_from_parser() returned '%s', ignoring" % doc)
-            continue
+            return 
         term_generator.set_document(doc)
         name = doc.get_data()
 
