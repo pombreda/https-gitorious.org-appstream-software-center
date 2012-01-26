@@ -1,9 +1,5 @@
 #!/usr/bin/python
 
-
-from testutils import setup_test_env
-setup_test_env()
-
 import apt
 import os
 import re
@@ -11,6 +7,11 @@ import unittest
 import xapian
 
 from piston_mini_client import PistonResponseObject
+from mock import Mock, patch
+
+from testutils import setup_test_env
+setup_test_env()
+
 
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
@@ -30,7 +31,10 @@ from softwarecenter.enums import (
     XapianValues,
     PkgStates,
     )
-from softwarecenter.testutils import get_test_db
+from softwarecenter.testutils import (
+    get_test_db, 
+    get_test_pkg_info,
+    )
 
 
 class TestDatabase(unittest.TestCase):
@@ -134,7 +138,6 @@ class TestDatabase(unittest.TestCase):
                                 url.startswith("mailto:"))
 
     def test_license_string_data_from_software_center_agent(self):
-        from softwarecenter.testutils import get_test_pkg_info
         #os.environ["SOFTWARE_CENTER_DEBUG_HTTP"] = "1"
         os.environ["SOFTWARE_CENTER_AGENT_HOST"] = "http://sc.staging.ubuntu.com/"
         # staging does not have a valid cert
@@ -267,6 +270,9 @@ class TestDatabase(unittest.TestCase):
         app = Application("Scintillant Orange", "scintillant-orange")
         appdetails = app.get_details(db)
         self.assertEqual(appdetails.pkg_state, PkgStates.NOT_FOUND)
+        self.assertEqual(
+            appdetails.tags,
+            set(['use::converting', 'role::program', 'implemented-in::perl']))
 
     def test_packagename_is_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
@@ -343,6 +349,28 @@ class TestDatabase(unittest.TestCase):
 
         del os.environ["SOFTWARE_CENTER_AGENT_HOST"]
 
+    def test_hardware_requirements_satisfied(self):
+        with patch.object(AppDetails, 'hardware_requirements') as mock_hw:
+            # setup env
+            db = get_test_db()
+            app = Application("", "software-center")
+            mock_hw.__get__ = Mock()
+            # not good
+            mock_hw.__get__.return_value={
+                'hardware::gps' : 'no',
+                'hardware::video:opengl' : 'yes',
+                }
+            details = AppDetails(db, application=app)
+            self.assertFalse(details.hardware_requirements_satisfied)
+            # this if good
+            mock_hw.__get__.return_value={
+                'hardware::video:opengl' : 'yes',
+                }
+            self.assertTrue(details.hardware_requirements_satisfied)
+            # empty is satisfied
+            mock_hw.__get__.return_value={}
+            self.assertTrue(details.hardware_requirements_satisfied)
+
     def test_parse_axi_values_file(self):
         s = """
 # This file contains the mapping between names of numeric values indexed in the
@@ -368,6 +396,13 @@ app-popcon	4	# app-install .desktop popcon rank
         axi_values = parse_axi_values_file("axi-test-values")
         self.assertNotEqual(axi_values, {})
         print axi_values
+
+    def test_appdetails(self):
+        from softwarecenter.testutils import get_test_db
+        db = get_test_db()
+        # see "apt-cache show casper|grep ^Tag"
+        details = AppDetails(db, application=Application("", "casper"))
+        self.assertTrue(len(details.tags) > 2)
 
     def test_app_enquire(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
@@ -422,6 +457,7 @@ def make_purchased_app_details(db=None, supported_series=None):
     doc = make_doc_from_parser(parser, db._aptcache)
     app_details = AppDetails(db, doc)
     return app_details
+
 
 
 class AppDetailsPkgStateTestCase(unittest.TestCase):

@@ -1,7 +1,9 @@
 #!/usr/bin/python
 
 import unittest
+
 from gi.repository import Gtk, GObject
+from gettext import gettext as _
 
 from testutils import setup_test_env
 setup_test_env()
@@ -10,10 +12,13 @@ from mock import Mock, patch
 
 from softwarecenter.db.application import Application
 from softwarecenter.testutils import get_mock_app_from_real_app, do_events
+from softwarecenter.ui.gtk3.widgets.labels import HardwareRequirementsBox
 from softwarecenter.ui.gtk3.views.appdetailsview import get_test_window_appdetails
 from softwarecenter.enums import PkgStates
 
 from test.test_database import make_purchased_app_details
+
+
 
 # window destory timeout
 TIMEOUT=100
@@ -87,7 +92,7 @@ class TestAppdetailsView(unittest.TestCase):
         # FIXME: ensure that the icon is really downloaded
         #self.assertTrue(os.path.exists(mock_details.cached_icon_file_path))
         #os.unlink(mock_details.cached_icon_file_path)
-        
+
     def test_add_where_is_it(self):
         app = Application("", "software-center")
         self.view.show_app(app)
@@ -202,6 +207,77 @@ class TestAppdetailsView(unittest.TestCase):
 
         self.assertTrue(button.is_sensitive())
 
+class HardwareRequirementsTestCase(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        # Set these as class attributes as we don't modify either
+        # during the tests.
+        from softwarecenter.testutils import get_test_db
+        cls.db = get_test_db()
+        cls.win = get_test_window_appdetails()
+        cls.view = cls.win.get_data("view")
+
+    @classmethod
+    def tearDownClass(cls):
+        GObject.timeout_add(TIMEOUT, lambda: cls.win.destroy())
+        Gtk.main()
+
+    def setUp(self):
+        app = Application("", "software-center")
+        self.app_mock = get_mock_app_from_real_app(app)
+        self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
+
+    def test_show_hardware_requirements(self):
+        self.app_mock.details.hardware_requirements = { 
+            'hardware::video:opengl' : 'yes',
+            'hardware::gps' : 'no',
+            }
+        self.app_mock.details.hardware_requirements_satisfied = False
+        self.view.show_app(self.app_mock)
+        do_events()
+        # ensure we have the data
+        self.assertTrue(
+            self.view.hardware_info.value_label.get_property("visible"))
+        self.assertEqual(
+            type(HardwareRequirementsBox()),
+            type(self.view.hardware_info.value_label))
+        self.assertEqual(
+            self.view.hardware_info.key, _("Also requires"))
+        # ensure that the button is correct
+        self.assertEqual(
+            self.view.pkg_statusbar.button.get_label(), "Install Anyway")
+        # and again for purchase
+        self.app_mock.details.pkg_state = PkgStates.NEEDS_PURCHASE
+        self.view.show_app(self.app_mock)
+        self.assertEqual(
+            self.view.pkg_statusbar.button.get_label(), 
+            _(u"Buy Anyway\u2026").encode("utf-8"))
+        # check if the warning bar is displayed
+        self.assertTrue(self.view.pkg_warningbar.get_property("visible"))
+        self.assertEqual(self.view.pkg_warningbar.label.get_text(),
+                         _('This software requires a GPS, '
+                           'but the computer does not have one.'))
+
+    def test_no_show_hardware_requirements(self):
+        self.app_mock.details.hardware_requirements = {}
+        self.app_mock.details.hardware_requirements_satisfied = True
+        self.view.show_app(self.app_mock)
+        do_events()
+        # ensure we do not show anything if there are no HW requirements
+        self.assertFalse(
+            self.view.hardware_info.get_property("visible"))
+        # ensure that the button is correct
+        self.assertEqual(
+            self.view.pkg_statusbar.button.get_label(), _("Install"))
+        # and again for purchase
+        self.app_mock.details.pkg_state = PkgStates.NEEDS_PURCHASE
+        self.view.show_app(self.app_mock)
+        self.assertEqual(
+            self.view.pkg_statusbar.button.get_label(), 
+            _(u'Buy\u2026').encode("utf-8"))
+        # check if the warning bar is invisible
+        self.assertFalse(self.view.pkg_warningbar.get_property("visible"))
 
 class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
 

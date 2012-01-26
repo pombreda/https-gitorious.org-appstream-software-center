@@ -157,6 +157,7 @@ class SCAApplicationParser(AppInfoParserBase):
                 'Comment' : 'Comment',
                 'Version' : 'version',
                 'Supported-Distros': 'series',
+                'Tags'   : 'tags',
               }
 
     # map from requested key to a static data element
@@ -828,6 +829,13 @@ def make_doc_from_parser(parser, cache):
         ver = parser.get_desktop("X-AppInstall-Version")
         doc.add_value(XapianValues.VERSION_INFO, ver)
 
+    # (deb)tags (in addition to the pkgname debtags
+    if parser.has_option_desktop("X-AppInstall-Tags"):
+        tags = parser.get_desktop("X-AppInstall-Tags")
+        if tags:
+            for tag in tags.split(","):
+                doc.add_term("XT"+tag.strip())
+
     # popcon
     # FIXME: popularity not only based on popcon but also
     #        on archive section, third party app etc
@@ -884,7 +892,7 @@ def index_app_info_from_parser(parser, db, cache):
         seen.add(name)
 
         index_name(doc, name, term_generator)
-        
+
         pkgname = doc.get_value(XapianValues.PKGNAME)
         # add packagename as meta-data too
         term_generator.index_text_without_positions(pkgname, WEIGHT_APT_PKGNAME)
