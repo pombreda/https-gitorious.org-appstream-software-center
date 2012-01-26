@@ -136,8 +136,9 @@ class TestHWRequirements(unittest.TestCase):
     def test_hardware_requirements_label(self):
         label = HardwareRequirementsLabel()
         label.set_hardware_requirement('hardware::gps', 'yes')
-        self.assertEqual(label.get_label(),
-                         u"%sGPS," % HardwareRequirementsLabel.SYM_SUPPORTED)
+        self.assertEqual(
+            label.get_label(),
+            u"%sGPS" % HardwareRequirementsLabel.SUPPORTED_SYM["yes"])
         # test the gtk bits
         self.assertEqual(type(label.get_children()[0]), Gtk.Label)
         # test setting it again
@@ -152,10 +153,12 @@ class TestHWRequirements(unittest.TestCase):
         # test the gtk bits
         self.assertEqual(len(box.get_children()), 2)
         # no trailing ","
-        self.assertEqual(box.get_children()[0].get_label(),
-                         u"%smouse," % HardwareRequirementsLabel.SYM_MISSING)
-        self.assertEqual(box.get_children()[1].get_label(),
-                         u"%sGPS" % HardwareRequirementsLabel.SYM_SUPPORTED)
+        self.assertEqual(
+            box.get_children()[0].get_label(),
+            u"%smouse," % HardwareRequirementsLabel.SUPPORTED_SYM["no"])
+        self.assertEqual(
+            box.get_children()[1].get_label(),
+            u"%sGPS" % HardwareRequirementsLabel.SUPPORTED_SYM["yes"])
 
         # test seting it again
         box.set_hardware_requirements(self.HW_TEST_RESULT)
