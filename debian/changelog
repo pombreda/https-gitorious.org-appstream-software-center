@@ -12,7 +12,12 @@ software-center (5.1.7.1) UNRELEASED; urgency=low
     - add a test function in test_utils.py which covers all of
       get_nice_date_string
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 Jan 2012 18:32:45 -0500
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/launcher-integration-lp761851:
+    - update to the Unity launcher integration implementation to
+      support the revamped functionality on the Unity side (LP: #761851) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 Jan 2012 18:47:44 -0500
 
 software-center (5.1.7) precise; urgency=low
 
