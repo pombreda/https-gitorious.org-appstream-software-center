@@ -133,8 +133,8 @@ def get_mock_app_from_real_app(real_app):
     for a in dir(details):
         if a.startswith("_"): continue
         setattr(details_mock, a, getattr(details, a))
-    app._details = details_mock
-    app.get_details = lambda db: app._details
+    app.details = details_mock
+    app.get_details = lambda db: app.details
     return app
 
 def setup_test_env():

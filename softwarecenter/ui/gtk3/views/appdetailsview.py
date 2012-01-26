@@ -368,15 +368,18 @@ class PackageInfo(Gtk.HBox):
     """ Box with labels for package specific information like version info
     """
 
-    def __init__(self, key, info_keys):
+    def __init__(self, key, info_keys, value_label_type=None):
         Gtk.HBox.__init__(self)
         self.set_spacing(StockEms.LARGE)
 
         self.key = key
         self.info_keys = info_keys
         self.info_keys.append(key)
-        self.value_label = Gtk.Label()
-        self.value_label.set_selectable(True)
+        if not value_label_type:
+            self.value_label = Gtk.Label()
+            self.value_label.set_selectable(True)
+        else:
+            self.value_label = value_label_type()
         self.a11y = self.get_accessible()
 
         self.connect('realize', self._on_realize)

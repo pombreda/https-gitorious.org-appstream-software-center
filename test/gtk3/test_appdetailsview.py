@@ -202,6 +202,41 @@ class TestAppdetailsView(unittest.TestCase):
 
         self.assertTrue(button.is_sensitive())
 
+class HardwareRequirementsTestCase(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        # Set these as class attributes as we don't modify either
+        # during the tests.
+        from softwarecenter.testutils import get_test_db
+        cls.db = get_test_db()
+        cls.win = get_test_window_appdetails()
+        cls.view = cls.win.get_data("view")
+
+    @classmethod
+    def tearDownClass(cls):
+        GObject.timeout_add(TIMEOUT, lambda: cls.win.destroy())
+        Gtk.main()
+
+    def test_show_hardware_requirements(self):
+        from softwarecenter.ui.gtk3.widgets.labels import HardwareRequirementsBox
+        app = Application("", "software-center")
+        mock = get_mock_app_from_real_app(app)
+        #details = mock.get_details(None)
+        mock.details.hardware_requirements = { 
+            'hardware::video:opengl' : 'yes',
+            'hardware::gps' : 'no',
+            }
+        self.view.show_app(mock)
+        do_events()
+        # ensure we have the data
+        self.assertTrue(self.view.hardware_info.get_property("visible"))
+        self.assertEqual(
+            type(HardwareRequirementsBox),
+            type(self.view.hardware_info.value_label))
+        self.assertEqual(
+            self.view.hardware_info.key, _("Also requires"))
+
 
 class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
 
