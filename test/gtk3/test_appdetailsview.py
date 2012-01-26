@@ -223,15 +223,16 @@ class HardwareRequirementsTestCase(unittest.TestCase):
         GObject.timeout_add(TIMEOUT, lambda: cls.win.destroy())
         Gtk.main()
 
-    def test_show_hardware_requirements(self):
+    def setUp(self):
         app = Application("", "software-center")
-        mock = get_mock_app_from_real_app(app)
-        #details = mock.get_details(None)
-        mock.details.hardware_requirements = { 
+        self.app_mock = get_mock_app_from_real_app(app)
+
+    def test_show_hardware_requirements(self):
+        self.app_mock.details.hardware_requirements = { 
             'hardware::video:opengl' : 'yes',
             'hardware::gps' : 'no',
             }
-        self.view.show_app(mock)
+        self.view.show_app(self.app_mock)
         do_events()
         # ensure we have the data
         self.assertTrue(
@@ -241,6 +242,15 @@ class HardwareRequirementsTestCase(unittest.TestCase):
             type(self.view.hardware_info.value_label))
         self.assertEqual(
             self.view.hardware_info.key, _("Also requires"))
+
+    def test_no_show_hardware_requirements(self):
+        self.app_mock.details.hardware_requirements = {}
+        self.view.show_app(self.app_mock)
+        do_events()
+        # ensure we do not show anything if there are no HW requirements
+        self.assertFalse(
+            self.view.hardware_info.get_property("visible"))
+        
 
 
 class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
