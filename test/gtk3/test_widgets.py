@@ -136,26 +136,19 @@ class TestHWRequirements(unittest.TestCase):
     def test_hardware_requirements_label(self):
         label = HardwareRequirementsLabel()
         label.set_hardware_requirement('hardware::gps', 'yes')
-        self.assertEqual(label.get_label(), "GPS")
-        self.assertEqual(label.get_icon_name(), Gtk.STOCK_APPLY)
+        self.assertEqual(label.get_label(),
+                         u"%sGPS" % HardwareRequirementsLabel.SYM_SUPPORTED)
         # test the gtk bits
-        self.assertEqual(len(label.get_children()), 2)
-        self.assertEqual(type(label.get_children()[0]), Gtk.Image)
-        self.assertEqual(type(label.get_children()[1]), Gtk.Label)
+        self.assertEqual(type(label.get_children()[0]), Gtk.Label)
         # test setting it again
         label.set_hardware_requirement('hardware::video:opengl', 'yes')
-        self.assertEqual(len(label.get_children()), 2)
+        self.assertEqual(len(label.get_children()), 1)
 
     def test_hardware_requirements_box(self):
         box = HardwareRequirementsBox()
         box.set_hardware_requirements(self.HW_TEST_RESULT)
         # its 2 because we do not display "unknown" currently
         self.assertEqual(len(box.hw_labels), 2)
-        # test a individual item
-        self.assertEqual(box.hw_labels[0].get_label(), 
-                         "GPS")
-        self.assertEqual(box.hw_labels[0].get_icon_name(), 
-                         Gtk.STOCK_APPLY)
         # test the gtk bits
         self.assertEqual(len(box.get_children()), 2)
 

@@ -38,8 +38,8 @@ class HardwareRequirementsLabel(Gtk.HBox):
         the requirements are meet 
     """
 
-    ICON_SUPPORTED = Gtk.STOCK_APPLY
-    ICON_MISSING = Gtk.STOCK_CANCEL
+    SYM_SUPPORTED = u'\u2713'
+    SYM_MISSING = u'<span foreground="red">%s</span>' % u'\u2718'
 
     def __init__(self):
         super(HardwareRequirementsLabel, self).__init__()
@@ -47,24 +47,26 @@ class HardwareRequirementsLabel(Gtk.HBox):
         self.result = None
         self._build_ui()
     def _build_ui(self):
-        self._img = Gtk.Image()
         self._label = Gtk.Label()
-        self._img.show()
         self._label.show()
-        self.pack_start(self._img, True, True, 1)
-        self.pack_start(self._label, True, True, 1)
+        self.pack_start(self._label, True, True, 0)
     def get_label(self):
-        return _(TAG_DESCRIPTION[self.tag])
-    def get_icon_name(self):
         if self.result == "yes":
-            return self.ICON_SUPPORTED
+            sym = self.SYM_SUPPORTED
         elif self.result == "no":
-            return self.ICON_MISSING
+            sym = self.SYM_MISSING
+        # TRANSLATORS: this is a substring that used to build the 
+        #              "hardware-supported" string, where sym is
+        #              either a unicode checkmark or a cross
+        #              and hardware is the short hardware description
+        return _("%(sym)s%(hardware)s") % {
+            "sym" : sym,
+            "hardware" : _(TAG_DESCRIPTION[self.tag]),
+            }
     def set_hardware_requirement(self, tag, result):
         self.tag = tag
         self.result = result
-        self._label.set_text(self.get_label())
-        self._img.set_from_stock(self.get_icon_name(),  Gtk.IconSize.MENU)
+        self._label.set_markup(self.get_label())
 
 class HardwareRequirementsBox(Gtk.HBox):
     """ A collection of HW requirement labels """
