@@ -1078,6 +1078,10 @@ class AppDetailsView(Viewport):
         self.title.a11y.set_role(Atk.Role.PANEL)
         hb.pack_start(vb_inner, False, False, 0)
 
+        # a warning bar (e.g. for HW incompatible packages)
+        self.pkg_warningbar = Gtk.Label()
+        vb.pack_start(self.pkg_warningbar, False, False, 0)
+
         # the package status bar
         self.pkg_statusbar = PackageStatusBar(self)
         vb.pack_start(self.pkg_statusbar, False, False, 0)
@@ -1332,6 +1336,12 @@ class AppDetailsView(Viewport):
             self.test_drive.show()
         return
 
+    def _update_warning_bar(self, app_details):
+        if app_details.hardware_requirements_satisfied:
+            self.pkg_warningbar.hide()
+        else:
+            self.pkg_warningbar.show()
+
     def _update_pkg_info_table(self, app_details):
         # set the strings in the package info table
         if app_details.version:
@@ -1412,6 +1422,7 @@ class AppDetailsView(Viewport):
         self._update_app_video(app_details)
         self._update_weblive(app_details)
         self._update_pkg_info_table(app_details)
+        self._update_warning_bar(app_details)
         if not skip_update_addons:
             self._update_addons(app_details)
         else:
@@ -1433,6 +1444,7 @@ class AppDetailsView(Viewport):
     def _update_minimal(self, app_details):
         self._update_app_icon(app_details)
         self._update_pkg_info_table(app_details)
+        self._update_warning_bar(app_details)
 #        self._update_addons_minimal(app_details)
 
         # depending on pkg install state set action labels

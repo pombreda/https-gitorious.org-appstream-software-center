@@ -147,6 +147,9 @@ class TestHWRequirements(unittest.TestCase):
 
     def test_hardware_requirements_box(self):
         box = HardwareRequirementsBox()
+        # test empty
+        box.set_hardware_requirements({})
+        # test sensible
         box.set_hardware_requirements(self.HW_TEST_RESULT)
         # its 2 because we do not display "unknown" currently
         self.assertEqual(len(box.hw_labels), 2)

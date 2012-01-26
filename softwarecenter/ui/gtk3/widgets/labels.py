@@ -110,7 +110,8 @@ class HardwareRequirementsBox(Gtk.HBox):
             label.show()
             self.pack_start(label, True, True, 6)
         # tell the last item that its last
-        self.get_children()[-1].last_item = True
+        if self.get_children():
+            self.get_children()[-1].last_item = True
 
     @property
     def hw_labels(self):
