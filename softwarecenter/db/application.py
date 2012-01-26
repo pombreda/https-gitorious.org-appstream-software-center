@@ -697,6 +697,7 @@ class AppDetails(GObject.GObject):
             result =  hw.get_hardware_support_for_tags(
                 self.tags)
         except ImportError:
+            LOG.warn("failed to import debtagshw")
             return result
         return result
 
