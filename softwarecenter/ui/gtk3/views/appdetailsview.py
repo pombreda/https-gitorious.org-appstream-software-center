@@ -88,6 +88,8 @@ class StatusBar(Gtk.Alignment):
         self.add(self.hbox)
 
         self.view = view
+        # default bg
+        self._bg = [1, 1, 1, 0.3]
 
         self.connect("style-updated", self.on_style_updated)
         return
@@ -107,7 +109,7 @@ class StatusBar(Gtk.Alignment):
 
         # fill bg
         cr.rectangle(-width, 0, a.width+2*width, a.height)
-        cr.set_source_rgba(1, 1, 1, 0.3)
+        cr.set_source_rgba(*self._bg)
         cr.fill_preserve()
 
         # paint dashed top/bottom borders
@@ -132,10 +134,14 @@ class WarningStatusBar(StatusBar):
         StatusBar.__init__(self, view)
         self.label = Gtk.Label()
         self.label.set_line_wrap(True)
+        self.label.set_alignment(0.0, 0.5)
         self.warn = Gtk.Label()
-        self.warn.set_text(u'\u26A0')
+        self.warn.set_markup(
+            '<span foreground="red" size="x-large">%s</span>' % u'\u26A0')
         self.hbox.pack_start(self.label, True, True, 0)
-        self.hbox.pack_end(self.warn, True, True, 0)
+        self.hbox.pack_end(self.warn, False, False, 0)
+        # override _bg
+        self._bg = [1, 1, 0, 0.3]
 
 class PackageStatusBar(StatusBar):
     """ Package specific status bar that contains a state label,
