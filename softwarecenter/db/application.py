@@ -682,6 +682,13 @@ class AppDetails(GObject.GObject):
             return self._doc.get_value(XapianValues.LICENSE_KEY_PATH)
 
     @property
+    def hardware_requirements_satisfied(self):
+        for key, value in self.hardware_requirements.iteritems():
+            if value == "no":
+                return False
+        return True
+
+    @property
     def hardware_requirements(self):
         result = {}
         try:
