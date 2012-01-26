@@ -130,7 +130,7 @@ class TestHWRequirements(unittest.TestCase):
 
     HW_TEST_RESULT = { 'hardware::gps' : 'yes',
                        'hardware::xxx' : 'unknown',
-                       'hardware::video:opengl' : 'no',
+                       'hardware::input:mouse' : 'no',
                        }
 
     def test_hardware_requirements_label(self):
@@ -138,9 +138,6 @@ class TestHWRequirements(unittest.TestCase):
         label.set_hardware_requirement('hardware::gps', 'yes')
         self.assertEqual(label.get_label(),
                          u"%sGPS," % HardwareRequirementsLabel.SYM_SUPPORTED)
-        self.assertEqual(label.get_label(),
-                         u"%sOpenGL hardware acceleration," % HardwareRequirementsLabel.SYM_MISSING)
-
         # test the gtk bits
         self.assertEqual(type(label.get_children()[0]), Gtk.Label)
         # test setting it again
@@ -154,6 +151,11 @@ class TestHWRequirements(unittest.TestCase):
         self.assertEqual(len(box.hw_labels), 2)
         # test the gtk bits
         self.assertEqual(len(box.get_children()), 2)
+        # no trailing ","
+        self.assertEqual(box.get_children()[0].get_label(),
+                         u"%smouse," % HardwareRequirementsLabel.SYM_MISSING)
+        self.assertEqual(box.get_children()[1].get_label(),
+                         u"%sGPS" % HardwareRequirementsLabel.SYM_SUPPORTED)
 
         # test seting it again
         box.set_hardware_requirements(self.HW_TEST_RESULT)

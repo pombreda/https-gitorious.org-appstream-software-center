@@ -21,6 +21,7 @@ from gettext import gettext as _
 
 TAG_DESCRIPTION = {
     'hardware::gps' : _('GPS'),
+    'hardware::input:mouse' : _('mouse'),
     'hardware::video:opengl' : _('OpenGL hardware acceleration'),
     # FIXME: fill in more
 }
@@ -28,6 +29,8 @@ TAG_DESCRIPTION = {
 TAG_MISSING_DESCRIPTION = {
     'hardware::gps' : _('This software requires a GPS, '
                         'but the computer does not have one.'),
+    'hardware::gps' : _('This software requires a mouse, '
+                        'but none is currently setup.'),
     'hardware::video:opengl' : _('This computer does not have graphics fast '
                                  'enough for this software.'),
     # FIXME: fill in more
@@ -41,10 +44,11 @@ class HardwareRequirementsLabel(Gtk.HBox):
     SYM_SUPPORTED = u'\u2713'
     SYM_MISSING = u'<span foreground="red">%s</span>' % u'\u2718'
 
-    def __init__(self):
+    def __init__(self, last_item=False):
         super(HardwareRequirementsLabel, self).__init__()
         self.tag = None
         self.result = None
+        self.last_item = last_item
         self._build_ui()
     def _build_ui(self):
         self._label = Gtk.Label()
@@ -55,14 +59,28 @@ class HardwareRequirementsLabel(Gtk.HBox):
             sym = self.SYM_SUPPORTED
         elif self.result == "no":
             sym = self.SYM_MISSING
-        # TRANSLATORS: this is a substring that used to build the 
-        #              "hardware-supported" string, where sym is
-        #              either a unicode checkmark or a cross
-        #              and hardware is the short hardware description
-        return _("%(sym)s%(hardware)s") % {
-            "sym" : sym,
-            "hardware" : _(TAG_DESCRIPTION[self.tag]),
-            }
+        # we add a trailing 
+        if self.last_item:
+            # TRANSLATORS: this is a substring that used to build the 
+            #              "hardware-supported" string, where sym is
+            #              either a unicode checkmark or a cross
+            #              and hardware is the short hardware description
+            #              Note that this is the last substr, no trailing ","
+            return _("%(sym)s%(hardware)s") % {
+                "sym" : sym,
+                "hardware" : _(TAG_DESCRIPTION[self.tag]),
+                }
+        else:
+            # TRANSLATORS: this is a substring that used to build the 
+            #              "hardware-supported" string, where sym is
+            #              either a unicode checkmark or a cross
+            #              and hardware is the short hardware description
+            #              Note that the trailing ","
+            return _("%(sym)s%(hardware)s,") % {
+                "sym" : sym,
+                "hardware" : _(TAG_DESCRIPTION[self.tag]),
+                }
+            
     def set_hardware_requirement(self, tag, result):
         self.tag = tag
         self.result = result
@@ -80,11 +98,12 @@ class HardwareRequirementsBox(Gtk.HBox):
 
     def set_hardware_requirements(self, hw_requirements_result):
         self.clear()
-        for tag, supported in hw_requirements_result.iteritems():
+        hw_dict_size = len(hw_requirements_result)
+        for i, (tag, supported) in enumerate(hw_requirements_result.iteritems()):
             # ignore unknown for now
             if not supported in ("yes", "no"):
                 continue
-            label = HardwareRequirementsLabel()
+            label = HardwareRequirementsLabel(last_item=(hw_dict_size==i+1))
             label.set_hardware_requirement(tag, supported)
             label.show()
             self.pack_start(label, True, True, 6)
