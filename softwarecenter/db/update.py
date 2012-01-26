@@ -25,9 +25,11 @@ import shutil
 import xapian
 import time
 
+from aptsources.sourceslist import SourceEntry
 from gi.repository import GObject
 from piston_mini_client import PistonResponseObject
 
+from softwarecenter.distro import get_distro
 from softwarecenter.utils import utf8
 
 # py3 compat
@@ -132,6 +134,7 @@ class AppInfoParserBase(object):
     def desktopf(self):
         """ return the file that the AppInfo comes from """
 
+
 class SCAApplicationParser(AppInfoParserBase):
     """ map the data we get from the software-center-agent """
 
@@ -152,6 +155,9 @@ class SCAApplicationParser(AppInfoParserBase):
                 'Support-Url'   : 'support_url',
                 'Description' : 'Description',
                 'Comment' : 'Comment',
+                'Version' : 'version',
+                'Supported-Distros': 'series',
+                'Tags'   : 'tags',
               }
 
     # map from requested key to a static data element
@@ -167,18 +173,13 @@ class SCAApplicationParser(AppInfoParserBase):
         # for items from the agent, we use the full-size screenshot for
         # the thumbnail and scale it for display, this is done because
         # we no longer keep thumbnail versions of screenshots on the server
-        if (hasattr(self.sca_application, "screenshot_url") and 
+        if (hasattr(self.sca_application, "screenshot_url") and
             not hasattr(self.sca_application, "thumbnail_url")):
             self.sca_application.thumbnail_url = self.sca_application.screenshot_url
         if hasattr(self.sca_application, "description"):
             self.sca_application.Comment = self.sca_application.description.split("\n")[0].strip()
             self.sca_application.Description = "\n".join(
                 self.sca_application.description.split("\n")[1:]).strip()
-        # WARNING: item.name needs to be different than
-        #          the item.name in the DB otherwise the DB
-        #          gets confused about (appname, pkgname) duplication
-        self.sca_application.name = utf8(_("%s (already purchased)")) % utf8(
-            self.sca_application.name)
 
         # XXX 2012-01-16 bug=917109
         # We can remove these work-arounds once the above bug is fixed on
@@ -219,10 +220,15 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
         self.sca_subscription = sca_subscription
         super(SCAPurchasedApplicationParser, self).__init__(
             PistonResponseObject.from_dict(sca_subscription.application))
-        self.sca_application.channel = (
-            PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
 
-    SUBSCRIPTION_MAPPING = { 
+    SUBSCRIPTION_MAPPING = {
+        # this key can be used to get the original deb_line that the 
+        # server returns, it will be at the distroseries that was current
+        # at purchase time
+        'Deb-Line-Orig' : 'deb_line',
+        # this is what s-c will always use, the deb_line updated to the
+        # current distroseries, note that you should ensure that the app
+        # is not in state: PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES
         'Deb-Line'   : 'deb_line',
         'Purchased-Date' : 'purchase_date',
         'License-Key' : 'license_key',
@@ -232,8 +238,26 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
     MAPPING = dict(
         SCAApplicationParser.MAPPING.items() + SUBSCRIPTION_MAPPING.items())
 
+    @classmethod
+    def update_debline(cls, debline):
+        # Be careful to handle deblines with pockets.
+        source_entry = SourceEntry(debline)
+        distro_pocket = source_entry.dist.split('-')
+        distro_pocket[0] = get_distro().get_codename()
+        source_entry.dist = "-".join(distro_pocket)
+
+        return unicode(source_entry)
+
     def get_desktop(self, key, translated=True):
         if self._subscription_has_option_desktop(key):
+            if key.startswith('Deb-Line'):
+                debline_orig = getattr(
+                    self.sca_subscription, self._apply_mapping('Deb-Line'))
+                if key == 'Deb-Line-Orig':
+                    return debline_orig
+                else:
+                    return self.update_debline(debline_orig)
+
             return getattr(self.sca_subscription, self._apply_mapping(key))
         return super(SCAPurchasedApplicationParser, self).get_desktop(key)
 
@@ -246,6 +270,16 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
         application_has_option = super(
             SCAPurchasedApplicationParser, self).has_option_desktop(key)
         return subscription_has_option or application_has_option
+
+    def _apply_exceptions(self):
+        super(SCAPurchasedApplicationParser, self)._apply_exceptions()
+        # WARNING: item.name needs to be different than
+        #          the item.name in the DB otherwise the DB
+        #          gets confused about (appname, pkgname) duplication
+        self.sca_application.name = utf8(_("%s (already purchased)")) % utf8(
+            self.sca_application.name)
+        self.sca_application.channel = (
+            PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
 
 
 class JsonTagSectionParser(AppInfoParserBase):
@@ -277,7 +311,7 @@ class AppStreamXMLParser(AppInfoParserBase):
                 'Keywords'   : 'keywords',
                 'MimeType'   : 'mimetypes',
                 'Icon'       : 'icon',
-              } 
+              }
 
     LISTS = { "appcategories" : "appcategory",
               "keywords"  : "keyword",
@@ -327,7 +361,7 @@ class AppStreamXMLParser(AppInfoParserBase):
                 l.append(child.text)
         return ",".join(l)
     def has_option_desktop(self, key):
-        if key in self.STATIC_DATA: 
+        if key in self.STATIC_DATA:
             return True
         key = self._apply_mapping(key)
         return not self.appinfo_xml.find(key) is None
@@ -399,7 +433,7 @@ class DesktopConfigParser(RawConfigParser, AppInfoParserBase):
                 translated_value = gettext.dgettext(domain, value)
                 if value != translated_value:
                     return translated_value
-        # then try app-install-data 
+        # then try app-install-data
         value = self.get(self.DE, key)
         if value:
             translated_value = gettext.dgettext("app-install-data", value)
@@ -509,7 +543,7 @@ def update_from_appstream_xml(db, cache, xmldir=None):
             context.iteration()
         update_from_single_appstream_file(db, cache, appstream_xml)
     return True
-        
+
 def update_from_app_install_data(db, cache, datadir=None):
     """ index the desktop files in $datadir/desktop/*.desktop """
     if not datadir:
@@ -538,7 +572,7 @@ def update_from_app_install_data(db, cache, datadir=None):
 
 def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall_list, db, cache):
     """Add application that have been purchased but may require a reinstall
-    
+
     This adds a inmemory database to the main db with the special
     PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME channel prefix
 
@@ -598,7 +632,7 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
         sca.query_available_qa()
     else:
         sca.query_available()
-    # create event loop and run it until data is available 
+    # create event loop and run it until data is available
     # (the _available_cb and _error_cb will quit it)
     context = GObject.main_context_default()
     loop = GObject.MainLoop(context)
@@ -617,7 +651,219 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
     # return true if we have updated entries (this can also be an empty list)
     # but only if we did not got a error from the agent
     return sca.good_data
-        
+
+
+def make_doc_from_parser(parser, cache):
+    # XXX 2012-01-19 michaeln I'm just pulling this code out from
+    # index_app_info_from_parser, but it'd be great to further
+    # refactor it - it looks quite scary :-)
+    doc = xapian.Document()
+    # app name is the data
+    if parser.has_option_desktop("X-Ubuntu-Software-Center-Name"):
+        name = parser.get_desktop("X-Ubuntu-Software-Center-Name")
+        untranslated_name = parser.get_desktop("X-Ubuntu-Software-Center-Name", translated=False)
+    elif parser.has_option_desktop("X-GNOME-FullName"):
+        name = parser.get_desktop("X-GNOME-FullName")
+        untranslated_name = parser.get_desktop("X-GNOME-FullName", translated=False)
+    else:
+        name = parser.get_desktop("Name")
+        untranslated_name = parser.get_desktop("Name", translated=False)
+    doc.set_data(name)
+    doc.add_value(XapianValues.APPNAME_UNTRANSLATED, untranslated_name)
+
+    # check if we should ignore this file
+    if parser.has_option_desktop("X-AppInstall-Ignore"):
+        ignore = parser.get_desktop("X-AppInstall-Ignore")
+        if ignore.strip().lower() == "true":
+            LOG.debug("X-AppInstall-Ignore found for '%s'" % parser.desktopf)
+            return
+    # architecture
+    pkgname_extension = ''
+    if parser.has_option_desktop("X-AppInstall-Architectures"):
+        arches = parser.get_desktop("X-AppInstall-Architectures")
+        doc.add_value(XapianValues.ARCHIVE_ARCH, arches)
+        native_archs = get_current_arch() in arches.split(',')
+        foreign_archs = list(set(arches.split(',')) & set(get_foreign_architectures()))
+        if not (native_archs or foreign_archs): return
+        if not native_archs and foreign_archs:
+            pkgname_extension = ':' + foreign_archs[0]
+    # package name
+    pkgname = parser.get_desktop("X-AppInstall-Package") + pkgname_extension
+    doc.add_term("AP"+pkgname)
+    if '-' in pkgname:
+        # we need this to work around xapian oddness
+        doc.add_term(pkgname.replace('-','_'))
+    doc.add_value(XapianValues.PKGNAME, pkgname)
+    doc.add_value(XapianValues.DESKTOP_FILE, parser.desktopf)
+    # display name
+    if "display_name" in axi_values:
+        doc.add_value(axi_values["display_name"], name)
+    # cataloged_times
+    if "catalogedtime" in axi_values:
+        if pkgname in cataloged_times:
+            doc.add_value(axi_values["catalogedtime"], 
+                          xapian.sortable_serialise(cataloged_times[pkgname]))
+    # pocket (main, restricted, ...)
+    if parser.has_option_desktop("X-AppInstall-Section"):
+        archive_section = parser.get_desktop("X-AppInstall-Section")
+        doc.add_term("AS"+archive_section)
+        doc.add_value(XapianValues.ARCHIVE_SECTION, archive_section)
+    # section (mail, base, ..)
+    if pkgname in cache and cache[pkgname].candidate:
+        section = cache[pkgname].section
+        doc.add_term("AE"+section)
+    # channel (third party stuff)
+    if parser.has_option_desktop("X-AppInstall-Channel"):
+        archive_channel = parser.get_desktop("X-AppInstall-Channel")
+        doc.add_term("AH"+archive_channel)
+        doc.add_value(XapianValues.ARCHIVE_CHANNEL, archive_channel)
+    # signing key (third party)
+    if parser.has_option_desktop("X-AppInstall-Signing-Key-Id"):
+        keyid = parser.get_desktop("X-AppInstall-Signing-Key-Id")
+        doc.add_value(XapianValues.ARCHIVE_SIGNING_KEY_ID, keyid)
+    # license (third party)
+    if parser.has_option_desktop("X-AppInstall-License"):
+        license = parser.get_desktop("X-AppInstall-License")
+        doc.add_value(XapianValues.LICENSE, license)
+    # date published
+    if parser.has_option_desktop("X-AppInstall-Date-Published"):
+        date_published = parser.get_desktop("X-AppInstall-Date-Published")
+        if date_published:
+            # strip the subseconds from the end of the published date string
+            date_published = str(date_published).split(".")[0]
+            doc.add_value(XapianValues.DATE_PUBLISHED,
+                          date_published)
+            # we use the date published value for the cataloged time as well
+            if "catalogedtime" in axi_values:
+                LOG.debug(
+                        ("pkgname: %s, date_published cataloged time is: %s" %
+                             (pkgname, parser.get_desktop("date_published"))))
+                date_published_sec = time.mktime(
+                                        time.strptime(date_published,
+                                                      "%Y-%m-%d  %H:%M:%S"))
+                doc.add_value(axi_values["catalogedtime"], 
+                              xapian.sortable_serialise(date_published_sec))
+    # purchased date
+    if parser.has_option_desktop("X-AppInstall-Purchased-Date"):
+        date = parser.get_desktop("X-AppInstall-Purchased-Date")
+        # strip the subseconds from the end of the date string
+        doc.add_value(XapianValues.PURCHASED_DATE, str(date).split(".")[0])
+    # deb-line (third party)
+    if parser.has_option_desktop("X-AppInstall-Deb-Line"):
+        debline = parser.get_desktop("X-AppInstall-Deb-Line")
+        doc.add_value(XapianValues.ARCHIVE_DEB_LINE, debline)
+    # license key (third party)
+    if parser.has_option_desktop("X-AppInstall-License-Key"):
+        key = parser.get_desktop("X-AppInstall-License-Key")
+        doc.add_value(XapianValues.LICENSE_KEY, key)
+    # license keypath (third party)
+    if parser.has_option_desktop("X-AppInstall-License-Key-Path"):
+        path = parser.get_desktop("X-AppInstall-License-Key-Path")
+        doc.add_value(XapianValues.LICENSE_KEY_PATH, path)
+    # PPA (third party stuff)
+    if parser.has_option_desktop("X-AppInstall-PPA"):
+        archive_ppa = parser.get_desktop("X-AppInstall-PPA")
+        doc.add_value(XapianValues.ARCHIVE_PPA, archive_ppa)
+        # add archive origin data here so that its available even if
+        # the PPA is not (yet) enabled
+        doc.add_term("XOO"+"lp-ppa-%s" % archive_ppa.replace("/", "-"))
+    # screenshot (for third party)
+    if parser.has_option_desktop("X-AppInstall-Screenshot-Url"):
+        url = parser.get_desktop("X-AppInstall-Screenshot-Url")
+        doc.add_value(XapianValues.SCREENSHOT_URL, url)
+    # thumbnail (for third party)
+    if parser.has_option_desktop("X-AppInstall-Thumbnail-Url"):
+        url = parser.get_desktop("X-AppInstall-Thumbnail-Url")
+        doc.add_value(XapianValues.THUMBNAIL_URL, url)
+    # video support (for third party mostly)
+    if parser.has_option_desktop("X-AppInstall-Video-Url"):
+        url = parser.get_desktop("X-AppInstall-Video-Url")
+        doc.add_value(XapianValues.VIDEO_URL, url)
+    # icon (for third party)
+    if parser.has_option_desktop("X-AppInstall-Icon-Url"):
+        url = parser.get_desktop("X-AppInstall-Icon-Url")
+        doc.add_value(XapianValues.ICON_URL, url)
+        if not parser.has_option_desktop("X-AppInstall-Icon"):
+            # prefix pkgname to avoid name clashes
+            doc.add_value(XapianValues.ICON, "%s-icon-%s" % (
+                    pkgname, os.path.basename(url)))
+
+    # price (pay stuff)
+    if parser.has_option_desktop("X-AppInstall-Price"):
+        price = parser.get_desktop("X-AppInstall-Price")
+        doc.add_value(XapianValues.PRICE, price)
+        # since this is a commercial app, indicate it in the component value
+        doc.add_value(XapianValues.ARCHIVE_SECTION, "commercial")
+    # support url (mainly pay stuff)
+    if parser.has_option_desktop("X-AppInstall-Support-Url"):
+        url = parser.get_desktop("X-AppInstall-Support-Url")
+        doc.add_value(XapianValues.SUPPORT_SITE_URL, url)
+    # icon
+    if parser.has_option_desktop("Icon"):
+        icon = parser.get_desktop("Icon")
+        doc.add_value(XapianValues.ICON, icon)
+    # write out categories
+    for cat in parser.get_desktop_categories():
+        doc.add_term("AC"+cat.lower())
+    categories_string = ";".join(parser.get_desktop_categories())
+    doc.add_value(XapianValues.CATEGORIES, categories_string)
+    for mime in parser.get_desktop_mimetypes():
+        doc.add_term("AM"+mime.lower())
+    # get type (to distinguish between apps and packages
+    if parser.has_option_desktop("Type"):
+        type = parser.get_desktop("Type")
+        doc.add_term("AT"+type.lower())
+    # check gettext domain
+    if parser.has_option_desktop("X-Ubuntu-Gettext-Domain"):
+        domain = parser.get_desktop("X-Ubuntu-Gettext-Domain")
+        doc.add_value(XapianValues.GETTEXT_DOMAIN, domain)
+    # Description (software-center extension)
+    if parser.has_option_desktop("X-AppInstall-Description"):
+        descr = parser.get_desktop("X-AppInstall-Description")
+        doc.add_value(XapianValues.SC_DESCRIPTION, descr)
+    if parser.has_option_desktop("Supported-Distros"):
+        doc.add_value(XapianValues.SC_SUPPORTED_DISTROS,
+            json.dumps(parser.get_desktop("Supported-Distros")))
+    # version support (for e.g. the scagent)
+    if parser.has_option_desktop("X-AppInstall-Version"):
+        ver = parser.get_desktop("X-AppInstall-Version")
+        doc.add_value(XapianValues.VERSION_INFO, ver)
+
+    # (deb)tags (in addition to the pkgname debtags
+    if parser.has_option_desktop("X-AppInstall-Tags"):
+        tags = parser.get_desktop("X-AppInstall-Tags")
+        if tags:
+            for tag in tags.split(","):
+                doc.add_term("XT"+tag.strip())
+
+    # popcon
+    # FIXME: popularity not only based on popcon but also
+    #        on archive section, third party app etc
+    if parser.has_option_desktop("X-AppInstall-Popcon"):
+        popcon = float(parser.get_desktop("X-AppInstall-Popcon"))
+        # sort_by_value uses string compare, so we need to pad here
+        doc.add_value(XapianValues.POPCON, 
+                      xapian.sortable_serialise(popcon))
+        global popcon_max
+        popcon_max = max(popcon_max, popcon)
+
+    # comment goes into the summary data if there is one,
+    # other wise we try GenericName and if nothing else,
+    # the summary of the package
+    if parser.has_option_desktop("Comment"):
+        s = parser.get_desktop("Comment")
+        doc.add_value(XapianValues.SUMMARY, s)
+    elif parser.has_option_desktop("GenericName"):
+        s = parser.get_desktop("GenericName")
+        if s != name:
+            doc.add_value(XapianValues.SUMMARY, s)
+    elif pkgname in cache and cache[pkgname].candidate:
+        s = cache[pkgname].candidate.summary
+        doc.add_value(XapianValues.SUMMARY, s)
+
+    return doc
+
+
 def index_app_info_from_parser(parser, db, cache):
         term_generator = xapian.TermGenerator()
         term_generator.set_database(db)
@@ -633,201 +879,21 @@ def index_app_info_from_parser(parser, db, cache):
             term_generator.set_flags(xapian.TermGenerator.FLAG_SPELLING)
         except xapian.UnimplementedError:
             pass
-        doc = xapian.Document()
+        doc = make_doc_from_parser(parser, cache)
+        if not doc:
+            LOG.debug("make_doc_from_parser() returned '%s', ignoring" % doc)
+            return 
         term_generator.set_document(doc)
-        # app name is the data
-        if parser.has_option_desktop("X-Ubuntu-Software-Center-Name"):
-            name = parser.get_desktop("X-Ubuntu-Software-Center-Name")
-            untranslated_name = parser.get_desktop("X-Ubuntu-Software-Center-Name", translated=False)
-        elif parser.has_option_desktop("X-GNOME-FullName"):
-            name = parser.get_desktop("X-GNOME-FullName")
-            untranslated_name = parser.get_desktop("X-GNOME-FullName", translated=False)
-        else:
-            name = parser.get_desktop("Name")
-            untranslated_name = parser.get_desktop("Name", translated=False)
+        name = doc.get_data()
+
         if name in seen:
             LOG.debug("duplicated name '%s' (%s)" % (name, parser.desktopf))
         LOG.debug("indexing app '%s'" % name)
         seen.add(name)
-        doc.set_data(name)
+
         index_name(doc, name, term_generator)
-        doc.add_value(XapianValues.APPNAME_UNTRANSLATED, untranslated_name)
 
-        # check if we should ignore this file
-        if parser.has_option_desktop("X-AppInstall-Ignore"):
-            ignore = parser.get_desktop("X-AppInstall-Ignore")
-            if ignore.strip().lower() == "true":
-                LOG.debug("X-AppInstall-Ignore found for '%s'" % parser.desktopf)
-                return
-        # architecture
-        pkgname_extension = ''
-        if parser.has_option_desktop("X-AppInstall-Architectures"):
-            arches = parser.get_desktop("X-AppInstall-Architectures")
-            doc.add_value(XapianValues.ARCHIVE_ARCH, arches)
-            native_archs = get_current_arch() in arches.split(',')
-            foreign_archs = list(set(arches.split(',')) & set(get_foreign_architectures()))
-            if not (native_archs or foreign_archs): return
-            if not native_archs and foreign_archs:
-                pkgname_extension = ':' + foreign_archs[0]
-        # package name
-        pkgname = parser.get_desktop("X-AppInstall-Package") + pkgname_extension
-        doc.add_term("AP"+pkgname)
-        if '-' in pkgname:
-            # we need this to work around xapian oddness
-            doc.add_term(pkgname.replace('-','_'))
-        doc.add_value(XapianValues.PKGNAME, pkgname)
-        doc.add_value(XapianValues.DESKTOP_FILE, parser.desktopf)
-        # display name
-        if "display_name" in axi_values:
-            doc.add_value(axi_values["display_name"], name)
-        # cataloged_times
-        if "catalogedtime" in axi_values:
-            if pkgname in cataloged_times:
-                doc.add_value(axi_values["catalogedtime"], 
-                              xapian.sortable_serialise(cataloged_times[pkgname]))
-        # pocket (main, restricted, ...)
-        if parser.has_option_desktop("X-AppInstall-Section"):
-            archive_section = parser.get_desktop("X-AppInstall-Section")
-            doc.add_term("AS"+archive_section)
-            doc.add_value(XapianValues.ARCHIVE_SECTION, archive_section)
-        # section (mail, base, ..)
-        if pkgname in cache and cache[pkgname].candidate:
-            section = cache[pkgname].section
-            doc.add_term("AE"+section)
-        # channel (third party stuff)
-        if parser.has_option_desktop("X-AppInstall-Channel"):
-            archive_channel = parser.get_desktop("X-AppInstall-Channel")
-            doc.add_term("AH"+archive_channel)
-            doc.add_value(XapianValues.ARCHIVE_CHANNEL, archive_channel)
-        # signing key (third party)
-        if parser.has_option_desktop("X-AppInstall-Signing-Key-Id"):
-            keyid = parser.get_desktop("X-AppInstall-Signing-Key-Id")
-            doc.add_value(XapianValues.ARCHIVE_SIGNING_KEY_ID, keyid)
-        # license (third party)
-        if parser.has_option_desktop("X-AppInstall-License"):
-            license = parser.get_desktop("X-AppInstall-License")
-            doc.add_value(XapianValues.LICENSE, license)
-        # date published
-        if parser.has_option_desktop("X-AppInstall-Date-Published"):
-            date_published = parser.get_desktop("X-AppInstall-Date-Published")
-            if date_published:
-                # strip the subseconds from the end of the published date string
-                date_published = str(date_published).split(".")[0]
-                doc.add_value(XapianValues.DATE_PUBLISHED,
-                              date_published)
-                # we use the date published value for the cataloged time as well
-                if "catalogedtime" in axi_values:
-                    LOG.debug(
-                            ("pkgname: %s, date_published cataloged time is: %s" %
-                                 (pkgname, parser.get_desktop("date_published"))))
-                    date_published_sec = time.mktime(
-                                            time.strptime(date_published,
-                                                          "%Y-%m-%d  %H:%M:%S"))
-                    doc.add_value(axi_values["catalogedtime"], 
-                                  xapian.sortable_serialise(date_published_sec))
-        # purchased date
-        if parser.has_option_desktop("X-AppInstall-Purchased-Date"):
-            date = parser.get_desktop("X-AppInstall-Purchased-Date")
-            # strip the subseconds from the end of the date string
-            doc.add_value(XapianValues.PURCHASED_DATE, str(date).split(".")[0])
-        # deb-line (third party)
-        if parser.has_option_desktop("X-AppInstall-Deb-Line"):
-            debline = parser.get_desktop("X-AppInstall-Deb-Line")
-            doc.add_value(XapianValues.ARCHIVE_DEB_LINE, debline)
-        # license key (third party)
-        if parser.has_option_desktop("X-AppInstall-License-Key"):
-            key = parser.get_desktop("X-AppInstall-License-Key")
-            doc.add_value(XapianValues.LICENSE_KEY, key)
-        # license keypath (third party)
-        if parser.has_option_desktop("X-AppInstall-License-Key-Path"):
-            path = parser.get_desktop("X-AppInstall-License-Key-Path")
-            doc.add_value(XapianValues.LICENSE_KEY_PATH, path)
-        # PPA (third party stuff)
-        if parser.has_option_desktop("X-AppInstall-PPA"):
-            archive_ppa = parser.get_desktop("X-AppInstall-PPA")
-            doc.add_value(XapianValues.ARCHIVE_PPA, archive_ppa)
-            # add archive origin data here so that its available even if
-            # the PPA is not (yet) enabled
-            doc.add_term("XOO"+"lp-ppa-%s" % archive_ppa.replace("/", "-"))
-        # screenshot (for third party)
-        if parser.has_option_desktop("X-AppInstall-Screenshot-Url"):
-            url = parser.get_desktop("X-AppInstall-Screenshot-Url")
-            doc.add_value(XapianValues.SCREENSHOT_URL, url)
-        # thumbnail (for third party)
-        if parser.has_option_desktop("X-AppInstall-Thumbnail-Url"):
-            url = parser.get_desktop("X-AppInstall-Thumbnail-Url")
-            doc.add_value(XapianValues.THUMBNAIL_URL, url)
-        # video support (for third party mostly)
-        if parser.has_option_desktop("X-AppInstall-Video-Url"):
-            url = parser.get_desktop("X-AppInstall-Video-Url")
-            doc.add_value(XapianValues.VIDEO_URL, url)
-        # icon (for third party)
-        if parser.has_option_desktop("X-AppInstall-Icon-Url"):
-            url = parser.get_desktop("X-AppInstall-Icon-Url")
-            doc.add_value(XapianValues.ICON_URL, url)
-            if not parser.has_option_desktop("X-AppInstall-Icon"):
-                # prefix pkgname to avoid name clashes
-                doc.add_value(XapianValues.ICON, "%s-icon-%s" % (
-                        pkgname, os.path.basename(url)))
-
-        # price (pay stuff)
-        if parser.has_option_desktop("X-AppInstall-Price"):
-            price = parser.get_desktop("X-AppInstall-Price")
-            doc.add_value(XapianValues.PRICE, price)
-            # since this is a commercial app, indicate it in the component value
-            doc.add_value(XapianValues.ARCHIVE_SECTION, "commercial")
-        # support url (mainly pay stuff)
-        if parser.has_option_desktop("X-AppInstall-Support-Url"):
-            url = parser.get_desktop("X-AppInstall-Support-Url")
-            doc.add_value(XapianValues.SUPPORT_SITE_URL, url)
-        # icon
-        if parser.has_option_desktop("Icon"):
-            icon = parser.get_desktop("Icon")
-            doc.add_value(XapianValues.ICON, icon)
-        # write out categories
-        for cat in parser.get_desktop_categories():
-            doc.add_term("AC"+cat.lower())
-        categories_string = ";".join(parser.get_desktop_categories())
-        doc.add_value(XapianValues.CATEGORIES, categories_string)
-        for mime in parser.get_desktop_mimetypes():
-            doc.add_term("AM"+mime.lower())
-        # get type (to distinguish between apps and packages
-        if parser.has_option_desktop("Type"):
-            type = parser.get_desktop("Type")
-            doc.add_term("AT"+type.lower())
-        # check gettext domain
-        if parser.has_option_desktop("X-Ubuntu-Gettext-Domain"):
-            domain = parser.get_desktop("X-Ubuntu-Gettext-Domain")
-            doc.add_value(XapianValues.GETTEXT_DOMAIN, domain)
-        # Description (software-center extension)
-        if parser.has_option_desktop("X-AppInstall-Description"):
-            descr = parser.get_desktop("X-AppInstall-Description")
-            doc.add_value(XapianValues.SC_DESCRIPTION, descr)
-        # popcon
-        # FIXME: popularity not only based on popcon but also
-        #        on archive section, third party app etc
-        if parser.has_option_desktop("X-AppInstall-Popcon"):
-            popcon = float(parser.get_desktop("X-AppInstall-Popcon"))
-            # sort_by_value uses string compare, so we need to pad here
-            doc.add_value(XapianValues.POPCON, 
-                          xapian.sortable_serialise(popcon))
-            global popcon_max
-            popcon_max = max(popcon_max, popcon)
-
-        # comment goes into the summary data if there is one,
-        # other wise we try GenericName and if nothing else,
-        # the summary of the package
-        if parser.has_option_desktop("Comment"):
-            s = parser.get_desktop("Comment")
-            doc.add_value(XapianValues.SUMMARY, s)
-        elif parser.has_option_desktop("GenericName"):
-            s = parser.get_desktop("GenericName")
-            if s != name:
-                doc.add_value(XapianValues.SUMMARY, s)
-        elif pkgname in cache and cache[pkgname].candidate:
-            s = cache[pkgname].candidate.summary
-            doc.add_value(XapianValues.SUMMARY, s)
-
+        pkgname = doc.get_value(XapianValues.PKGNAME)
         # add packagename as meta-data too
         term_generator.index_text_without_positions(pkgname, WEIGHT_APT_PKGNAME)
 
@@ -873,7 +939,7 @@ def rebuild_database(pathname, debian_sources=True, appstream_sources=False):
     cache.open()
     old_path = pathname+"_old"
     rebuild_path = pathname+"_rb"
-    
+
     if not os.path.exists(rebuild_path):
         try:
             os.makedirs(rebuild_path)
@@ -881,13 +947,13 @@ def rebuild_database(pathname, debian_sources=True, appstream_sources=False):
             LOG.warn("Problem creating rebuild path '%s'." % rebuild_path)
             LOG.warn("Please check you have the relevant permissions.")
             return False
-    
+
     # check permission
     if not os.access(pathname, os.W_OK):
         LOG.warn("Cannot write to '%s'." % pathname)
         LOG.warn("Please check you have the relevant permissions.")
         return False
-    
+
     #check if old unrequired version of db still exists on filesystem
     if os.path.exists(old_path):
         LOG.warn("Existing xapian old db was not previously cleaned: '%s'." % old_path)
@@ -899,7 +965,7 @@ def rebuild_database(pathname, debian_sources=True, appstream_sources=False):
             LOG.warn("Please check you have the relevant permissions.")
             return False
 
-            
+
     # write it
     db = xapian.WritableDatabase(rebuild_path, xapian.DB_CREATE_OR_OVERWRITE)
 
@@ -919,7 +985,7 @@ def rebuild_database(pathname, debian_sources=True, appstream_sources=False):
         mo_time = os.path.getctime(mofile)
         db.set_metadata("app-install-mo-time", str(mo_time))
     db.flush()
-    
+
     # use shutil.move() instead of os.rename() as this will automatically
     # figure out if it can use os.rename or needs to do the move "manually"
     try:

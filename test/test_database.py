@@ -1,28 +1,41 @@
 #!/usr/bin/python
 
-
-from testutils import setup_test_env
-setup_test_env()
-
 import apt
 import os
 import re
 import unittest
 import xapian
 
+from piston_mini_client import PistonResponseObject
+from mock import Mock, patch
+
+from testutils import setup_test_env
+setup_test_env()
+
+
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.database import parse_axi_values_file
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.db.update import (update_from_app_install_data,
-                                      update_from_var_lib_apt_lists,
-                                      update_from_appstream_xml,
-                                      update_from_software_center_agent)
+from softwarecenter.db.update import (
+    make_doc_from_parser,
+    update_from_app_install_data,
+    update_from_var_lib_apt_lists,
+    update_from_appstream_xml,
+    update_from_software_center_agent,
+    SCAPurchasedApplicationParser,
+    )
+from softwarecenter.distro import get_distro
 from softwarecenter.enums import (
     XapianValues,
     PkgStates,
     )
+from softwarecenter.testutils import (
+    get_test_db, 
+    get_test_pkg_info,
+    )
+
 
 class TestDatabase(unittest.TestCase):
     """ tests the store database """
@@ -125,7 +138,6 @@ class TestDatabase(unittest.TestCase):
                                 url.startswith("mailto:"))
 
     def test_license_string_data_from_software_center_agent(self):
-        from softwarecenter.testutils import get_test_pkg_info
         #os.environ["SOFTWARE_CENTER_DEBUG_HTTP"] = "1"
         os.environ["SOFTWARE_CENTER_AGENT_HOST"] = "http://sc.staging.ubuntu.com/"
         # staging does not have a valid cert
@@ -207,7 +219,6 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(app.pkgname, 'linux-headers-'+os.uname()[2])
         # $distro
         details = app.get_details(db)
-        from softwarecenter.distro import get_distro
         distro = get_distro().get_codename()
         self.assertEqual(app.request, 'channel=' + distro + '-partner')
 
@@ -259,6 +270,9 @@ class TestDatabase(unittest.TestCase):
         app = Application("Scintillant Orange", "scintillant-orange")
         appdetails = app.get_details(db)
         self.assertEqual(appdetails.pkg_state, PkgStates.NOT_FOUND)
+        self.assertEqual(
+            appdetails.tags,
+            set(['use::converting', 'role::program', 'implemented-in::perl']))
 
     def test_packagename_is_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
@@ -335,6 +349,28 @@ class TestDatabase(unittest.TestCase):
 
         del os.environ["SOFTWARE_CENTER_AGENT_HOST"]
 
+    def test_hardware_requirements_satisfied(self):
+        with patch.object(AppDetails, 'hardware_requirements') as mock_hw:
+            # setup env
+            db = get_test_db()
+            app = Application("", "software-center")
+            mock_hw.__get__ = Mock()
+            # not good
+            mock_hw.__get__.return_value={
+                'hardware::gps' : 'no',
+                'hardware::video:opengl' : 'yes',
+                }
+            details = AppDetails(db, application=app)
+            self.assertFalse(details.hardware_requirements_satisfied)
+            # this if good
+            mock_hw.__get__.return_value={
+                'hardware::video:opengl' : 'yes',
+                }
+            self.assertTrue(details.hardware_requirements_satisfied)
+            # empty is satisfied
+            mock_hw.__get__.return_value={}
+            self.assertTrue(details.hardware_requirements_satisfied)
+
     def test_parse_axi_values_file(self):
         s = """
 # This file contains the mapping between names of numeric values indexed in the
@@ -361,6 +397,13 @@ app-popcon	4	# app-install .desktop popcon rank
         self.assertNotEqual(axi_values, {})
         print axi_values
 
+    def test_appdetails(self):
+        from softwarecenter.testutils import get_test_db
+        db = get_test_db()
+        # see "apt-cache show casper|grep ^Tag"
+        details = AppDetails(db, application=Application("", "casper"))
+        self.assertTrue(len(details.tags) > 2)
+
     def test_app_enquire(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
         db.open()
@@ -370,6 +413,120 @@ app-popcon	4	# app-install .desktop popcon rank
                            nonblocking_load=False)
         self.assertTrue(len(enquirer.get_docids()) > 0)
         # FIXME: test more of the interface
+
+
+def make_purchased_app_details(db=None, supported_series=None):
+    """Return an AppDetail instance with the required attributes."""
+    subscription = {
+        u'application': {
+            u'archive_id': u'commercial-ppa-uploaders/photobomb',
+            u'description': u"Easy and Social Image Editor\nPhotobomb "
+                            u"give you easy access to images in your "
+                            u"social networking feeds, pictures on ...",
+            u'name': u'Photobomb',
+            u'package_name': u'photobomb',
+            u'signing_key_id': u'1024R/75254D99'
+            },
+        u'deb_line': u'deb https://some.user:ABCDEFGHIJKLMNOP@'
+                     u'private-ppa.launchpad.net/commercial-ppa-uploaders/'
+                     u'photobomb/ubuntu natty main',
+        u'distro_series': {u'code_name': u'natty', u'version': u'11.04'},
+        u'failures': [],
+        u'open_id': u'https://login.ubuntu.com/+id/ABCDEF',
+        u'purchase_date': u'2011-09-16 06:37:52',
+        u'purchase_price': u'2.99',
+        u'state': u'Complete',
+        }
+
+    if supported_series != None:
+        subscription['application']['series'] = supported_series
+    else:
+        # If no supportod_series kwarg was provided, we ensure the
+        # current series/arch is supported.
+        distro = get_distro()
+        subscription['application']['series'] = {
+            distro.get_codename(): [distro.get_architecture()]
+            }
+
+    item = PistonResponseObject.from_dict(subscription)
+    parser = SCAPurchasedApplicationParser(item)
+
+    if db is None:
+        db = get_test_db()
+
+    doc = make_doc_from_parser(parser, db._aptcache)
+    app_details = AppDetails(db, doc)
+    return app_details
+
+
+
+class AppDetailsPkgStateTestCase(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        # Set these as class attributes as we don't modify either
+        # during the tests.
+        cls.distro = get_distro()
+        cls.db = get_test_db()
+
+    def test_package_state_purchased_enable_repo(self):
+        # If the current series is supported by the app, the state should
+        # be PURCHASED_BUT_REPO_MUST_BE_ENABLED.
+        app_details = make_purchased_app_details(self.db,
+            supported_series={
+                'current-1': ['i386', 'amd64'],
+                self.distro.get_codename(): [self.distro.get_architecture()]
+                })
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+            state)
+
+    def test_package_state_purchased_not_available(self):
+        # If the current series is NOT supported by the app, the state should
+        # be PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES.
+        app_details = make_purchased_app_details(self.db,
+            supported_series={
+                'current-1': ['i386', 'amd64'],
+                self.distro.get_codename(): ['newarch', 'amdm128'],
+                })
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES,
+            state)
+
+    def test_package_state_no_series(self):
+        # Until the fix for bug 917109 is deployed on production, we
+        # should default to the current (broken) behaviour of
+        # indicating that the repo just needs enabling.
+        app_details = make_purchased_app_details(self.db, supported_series=None)
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+            state)
+
+    def test_package_state_arch_any(self):
+        # In the future the supported arches returned by sca will include
+        # any - let's not break when that happens.
+        app_details = make_purchased_app_details(self.db,
+            supported_series={
+                'current-1': ['i386', 'amd64'],
+                self.distro.get_codename(): ['newarch', 'any'],
+                })
+
+        state = app_details.pkg_state
+
+        self.assertEqual(
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+            state)
+
+
 
 if __name__ == "__main__":
     import logging

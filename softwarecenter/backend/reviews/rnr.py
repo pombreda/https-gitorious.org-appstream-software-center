@@ -181,7 +181,8 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
     # writing new reviews spawns external helper
     # FIXME: instead of the callback we should add proper gobject signals
     def spawn_write_new_review_ui(self, translated_app, version, iconname, 
-                                  origin, parent_xid, datadir, callback):
+                                  origin, parent_xid, datadir, callback,
+                                  done_callback=None):
         """ this spawns the UI for writing a new review and
             adds it automatically to the reviews DB """
         app = translated_app.get_untranslated_app(self.db)
@@ -199,6 +200,9 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         spawn_helper = SpawnHelper(format="json")
         spawn_helper.connect(
             "data-available", self._on_submit_review_data, app, callback)
+        if done_callback:
+            spawn_helper.connect("exited", done_callback)
+            spawn_helper.connect("error", done_callback)
         spawn_helper.run(cmd)
 
     def _on_submit_review_data(self, spawn_helper, review_json, app, callback):

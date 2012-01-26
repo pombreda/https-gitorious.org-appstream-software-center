@@ -40,9 +40,10 @@ class TestI18n(unittest.TestCase):
     def test_init_locale(self):
         import locale
         os.environ["LANGUAGE"] = ""
-        os.environ["LANG"] = "en_US.UTF-8"
+        os.environ["LC_ALL"] = "en_US.UTF-8"
         init_locale()
-        self.assertEqual(locale.getlocale(locale.LC_ALL), ("en_US", "UTF-8"))
+        self.assertEqual(
+            locale.getlocale(locale.LC_MESSAGES), ("en_US", "UTF-8"))
         
 
 

@@ -31,10 +31,11 @@ import sys
 from gettext import gettext as _
 from optparse import OptionParser
 
+import softwarecenter.paths
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.db.database import Application
 
-from softwarecenter.backend.reviews.rnr_helpers import (
+from softwarecenter.ui.gtk3.review_gui_helper import (
     DeleteReviewApp,
     ReportReviewApp,
     SubmitReviewsApp,
@@ -85,6 +86,8 @@ if __name__ == "__main__":
                           action="store_true", default=False)
         (options, args) = parser.parse_args()
 
+        softwarecenter.paths.datadir = options.datadir
+
         if options.test:
             options.pkgname = options.pkgname or 'apt'
             options.appname = options.appname or 'Apt'
@@ -122,6 +125,8 @@ if __name__ == "__main__":
                           action="store_true", default=False)
         (options, args) = parser.parse_args()
 
+        softwarecenter.paths.datadir = options.datadir
+
         if not (options.review_id):
             parser.error(_("Missing review-id arguments"))
     
@@ -145,6 +150,8 @@ if __name__ == "__main__":
         parser.add_option("", "--debug",
                           action="store_true", default=False)
         (options, args) = parser.parse_args()
+
+        softwarecenter.paths.datadir = options.datadir
 
         if not (options.review_id):
             parser.error(_("Missing review-id arguments"))
@@ -170,6 +177,8 @@ if __name__ == "__main__":
                           action="store_true", default=False)
         (options, args) = parser.parse_args()
         
+        softwarecenter.paths.datadir = options.datadir
+
         if not (options.review_id):
             parser.error(_("Missing review-id argument"))
     
@@ -191,6 +200,8 @@ if __name__ == "__main__":
         parser.add_option("", "--debug",
                           action="store_true", default=False)
         (options, args) = parser.parse_args()
+
+        softwarecenter.paths.datadir = options.datadir
 
         if not (options.review_id):
             parser.error(_("Missing review-id argument"))

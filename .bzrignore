@@ -5,3 +5,4 @@ test/coverage_summary
 test/output
 help/*
 data/xapian/*
+.backup

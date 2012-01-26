@@ -11,6 +11,9 @@ from testutils import setup_test_env, do_events
 setup_test_env()
 from softwarecenter.ui.gtk3.widgets.reviews import get_test_reviews_window
 
+from softwarecenter.ui.gtk3.widgets.labels import (
+    HardwareRequirementsLabel, HardwareRequirementsBox)
+
 
 # window destory timeout
 TIMEOUT=100
@@ -123,6 +126,47 @@ class TestWidgets(unittest.TestCase):
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
 
+class TestHWRequirements(unittest.TestCase):
+
+    HW_TEST_RESULT = { 'hardware::gps' : 'yes',
+                       'hardware::xxx' : 'unknown',
+                       'hardware::input:mouse' : 'no',
+                       }
+
+    def test_hardware_requirements_label(self):
+        label = HardwareRequirementsLabel()
+        label.set_hardware_requirement('hardware::gps', 'yes')
+        self.assertEqual(
+            label.get_label(),
+            u"%sGPS" % HardwareRequirementsLabel.SUPPORTED_SYM["yes"])
+        # test the gtk bits
+        self.assertEqual(type(label.get_children()[0]), Gtk.Label)
+        # test setting it again
+        label.set_hardware_requirement('hardware::video:opengl', 'yes')
+        self.assertEqual(len(label.get_children()), 1)
+
+    def test_hardware_requirements_box(self):
+        box = HardwareRequirementsBox()
+        # test empty
+        box.set_hardware_requirements({})
+        # test sensible
+        box.set_hardware_requirements(self.HW_TEST_RESULT)
+        # its 2 because we do not display "unknown" currently
+        self.assertEqual(len(box.hw_labels), 2)
+        # test the gtk bits
+        self.assertEqual(len(box.get_children()), 2)
+        # no trailing ","
+        self.assertEqual(
+            box.get_children()[0].get_label(),
+            u"%smouse," % HardwareRequirementsLabel.SUPPORTED_SYM["no"])
+        self.assertEqual(
+            box.get_children()[1].get_label(),
+            u"%sGPS" % HardwareRequirementsLabel.SUPPORTED_SYM["yes"])
+
+        # test seting it again
+        box.set_hardware_requirements(self.HW_TEST_RESULT)
+        self.assertEqual(len(box.get_children()), 2)
+        
 
 class TestUIReviewsList(unittest.TestCase):
     def setUp(self):
@@ -184,6 +228,8 @@ class TestUIReviewsList(unittest.TestCase):
         self.assertEmbeddedMessageLabel(
             _('Got an opinion?'),
             _('Be the first to contribute a review for this application'))
+
+
 
 
 if __name__ == "__main__":
