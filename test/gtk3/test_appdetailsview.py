@@ -253,6 +253,8 @@ class HardwareRequirementsTestCase(unittest.TestCase):
         self.assertEqual(
             self.view.pkg_statusbar.button.get_label(), 
             _(u"Buy Anyway\u2026").encode("utf-8"))
+        # check if the warning bar is displayed
+        self.assertTrue(self.view.pkg_warningbar.get_property("visible"))
 
     def test_no_show_hardware_requirements(self):
         self.app_mock.details.hardware_requirements = {}
@@ -271,6 +273,8 @@ class HardwareRequirementsTestCase(unittest.TestCase):
         self.assertEqual(
             self.view.pkg_statusbar.button.get_label(), 
             _(u'Buy\u2026').encode("utf-8"))
+        # check if the warning bar is invisible
+        self.assertFalse(self.view.pkg_warningbar.get_property("visible"))
 
 class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
 
