@@ -137,7 +137,10 @@ class TestHWRequirements(unittest.TestCase):
         label = HardwareRequirementsLabel()
         label.set_hardware_requirement('hardware::gps', 'yes')
         self.assertEqual(label.get_label(),
-                         u"%sGPS" % HardwareRequirementsLabel.SYM_SUPPORTED)
+                         u"%sGPS," % HardwareRequirementsLabel.SYM_SUPPORTED)
+        self.assertEqual(label.get_label(),
+                         u"%sOpenGL hardware acceleration," % HardwareRequirementsLabel.SYM_MISSING)
+
         # test the gtk bits
         self.assertEqual(type(label.get_children()[0]), Gtk.Label)
         # test setting it again
