@@ -233,6 +233,7 @@ class HardwareRequirementsTestCase(unittest.TestCase):
             'hardware::video:opengl' : 'yes',
             'hardware::gps' : 'no',
             }
+        self.app_mock.details.hardware_requirements_satisfied = False
         self.view.show_app(self.app_mock)
         do_events()
         # ensure we have the data
@@ -250,10 +251,12 @@ class HardwareRequirementsTestCase(unittest.TestCase):
         self.app_mock.details.pkg_state = PkgStates.NEEDS_PURCHASE
         self.view.show_app(self.app_mock)
         self.assertEqual(
-            self.view.pkg_statusbar.button.get_label(), "Buy Anyway...")
+            self.view.pkg_statusbar.button.get_label(), 
+            _(u"Buy Anyway\u2026").encode("utf-8"))
 
     def test_no_show_hardware_requirements(self):
         self.app_mock.details.hardware_requirements = {}
+        self.app_mock.details.hardware_requirements_satisfied = True
         self.view.show_app(self.app_mock)
         do_events()
         # ensure we do not show anything if there are no HW requirements
@@ -266,7 +269,8 @@ class HardwareRequirementsTestCase(unittest.TestCase):
         self.app_mock.details.pkg_state = PkgStates.NEEDS_PURCHASE
         self.view.show_app(self.app_mock)
         self.assertEqual(
-            self.view.pkg_statusbar.button.get_label(), _(u'Buy\u2026'))
+            self.view.pkg_statusbar.button.get_label(), 
+            _(u'Buy\u2026').encode("utf-8"))
 
 class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
 

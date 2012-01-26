@@ -285,7 +285,10 @@ class PackageStatusBar(StatusBar):
             #        won't vary based on locale and as such we don't want
             #        it translated
             self.set_label("US$ %s" % app_details.price)
-            self.set_button_label(_(u'Buy\u2026'))
+            if app_details.hardware_requirements_satisfied:
+                self.set_button_label(_(u'Buy\u2026'))
+            else:
+                self.set_button_label(_(u'Buy Anyway\u2026'))
         elif state in (
             PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
             PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES):
@@ -317,7 +320,10 @@ class PackageStatusBar(StatusBar):
                 else:
                     # TRANSLATORS: Free here means Gratis
                     self.set_label(_("Free"))
-            self.set_button_label(_('Install'))
+            if app_details.hardware_requirements_satisfied:
+                self.set_button_label(_('Install'))
+            else:
+                self.set_button_label(_('Install Anyway'))
         elif state == PkgStates.UPGRADABLE:
             self.set_label(_('Upgrade Available'))
             self.set_button_label(_('Upgrade'))
