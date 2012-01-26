@@ -255,6 +255,9 @@ class HardwareRequirementsTestCase(unittest.TestCase):
             _(u"Buy Anyway\u2026").encode("utf-8"))
         # check if the warning bar is displayed
         self.assertTrue(self.view.pkg_warningbar.get_property("visible"))
+        self.assertEqual(self.view.pkg_warningbar.get_text(),
+                         _('This software requires a GPS, '
+                           'but the computer does not have one.'))
 
     def test_no_show_hardware_requirements(self):
         self.app_mock.details.hardware_requirements = {}
