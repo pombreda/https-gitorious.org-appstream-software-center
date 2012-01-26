@@ -67,6 +67,7 @@ from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 
 import softwarecenter.ui.gtk3.dialogs as dialogs
 
+from softwarecenter.hw import get_hw_missing_long_description
 
 from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
@@ -1353,8 +1354,6 @@ class AppDetailsView(Viewport):
         return
 
     def _update_warning_bar(self, app_details):
-        from softwarecenter.ui.gtk3.widgets.labels import (
-            get_hw_missing_long_description)
         s = get_hw_missing_long_description(app_details.hardware_requirements)
         self.pkg_warningbar.label.set_text(s)
         if app_details.hardware_requirements_satisfied:
