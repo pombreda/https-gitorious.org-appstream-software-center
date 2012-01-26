@@ -31,7 +31,10 @@ from softwarecenter.enums import (
     XapianValues,
     PkgStates,
     )
-from softwarecenter.testutils import get_test_db
+from softwarecenter.testutils import (
+    get_test_db, 
+    get_test_pkg_info,
+    )
 
 
 class TestDatabase(unittest.TestCase):

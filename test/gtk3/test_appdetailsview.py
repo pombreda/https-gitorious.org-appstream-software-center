@@ -226,6 +226,7 @@ class HardwareRequirementsTestCase(unittest.TestCase):
     def setUp(self):
         app = Application("", "software-center")
         self.app_mock = get_mock_app_from_real_app(app)
+        self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
 
     def test_show_hardware_requirements(self):
         self.app_mock.details.hardware_requirements = { 
@@ -242,6 +243,14 @@ class HardwareRequirementsTestCase(unittest.TestCase):
             type(self.view.hardware_info.value_label))
         self.assertEqual(
             self.view.hardware_info.key, _("Also requires"))
+        # ensure that the button is correct
+        self.assertEqual(
+            self.view.pkg_statusbar.button.get_label(), "Install Anyway")
+        # and again for purchase
+        self.app_mock.details.pkg_state = PkgStates.NEEDS_PURCHASE
+        self.view.show_app(self.app_mock)
+        self.assertEqual(
+            self.view.pkg_statusbar.button.get_label(), "Buy Anyway...")
 
     def test_no_show_hardware_requirements(self):
         self.app_mock.details.hardware_requirements = {}
@@ -250,8 +259,14 @@ class HardwareRequirementsTestCase(unittest.TestCase):
         # ensure we do not show anything if there are no HW requirements
         self.assertFalse(
             self.view.hardware_info.get_property("visible"))
-        
-
+        # ensure that the button is correct
+        self.assertEqual(
+            self.view.pkg_statusbar.button.get_label(), _("Install"))
+        # and again for purchase
+        self.app_mock.details.pkg_state = PkgStates.NEEDS_PURCHASE
+        self.view.show_app(self.app_mock)
+        self.assertEqual(
+            self.view.pkg_statusbar.button.get_label(), _(u'Buy\u2026'))
 
 class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
 
