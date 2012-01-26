@@ -29,12 +29,23 @@ TAG_DESCRIPTION = {
 TAG_MISSING_DESCRIPTION = {
     'hardware::gps' : _('This software requires a GPS, '
                         'but the computer does not have one.'),
-    'hardware::gps' : _('This software requires a mouse, '
-                        'but none is currently setup.'),
+    'hardware::input:mouse' : _('This software requires a mouse, '
+                                'but none is currently setup.'),
     'hardware::video:opengl' : _('This computer does not have graphics fast '
                                  'enough for this software.'),
     # FIXME: fill in more
 }
+
+def get_hw_missing_long_description(tags):
+    s = ""
+    # build string
+    for tag, supported in tags.iteritems():
+        if supported == "no":
+            s += "%s\n" % TAG_MISSING_DESCRIPTION.get(tag)
+    # ensure that the last \n is gone
+    if s:
+        s = s[:-1]
+    return s
 
 class HardwareRequirementsLabel(Gtk.HBox):
     """ contains a single HW requirement string and a image that shows if 

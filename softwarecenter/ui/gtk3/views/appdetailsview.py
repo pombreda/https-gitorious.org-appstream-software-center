@@ -126,6 +126,16 @@ class StatusBar(Gtk.Alignment):
         for child in self: 
             self.propagate_draw(child, cr)
 
+class WarningStatusBar(StatusBar):
+
+    def __init__(self, view):
+        StatusBar.__init__(self, view)
+        self.label = Gtk.Label()
+        self.label.set_line_wrap(True)
+        self.warn = Gtk.Label()
+        self.warn.set_text(u'\u26A0')
+        self.hbox.pack_start(self.label, True, True, 0)
+        self.hbox.pack_end(self.warn, True, True, 0)
 
 class PackageStatusBar(StatusBar):
     """ Package specific status bar that contains a state label,
@@ -1079,7 +1089,7 @@ class AppDetailsView(Viewport):
         hb.pack_start(vb_inner, False, False, 0)
 
         # a warning bar (e.g. for HW incompatible packages)
-        self.pkg_warningbar = Gtk.Label()
+        self.pkg_warningbar = WarningStatusBar(self)
         vb.pack_start(self.pkg_warningbar, False, False, 0)
 
         # the package status bar
@@ -1337,6 +1347,10 @@ class AppDetailsView(Viewport):
         return
 
     def _update_warning_bar(self, app_details):
+        from softwarecenter.ui.gtk3.widgets.labels import (
+            get_hw_missing_long_description)
+        s = get_hw_missing_long_description(app_details.hardware_requirements)
+        self.pkg_warningbar.label.set_text(s)
         if app_details.hardware_requirements_satisfied:
             self.pkg_warningbar.hide()
         else:
