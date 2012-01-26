@@ -1,7 +1,9 @@
 #!/usr/bin/python
 
 import unittest
+
 from gi.repository import Gtk, GObject
+from gettext import gettext as _
 
 from testutils import setup_test_env
 setup_test_env()
@@ -10,10 +12,13 @@ from mock import Mock, patch
 
 from softwarecenter.db.application import Application
 from softwarecenter.testutils import get_mock_app_from_real_app, do_events
+from softwarecenter.ui.gtk3.widgets.labels import HardwareRequirementsBox
 from softwarecenter.ui.gtk3.views.appdetailsview import get_test_window_appdetails
 from softwarecenter.enums import PkgStates
 
 from test.test_database import make_purchased_app_details
+
+
 
 # window destory timeout
 TIMEOUT=100
@@ -219,7 +224,6 @@ class HardwareRequirementsTestCase(unittest.TestCase):
         Gtk.main()
 
     def test_show_hardware_requirements(self):
-        from softwarecenter.ui.gtk3.widgets.labels import HardwareRequirementsBox
         app = Application("", "software-center")
         mock = get_mock_app_from_real_app(app)
         #details = mock.get_details(None)
@@ -230,9 +234,10 @@ class HardwareRequirementsTestCase(unittest.TestCase):
         self.view.show_app(mock)
         do_events()
         # ensure we have the data
-        self.assertTrue(self.view.hardware_info.get_property("visible"))
+        self.assertTrue(
+            self.view.hardware_info.value_label.get_property("visible"))
         self.assertEqual(
-            type(HardwareRequirementsBox),
+            type(HardwareRequirementsBox()),
             type(self.view.hardware_info.value_label))
         self.assertEqual(
             self.view.hardware_info.key, _("Also requires"))

@@ -49,6 +49,8 @@ class HardwareRequirementsLabel(Gtk.HBox):
     def _build_ui(self):
         self._img = Gtk.Image()
         self._label = Gtk.Label()
+        self._img.show()
+        self._label.show()
         self.pack_start(self._img, True, True, 1)
         self.pack_start(self._label, True, True, 1)
     def get_label(self):

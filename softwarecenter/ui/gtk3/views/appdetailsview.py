@@ -53,6 +53,7 @@ from softwarecenter.ui.gtk3.dialogs import error
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.drawing import color_to_hex
 from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
+from softwarecenter.ui.gtk3.widgets.labels import HardwareRequirementsBox
 from softwarecenter.ui.gtk3.widgets.separators import HBar
 from softwarecenter.ui.gtk3.widgets.viewport import Viewport
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
@@ -65,6 +66,7 @@ from softwarecenter.ui.gtk3.widgets.weblivedialog import (
 from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 
 import softwarecenter.ui.gtk3.dialogs as dialogs
+
 
 from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
@@ -405,9 +407,10 @@ class PackageInfo(Gtk.HBox):
 
         # value
         v = self.value_label
-        v.set_line_wrap(True)
-        v.set_selectable(True)
-        v.set_alignment(0, 0.5)
+        if hasattr(v, "set_line_wrap") and hasattr(v, "set_selectable"):
+            v.set_line_wrap(True)
+            v.set_selectable(True)
+            v.set_alignment(0, 0.5)
         self.pack_start(v, False, False, 0)
 
         # a11y
@@ -1165,6 +1168,10 @@ class AppDetailsView(Viewport):
         self.version_info = PackageInfo(_("Version"), self.info_keys)
         info_vb.pack_start(self.version_info, False, False, 0)
 
+        self.hardware_info = PackageInfo(
+            _("Also requires"), self.info_keys, HardwareRequirementsBox)
+        info_vb.pack_start(self.hardware_info, False, False, 0)
+
         self.totalsize_info = PackageInfo(_("Total size"), self.info_keys)
         info_vb.pack_start(self.totalsize_info, False, False, 0)
 
@@ -1332,9 +1339,14 @@ class AppDetailsView(Viewport):
             support = app_details.maintenance_status
         else:
             support = _("Unknown")
+        # regular label updates
         self.version_info.set_value(version)
         self.license_info.set_value(license)
         self.support_info.set_value(support)
+        # this is slightly special as its not using a label but a special
+        # widget
+        self.hardware_info.value_label.set_hardware_requirements(
+            app_details.hardware_requirements)
         return
 
     def _update_addons(self, app_details):
