@@ -7,7 +7,12 @@ software-center (5.1.7.1) UNRELEASED; urgency=low
     - implement the hardware-requirements display in
       the detailsview
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 Jan 2012 17:11:54 -0500
+  [ Brendan Donegan ]
+  * lp:~brendan-donegan/software-center/test_utils_get_nice_date_string:
+    - add a test function in test_utils.py which covers all of
+      get_nice_date_string
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 Jan 2012 18:32:45 -0500
 
 software-center (5.1.7) precise; urgency=low
 
