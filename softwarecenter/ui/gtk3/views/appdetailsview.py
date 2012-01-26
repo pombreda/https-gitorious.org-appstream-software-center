@@ -1347,6 +1347,10 @@ class AppDetailsView(Viewport):
         # widget
         self.hardware_info.value_label.set_hardware_requirements(
             app_details.hardware_requirements)
+        if self.app_details.hardware_requirements:
+            self.hardware_info.show()
+        else:
+            self.hardware_info.hide()
         return
 
     def _update_addons(self, app_details):
