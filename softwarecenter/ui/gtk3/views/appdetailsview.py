@@ -365,23 +365,21 @@ class PackageStatusBar(StatusBar):
             return datetime.datetime.strptime(
                 purchase_date, "%Y-%m-%d %H:%M:%S")
 
-
 class PackageInfo(Gtk.HBox):
     """ Box with labels for package specific information like version info
     """
 
-    def __init__(self, key, info_keys, value_label_type=None):
+    def __init__(self, key, info_keys):
         Gtk.HBox.__init__(self)
         self.set_spacing(StockEms.LARGE)
 
         self.key = key
         self.info_keys = info_keys
         self.info_keys.append(key)
-        if not value_label_type:
-            self.value_label = Gtk.Label()
-            self.value_label.set_selectable(True)
-        else:
-            self.value_label = value_label_type()
+        self.value_label = Gtk.Label()
+        self.value_label.set_selectable(True)
+        self.value_label.set_line_wrap(True)
+        self.value_label.set_alignment(0, 0.5)
         self.a11y = self.get_accessible()
 
         self.connect('realize', self._on_realize)
@@ -406,29 +404,34 @@ class PackageInfo(Gtk.HBox):
         self.pack_start(k, False, False, 0)
 
         # value
-        v = self.value_label
-        if hasattr(v, "set_line_wrap") and hasattr(v, "set_selectable"):
-            v.set_line_wrap(True)
-            v.set_selectable(True)
-            v.set_alignment(0, 0.5)
-        self.pack_start(v, False, False, 0)
+        self.pack_start(self.value_label, False, False, 0)
 
         # a11y
         kacc = k.get_accessible()
-        vacc = v.get_accessible()
+        vacc = self.value_label.get_accessible()
         kacc.add_relationship(Atk.RelationType.LABEL_FOR, vacc)
         vacc.add_relationship(Atk.RelationType.LABELLED_BY, kacc)
 
         self.set_property("can-focus", True)
         self.show_all()
         return
-
+    
     def set_width(self, width):
         return
 
     def set_value(self, value):
         self.value_label.set_markup(value)
         self.a11y.set_name(utf8(self.key) + ' ' + utf8(value))
+
+class PackageInfoHW(PackageInfo):
+    """ special version of packageinfo that uses the custom 
+        HardwareRequirementsBox as the "label"
+    """
+    def __init__(self, *args):
+        super(PackageInfoHW, self).__init__(*args)
+        self.value_label = HardwareRequirementsBox()
+    def set_value(self, value):
+        self.value_label.set_hardware_requirements(value)
 
 
 class Addon(Gtk.HBox):
@@ -1168,8 +1171,7 @@ class AppDetailsView(Viewport):
         self.version_info = PackageInfo(_("Version"), self.info_keys)
         info_vb.pack_start(self.version_info, False, False, 0)
 
-        self.hardware_info = PackageInfo(
-            _("Also requires"), self.info_keys, HardwareRequirementsBox)
+        self.hardware_info = PackageInfoHW(_("Also requires"), self.info_keys)
         info_vb.pack_start(self.hardware_info, False, False, 0)
 
         self.totalsize_info = PackageInfo(_("Total size"), self.info_keys)
@@ -1345,8 +1347,7 @@ class AppDetailsView(Viewport):
         self.support_info.set_value(support)
         # this is slightly special as its not using a label but a special
         # widget
-        self.hardware_info.value_label.set_hardware_requirements(
-            app_details.hardware_requirements)
+        self.hardware_info.set_value(app_details.hardware_requirements)
         if self.app_details.hardware_requirements:
             self.hardware_info.show()
         else:
