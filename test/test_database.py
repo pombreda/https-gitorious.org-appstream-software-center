@@ -444,7 +444,7 @@ def make_purchased_app_details(db=None, supported_series=None):
     return app_details
 
 
-class AppDetailsChannelsTestCase(unittest.TestCase):
+class AppDetailsSCAApplicationParser(unittest.TestCase):
     
     def setUp(self):
         self.db = get_test_db()
@@ -482,6 +482,21 @@ class AppDetailsChannelsTestCase(unittest.TestCase):
         # ensure that archive.canonical.com archive roots are detected
         # as the partner channel
         self.assertEqual(app_details.channelname, "ubuntu-extras")
+
+    def test_date_no_published(self):
+        app_dict = make_software_center_agent_app_dict()
+        app_dict["date_published"] = "None"
+        app_details = self._get_app_details_from_app_dict(app_dict)
+        # ensure that archive.canonical.com archive roots are detected
+        # as the partner channel
+        self.assertEqual(app_details.date_published, "")
+        # and again
+        app_dict["date_published"] = "2012-01-21 02:15:10.358926"
+        app_details = self._get_app_details_from_app_dict(app_dict)
+        # ensure that archive.canonical.com archive roots are detected
+        # as the partner channel
+        self.assertEqual(app_details.date_published, "2012-01-21 02:15:10")
+        
 
 class AppDetailsPkgStateTestCase(unittest.TestCase):
 
