@@ -456,7 +456,12 @@ class AppDetailsChannelsTestCase(unittest.TestCase):
         app_details = AppDetails(self.db, doc)
         return app_details
 
-    def test_channel_detection_partner(self):
+    @patch('os.path.exists')
+    def test_channel_detection_partner(self, mock):
+        # we need to patch os.path.exists as "AppDetails.channelname" will
+        # check if there is a matching channel description file on disk
+        os.path.exists.return_value = True
+        # setup dict
         app_dict = make_software_center_agent_app_dict()
         app_dict["archive_root"] = "http://archive.canonical.com/"
         app_details = self._get_app_details_from_app_dict(app_dict)
@@ -465,7 +470,12 @@ class AppDetailsChannelsTestCase(unittest.TestCase):
         dist = get_distro().get_codename()
         self.assertEqual(app_details.channelname, "%s-partner" % dist)
     
-    def test_channel_detection_extras(self):
+    @patch('os.path.exists')
+    def test_channel_detection_extras(self, mock):
+        # we need to patch os.path.exists as "AppDetails.channelname" will
+        # check if there is a matching channel description file on disk
+        os.path.exists.return_value = True
+        # setup dict
         app_dict = make_software_center_agent_app_dict()
         app_dict["archive_root"] = "http://extras.ubuntu.com/"
         app_details = self._get_app_details_from_app_dict(app_dict)
