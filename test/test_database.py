@@ -464,9 +464,14 @@ class AppDetailsChannelsTestCase(unittest.TestCase):
         # as the partner channel
         dist = get_distro().get_codename()
         self.assertEqual(app_details.channelname, "%s-partner" % dist)
-
-        
-        
+    
+    def test_channel_detection_extras(self):
+        app_dict = make_software_center_agent_app_dict()
+        app_dict["archive_root"] = "http://extras.ubuntu.com/"
+        app_details = self._get_app_details_from_app_dict(app_dict)
+        # ensure that archive.canonical.com archive roots are detected
+        # as the partner channel
+        self.assertEqual(app_details.channelname, "ubuntu-extras")
 
 class AppDetailsPkgStateTestCase(unittest.TestCase):
 
