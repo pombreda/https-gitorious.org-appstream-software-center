@@ -777,10 +777,11 @@ def make_doc_from_parser(parser, cache):
     # PPA (third party stuff)
     if parser.has_option_desktop("X-AppInstall-PPA"):
         archive_ppa = parser.get_desktop("X-AppInstall-PPA")
-        doc.add_value(XapianValues.ARCHIVE_PPA, archive_ppa)
-        # add archive origin data here so that its available even if
-        # the PPA is not (yet) enabled
-        doc.add_term("XOO"+"lp-ppa-%s" % archive_ppa.replace("/", "-"))
+        if archive_ppa:
+            doc.add_value(XapianValues.ARCHIVE_PPA, archive_ppa)
+            # add archive origin data here so that its available even if
+            # the PPA is not (yet) enabled
+            doc.add_term("XOO"+"lp-ppa-%s" % archive_ppa.replace("/", "-"))
     # screenshot (for third party)
     if parser.has_option_desktop("X-AppInstall-Screenshot-Url"):
         url = parser.get_desktop("X-AppInstall-Screenshot-Url")
