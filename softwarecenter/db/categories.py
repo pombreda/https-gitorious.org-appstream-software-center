@@ -63,6 +63,7 @@ class Category(object):
                  only_unallocated=True, dont_display=False, flags=[], 
                  subcategories=[], sortmode=SortMethods.BY_ALPHABET,
                  item_limit=0):
+
         if type(name) == str:
             self.name = unicode(name, 'utf8').encode('utf8')
         else:

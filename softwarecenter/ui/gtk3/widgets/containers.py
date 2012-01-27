@@ -513,8 +513,10 @@ class FramedHeaderBox(FramedBox):
         # make the content box
         self.content_box = Gtk.Box.new(orientation, spacing)
         # and a spinner (to be used only if needed)
+        # TODO: cosmetic tweak needed - draw a line at the top of the spinner
+        #       area so that the header has a proper border
         self.spinner = Gtk.Spinner()
-        self.spinner.set_size_request(24, 24)
+        self.spinner.set_size_request(32, 32)
         self.spinner.set_valign(Gtk.Align.CENTER)
         self.spinner.set_halign(Gtk.Align.CENTER)
         # finally, a notebook for the spinner and the content box to share
@@ -548,7 +550,8 @@ class FramedHeaderBox(FramedBox):
         self.spinner.start()
         self.spinner.show()
         self.spinner_notebook.set_current_page(self.SPINNER)
-        # disable the More button when the spinner is showing
+        # don't show the More button when the spinner is showing
+        # TODO: make this work (hide, or disable)
         if hasattr(self, "more"):
             self.more.hide()
             
@@ -556,7 +559,8 @@ class FramedHeaderBox(FramedBox):
         self.spinner.stop()
         self.spinner.hide()
         self.spinner_notebook.set_current_page(self.CONTENT)
-        # enable the More button when the spinner is hidden
+        # be sure to show the More button
+        # TODO: make this work (show, or enable)
         if hasattr(self, "more"):
             self.more.show()
 

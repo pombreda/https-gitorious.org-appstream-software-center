@@ -487,21 +487,17 @@ class LobbyViewGtk(CategoriesViewGtk):
         #~ self._add_tiles_to_flowgrid(docs, self.featured, 12)
         #~ return
         
-    def _get_recommended_for_you_category_content(self):
-        recommended_for_you_cat = get_category_by_name(
-                                    self.categories, 
-                                    u"Recommended for You") # untranslated name
-        if recommended_for_you_cat is None:
-            LOG.warn("No 'recommended_for_you' category found!!")
-            return None, []
+    def _get_recommended_for_you_category_content(self, pkgs):
             
-        # get a list of top recommendations via the recommender agent
-        recommender_agent = RecommenderAgent()
-        # TODO: This query should be recommend_me, not recommend_top, change
-        #       what the latter is implemented
-        recommender_agent.connect("recommend-top", self._recommend_top_result)
-        recommender_agent.query_recommend_top()
-
+        query = get_query_for_pkgnames(pkgs)
+        recommended_for_you_cat = Category(
+                               u"Recommended for You", 
+                               _("Recommended for You"),
+                               None, 
+                               query,
+                               flags=['available-only', 'not-installed-only'],
+                               item_limit=60)
+            
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
         app_filter.set_available_only(True)
@@ -521,17 +517,29 @@ class LobbyViewGtk(CategoriesViewGtk):
         return recommended_for_you_cat, enq.get_documents()
         
     def _recommend_top_result(self, recommender_agent, result_list):
-        print ">>> result_list: ", result_list
+        
+        pkgs = []
+        for item in result_list['recommendations']:
+            pkgs.append(item['package_name'])
+            
+        recommended_for_you_cat, docs = self._get_recommended_for_you_category_content(pkgs)
+        # display docs
+        self._add_tiles_to_flowgrid(docs, self.recommended_for_you, 8)
+        self.recommended_for_you.show_all()
+        self.recommended_for_you_frame.hide_spinner()
+        return
 
     def _update_recommended_for_you_content(self):
         # remove any existing children from the grid widget
         self.recommended_for_you.remove_all()
-        # get top_rated category and docs
-        recommended_for_you_cat, docs = self._get_recommended_for_you_category_content()
-        # display docs
-        self._add_tiles_to_flowgrid(docs, self.recommended_for_you, 8)
-        self.recommended_for_you.show_all()
-        return recommended_for_you_cat
+        self.recommended_for_you_frame.show_spinner()
+        
+        # get a list of top recommendations via the recommender agent
+        recommender_agent = RecommenderAgent()
+        # TODO: This query should be recommend_me, not recommend_top, change
+        #       what the latter is implemented
+        recommender_agent.connect("recommend-top", self._recommend_top_result)
+        recommender_agent.query_recommend_top()
         
     def _append_recommended_for_you(self):
     
@@ -543,7 +551,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.recommended_for_you_frame.set_header_label(_(u"Recommended for You"))
         self.recommended_for_you_frame.add(self.recommended_for_you)
         self.vbox.pack_start(self.recommended_for_you_frame, True, True, 0)
-        self.recommended_for_you_frame.hide_spinner()
         
         recommended_for_you_cat = self._update_recommended_for_you_content()
         if recommended_for_you_cat:
