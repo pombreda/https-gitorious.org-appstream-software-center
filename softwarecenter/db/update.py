@@ -18,8 +18,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import logging
-import os
 import json
+import re
+import os
 import string
 import shutil
 import xapian
@@ -679,6 +680,7 @@ def make_doc_from_parser(parser, cache):
     else:
         name = parser.get_desktop("Name")
         untranslated_name = parser.get_desktop("Name", translated=False)
+
     doc.set_data(name)
     doc.add_value(XapianValues.APPNAME_UNTRANSLATED, untranslated_name)
 
@@ -739,7 +741,8 @@ def make_doc_from_parser(parser, cache):
     # date published
     if parser.has_option_desktop("X-AppInstall-Date-Published"):
         date_published = parser.get_desktop("X-AppInstall-Date-Published")
-        if date_published:
+        if (date_published and 
+            re.match("\d+-\d+-\d+ \d+:\d+:\d+", date_published)):
             # strip the subseconds from the end of the published date string
             date_published = str(date_published).split(".")[0]
             doc.add_value(XapianValues.DATE_PUBLISHED,
