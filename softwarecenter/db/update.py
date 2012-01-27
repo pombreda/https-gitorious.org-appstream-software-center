@@ -50,6 +50,7 @@ except ImportError:
 
 from gettext import gettext as _
 from glob import glob
+from urlparse import urlparse
 
 import softwarecenter.paths
 
@@ -165,6 +166,7 @@ class SCAApplicationParser(AppInfoParserBase):
                   }
 
     def __init__(self, sca_application):
+        # the piston object we got from software-center-agent
         self.sca_application = sca_application
         self.origin = "software-center-agent"
         self._apply_exceptions()
@@ -190,6 +192,14 @@ class SCAApplicationParser(AppInfoParserBase):
         self.sca_application.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
         if not hasattr(self.sca_application, 'categories'):
             self.sca_application.categories = ""
+
+        # detect if its for the partner channel and set the channel
+        # attribute appropriately so that the channel-adding magic works
+        u = urlparse(self.sca_application.archive_root)
+        if u.scheme == "http" and u.netloc ==  "archive.canonical.com":
+            distroseries = get_distro().get_codename()
+            self.sca_application.channel = "%s-partner" % distroseries
+            
 
     def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:
