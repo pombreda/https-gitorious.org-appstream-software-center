@@ -52,6 +52,7 @@ from softwarecenter.db.categories import (Category,
 from softwarecenter.db.utils import get_query_for_pkgnames
 from softwarecenter.distro import get_distro
 from softwarecenter.backend.scagent import SoftwareCenterAgent
+from softwarecenter.backend.recommends import RecommenderAgent
 
 LOG=logging.getLogger(__name__)
 
@@ -399,17 +400,16 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _append_top_rated(self):
         self.top_rated = FlowableGrid()
         #~ self.top_rated.row_spacing = StockEms.SMALL
-        frame = FramedHeaderBox()
-        frame.set_header_label(_("Top Rated"))
-        frame.add(self.top_rated)
-        self.top_rated_frame = frame
-        self.right_column.pack_start(frame, True, True, 0)
+        self.top_rated_frame = FramedHeaderBox()
+        self.top_rated_frame.set_header_label(_("Top Rated"))
+        self.top_rated_frame.add(self.top_rated)
+        self.right_column.pack_start(self.top_rated_frame, True, True, 0)
 
         top_rated_cat = self._update_top_rated_content()
         # only display the 'More' LinkButton if we have top_rated content
         if top_rated_cat is not None:
-            frame.header_implements_more_button()
-            frame.more.connect('clicked', 
+            self.top_rated_frame.header_implements_more_button()
+            self.top_rated_frame.more.connect('clicked', 
                                self.on_category_clicked, top_rated_cat) 
         return
 
@@ -451,17 +451,16 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     def _append_whats_new(self):
         self.whats_new = FlowableGrid()
-        frame = FramedHeaderBox()
-        frame.set_header_label(_(u"What\u2019s New"))
-        frame.add(self.whats_new)
-        self.whats_new_frame = frame
+        self.whats_new_frame = FramedHeaderBox()
+        self.whats_new_frame.set_header_label(_(u"What\u2019s New"))
+        self.whats_new_frame.add(self.whats_new)
 
         whats_new_cat = self._update_whats_new_content()
         if whats_new_cat is not None:
             # only add to the visible right_frame if we actually have it
-            self.right_column.pack_start(frame, True, True, 0)
-            frame.header_implements_more_button()
-            frame.more.connect('clicked', self.on_category_clicked, whats_new_cat) 
+            self.right_column.pack_start(self.whats_new_frame, True, True, 0)
+            self.whats_new_frame.header_implements_more_button()
+            self.whats_new_frame.more.connect('clicked', self.on_category_clicked, whats_new_cat) 
         return
 
     #~ def _append_recommendations(self):
@@ -496,8 +495,12 @@ class LobbyViewGtk(CategoriesViewGtk):
             LOG.warn("No 'recommended_for_you' category found!!")
             return None, []
             
-        # TODO: Kick off an update from the RecommenderAgent here and hide
-        #       the spinner/load the tileview on the callback
+        # get a list of top recommendations via the recommender agent
+        recommender_agent = RecommenderAgent()
+        # TODO: This query should be recommend_me, not recommend_top, change
+        #       what the latter is implemented
+        recommender_agent.connect("recommend-top", self._recommend_top_result)
+        recommender_agent.query_recommend_top()
 
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
@@ -516,6 +519,9 @@ class LobbyViewGtk(CategoriesViewGtk):
                                               self.icons)
 
         return recommended_for_you_cat, enq.get_documents()
+        
+    def _recommend_top_result(self, recommender_agent, result_list):
+        print ">>> result_list: ", result_list
 
     def _update_recommended_for_you_content(self):
         # remove any existing children from the grid widget
@@ -533,11 +539,11 @@ class LobbyViewGtk(CategoriesViewGtk):
         #       will update to the tile view of recommended apps when ready
         #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
         self.recommended_for_you = FlowableGrid()
-        frame = FramedHeaderBox()
-        frame.set_header_label(_(u"Recommended for You"))
-        frame.add(self.recommended_for_you)
-        
-        # TODO: show a spinner while we load the recommendations from the server
+        self.recommended_for_you_frame = FramedHeaderBox()
+        self.recommended_for_you_frame.set_header_label(_(u"Recommended for You"))
+        self.recommended_for_you_frame.add(self.recommended_for_you)
+        self.vbox.pack_start(self.recommended_for_you_frame, True, True, 0)
+        self.recommended_for_you_frame.hide_spinner()
         
         recommended_for_you_cat = self._update_recommended_for_you_content()
         if recommended_for_you_cat:
@@ -546,10 +552,10 @@ class LobbyViewGtk(CategoriesViewGtk):
             #       it is all ready
             #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
             self.vbox.pack_start(self.recommended_for_you, True, True, 0)
-            frame.header_implements_more_button()
-            frame.more.connect('clicked',
-                               self.on_category_clicked,
-                               recommended_for_you_cat)
+            self.recommended_for_you_frame.header_implements_more_button()
+            self.recommended_for_you_frame.more.connect('clicked',
+                                                    self.on_category_clicked,
+                                                    recommended_for_you_cat)
 
     def _update_appcount(self):
         enq = AppEnquire(self.cache, self.db)
@@ -703,14 +709,14 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.departments = FlowableGrid(paint_grid_pattern=False)
         self.departments.set_row_spacing(StockEms.SMALL)
         self.departments.set_column_spacing(StockEms.SMALL)
-        frame = FramedBox(spacing=StockEms.MEDIUM,
-                          padding=StockEms.MEDIUM)
+        self.departments_frame = FramedBox(spacing=StockEms.MEDIUM,
+                                           padding=StockEms.MEDIUM)
         # set x/y-alignment and x/y-expand
-        frame.set(0.5, 0.0, 1.0, 1.0)
-        frame.pack_start(self.subcat_label, False, False, 0)
-        frame.pack_start(self.departments, True, True, 0)
+        self.departments_frame.set(0.5, 0.0, 1.0, 1.0)
+        self.departments_frame.pack_start(self.subcat_label, False, False, 0)
+        self.departments_frame.pack_start(self.departments, True, True, 0)
         # append the departments section to the page
-        self.vbox.pack_start(frame, False, True, 0)
+        self.vbox.pack_start(self.departments_frame, False, True, 0)
         return
 
     def _update_appcount(self, appcount):
