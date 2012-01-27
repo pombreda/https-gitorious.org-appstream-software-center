@@ -34,6 +34,8 @@ from softwarecenter.enums import (
 from softwarecenter.testutils import (
     get_test_db, 
     get_test_pkg_info,
+    make_software_center_agent_subscription_dict,
+    make_software_center_agent_app_dict,
     )
 
 
@@ -417,26 +419,8 @@ app-popcon	4	# app-install .desktop popcon rank
 
 def make_purchased_app_details(db=None, supported_series=None):
     """Return an AppDetail instance with the required attributes."""
-    subscription = {
-        u'application': {
-            u'archive_id': u'commercial-ppa-uploaders/photobomb',
-            u'description': u"Easy and Social Image Editor\nPhotobomb "
-                            u"give you easy access to images in your "
-                            u"social networking feeds, pictures on ...",
-            u'name': u'Photobomb',
-            u'package_name': u'photobomb',
-            u'signing_key_id': u'1024R/75254D99'
-            },
-        u'deb_line': u'deb https://some.user:ABCDEFGHIJKLMNOP@'
-                     u'private-ppa.launchpad.net/commercial-ppa-uploaders/'
-                     u'photobomb/ubuntu natty main',
-        u'distro_series': {u'code_name': u'natty', u'version': u'11.04'},
-        u'failures': [],
-        u'open_id': u'https://login.ubuntu.com/+id/ABCDEF',
-        u'purchase_date': u'2011-09-16 06:37:52',
-        u'purchase_price': u'2.99',
-        u'state': u'Complete',
-        }
+    app = make_software_center_agent_app_dict()
+    subscription = make_software_center_agent_subscription_dict(app)
 
     if supported_series != None:
         subscription['application']['series'] = supported_series
