@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import os
 import unittest
 
 from gi.repository import GObject
@@ -11,8 +10,6 @@ from gettext import gettext as _
 from mock import Mock, patch
 
 from softwarecenter.backend.piston.rnrclient_pristine import ReviewDetails
-from softwarecenter.backend.reviews.rnr import (
-    ReviewLoaderSpawningRNRClient as ReviewLoader)
 from softwarecenter.testutils import get_test_pkg_info, get_test_db
 from softwarecenter.ui.gtk3.review_gui_helper import (
     TRANSMIT_STATE_DONE,

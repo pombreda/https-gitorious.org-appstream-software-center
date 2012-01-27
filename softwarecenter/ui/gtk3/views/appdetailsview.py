@@ -53,6 +53,7 @@ from softwarecenter.ui.gtk3.dialogs import error
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.drawing import color_to_hex
 from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
+from softwarecenter.ui.gtk3.widgets.labels import HardwareRequirementsBox
 from softwarecenter.ui.gtk3.widgets.separators import HBar
 from softwarecenter.ui.gtk3.widgets.viewport import Viewport
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
@@ -65,6 +66,8 @@ from softwarecenter.ui.gtk3.widgets.weblivedialog import (
 from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 
 import softwarecenter.ui.gtk3.dialogs as dialogs
+
+from softwarecenter.hw import get_hw_missing_long_description
 
 from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
@@ -86,6 +89,8 @@ class StatusBar(Gtk.Alignment):
         self.add(self.hbox)
 
         self.view = view
+        # default bg
+        self._bg = [1, 1, 1, 0.3]
 
         self.connect("style-updated", self.on_style_updated)
         return
@@ -105,7 +110,7 @@ class StatusBar(Gtk.Alignment):
 
         # fill bg
         cr.rectangle(-width, 0, a.width+2*width, a.height)
-        cr.set_source_rgba(1, 1, 1, 0.3)
+        cr.set_source_rgba(*self._bg)
         cr.fill_preserve()
 
         # paint dashed top/bottom borders
@@ -124,6 +129,20 @@ class StatusBar(Gtk.Alignment):
         for child in self: 
             self.propagate_draw(child, cr)
 
+class WarningStatusBar(StatusBar):
+
+    def __init__(self, view):
+        StatusBar.__init__(self, view)
+        self.label = Gtk.Label()
+        self.label.set_line_wrap(True)
+        self.label.set_alignment(0.0, 0.5)
+        self.warn = Gtk.Label()
+        self.warn.set_markup(
+            '<span foreground="red" size="x-large">%s</span>' % u'\u26A0')
+        self.hbox.pack_start(self.label, True, True, 0)
+        self.hbox.pack_end(self.warn, False, False, 0)
+        # override _bg
+        self._bg = [1, 1, 0, 0.3]
 
 class PackageStatusBar(StatusBar):
     """ Package specific status bar that contains a state label,
@@ -283,16 +302,30 @@ class PackageStatusBar(StatusBar):
             #        won't vary based on locale and as such we don't want
             #        it translated
             self.set_label("US$ %s" % app_details.price)
-            self.set_button_label(_(u'Buy\u2026'))
-        elif state == PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+            if app_details.hardware_requirements_satisfied:
+                self.set_button_label(_(u'Buy\u2026'))
+            else:
+                self.set_button_label(_(u'Buy Anyway\u2026'))
+        elif state in (
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+            PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES):
+
             # purchase_date is a string, must first convert to datetime.datetime
             pdate = self._convert_purchase_date_str_to_datetime(
                 app_details.purchase_date)
             # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please 
             # specify a format per your locale (if you prefer, %x can be used 
             # to provide a default locale-specific date representation)
-            self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')))
+            label = pdate.strftime(_('Purchased on %Y-%m-%d'))
             self.set_button_label(_('Install'))
+            if state == PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES:
+                label = pdate.strftime(
+                    _('Purchased on %Y-%m-%d but not available for your '
+                      'current Ubuntu version. Please contact the vendor '
+                      'for an update.'))
+                self.button.hide()
+            self.set_label(label)
+
         elif state == PkgStates.UNINSTALLED:
             #special label only if the app being viewed is software centre
             # itself
@@ -304,7 +337,10 @@ class PackageStatusBar(StatusBar):
                 else:
                     # TRANSLATORS: Free here means Gratis
                     self.set_label(_("Free"))
-            self.set_button_label(_('Install'))
+            if app_details.hardware_requirements_satisfied:
+                self.set_button_label(_('Install'))
+            else:
+                self.set_button_label(_('Install Anyway'))
         elif state == PkgStates.UPGRADABLE:
             self.set_label(_('Upgrade Available'))
             self.set_button_label(_('Upgrade'))
@@ -352,7 +388,6 @@ class PackageStatusBar(StatusBar):
             return datetime.datetime.strptime(
                 purchase_date, "%Y-%m-%d %H:%M:%S")
 
-
 class PackageInfo(Gtk.HBox):
     """ Box with labels for package specific information like version info
     """
@@ -366,6 +401,8 @@ class PackageInfo(Gtk.HBox):
         self.info_keys.append(key)
         self.value_label = Gtk.Label()
         self.value_label.set_selectable(True)
+        self.value_label.set_line_wrap(True)
+        self.value_label.set_alignment(0, 0.5)
         self.a11y = self.get_accessible()
 
         self.connect('realize', self._on_realize)
@@ -390,28 +427,34 @@ class PackageInfo(Gtk.HBox):
         self.pack_start(k, False, False, 0)
 
         # value
-        v = self.value_label
-        v.set_line_wrap(True)
-        v.set_selectable(True)
-        v.set_alignment(0, 0.5)
-        self.pack_start(v, False, False, 0)
+        self.pack_start(self.value_label, False, False, 0)
 
         # a11y
         kacc = k.get_accessible()
-        vacc = v.get_accessible()
+        vacc = self.value_label.get_accessible()
         kacc.add_relationship(Atk.RelationType.LABEL_FOR, vacc)
         vacc.add_relationship(Atk.RelationType.LABELLED_BY, kacc)
 
         self.set_property("can-focus", True)
         self.show_all()
         return
-
+    
     def set_width(self, width):
         return
 
     def set_value(self, value):
         self.value_label.set_markup(value)
         self.a11y.set_name(utf8(self.key) + ' ' + utf8(value))
+
+class PackageInfoHW(PackageInfo):
+    """ special version of packageinfo that uses the custom 
+        HardwareRequirementsBox as the "label"
+    """
+    def __init__(self, *args):
+        super(PackageInfoHW, self).__init__(*args)
+        self.value_label = HardwareRequirementsBox()
+    def set_value(self, value):
+        self.value_label.set_hardware_requirements(value)
 
 
 class Addon(Gtk.HBox):
@@ -1052,6 +1095,10 @@ class AppDetailsView(Viewport):
         self.title.a11y.set_role(Atk.Role.PANEL)
         hb.pack_start(vb_inner, False, False, 0)
 
+        # a warning bar (e.g. for HW incompatible packages)
+        self.pkg_warningbar = WarningStatusBar(self)
+        vb.pack_start(self.pkg_warningbar, False, False, 0)
+
         # the package status bar
         self.pkg_statusbar = PackageStatusBar(self)
         vb.pack_start(self.pkg_statusbar, False, False, 0)
@@ -1150,6 +1197,9 @@ class AppDetailsView(Viewport):
 
         self.version_info = PackageInfo(_("Version"), self.info_keys)
         info_vb.pack_start(self.version_info, False, False, 0)
+
+        self.hardware_info = PackageInfoHW(_("Also requires"), self.info_keys)
+        info_vb.pack_start(self.hardware_info, False, False, 0)
 
         self.totalsize_info = PackageInfo(_("Total size"), self.info_keys)
         info_vb.pack_start(self.totalsize_info, False, False, 0)
@@ -1303,6 +1353,14 @@ class AppDetailsView(Viewport):
             self.test_drive.show()
         return
 
+    def _update_warning_bar(self, app_details):
+        s = get_hw_missing_long_description(app_details.hardware_requirements)
+        self.pkg_warningbar.label.set_text(s)
+        if app_details.hardware_requirements_satisfied:
+            self.pkg_warningbar.hide()
+        else:
+            self.pkg_warningbar.show()
+
     def _update_pkg_info_table(self, app_details):
         # set the strings in the package info table
         if app_details.version:
@@ -1318,9 +1376,17 @@ class AppDetailsView(Viewport):
             support = app_details.maintenance_status
         else:
             support = _("Unknown")
+        # regular label updates
         self.version_info.set_value(version)
         self.license_info.set_value(license)
         self.support_info.set_value(support)
+        # this is slightly special as its not using a label but a special
+        # widget
+        self.hardware_info.set_value(app_details.hardware_requirements)
+        if self.app_details.hardware_requirements:
+            self.hardware_info.show()
+        else:
+            self.hardware_info.hide()
         return
 
     def _update_addons(self, app_details):
@@ -1375,6 +1441,7 @@ class AppDetailsView(Viewport):
         self._update_app_video(app_details)
         self._update_weblive(app_details)
         self._update_pkg_info_table(app_details)
+        self._update_warning_bar(app_details)
         if not skip_update_addons:
             self._update_addons(app_details)
         else:
@@ -1396,6 +1463,7 @@ class AppDetailsView(Viewport):
     def _update_minimal(self, app_details):
         self._update_app_icon(app_details)
         self._update_pkg_info_table(app_details)
+        self._update_warning_bar(app_details)
 #        self._update_addons_minimal(app_details)
 
         # depending on pkg install state set action labels
