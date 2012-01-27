@@ -25,6 +25,7 @@ from softwarecenter.db.update import (
     update_from_appstream_xml,
     update_from_software_center_agent,
     SCAPurchasedApplicationParser,
+    SCAApplicationParser,
     )
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import (
@@ -443,6 +444,24 @@ def make_purchased_app_details(db=None, supported_series=None):
     return app_details
 
 
+class AppDetailsChannelsTestCase(unittest.TestCase):
+    
+    def setUp(self):
+        self.db = get_test_db()
+
+    def test_channel_parsing(self):
+        # setup code
+        app_dict = make_software_center_agent_app_dict()
+        app_dict["archive_root"] = "http://archive.canonical.com/"
+        item = PistonResponseObject.from_dict(app_dict)
+        parser = SCAApplicationParser(item)
+        doc = make_doc_from_parser(parser, self.db._aptcache)
+        app_details = AppDetails(self.db, doc)
+        # ensure that archive.canonical.com archive roots are detected
+        # as the partner channel
+        dist = get_distro().get_codename()
+        self.assertEqual(app_details.channelname, "%s-partner" % dist)
+        
 
 class AppDetailsPkgStateTestCase(unittest.TestCase):
 
