@@ -4,8 +4,6 @@ from gi.repository import Gtk
 import time
 import unittest
 
-from mock import Mock
-
 from testutils import setup_test_env
 setup_test_env()
 
@@ -72,7 +70,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         available_pane.add_to_launcher_enabled = True
         test_pkgname = "lincity-ng"
         # now pretend
-        # for testing, we substitute a mock version of UnityLauncher's
+        # for testing, we substitute a fake version of UnityLauncher's
         # send_application_to_launcher method that lets us check for the
         # correct values and also avoids firing the actual dbus signal
         # to the unity launcher service
@@ -91,7 +89,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         available_pane.add_to_launcher_enabled = False
         test_pkgname = "lincity-ng"
         # now pretend
-        # for testing, we substitute a mock version of UnityLauncher's
+        # for testing, we substitute a fake version of UnityLauncher's
         # send_application_to_launcher method that lets us check for the
         # correct values and also avoids firing the actual dbus signal
         # to the unity launcher service
