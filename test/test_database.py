@@ -449,18 +449,23 @@ class AppDetailsChannelsTestCase(unittest.TestCase):
     def setUp(self):
         self.db = get_test_db()
 
-    def test_channel_parsing(self):
-        # setup code
-        app_dict = make_software_center_agent_app_dict()
-        app_dict["archive_root"] = "http://archive.canonical.com/"
+    def _get_app_details_from_app_dict(self, app_dict):
         item = PistonResponseObject.from_dict(app_dict)
         parser = SCAApplicationParser(item)
         doc = make_doc_from_parser(parser, self.db._aptcache)
         app_details = AppDetails(self.db, doc)
+        return app_details
+
+    def test_channel_detection_partner(self):
+        app_dict = make_software_center_agent_app_dict()
+        app_dict["archive_root"] = "http://archive.canonical.com/"
+        app_details = self._get_app_details_from_app_dict(app_dict)
         # ensure that archive.canonical.com archive roots are detected
         # as the partner channel
         dist = get_distro().get_codename()
         self.assertEqual(app_details.channelname, "%s-partner" % dist)
+
+        
         
 
 class AppDetailsPkgStateTestCase(unittest.TestCase):
