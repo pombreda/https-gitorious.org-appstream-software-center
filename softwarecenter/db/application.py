@@ -629,6 +629,10 @@ class AppDetails(GObject.GObject):
     @property
     def version(self):
         if self._pkg:
+            if self._force_not_automatic_version:
+                for ver in self._pkg.versions:
+                    if ver.not_automatic:
+                        return ver.version
             if self._pkg.installed:
                 return self._pkg.installed.version
             else:
