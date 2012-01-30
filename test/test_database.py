@@ -571,6 +571,7 @@ class NotAutomaticChannelSupportTestCase(unittest.TestCase):
         ver = Mock(_Version)
         ver.description ="not_automatic: %s" % not_automatic
         ver.summary ="summary not_automatic: %s" % not_automatic
+        ver.version = "version not_automatic: %s" % not_automatic
         ver.not_automatic = not_automatic
         return ver
 
@@ -597,6 +598,8 @@ class NotAutomaticChannelSupportTestCase(unittest.TestCase):
                          not_automatic_version.description)
         self.assertEqual(details.summary,
                          not_automatic_version.summary)
+        self.assertEqual(details.version,
+                         not_automatic_version.version)
 
 
 if __name__ == "__main__":
