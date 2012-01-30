@@ -432,9 +432,8 @@ class AppDetails(GObject.GObject):
         # - locally installed
         # - intalled and available for download
         if self._pkg:
-            # Don't handle upgrades yet
-            #if self._pkg.installed and self._pkg._isUpgradable:
-            #    return PkgStates.UPGRADABLE
+            if self._pkg.installed and self._pkg.is_upgradable:
+                return PkgStates.UPGRADABLE
             if self._pkg.is_installed:
                 return PkgStates.INSTALLED
             else:

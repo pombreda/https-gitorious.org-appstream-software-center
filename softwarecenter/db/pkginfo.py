@@ -66,6 +66,9 @@ class _Package:
     def is_installed(self):
         return self.pkginfo.is_installed(self.name)
     @property
+    def is_upgradable(self):
+        return self.pkginfo.is_upgradable(self.name)
+    @property
     def section(self):
         return self.pkginfo.get_section(self.name)
     @property

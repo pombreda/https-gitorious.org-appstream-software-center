@@ -122,6 +122,10 @@ class PackagekitInfo(PackageInfo):
             return False
         return p.get_info() == packagekit.InfoEnum.INSTALLED
 
+    def is_upgradable(self, pkgname):
+        # FIXME: how is this done via PK ?
+        return False
+
     def is_available(self, pkgname):
         # FIXME: i don't think this is being used
         return True
