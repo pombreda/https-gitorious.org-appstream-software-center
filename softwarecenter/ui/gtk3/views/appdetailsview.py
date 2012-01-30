@@ -212,9 +212,15 @@ class PackageStatusBar(StatusBar):
         self.label.set_markup(m)
         return
 
+    def get_label(self):
+        return self.label.get_text()
+
     def set_button_label(self, label):
         self.button.set_label(label)
         return
+    
+    def get_button_label(self):
+        return self.button.get_label()
 
     def configure(self, app_details, state):
         LOG.debug("configure %s state=%s pkgstate=%s" % (
@@ -332,11 +338,8 @@ class PackageStatusBar(StatusBar):
             if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
                 self.set_label(_("Removed (close it and it'll be gone)"))
             else:
-                if app_details.price:
-                    self.set_label(app_details.price)
-                else:
-                    # TRANSLATORS: Free here means Gratis
-                    self.set_label(_("Free"))
+                # TRANSLATORS: Free here means Gratis
+                self.set_label(_("Free"))
             if app_details.hardware_requirements_satisfied:
                 self.set_button_label(_('Install'))
             else:

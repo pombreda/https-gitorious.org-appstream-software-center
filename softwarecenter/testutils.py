@@ -151,3 +151,42 @@ def setup_test_env():
     import softwarecenter.paths
     softwarecenter.paths.datadir = os.path.join(basedir, "data")
     softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR = tempfile.mkdtemp()
+
+
+# factory stuff for the agent
+def make_software_center_agent_app_dict():
+    app_dict = {
+        u'archive_root' : 'http://private-ppa.launchpad.net/',
+        u'archive_id': u'commercial-ppa-uploaders/photobomb',
+        u'description': u"Easy and Social Image Editor\nPhotobomb "
+                        u"give you easy access to images in your "
+                        u"social networking feeds, pictures on ...",
+        u'name': u'Photobomb',
+        u'package_name': u'photobomb',
+        u'signing_key_id': u'1024R/75254D99',
+        u'screenshot_url': 'http://software-center.ubuntu.com/site_media/screenshots/2011/08/Screenshot.png',
+        u'license': 'Proprietary',
+        u'support_url': 'mailto:support@example.com',
+        u'series': { 'oneiric' : ['i386', 'amd64'],
+                     'natty' : ['i386', 'amd64'],
+                   },
+        u'channel' : 'For Purchase',
+        u'icon_url' : 'http://software-center.ubuntu.com/site_media/icons/2011/08/64_Chainz.png',
+        u'categories': 'Game;LogicGame',
+        }
+    return app_dict
+
+def make_software_center_agent_subscription_dict(app_dict):
+    subscription_dict = {
+        u'application': app_dict,
+        u'deb_line': u'deb https://some.user:ABCDEFGHIJKLMNOP@'
+                     u'private-ppa.launchpad.net/commercial-ppa-uploaders/'
+                     u'photobomb/ubuntu natty main',
+        u'distro_series': {u'code_name': u'natty', u'version': u'11.04'},
+        u'failures': [],
+        u'open_id': u'https://login.ubuntu.com/+id/ABCDEF',
+        u'purchase_date': u'2011-09-16 06:37:52',
+        u'purchase_price': u'2.99',
+        u'state': u'Complete',
+        }
+    return subscription_dict

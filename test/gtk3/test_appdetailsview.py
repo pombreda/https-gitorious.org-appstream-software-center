@@ -50,9 +50,9 @@ class TestAppdetailsView(unittest.TestCase):
         do_events()
         self.assertTrue(self.view.videoplayer.get_property("visible"))
     
-    def test_page(self):
+    def test_page_pkgstatusbar(self):
         # show app 
-        app = Application("", "software-center")
+        app = Application("", "abiword")
         self.view.show_app(app)
         do_events()
 
@@ -62,7 +62,18 @@ class TestAppdetailsView(unittest.TestCase):
         mock_details = mock_app.get_details(None)
         mock_details.purchase_date = "2011-11-20 17:45:01"
         mock_details._error_not_found = "error not found"
+        mock_details.price = "1.00"
+        mock_details.pkgname = "abiword"
         self.view.app_details = mock_details
+
+        # the states and what labels we expect in the pkgstatusbar
+        # first string is status text, second is button text
+        pkg_states_to_labels = {
+            PkgStates.INSTALLED : ("Purchased on 2011-11-20", "Remove"),
+            PkgStates.UNINSTALLED : ('Free', 'Install'),
+            PkgStates.NEEDS_PURCHASE : ('US$ 1.00', u'Buy\u2026'),
+            PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED : ('Purchased on 2011-11-20', 'Install'),
+        }
 
         # show a app through the various states
         for var in vars(PkgStates):
@@ -75,6 +86,14 @@ class TestAppdetailsView(unittest.TestCase):
             self.view.app = None
             # show it
             self.view.show_app(mock_app)
+            if state in pkg_states_to_labels:
+                label, button_label = pkg_states_to_labels[state]
+                self.assertEqual(
+                    self.view.pkg_statusbar.get_label(), 
+                    label.decode("utf-8"))
+                self.assertEqual(
+                    self.view.pkg_statusbar.get_button_label().decode("utf-8"),
+                    button_label)
 
     def test_app_icon_loading(self):
         # get icon
@@ -374,5 +393,5 @@ class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
 
 if __name__ == "__main__":
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()

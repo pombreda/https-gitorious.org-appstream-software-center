@@ -18,8 +18,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import logging
-import os
 import json
+import re
+import os
 import string
 import shutil
 import xapian
@@ -50,6 +51,7 @@ except ImportError:
 
 from gettext import gettext as _
 from glob import glob
+from urlparse import urlparse
 
 import softwarecenter.paths
 
@@ -165,6 +167,7 @@ class SCAApplicationParser(AppInfoParserBase):
                   }
 
     def __init__(self, sca_application):
+        # the piston object we got from software-center-agent
         self.sca_application = sca_application
         self.origin = "software-center-agent"
         self._apply_exceptions()
@@ -190,6 +193,15 @@ class SCAApplicationParser(AppInfoParserBase):
         self.sca_application.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
         if not hasattr(self.sca_application, 'categories'):
             self.sca_application.categories = ""
+
+        # detect if its for the partner channel and set the channel
+        # attribute appropriately so that the channel-adding magic works
+        u = urlparse(self.sca_application.archive_root)
+        if u.scheme == "http" and u.netloc ==  "archive.canonical.com":
+            distroseries = get_distro().get_codename()
+            self.sca_application.channel = "%s-partner" % distroseries
+        if u.scheme == "http" and u.netloc ==  "extras.ubuntu.com":
+            self.sca_application.channel = "ubuntu-extras"
 
     def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:
@@ -668,6 +680,7 @@ def make_doc_from_parser(parser, cache):
     else:
         name = parser.get_desktop("Name")
         untranslated_name = parser.get_desktop("Name", translated=False)
+
     doc.set_data(name)
     doc.add_value(XapianValues.APPNAME_UNTRANSLATED, untranslated_name)
 
@@ -728,7 +741,8 @@ def make_doc_from_parser(parser, cache):
     # date published
     if parser.has_option_desktop("X-AppInstall-Date-Published"):
         date_published = parser.get_desktop("X-AppInstall-Date-Published")
-        if date_published:
+        if (date_published and 
+            re.match("\d+-\d+-\d+ \d+:\d+:\d+", date_published)):
             # strip the subseconds from the end of the published date string
             date_published = str(date_published).split(".")[0]
             doc.add_value(XapianValues.DATE_PUBLISHED,
@@ -763,10 +777,11 @@ def make_doc_from_parser(parser, cache):
     # PPA (third party stuff)
     if parser.has_option_desktop("X-AppInstall-PPA"):
         archive_ppa = parser.get_desktop("X-AppInstall-PPA")
-        doc.add_value(XapianValues.ARCHIVE_PPA, archive_ppa)
-        # add archive origin data here so that its available even if
-        # the PPA is not (yet) enabled
-        doc.add_term("XOO"+"lp-ppa-%s" % archive_ppa.replace("/", "-"))
+        if archive_ppa:
+            doc.add_value(XapianValues.ARCHIVE_PPA, archive_ppa)
+            # add archive origin data here so that its available even if
+            # the PPA is not (yet) enabled
+            doc.add_term("XOO"+"lp-ppa-%s" % archive_ppa.replace("/", "-"))
     # screenshot (for third party)
     if parser.has_option_desktop("X-AppInstall-Screenshot-Url"):
         url = parser.get_desktop("X-AppInstall-Screenshot-Url")
