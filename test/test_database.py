@@ -570,6 +570,7 @@ class NotAutomaticChannelSupportTestCase(unittest.TestCase):
         from softwarecenter.db.pkginfo import _Version
         ver = Mock(_Version)
         ver.description ="not_automatic: %s" % not_automatic
+        ver.summary ="summary not_automatic: %s" % not_automatic
         ver.not_automatic = not_automatic
         return ver
 
@@ -589,8 +590,13 @@ class NotAutomaticChannelSupportTestCase(unittest.TestCase):
         normal_version = self._make_version(not_automatic=False)
         not_automatic_version = self._make_version(not_automatic=True)
         details._pkg.versions = [normal_version, not_automatic_version]
-        self.assertTrue(details.force_not_automatic_version)
-        
+        # force not-automatic
+        details.force_not_automatic_version(True)
+        # ensure we get the description of the not-automatic version
+        self.assertEqual(details.description,
+                         not_automatic_version.description)
+        self.assertEqual(details.summary,
+                         not_automatic_version.summary)
 
 
 if __name__ == "__main__":

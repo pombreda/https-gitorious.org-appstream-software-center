@@ -187,6 +187,7 @@ class AppDetails(GObject.GObject):
         if (self._app.pkgname in self._cache and
             self._cache[self._app.pkgname].candidate):
             self._pkg = self._cache[self._app.pkgname]
+        self._force_not_automatic_version = False
 
         # load xapian document
         self._doc = doc
@@ -289,6 +290,10 @@ class AppDetails(GObject.GObject):
     @property
     def description(self):
         if self._pkg:
+            if self._force_not_automatic_version:
+                for ver in self._pkg.versions:
+                    if ver.not_automatic:
+                        return ver.description
             return self._pkg.candidate.description
         elif self._doc:
             if self._doc.get_value(XapianValues.SC_DESCRIPTION):
@@ -589,6 +594,12 @@ class AppDetails(GObject.GObject):
 
     @property
     def summary(self):
+        # not-automatic
+        if self._pkg and self._force_not_automatic_version:
+            for ver in self._pkg.versions:
+                if ver.not_automatic:
+                    return ver.summary
+        # normal case
         if self._doc:
             return self._db.get_summary(self._doc)
         elif self._pkg:
@@ -636,6 +647,11 @@ class AppDetails(GObject.GObject):
                 if v.not_automatic:
                     return True
         return False
+
+    def force_not_automatic_version(self, value):
+        """ this will force to use the not-automatic version of this app
+        """
+        self._force_not_automatic_version = value
 
     @property
     def warning(self):
