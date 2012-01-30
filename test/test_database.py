@@ -566,11 +566,31 @@ class AppDetailsPkgStateTestCase(unittest.TestCase):
 
 class NotAutomaticChannelSupportTestCase(unittest.TestCase):
 
+    def _make_version(self, not_automatic):
+        from softwarecenter.db.pkginfo import _Version
+        ver = Mock(_Version)
+        ver.description ="not_automatic: %s" % not_automatic
+        ver.not_automatic = not_automatic
+        return ver
+
     def test_not_automatic_channel_support(self):
         db = get_test_db()
         app = Application("", "software-center")
         details = app.get_details(db)
-        self.assertFalse(details.has_not_automatic_version)
+        details._pkg.versions = [ 
+            self._make_version(not_automatic=True),
+            self._make_version(not_automatic=False) ]
+        self.assertTrue(details.has_not_automatic_version)
+
+    def test_not_automatic_version(self):
+        db = get_test_db()
+        app = Application("", "software-center")
+        details = app.get_details(db)
+        normal_version = self._make_version(not_automatic=False)
+        not_automatic_version = self._make_version(not_automatic=True)
+        details._pkg.versions = [normal_version, not_automatic_version]
+        self.assertTrue(details.force_not_automatic_version)
+        
 
 
 if __name__ == "__main__":
