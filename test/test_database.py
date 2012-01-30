@@ -564,6 +564,13 @@ class AppDetailsPkgStateTestCase(unittest.TestCase):
             PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
             state)
 
+class NotAutomaticChannelSupportTestCase(unittest.TestCase):
+
+    def test_not_automatic_channel_support(self):
+        db = get_test_db()
+        app = Application("", "software-center")
+        details = app.get_details(db)
+        self.assertFalse(details.has_not_automatic_version)
 
 
 if __name__ == "__main__":
