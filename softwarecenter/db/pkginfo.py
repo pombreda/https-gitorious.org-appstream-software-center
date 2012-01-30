@@ -40,6 +40,12 @@ class _Version:
     @property
     def origins(self):
         return []
+    @property
+    def not_automatic(self):
+        """ should not be installed/upgraded automatically, the user needs
+            to opt-in once (used for e.g. ubuntu-backports)
+        """
+        return False
 
 class _Package:
     def __init__(self, name, pkginfo):

@@ -626,6 +626,18 @@ class AppDetails(GObject.GObject):
             return self._doc.get_value(XapianValues.VERSION_INFO)
 
     @property
+    def has_not_automatic_version(self):
+        """ this will check if there is a additional "not-automatic" version
+            for the given package. This is useful for e.g. support of 
+            ubuntu-backports
+        """
+        if self._pkg:
+            for v in self._pkg.versions:
+                if v.not_automatic:
+                    return True
+        return False
+
+    @property
     def warning(self):
         # apturl minver matches
         if not self.pkg_state == PkgStates.INSTALLED:
