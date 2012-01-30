@@ -503,7 +503,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         app_filter.set_available_only(True)
         app_filter.set_not_installed_only(True)
         enq.set_query(recommended_for_you_cat.query,
-                      limit=8,
+                      limit=60,
                       filter=app_filter,
                       sortmode=SortMethods.UNSORTED,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
@@ -527,6 +527,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._add_tiles_to_flowgrid(docs, self.recommended_for_you, 8)
         self.recommended_for_you.show_all()
         self.recommended_for_you_frame.hide_spinner()
+        self.recommended_for_you_frame.more.connect('clicked',
+                                                    self.on_category_clicked,
+                                                    recommended_for_you_cat)
         return
 
     def _update_recommended_for_you_content(self):
@@ -536,8 +539,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         
         # get a list of top recommendations via the recommender agent
         recommender_agent = RecommenderAgent()
-        # TODO: This query should be recommend_me, not recommend_top, change
-        #       what the latter is implemented
         recommender_agent.connect("recommend-top", self._recommend_top_result)
         recommender_agent.query_recommend_top()
         
@@ -546,23 +547,25 @@ class LobbyViewGtk(CategoriesViewGtk):
         # TODO: This space will initially contain an opt-in screen, and this
         #       will update to the tile view of recommended apps when ready
         #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
+        self.bottom_hbox = Gtk.HBox(spacing=StockEms.SMALL)
+        bottom_hbox_alignment = Gtk.Alignment()
+        bottom_hbox_alignment.set_padding(0, 0, StockEms.MEDIUM-2, StockEms.MEDIUM-2)
+        bottom_hbox_alignment.add(self.bottom_hbox)
+        self.vbox.pack_start(bottom_hbox_alignment, False, False, 0)
+        
+        # TODO: During development, place the "Recommended for You" panel
+        #       at the bottom, but swap this with the Top Rated panel once
+        #       it is all ready
+        #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
         self.recommended_for_you = FlowableGrid()
         self.recommended_for_you_frame = FramedHeaderBox()
         self.recommended_for_you_frame.set_header_label(_(u"Recommended for You"))
         self.recommended_for_you_frame.add(self.recommended_for_you)
-        self.vbox.pack_start(self.recommended_for_you_frame, True, True, 0)
+        self.recommended_for_you_frame.header_implements_more_button()
+        self.bottom_hbox.pack_start(self.recommended_for_you_frame, True, True, 0)
         
-        recommended_for_you_cat = self._update_recommended_for_you_content()
-        if recommended_for_you_cat:
-            # TODO: During development, place the "Recommended for You" panel
-            #       at the bottom, but swap this with the Top Rated panel once
-            #       it is all ready
-            #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
-            self.vbox.pack_start(self.recommended_for_you, True, True, 0)
-            self.recommended_for_you_frame.header_implements_more_button()
-            self.recommended_for_you_frame.more.connect('clicked',
-                                                    self.on_category_clicked,
-                                                    recommended_for_you_cat)
+        # get the recommendations from the recommender agent
+        self._update_recommended_for_you_content()
 
     def _update_appcount(self):
         enq = AppEnquire(self.cache, self.db)
