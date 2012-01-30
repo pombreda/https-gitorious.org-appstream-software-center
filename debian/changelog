@@ -1,4 +1,4 @@
-software-center (5.1.7.1) UNRELEASED; urgency=low
+software-center (5.1.8) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/db/update.py:
@@ -6,6 +6,9 @@ software-center (5.1.7.1) UNRELEASED; urgency=low
   * lp:~mvo/software-center/device-profiles:
     - implement the hardware-requirements display in
       the detailsview
+  * lp:~mvo/software-center/arb-partner-channels:
+    - add support for extras.ubuntu.com and archive.canonical.com
+      channel detection and adding via software-center-agent
 
   [ Brendan Donegan ]
   * lp:~brendan-donegan/software-center/test_utils_get_nice_date_string:
@@ -17,7 +20,7 @@ software-center (5.1.7.1) UNRELEASED; urgency=low
     - update to the Unity launcher integration implementation to
       support the revamped functionality on the Unity side (LP: #761851) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 Jan 2012 18:47:44 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 29 Jan 2012 23:04:52 -0500
 
 software-center (5.1.7) precise; urgency=low
 

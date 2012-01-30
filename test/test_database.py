@@ -25,6 +25,7 @@ from softwarecenter.db.update import (
     update_from_appstream_xml,
     update_from_software_center_agent,
     SCAPurchasedApplicationParser,
+    SCAApplicationParser,
     )
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import (
@@ -34,6 +35,8 @@ from softwarecenter.enums import (
 from softwarecenter.testutils import (
     get_test_db, 
     get_test_pkg_info,
+    make_software_center_agent_subscription_dict,
+    make_software_center_agent_app_dict,
     )
 
 
@@ -417,26 +420,8 @@ app-popcon	4	# app-install .desktop popcon rank
 
 def make_purchased_app_details(db=None, supported_series=None):
     """Return an AppDetail instance with the required attributes."""
-    subscription = {
-        u'application': {
-            u'archive_id': u'commercial-ppa-uploaders/photobomb',
-            u'description': u"Easy and Social Image Editor\nPhotobomb "
-                            u"give you easy access to images in your "
-                            u"social networking feeds, pictures on ...",
-            u'name': u'Photobomb',
-            u'package_name': u'photobomb',
-            u'signing_key_id': u'1024R/75254D99'
-            },
-        u'deb_line': u'deb https://some.user:ABCDEFGHIJKLMNOP@'
-                     u'private-ppa.launchpad.net/commercial-ppa-uploaders/'
-                     u'photobomb/ubuntu natty main',
-        u'distro_series': {u'code_name': u'natty', u'version': u'11.04'},
-        u'failures': [],
-        u'open_id': u'https://login.ubuntu.com/+id/ABCDEF',
-        u'purchase_date': u'2011-09-16 06:37:52',
-        u'purchase_price': u'2.99',
-        u'state': u'Complete',
-        }
+    app = make_software_center_agent_app_dict()
+    subscription = make_software_center_agent_subscription_dict(app)
 
     if supported_series != None:
         subscription['application']['series'] = supported_series
@@ -459,6 +444,59 @@ def make_purchased_app_details(db=None, supported_series=None):
     return app_details
 
 
+class AppDetailsSCAApplicationParser(unittest.TestCase):
+    
+    def setUp(self):
+        self.db = get_test_db()
+
+    def _get_app_details_from_app_dict(self, app_dict):
+        item = PistonResponseObject.from_dict(app_dict)
+        parser = SCAApplicationParser(item)
+        doc = make_doc_from_parser(parser, self.db._aptcache)
+        app_details = AppDetails(self.db, doc)
+        return app_details
+
+    @patch('os.path.exists')
+    def test_channel_detection_partner(self, mock):
+        # we need to patch os.path.exists as "AppDetails.channelname" will
+        # check if there is a matching channel description file on disk
+        os.path.exists.return_value = True
+        # setup dict
+        app_dict = make_software_center_agent_app_dict()
+        app_dict["archive_root"] = "http://archive.canonical.com/"
+        app_details = self._get_app_details_from_app_dict(app_dict)
+        # ensure that archive.canonical.com archive roots are detected
+        # as the partner channel
+        dist = get_distro().get_codename()
+        self.assertEqual(app_details.channelname, "%s-partner" % dist)
+    
+    @patch('os.path.exists')
+    def test_channel_detection_extras(self, mock):
+        # we need to patch os.path.exists as "AppDetails.channelname" will
+        # check if there is a matching channel description file on disk
+        os.path.exists.return_value = True
+        # setup dict
+        app_dict = make_software_center_agent_app_dict()
+        app_dict["archive_root"] = "http://extras.ubuntu.com/"
+        app_details = self._get_app_details_from_app_dict(app_dict)
+        # ensure that archive.canonical.com archive roots are detected
+        # as the partner channel
+        self.assertEqual(app_details.channelname, "ubuntu-extras")
+
+    def test_date_no_published(self):
+        app_dict = make_software_center_agent_app_dict()
+        app_dict["date_published"] = "None"
+        app_details = self._get_app_details_from_app_dict(app_dict)
+        # ensure that archive.canonical.com archive roots are detected
+        # as the partner channel
+        self.assertEqual(app_details.date_published, "")
+        # and again
+        app_dict["date_published"] = "2012-01-21 02:15:10.358926"
+        app_details = self._get_app_details_from_app_dict(app_dict)
+        # ensure that archive.canonical.com archive roots are detected
+        # as the partner channel
+        self.assertEqual(app_details.date_published, "2012-01-21 02:15:10")
+        
 
 class AppDetailsPkgStateTestCase(unittest.TestCase):
 

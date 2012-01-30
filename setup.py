@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
+import platform
 import distutils
 import fnmatch
 import glob
 import os
 import re
-from subprocess import Popen, PIPE, call
+from subprocess import call
 import sys
 
 from distutils.core import setup
@@ -50,16 +51,22 @@ def merge_authors_into_about_dialog():
                         gtkbuilder, flags=re.DOTALL)
     open(fname, "w").write(gtkbuilder)
 
+def merge_extras_ubuntu_com_channel_file():
+    # update ubuntu-extras.list.in (this will not be part of debian as
+    # its killed of in debian/rules on a non-ubuntu build)
+    DISTROSERIES = platform.dist()[2]
+    channelfile = "data/channels/Ubuntu/ubuntu-extras.list"
+    s=open(channelfile+".in").read()
+    open(channelfile, "w").write(s.replace("#DISTROSERIES#", DISTROSERIES))
+    
 
 # update version.py
 line = open("debian/changelog").readline()
 m = re.match("^[\w-]+ \(([\w\.~]+)\) ([\w-]+);", line)
 VERSION = m.group(1)
 CODENAME = m.group(2)
-DISTRO = Popen(
-    ["lsb_release", "-s", "-i"], stdout=PIPE).communicate()[0].strip()
-RELEASE = Popen(
-    ["lsb_release", "-s", "-r"], stdout=PIPE).communicate()[0].strip()
+DISTRO = platform.dist()[0]
+RELEASE = platform.dist()[1]
 open("softwarecenter/version.py", "w").write("""
 VERSION='%s'
 CODENAME='%s'
@@ -67,9 +74,11 @@ DISTRO='%s'
 RELEASE='%s'
 """ % (VERSION, CODENAME, DISTRO, RELEASE))
 
+
 # update po4a
 if sys.argv[1] == "build":
     merge_authors_into_about_dialog()
+    merge_extras_ubuntu_com_channel_file()
     call(["po4a", "po/help/po4a.conf"])
 
 # real setup
@@ -131,12 +140,15 @@ setup(name="software-center", version=VERSION,
                    glob.glob("data/images/*.gif")),
                   ('share/software-center/icons/',
                    glob.glob("data/emblems/*.png")),
-                  # xpian
+                  # xapian
                   ('share/apt-xapian-index/plugins',
                    glob.glob("apt-xapian-index-plugin/*.py")),
                   # apport
                   ('share/apport/package-hooks/',
                    ['debian/source_software-center.py']),
+                  # extra software channels (can be distro specific)
+                  ('/usr/share/app-install/channels/',
+                   glob.glob("data/channels/%s/*" % DISTRO) ),
                   ],
       cmdclass={"build": build_extra.build_extra,
                 "build_i18n": build_i18n.build_i18n,
