@@ -656,6 +656,19 @@ class AppDetails(GObject.GObject):
         """ this will force to use the not-automatic version of this app
         """
         self._force_not_automatic_version = value
+        if value:
+            # add not-automatic version to pkgname
+            not_automatic_ver = ""
+            for ver in self._pkg.versions:
+                if ver.not_automatic:
+                    not_automatic_ver = ver.version
+                    break
+            if not "=" in self._app.pkgname:
+                self._app.pkgname = "%s=%s" % (self._app.pkgname,
+                                               not_automatic_ver)
+        else:
+            # clear version
+            self._app.pkgname = self._app.pkgname.partition("=")[0]
 
     @property
     def warning(self):
