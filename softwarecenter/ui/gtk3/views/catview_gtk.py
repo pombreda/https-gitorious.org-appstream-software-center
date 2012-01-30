@@ -522,6 +522,11 @@ class LobbyViewGtk(CategoriesViewGtk):
         for item in result_list['recommendations']:
             pkgs.append(item['package_name'])
             
+        
+        ##### REMOVE test data
+        pkgs = ['clementine', 'hedgewars', 'gelemental', 'nexuiz', 'fgo', 'musique', 'pybik', 'radiotray', 'cherrytree', 'phlipple']
+        #####    
+            
         recommended_for_you_cat, docs = self._get_recommended_for_you_category_content(pkgs)
         # display docs
         self._add_tiles_to_flowgrid(docs, self.recommended_for_you, 8)
