@@ -25,7 +25,7 @@ import platform
 
 from softwarecenter.utils import UnimplementedError, utf8
 
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 class Distro(object):
@@ -75,7 +75,9 @@ class Distro(object):
         """ The codename of the distro, e.g. lucid """
         # for tests and similar
         if "SOFTWARE_CENTER_DISTRO_CODENAME" in os.environ:
-            return os.environ["SOFTWARE_CENTER_DISTRO_CODENAME"]
+            distrocode = os.environ["SOFTWARE_CENTER_DISTRO_CODENAME"]
+            LOG.warn("overriding distro codename to '%s'" % distrocode)
+            return distrocode
         # normal behavior
         if not hasattr(self, "_distro_code_name"):
             self._distro_code_name = platform.dist()[2]
@@ -155,7 +157,7 @@ class Distro(object):
 def _get_distro():
     distro_info = platform.linux_distribution()
     distro_id = distro_info[0]
-    log.debug("get_distro: '%s'", distro_id)
+    LOG.debug("get_distro: '%s'", distro_id)
     # start with a import, this gives us only a softwarecenter module
     module =  __import__(distro_id, globals(), locals(), [], -1)
     # get the right class and instanciate it
@@ -168,6 +170,11 @@ def get_distro():
     return distro_instance
 
 def get_current_arch():
+    # for tests and similar
+    if "SOFTWARE_CENTER_ARCHITECTURE" in os.environ:
+        arch = os.environ["SOFTWARE_CENTER_ARCHITECTURE"]
+        LOG.warn("overriding architecture to '%s'" % arch)
+        return arch
     return get_distro().get_architecture()
 
 def get_foreign_architectures():
