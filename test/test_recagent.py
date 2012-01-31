@@ -35,6 +35,18 @@ class TestRecommenderAgent(unittest.TestCase):
         self.assertFalse(self.error)
         
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
+        
+    def test_recagent_query_error(self):
+        # there definitely ain't no server here
+        os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://orange.staging.ubuntu.com/"
+        recommender_agent = RecommenderAgent()
+        recommender_agent.connect("recommend-top", self.on_query_done)
+        recommender_agent.connect("error", self.on_query_error)
+        recommender_agent.query_recommend_top()
+        self.loop.run()
+        self.assertTrue(self.error)
+        
+        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
 
 #    def test_recagent_query_recommend_top_uses_complete_only(self):
 #        run_generic_piston_helper_fn = (
