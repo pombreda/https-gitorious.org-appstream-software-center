@@ -7,7 +7,7 @@ PUBLIC_API_SCHEME = 'http'
 AUTHENTICATED_API_SCHEME = 'https'
 
 class SoftwareCenterRecommenderAPI(PistonAPI):
-    default_service_root = 'http://localhost:8000/api/2.0'
+    default_service_root = 'http://localhost:8000/api/1.0'
 
     @returns_json
     def server_status(self):
