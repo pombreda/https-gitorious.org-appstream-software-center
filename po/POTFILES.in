@@ -4,7 +4,7 @@ utils/update-software-center
 data/ubuntu-software-center.desktop.in
 data/unbranded-software-center.desktop.in
 [type: gettext/xml] data/featured.menu.in
-[type: gettext/xml] data/new.menu.in
+[type: gettext/xml] data/whats_new.menu.in
 [type: gettext/xml] data/software-center.menu.in
 softwarecenter/backend/channel.py
 softwarecenter/backend/login_sso.py
