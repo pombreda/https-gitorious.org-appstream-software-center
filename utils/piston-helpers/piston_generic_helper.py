@@ -29,7 +29,6 @@ from gi.repository import GObject
 
 # useful for debugging
 if "SOFTWARE_CENTER_DEBUG_HTTP" in os.environ:
-    import httplib2
     httplib2.debuglevel = 1
 
 import piston_mini_client.auth

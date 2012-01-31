@@ -522,7 +522,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         for item in result_list['recommendations']:
             pkgs.append(item['package_name'])
         
-        ##### test data : TO BE REMOVED, obviously (test list of uninstalled apps)
+        ##### TO BE REMOVED, obviously (this is just a test list of uninstalled apps)
         pkgs = ['clementine', 'hedgewars', 'gelemental', 'nexuiz', 'fgo', 'musique', 'pybik', 'radiotray', 'cherrytree', 'phlipple']
         #####    
             
