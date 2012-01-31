@@ -3,6 +3,7 @@
 from gi.repository import GObject
 #from mock import patch
 import unittest
+import os
 
 from testutils import setup_test_env
 setup_test_env()
@@ -25,12 +26,15 @@ class TestRecommenderAgent(unittest.TestCase):
         self.error = True
         
     def test_recagent_query_recommend_top(self):
+        os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com/"
         recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-top", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_top()
         self.loop.run()
         self.assertFalse(self.error)
+        
+        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
 
 #    def test_recagent_query_recommend_top_uses_complete_only(self):
 #        run_generic_piston_helper_fn = (
