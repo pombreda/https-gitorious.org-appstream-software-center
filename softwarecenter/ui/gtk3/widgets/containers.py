@@ -550,19 +550,11 @@ class FramedHeaderBox(FramedBox):
         self.spinner.start()
         self.spinner.show()
         self.spinner_notebook.set_current_page(self.SPINNER)
-        # don't show/enable the More button when the spinner is showing
-        # TODO: make this work (hide, or disable)
-#        if hasattr(self, "more"):
-#            self.more.hide()
             
     def hide_spinner(self):
         self.spinner.stop()
         self.spinner.hide()
         self.spinner_notebook.set_current_page(self.CONTENT)
-        # be sure to show/enable the More button
-        # TODO: make this work (show, or enable)
-#        if hasattr(self, "more"):
-#            self.more.show()
 
     # XXX: non-functional with current code...
     #~ def set_header_expand(self, expand):

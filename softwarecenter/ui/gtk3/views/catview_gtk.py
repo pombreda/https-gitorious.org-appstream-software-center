@@ -521,21 +521,32 @@ class LobbyViewGtk(CategoriesViewGtk):
         pkgs = []
         for item in result_list['recommendations']:
             pkgs.append(item['package_name'])
-            
         
-        ##### REMOVE test data
+        ##### test data : TO BE REMOVED, obviously (test list of uninstalled apps)
         pkgs = ['clementine', 'hedgewars', 'gelemental', 'nexuiz', 'fgo', 'musique', 'pybik', 'radiotray', 'cherrytree', 'phlipple']
         #####    
             
         recommended_for_you_cat, docs = self._get_recommended_for_you_category_content(pkgs)
+        
         # display docs
-        self._add_tiles_to_flowgrid(docs, self.recommended_for_you, 8)
-        self.recommended_for_you.show_all()
-        self.recommended_for_you_frame.hide_spinner()
-        self.recommended_for_you_frame.more.connect('clicked',
-                                                    self.on_category_clicked,
-                                                    recommended_for_you_cat)
+        if len(docs) > 0:
+            self._add_tiles_to_flowgrid(docs, self.recommended_for_you, 8)
+            self.recommended_for_you.show_all()
+            self.recommended_for_you_frame.hide_spinner()
+            self.recommended_for_you_frame.more.connect('clicked',
+                                                        self.on_category_clicked,
+                                                        recommended_for_you_cat)
+        else:
+            # TODO: this test for zero docs is temporary and will not be
+            # needed once the recommendation service is up and running
+            self._hide_recommended_for_you()
         return
+        
+    def _recommender_service_error(self, recommender_agent, error_type):
+        LOG.warn("Error while accessing the recommender service: %s" 
+                                                            % error_type)
+        # TODO: temporary, instead we display cached recommendations here
+        self._hide_recommended_for_you()
 
     def _update_recommended_for_you_content(self):
         # remove any existing children from the grid widget
@@ -543,10 +554,11 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.recommended_for_you_frame.show_spinner()
         
         # get a list of top recommendations via the recommender agent
-        recommender_agent = RecommenderAgent()
-        recommender_agent.connect("recommend-top", self._recommend_top_result)
-        recommender_agent.query_recommend_top()
-        
+        self.recommender_agent = RecommenderAgent()
+        self.recommender_agent.connect("recommend-top", self._recommend_top_result)
+        self.recommender_agent.connect("error", self._recommender_service_error)
+        self.recommender_agent.query_recommend_top()
+
     def _append_recommended_for_you(self):
     
         # TODO: This space will initially contain an opt-in screen, and this
@@ -560,17 +572,26 @@ class LobbyViewGtk(CategoriesViewGtk):
         
         # TODO: During development, place the "Recommended for You" panel
         #       at the bottom, but swap this with the Top Rated panel once
-        #       it is all ready
+        #       the recommended for you pieces are done and deployed
         #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
         self.recommended_for_you = FlowableGrid()
         self.recommended_for_you_frame = FramedHeaderBox()
-        self.recommended_for_you_frame.set_header_label(_(u"Recommended for You"))
+        self.recommended_for_you_frame.set_header_label(
+                                                _(u"Recommended for You"))
         self.recommended_for_you_frame.add(self.recommended_for_you)
         self.recommended_for_you_frame.header_implements_more_button()
-        self.bottom_hbox.pack_start(self.recommended_for_you_frame, True, True, 0)
+        self.bottom_hbox.pack_start(self.recommended_for_you_frame, 
+                                    True, True, 0)
         
         # get the recommendations from the recommender agent
         self._update_recommended_for_you_content()
+        
+    def _hide_recommended_for_you(self):
+        # remove the listeners
+        self.recommender_agent.disconnect_by_func(self._recommend_top_result)
+        self.recommender_agent.disconnect_by_func(self._recommender_service_error)
+        # and hide the pane
+        self.recommended_for_you_frame.hide()
 
     def _update_appcount(self):
         enq = AppEnquire(self.cache, self.db)
