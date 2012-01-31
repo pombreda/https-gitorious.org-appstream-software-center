@@ -17,6 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import httplib2
 import argparse
 import logging
 import os
@@ -191,6 +192,9 @@ if __name__ == "__main__":
     f = getattr(api, func)
     try:
         piston_reply = f(**kwargs)
+    except httplib2.ServerNotFoundError as e:
+        LOG.warn(e)
+        sys.exit(1)
     except:
         LOG.exception("urclient_apps")
         sys.exit(1)
