@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from gi.repository import GObject
-#from mock import patch
+from mock import patch
 import unittest
 import os
 
@@ -56,18 +56,6 @@ class TestRecommenderAgent(unittest.TestCase):
         self.assertTrue(self.error)
         
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
-
-#    def test_recagent_query_recommend_top_uses_complete_only(self):
-#        run_generic_piston_helper_fn = (
-#            'softwarecenter.backend.spawn_helper.SpawnHelper.'
-#            'run_generic_piston_helper')
-#        with patch(run_generic_piston_helper_fn) as mock_run_piston_helper:
-#            recommender_agent = RecommenderAgent()
-#            self.recommender_agent.query_recommend_top()
-
-#            mock_run_piston_helper.assert_called_with(
-#                'RecommenderAgentAPI', 'recommend_top',
-#                complete_only=True)
 
 
 if __name__ == "__main__":
