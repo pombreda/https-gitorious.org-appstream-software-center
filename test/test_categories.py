@@ -18,6 +18,9 @@ class TestCategories(unittest.TestCase):
     
     def test_recommends_category(self):
         recommends_cat = RecommendedForMeCategory()
+        docids = recommends_cat.get_docids()
+        self.assertEqual(docids, [])
+
 
 class TestCatParsing(unittest.TestCase):
     """ tests the "where is it in the menu" code """
