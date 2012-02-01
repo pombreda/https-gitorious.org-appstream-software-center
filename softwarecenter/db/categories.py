@@ -29,6 +29,10 @@ from xml.sax.saxutils import unescape as xml_unescape
 
 from softwarecenter.enums import SortMethods
 
+from softwarecenter.backend.recommends import RecommenderAgent
+
+from gettext import gettext as _
+
 # not possible not use local logger
 LOG = logging.getLogger(__name__)
 
@@ -327,6 +331,16 @@ class CategoriesParser(object):
                     cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
             #print cat_unalloc.name, cat_unalloc.query
         return
+
+class RecommendedForMeCategory(Category):
+
+    def __init__(self):
+        super(RecommendedForMeCategory, self).__init__(
+            u"Recommended for You", _("Recommended for You"), None, 
+            xapian.Query(),flags=['available-only', 'not-installed-only'], 
+            item_limit=60)
+        
+
 
 # static category mapping for the tiles
 

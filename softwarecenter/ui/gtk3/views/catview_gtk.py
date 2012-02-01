@@ -52,7 +52,6 @@ from softwarecenter.db.categories import (Category,
 from softwarecenter.db.utils import get_query_for_pkgnames
 from softwarecenter.distro import get_distro
 from softwarecenter.backend.scagent import SoftwareCenterAgent
-from softwarecenter.backend.recommends import RecommenderAgent
 
 LOG=logging.getLogger(__name__)
 
@@ -490,13 +489,7 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _get_recommended_for_you_category_content(self, pkgs):
             
         query = get_query_for_pkgnames(pkgs)
-        recommended_for_you_cat = Category(
-                               u"Recommended for You", 
-                               _("Recommended for You"),
-                               None, 
-                               query,
-                               flags=['available-only', 'not-installed-only'],
-                               item_limit=60)
+        recommended_for_you_cat = RecommendedForYouCategory()
             
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
