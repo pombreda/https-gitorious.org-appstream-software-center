@@ -144,6 +144,20 @@ class WarningStatusBar(StatusBar):
         # override _bg
         self._bg = [1, 1, 0, 0.3]
 
+class MultipleVersionsStatusBar(StatusBar):
+
+    def __init__(self, view):
+        StatusBar.__init__(self, view)
+        self.label = Gtk.Label()
+        self.label.set_line_wrap(True)
+        self.label.set_alignment(0.0, 0.5)
+        self.button = Gtk.Button()
+        self.hbox.pack_start(self.label, True, True, 0)
+        self.hbox.pack_end(self.button, False, False, 0)
+        # override _bg
+        self._bg = [1, 1, 0, 0.3]
+    
+
 class PackageStatusBar(StatusBar):
     """ Package specific status bar that contains a state label,
         a action button and a progress bar.
@@ -1102,6 +1116,10 @@ class AppDetailsView(Viewport):
         self.pkg_warningbar = WarningStatusBar(self)
         vb.pack_start(self.pkg_warningbar, False, False, 0)
 
+        # the not-automatic bar
+        self.bar_multiple_versions = MultipleVersionsStatusBar(self)
+        vb.pack_start(self.bar_multiple_versions, False, False, 0)
+
         # the package status bar
         self.pkg_statusbar = PackageStatusBar(self)
         vb.pack_start(self.pkg_statusbar, False, False, 0)
@@ -1364,6 +1382,15 @@ class AppDetailsView(Viewport):
         else:
             self.pkg_warningbar.show()
 
+    def _update_multiple_versions_bar(self, app_details):
+        if self.app_details.has_not_automatic_version:
+            self.bar_multiple_versions.label.set_text(
+                _("There is a more recent but less tested version available"))
+            self.bar_multiple_versions.button.set_label(_("Use"))
+            self.bar_multiple_versions.show()
+        else:
+            self.bar_multiple_versions.hide()
+
     def _update_pkg_info_table(self, app_details):
         # set the strings in the package info table
         if app_details.version:
@@ -1445,6 +1472,7 @@ class AppDetailsView(Viewport):
         self._update_weblive(app_details)
         self._update_pkg_info_table(app_details)
         self._update_warning_bar(app_details)
+        self._update_multiple_versions_bar(app_details)
         if not skip_update_addons:
             self._update_addons(app_details)
         else:
@@ -1467,6 +1495,7 @@ class AppDetailsView(Viewport):
         self._update_app_icon(app_details)
         self._update_pkg_info_table(app_details)
         self._update_warning_bar(app_details)
+        self._update_multiple_versions_bar(app_details)
 #        self._update_addons_minimal(app_details)
 
         # depending on pkg install state set action labels

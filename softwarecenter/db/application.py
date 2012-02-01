@@ -647,7 +647,9 @@ class AppDetails(GObject.GObject):
             ubuntu-backports
         """
         if self._pkg:
+            print self._pkg.versions
             for v in self._pkg.versions:
+                print v
                 if v.not_automatic:
                     return True
         return False
@@ -719,6 +721,7 @@ class AppDetails(GObject.GObject):
     def license_key(self):
         if self._doc:
             return self._doc.get_value(XapianValues.LICENSE_KEY)
+        return ""
 
     @property
     def license_key_path(self):
