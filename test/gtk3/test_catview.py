@@ -80,14 +80,15 @@ class TestCatView(unittest.TestCase):
         self.assertFalse(view.whats_new_frame.get_property("visible"))
         self._p()
         
+    # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recommends.RecommenderAgent'
-           '.connect')
-    def test_subcatview_recommended_for_me(self, mock_connect):
+           '.query_recommend_top')
+    def test_subcatview_recommended_for_me(self, mock_recommend_top):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
         lobby = win.get_data("lobby")
-        lobby.recommender_agent = Mock()
+        # we fake the callback from the agent here
         lobby._recommend_top_result(None, 
                                     make_recommender_agent_recommend_top_dict())
         self._p()
