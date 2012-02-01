@@ -27,9 +27,12 @@ from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
 
-from softwarecenter.enums import SortMethods
-
+from softwarecenter.enums import (
+    SortMethods, NonAppVisibility)
 from softwarecenter.backend.recommends import RecommenderAgent
+from softwarecenter.db.enquire import AppEnquire
+from softwarecenter.db.appfilter import AppFilter
+from softwarecenter.paths import APP_INSTALL_PATH
 
 from gettext import gettext as _
 
@@ -59,6 +62,15 @@ def categories_sorted_by_name(categories):
                 sorted_cats.append(cat)
                 break
     return sorted_cats
+        
+def get_query_for_category(db, untranslated_category_name):
+    cat_parser = CategoriesParser(db)
+    categories = cat_parser.parse_applications_menu(APP_INSTALL_PATH)
+    for c in categories:
+        if untranslated_category_name == c.untranslated_name:
+            query = c.query
+            return query
+    return False
 
 
 class Category(object):
@@ -91,6 +103,32 @@ class Category(object):
         return "<Category: name='%s', sortmode='%s', "\
                "item_limit='%s'>" % (
                    self.name, self.sortmode, self.item_limit)
+
+    def get_docids(self, db):
+        """ return the database docids for the given category """
+        enq = AppEnquire(db._aptcache, db)
+        app_filter = AppFilter(db, db._aptcache)
+        if "available-only" in self.flags:
+            app_filter.set_available_only(True)
+        if "not-installed-only" in self.flags:
+            app_filter.set_not_installed_only(True)
+        enq.set_query(self.query,
+                      limit=self.item_limit,
+                      filter=app_filter,
+                      sortmode=self.sortmode,
+                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
+                      nonblocking_load=False)
+        return enq.get_documents()
+
+
+class RecommendedForMeCategory(Category):
+
+    def __init__(self):
+        super(RecommendedForMeCategory, self).__init__(
+            u"Recommended for You", _("Recommended for You"), None, 
+            xapian.Query(),flags=['available-only', 'not-installed-only'], 
+            item_limit=60)
+
 
 class CategoriesParser(object):
     """ 
@@ -331,15 +369,6 @@ class CategoriesParser(object):
                     cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
             #print cat_unalloc.name, cat_unalloc.query
         return
-
-class RecommendedForMeCategory(Category):
-
-    def __init__(self):
-        super(RecommendedForMeCategory, self).__init__(
-            u"Recommended for You", _("Recommended for You"), None, 
-            xapian.Query(),flags=['available-only', 'not-installed-only'], 
-            item_limit=60)
-        
 
 
 # static category mapping for the tiles

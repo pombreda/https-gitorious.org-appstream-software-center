@@ -52,6 +52,7 @@ from softwarecenter.db.categories import (Category,
 from softwarecenter.db.utils import get_query_for_pkgnames
 from softwarecenter.distro import get_distro
 from softwarecenter.backend.scagent import SoftwareCenterAgent
+from softwarecenter.backend.recommends import RecommenderAgent
 
 LOG=logging.getLogger(__name__)
 

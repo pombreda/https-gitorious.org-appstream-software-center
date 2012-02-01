@@ -11,15 +11,24 @@ from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.categories import (
-    CategoriesParser, get_category_by_name, RecommendedForMeCategory)
-
+    CategoriesParser, RecommendedForMeCategory,
+    get_category_by_name, get_query_for_category)
+from softwarecenter.testutils import get_test_db
 
 class TestCategories(unittest.TestCase):
     
+    def setUp(self):
+        self.db = get_test_db()
+
     def test_recommends_category(self):
         recommends_cat = RecommendedForMeCategory()
-        docids = recommends_cat.get_docids()
+        docids = recommends_cat.get_docids(self.db)
         self.assertEqual(docids, [])
+    
+    def test_get_query(self):
+        query = get_query_for_category(self.db, "Education")
+        print query
+        self.assertNotEqual(query, None)
 
 
 class TestCatParsing(unittest.TestCase):
