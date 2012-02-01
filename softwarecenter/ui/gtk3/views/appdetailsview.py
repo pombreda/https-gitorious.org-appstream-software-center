@@ -156,7 +156,7 @@ class MultipleVersionsStatusBar(StatusBar):
         self.hbox.pack_end(self.button, False, False, 0)
         # override _bg
         self._bg = [1, 1, 0, 0.3]
-    
+
 
 class PackageStatusBar(StatusBar):
     """ Package specific status bar that contains a state label,
@@ -1118,6 +1118,8 @@ class AppDetailsView(Viewport):
 
         # the not-automatic bar
         self.bar_multiple_versions = MultipleVersionsStatusBar(self)
+        self.bar_multiple_versions.button.connect(
+            "clicked", self._on_bar_multiple_versions_button_clicked)
         vb.pack_start(self.bar_multiple_versions, False, False, 0)
 
         # the package status bar
@@ -1268,6 +1270,10 @@ class AppDetailsView(Viewport):
 
     def _on_review_submit_usefulness(self, button, review_id, is_useful):
         self._review_submit_usefulness(review_id, is_useful)
+
+    def _on_bar_multiple_versions_button_clicked(self, button):
+        self.app_details.force_not_automatic_version(True)
+        self._update_all(self.app_details)
 
     def _update_title_markup(self, appname, summary):
         # make title font size fixed as they should look good compared to the 
