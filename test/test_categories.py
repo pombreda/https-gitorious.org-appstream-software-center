@@ -10,8 +10,14 @@ from softwarecenter.paths import XAPIAN_BASE_PATH
 
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.db.categories import CategoriesParser, get_category_by_name
+from softwarecenter.db.categories import (
+    CategoriesParser, get_category_by_name, RecommendedForMeCategory)
 
+
+class TestCategories(unittest.TestCase):
+    
+    def test_recommends_category(self):
+        recommends_cat = RecommendedForMeCategory()
 
 class TestCatParsing(unittest.TestCase):
     """ tests the "where is it in the menu" code """
@@ -25,7 +31,8 @@ class TestCatParsing(unittest.TestCase):
         self.db.open()
         self.catview = CategoriesParser(self.db)
         self.catview.db = self.db
-        self.cats = self.catview.parse_applications_menu('/usr/share/app-install')
+        self.cats = self.catview.parse_applications_menu(
+            '/usr/share/app-install')
 
     def test_get_cat_by_name(self):
         cat = get_category_by_name(self.cats, 'Games')
