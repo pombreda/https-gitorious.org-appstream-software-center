@@ -184,7 +184,7 @@ if __name__ == "__main__":
                                                        token["consumer_secret"])
         api = klass(cachedir=cachedir, auth=auth)
     else:
-        api = klass()
+        api = klass(cachedir=cachedir)
         
     piston_reply = None
     # handle the args
