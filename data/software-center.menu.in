@@ -236,6 +236,7 @@
       <And>
         <Category>Education</Category>
         <Not><Category>Science</Category></Not>
+        <Not><Category>X-Publication</Category></Not>
       </And>
     </Include>
   </Menu> <!-- End Education -->

@@ -190,3 +190,42 @@ def make_software_center_agent_subscription_dict(app_dict):
         u'state': u'Complete',
         }
     return subscription_dict
+
+def make_recommender_agent_recommend_top_dict():
+    # best to have a list of likely not-installed items
+    app_dict = {
+        u'recommendations': [
+            {
+                u'package_name': u'clementine'
+            }, 
+            {
+                u'package_name': u'hedgewars'
+            },
+            {
+                u'package_name': u'gelemental'
+            }, 
+            {
+                u'package_name': u'nexuiz'
+            },
+            {
+                u'package_name': u'fgo'
+            }, 
+            {
+                u'package_name': u'musique'
+            },
+            {
+                u'package_name': u'pybik'
+            }, 
+            {
+                u'package_name': u'radiotray'
+            },
+            {
+                u'package_name': u'cherrytree'
+            }, 
+            {
+                u'package_name': u'phlipple'
+            }
+    ]
+}
+    return app_dict
+    

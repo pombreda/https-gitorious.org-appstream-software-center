@@ -406,7 +406,9 @@ category_cat = {
 'Video': 'Sound & Video',
 'Settings': 'Themes & Tweaks',
 'Accessibility': 'Universal Access',
-'Development': 'Developer Tools',}
+'Development': 'Developer Tools',
+'X-Publishing': 'Books & Magazines',
+}
 
 category_subcat = {
 'BoardGame': 'Games;Board Games',

@@ -429,17 +429,11 @@ class LobbyViewGtk(CategoriesViewGtk):
         return recommended_for_you
         
     def _recommend_top_result(self, recommender_agent, result_list):
-        
         pkgs = []
         for item in result_list['recommendations']:
             pkgs.append(item['package_name'])
         
-        ##### test data : TO BE REMOVED, obviously (test list of uninstalled apps)
-        pkgs = ['clementine', 'hedgewars', 'gelemental', 'nexuiz', 'fgo', 'musique', 'pybik', 'radiotray', 'cherrytree', 'phlipple']
-        #####    
-            
         recommended_for_you_cat, docs = self._get_recommended_for_you_category_content(pkgs)
-        
         # display docs
         if len(docs) > 0:
             self._add_tiles_to_flowgrid(docs, self.recommended_for_you, 8)
@@ -466,7 +460,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.recommended_for_you_frame.show_spinner()
 
     def _append_recommended_for_you(self):
-    
         # TODO: This space will initially contain an opt-in screen, and this
         #       will update to the tile view of recommended apps when ready
         #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
@@ -778,7 +771,7 @@ def get_test_window_catview():
     n.append_page(scroll, Gtk.Label(label="Subcats"))
 
     win.add(n)
-    win.set_size_request(800,600)
+    win.set_size_request(800,800)
     win.show_all()
     win.connect('destroy', Gtk.main_quit)
     return win
