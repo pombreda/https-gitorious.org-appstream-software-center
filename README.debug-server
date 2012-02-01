@@ -17,11 +17,9 @@ $ PYTHONPATH=. utils/piston-helpers/piston_generic_helper.py \
   SoftwareCenterAgentAPI available_apps \
   '{ "lang" : "en", "series" : "oneiric", "arch" : "i386" }'
 
-
 $ PYTHONPATH=. utils/piston-helpers/piston_generic_helper.py \
    --output=text --debug \
    SoftwareCenterRecommenderAPI recommend_top
-
 
 
 Any piston-mini-client API should work, first name is the class
