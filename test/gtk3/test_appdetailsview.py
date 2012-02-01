@@ -226,6 +226,40 @@ class TestAppdetailsView(unittest.TestCase):
 
         self.assertTrue(button.is_sensitive())
 
+class NotAutomaticVersionsTestCase(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        # Set these as class attributes as we don't modify either
+        # during the tests.
+        from softwarecenter.testutils import get_test_db
+        cls.db = get_test_db()
+        cls.win = get_test_window_appdetails()
+        cls.view = cls.win.get_data("view")
+
+    @classmethod
+    def tearDownClass(cls):
+        GObject.timeout_add(TIMEOUT, lambda: cls.win.destroy())
+        Gtk.main()
+
+    def setUp(self):
+        app = Application("", "software-center")
+        self.app_mock = get_mock_app_from_real_app(app)
+        self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
+        self.app_mock.details.not_automatic = True
+
+    def test_not_automatic_button(self):
+        # normal app
+        self.app_mock.details.not_automatic = False
+        self.view.show_app(self.app_mock)
+        self.assertFalse(self.view.bar_notautomatic.get_visible())
+        # not-automatic app
+        self.view._app = None
+        self.app_mock.details.not_automatic = True
+        self.view.show_app(self.app_mock)
+        self.assertTrue(self.view.bar_notautomatic.get_visible())
+        
+
 class HardwareRequirementsTestCase(unittest.TestCase):
     
     @classmethod
