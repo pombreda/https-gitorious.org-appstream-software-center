@@ -29,6 +29,13 @@ class TestCategories(unittest.TestCase):
         docids = recommends_cat.get_documents(self.db)
         self.assertEqual(docids, [])
         self.assertTrue(agent_mock_instance.query_recommend_top.called)
+        # ensure we get a query when the callback is caleld
+        recommends_cat._recommend_top_result(None, { 
+                'recommendations' : [ { "package_name" : "qlix" },
+                                      { "package_name" : "kate" },
+                                    ],
+                })
+        self.assertNotEqual(recommends_cat.get_documents(self.db), [])
    
     def test_get_query(self):
         query = get_query_for_category(self.db, "Education")

@@ -30,8 +30,9 @@ from xml.sax.saxutils import unescape as xml_unescape
 from softwarecenter.enums import (
     SortMethods, NonAppVisibility)
 from softwarecenter.backend.recommends import RecommenderAgent
-from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.appfilter import AppFilter
+from softwarecenter.db.enquire import AppEnquire
+from softwarecenter.db.utils import get_query_for_pkgnames
 from softwarecenter.paths import APP_INSTALL_PATH
 
 from gettext import gettext as _
@@ -134,7 +135,6 @@ class RecommendedForMeCategory(Category):
         self.recommender_agent.connect(
             "error", self._recommender_service_error)
         self.recommender_agent.query_recommend_top()
-        print self.recommender_agent, self.recommender_agent.query_recommend_top.called 
 
     def _recommend_top_result(self, recommender_agent, result_list):
         pkgs = []
