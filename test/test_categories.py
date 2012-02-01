@@ -2,6 +2,7 @@
 
 import os
 import unittest
+from mock import Mock, patch
 
 from testutils import setup_test_env
 setup_test_env()
@@ -20,14 +21,16 @@ class TestCategories(unittest.TestCase):
     def setUp(self):
         self.db = get_test_db()
 
-    def test_recommends_category(self):
+    @patch('softwarecenter.db.categories.RecommenderAgent')
+    def test_recommends_category(self, agent_mock):
         recommends_cat = RecommendedForMeCategory()
         docids = recommends_cat.get_documents(self.db)
         self.assertEqual(docids, [])
-    
+        self.assertTrue(agent_mock.query_recommend_top.called)
+
+   
     def test_get_query(self):
         query = get_query_for_category(self.db, "Education")
-        print query
         self.assertNotEqual(query, None)
 
 class TestCatParsing(unittest.TestCase):
@@ -65,5 +68,5 @@ class TestCatParsing(unittest.TestCase):
 
 if __name__ == "__main__":
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()

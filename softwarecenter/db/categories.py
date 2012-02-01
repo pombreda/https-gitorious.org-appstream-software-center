@@ -130,6 +130,7 @@ class RecommendedForMeCategory(Category):
             item_limit=60)
 
 
+
 class CategoriesParser(object):
     """ 
     Parser that is able to read the categories from a menu file
