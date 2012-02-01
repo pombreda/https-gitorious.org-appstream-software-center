@@ -30,7 +30,6 @@ class TestCategories(unittest.TestCase):
         print query
         self.assertNotEqual(query, None)
 
-
 class TestCatParsing(unittest.TestCase):
     """ tests the "where is it in the menu" code """
 
@@ -55,6 +54,13 @@ class TestCatParsing(unittest.TestCase):
     def test_cat_has_flags(self):
         cat = get_category_by_name(self.cats, 'Featured')
         self.assertEqual(cat.flags[0], 'carousel-only')
+
+    def test_get_documents(self):
+        cat = get_category_by_name(self.cats, 'Featured')
+        docs = cat.get_documents(self.db)
+        self.assertNotEqual(docs, [])
+        for doc in documents:
+            self.assertEqual(type(doc), xapian.Document)
 
 
 if __name__ == "__main__":
