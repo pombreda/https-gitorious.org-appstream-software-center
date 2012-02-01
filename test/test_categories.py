@@ -22,7 +22,7 @@ class TestCategories(unittest.TestCase):
 
     def test_recommends_category(self):
         recommends_cat = RecommendedForMeCategory()
-        docids = recommends_cat.get_docids(self.db)
+        docids = recommends_cat.get_documents(self.db)
         self.assertEqual(docids, [])
     
     def test_get_query(self):

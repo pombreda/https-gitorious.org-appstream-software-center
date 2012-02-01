@@ -104,7 +104,7 @@ class Category(object):
                "item_limit='%s'>" % (
                    self.name, self.sortmode, self.item_limit)
 
-    def get_docids(self, db):
+    def get_documents(self, db):
         """ return the database docids for the given category """
         enq = AppEnquire(db._aptcache, db)
         app_filter = AppFilter(db, db._aptcache)
