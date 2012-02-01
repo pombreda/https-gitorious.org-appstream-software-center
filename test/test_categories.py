@@ -22,12 +22,13 @@ class TestCategories(unittest.TestCase):
         self.db = get_test_db()
 
     @patch('softwarecenter.db.categories.RecommenderAgent')
-    def test_recommends_category(self, agent_mock):
+    def test_recommends_category(self, AgentMockCls):
+        # ensure we use the same instance in test and code
+        agent_mock_instance = AgentMockCls.return_value
         recommends_cat = RecommendedForMeCategory()
         docids = recommends_cat.get_documents(self.db)
         self.assertEqual(docids, [])
-        self.assertTrue(agent_mock.query_recommend_top.called)
-
+        self.assertTrue(agent_mock_instance.query_recommend_top.called)
    
     def test_get_query(self):
         query = get_query_for_category(self.db, "Education")

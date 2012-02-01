@@ -464,12 +464,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         # remove any existing children from the grid widget
         self.recommended_for_you.remove_all()
         self.recommended_for_you_frame.show_spinner()
-        
-        # get a list of top recommendations via the recommender agent
-        self.recommender_agent = RecommenderAgent()
-        self.recommender_agent.connect("recommend-top", self._recommend_top_result)
-        self.recommender_agent.connect("error", self._recommender_service_error)
-        self.recommender_agent.query_recommend_top()
 
     def _append_recommended_for_you(self):
     
@@ -499,9 +493,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._update_recommended_for_you_content()
         
     def _hide_recommended_for_you(self):
-        # remove the listeners
-        self.recommender_agent.disconnect_by_func(self._recommend_top_result)
-        self.recommender_agent.disconnect_by_func(self._recommender_service_error)
         # and hide the pane
         self.recommended_for_you_frame.hide()
 

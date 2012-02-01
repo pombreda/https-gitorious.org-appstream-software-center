@@ -128,7 +128,23 @@ class RecommendedForMeCategory(Category):
             u"Recommended for You", _("Recommended for You"), None, 
             xapian.Query(),flags=['available-only', 'not-installed-only'], 
             item_limit=60)
+        self.recommender_agent = RecommenderAgent()
+        self.recommender_agent.connect(
+            "recommend-top", self._recommend_top_result)
+        self.recommender_agent.connect(
+            "error", self._recommender_service_error)
+        self.recommender_agent.query_recommend_top()
+        print self.recommender_agent, self.recommender_agent.query_recommend_top.called 
 
+    def _recommend_top_result(self, recommender_agent, result_list):
+        pkgs = []
+        for item in result_list['recommendations']:
+            pkgs.append(item['package_name'])
+        self.query = get_query_for_pkgnames(pkgs)
+
+    def _recommender_service_error(self, recommender_agent, error_type):
+        LOG.warn("Error while accessing the recommender service: %s" 
+                                                            % error_type)
 
 
 class CategoriesParser(object):
