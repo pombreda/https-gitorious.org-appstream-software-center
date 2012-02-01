@@ -246,18 +246,17 @@ class NotAutomaticVersionsTestCase(unittest.TestCase):
         app = Application("", "software-center")
         self.app_mock = get_mock_app_from_real_app(app)
         self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
-        self.app_mock.details.not_automatic = True
 
     def test_not_automatic_button(self):
         # normal app
-        self.app_mock.details.not_automatic = False
+        self.app_mock.details.has_not_automatic_version = False
         self.view.show_app(self.app_mock)
-        self.assertFalse(self.view.bar_notautomatic.get_visible())
+        self.assertFalse(self.view.bar_multiple_versions.get_visible())
         # not-automatic app
-        self.view._app = None
-        self.app_mock.details.not_automatic = True
+        self.view.app = None
+        self.app_mock.details.has_not_automatic_version = True
         self.view.show_app(self.app_mock)
-        self.assertTrue(self.view.bar_notautomatic.get_visible())
+        self.assertTrue(self.view.bar_multiple_versions.get_visible())
         
 
 class HardwareRequirementsTestCase(unittest.TestCase):
