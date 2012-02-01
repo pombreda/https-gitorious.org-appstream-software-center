@@ -122,10 +122,10 @@ class Category(object):
         return enq.get_documents()
 
 
-class RecommendedForMeCategory(Category):
+class RecommendedForYouCategory(Category):
 
     def __init__(self):
-        super(RecommendedForMeCategory, self).__init__(
+        super(RecommendedForYouCategory, self).__init__(
             u"Recommended for You", _("Recommended for You"), None, 
             xapian.Query(),flags=['available-only', 'not-installed-only'], 
             item_limit=60)

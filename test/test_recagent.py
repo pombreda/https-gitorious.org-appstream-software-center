@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 from gi.repository import GObject
-from mock import patch
 import unittest
 import os
 
@@ -26,6 +25,7 @@ class TestRecommenderAgent(unittest.TestCase):
         self.error = True
         
     def test_recagent_query_recommend_top(self):
+        # NOTE: This requires a working recommender host that is reachable
         os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com/"
         recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-top", self.on_query_done)
