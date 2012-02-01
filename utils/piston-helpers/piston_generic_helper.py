@@ -32,6 +32,7 @@ if "SOFTWARE_CENTER_DEBUG_HTTP" in os.environ:
     httplib2.debuglevel = 1
 
 import piston_mini_client.auth
+from piston_mini_client.failhandlers import APIError
 
 try:
     import softwarecenter
@@ -192,6 +193,9 @@ if __name__ == "__main__":
     try:
         piston_reply = f(**kwargs)
     except httplib2.ServerNotFoundError as e:
+        LOG.warn(e)
+        sys.exit(1)
+    except APIError as e:
         LOG.warn(e)
         sys.exit(1)
     except:
