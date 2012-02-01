@@ -40,8 +40,7 @@ try:
 except ImportError:
     import pickle
 
-
-from softwarecenter.db.categories import CategoriesParser
+from softwarecenter.db.categories import get_query_for_category
 from softwarecenter.db.database import Application, StoreDatabase
 import softwarecenter.distro
 from softwarecenter.i18n import get_language
@@ -384,20 +383,10 @@ class ReviewLoader(object):
         for key in cache.keys():
             if key.pkgname in applist:
                 filtered_cache[key] = cache[key]
-        
         return filtered_cache
-        
-    def _get_query_for_category(self, category):
-        cat_parser = CategoriesParser(self.db)
-        categories = cat_parser.parse_applications_menu(APP_INSTALL_PATH)
-        for c in categories:
-            if category == c.untranslated_name:
-                query = c.query
-                return query
-        return False
     
     def _get_apps_for_category(self, category):
-        query = self._get_query_for_category(category)
+        query = get_query_for_category(self.db, category)
         if not query:
             LOG.warn("_get_apps_for_category: received invalid category")
             return []

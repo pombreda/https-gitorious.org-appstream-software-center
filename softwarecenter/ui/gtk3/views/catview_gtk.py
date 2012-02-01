@@ -109,6 +109,8 @@ class CategoriesViewGtk(Viewport, CategoriesParser):
         self.cache = cache
         self.db = db
         self.icons = icons
+        self.properties_helper = AppPropertiesHelper(
+            self.db, self.cache, self.icons)
         self.section = None
 
         Viewport.__init__(self)
@@ -153,9 +155,9 @@ class CategoriesViewGtk(Viewport, CategoriesParser):
            amount = number of tiles to add from start of doc range'''
         amount = min(len(docs), amount)
         for doc in docs[0:amount]:
-            tile = FeaturedTile(self.helper, doc)
+            tile = FeaturedTile(self.properties_helper, doc)
             tile.connect('clicked', self.on_app_clicked,
-                         self.helper.get_application(doc))
+                         self.properties_helper.get_application(doc))
             flowgrid.add_child(tile)
         return
 
@@ -363,38 +365,19 @@ class LobbyViewGtk(CategoriesViewGtk):
             cat_vbox.pack_start(label, False, False, 0)
         return
 
-    def _get_top_rated_category_content(self):
-        top_rated_cat = get_category_by_name(self.categories, 
-                                             u"Top Rated")  # untranslated name
-        if top_rated_cat is None:
-            LOG.warn("No 'top_rated' category found!!")
-            return None, []
-
-        enq = AppEnquire(self.cache, self.db)
-        app_filter = AppFilter(self.db, self.cache)
-        enq.set_query(top_rated_cat.query,
-                      limit=TOP_RATED_CAROUSEL_LIMIT,
-                      sortmode=top_rated_cat.sortmode,
-                      filter=app_filter,
-                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
-                      nonblocking_load=False)
-
-        if not hasattr(self, "helper"):
-            self.helper = AppPropertiesHelper(self.db,
-                                              self.cache,
-                                              self.icons)
-
-        return top_rated_cat, enq.get_documents()
-
+    # FIXME: _update_{top_rated,whats_new,recommended_for_you}_conent()
+    #        duplicates a lot of code
     def _update_top_rated_content(self):
         # remove any existing children from the grid widget
         self.top_rated.remove_all()
         # get top_rated category and docs
-        top_rated_cat, docs = self._get_top_rated_category_content()
-        # display docs
-        self._add_tiles_to_flowgrid(docs, self.top_rated,
-                                    TOP_RATED_CAROUSEL_LIMIT)
-        self.top_rated.show_all()
+        top_rated_cat = get_category_by_name(
+            self.categories, u"Top Rated")  # untranslated name
+        if top_rated_cat:
+            docs = top_rated_cat.get_documents(self.db)
+            self._add_tiles_to_flowgrid(docs, self.top_rated,
+                                        TOP_RATED_CAROUSEL_LIMIT)
+            self.top_rated.show_all()
         return top_rated_cat
 
     def _append_top_rated(self):
@@ -404,7 +387,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.top_rated_frame.set_header_label(_("Top Rated"))
         self.top_rated_frame.add(self.top_rated)
         self.right_column.pack_start(self.top_rated_frame, True, True, 0)
-
         top_rated_cat = self._update_top_rated_content()
         # only display the 'More' LinkButton if we have top_rated content
         if top_rated_cat is not None:
@@ -413,40 +395,16 @@ class LobbyViewGtk(CategoriesViewGtk):
                                self.on_category_clicked, top_rated_cat) 
         return
 
-    def _get_whats_new_category_content(self):
-        whats_new_cat = get_category_by_name(
-                                        self.categories, 
-                                        u"What\u2019s New") # untranslated name
-        if whats_new_cat is None:
-            LOG.warn("No 'whats_new' category found!!")
-            return None, []
-
-        enq = AppEnquire(self.cache, self.db)
-        app_filter = AppFilter(self.db, self.cache)
-        app_filter.set_available_only(True)
-        app_filter.set_not_installed_only(True)
-        enq.set_query(whats_new_cat.query,
-                      limit=8,
-                      filter=app_filter,
-                      sortmode=SortMethods.BY_CATALOGED_TIME,
-                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
-                      nonblocking_load=False)
-
-        if not hasattr(self, "helper"):
-            self.helper = AppPropertiesHelper(self.db,
-                                              self.cache,
-                                              self.icons)
-
-        return whats_new_cat, enq.get_documents()
-
     def _update_whats_new_content(self):
         # remove any existing children from the grid widget
         self.whats_new.remove_all()
         # get top_rated category and docs
-        whats_new_cat, docs = self._get_whats_new_category_content()
-        # display docs
-        self._add_tiles_to_flowgrid(docs, self.whats_new, 8)
-        self.whats_new.show_all()
+        whats_new_cat = get_category_by_name(
+            self.categories,  u"What\u2019s New") # untranslated name
+        if whats_new_cat:
+            docs = whats_new_cat.get_documents(self.db)
+            self._add_tiles_to_flowgrid(docs, self.whats_new, 8)
+            self.whats_new.show_all()
         return whats_new_cat
 
     def _append_whats_new(self):
@@ -460,61 +418,15 @@ class LobbyViewGtk(CategoriesViewGtk):
             # only add to the visible right_frame if we actually have it
             self.right_column.pack_start(self.whats_new_frame, True, True, 0)
             self.whats_new_frame.header_implements_more_button()
-            self.whats_new_frame.more.connect('clicked', self.on_category_clicked, whats_new_cat) 
+            self.whats_new_frame.more.connect(
+                'clicked', self.on_category_clicked, whats_new_cat) 
         return
 
-    #~ def _append_recommendations(self):
-        #~ featured_cat = get_category_by_name(self.categories, 
-                                            #~ u"Featured")  # untranslated name
-#~ 
-        #~ enq = AppEnquire(self.cache, self.db)
-        #~ app_filter = AppFilter(self.db, self.cache)
-        #~ enq.set_query(featured_cat.query,
-                      #~ limit=12,
-                      #~ filter=app_filter,
-                      #~ nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
-                      #~ nonblocking_load=False)
-#~ 
-        #~ self.featured = FlowableGrid()
-        #~ frame = FramedHeaderBox(Gtk.Orientation.VERTICAL)
-        #~ frame.add(self.featured)
-        #~ frame.set_header_label(_("Recommended For You"))
-        #~ frame.header_implements_more_button()
-        #~ self.right_column.pack_start(frame, True, True, 0)
-#~ 
-        #~ self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        #~ docs = enq.get_documents()
-        #~ self._add_tiles_to_flowgrid(docs, self.featured, 12)
-        #~ return
-        
     def _get_recommended_for_you_category_content(self, pkgs):
-            
-        query = get_query_for_pkgnames(pkgs)
-        recommended_for_you_cat = Category(
-                               u"Recommended for You", 
-                               _("Recommended for You"),
-                               None, 
-                               query,
-                               flags=['available-only', 'not-installed-only'],
-                               item_limit=60)
-            
-        enq = AppEnquire(self.cache, self.db)
-        app_filter = AppFilter(self.db, self.cache)
-        app_filter.set_available_only(True)
-        app_filter.set_not_installed_only(True)
-        enq.set_query(recommended_for_you_cat.query,
-                      limit=60,
-                      filter=app_filter,
-                      sortmode=SortMethods.UNSORTED,
-                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
-                      nonblocking_load=False)
-
-        if not hasattr(self, "helper"):
-            self.helper = AppPropertiesHelper(self.db,
-                                              self.cache,
-                                              self.icons)
-
-        return recommended_for_you_cat, enq.get_documents()
+        recommended_for_you_cat = RecommendedForYouCategory()
+        # FIXME: this needs to be moved into the RecommendedForYouCategory
+        recommended_for_you_cat.query = get_query_for_pkgnames(pkgs)
+        return recommended_for_you
         
     def _recommend_top_result(self, recommender_agent, result_list):
         pkgs = []
@@ -546,12 +458,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         # remove any existing children from the grid widget
         self.recommended_for_you.remove_all()
         self.recommended_for_you_frame.show_spinner()
-        
-        # get a list of top recommendations via the recommender agent
-        self.recommender_agent = RecommenderAgent()
-        self.recommender_agent.connect("recommend-top", self._recommend_top_result)
-        self.recommender_agent.connect("error", self._recommender_service_error)
-        self.recommender_agent.query_recommend_top()
 
     def _append_recommended_for_you(self):
         # TODO: This space will initially contain an opt-in screen, and this
@@ -580,9 +486,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._update_recommended_for_you_content()
         
     def _hide_recommended_for_you(self):
-        # remove the listeners
-        self.recommender_agent.disconnect_by_func(self._recommend_top_result)
-        self.recommender_agent.disconnect_by_func(self._recommender_service_error)
         # and hide the pane
         self.recommended_for_you_frame.hide()
 
@@ -646,9 +549,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # data
         self.root_category = root_category
         self.enquire = AppEnquire(self.cache, self.db)
-        self.helper = AppPropertiesHelper(self.db,
-                                          self.cache,
-                                          self.icons)
+        self.properties_helper = AppPropertiesHelper(
+            self.db, self.cache, self.icons)
 
         # sections
         self.current_category = None
