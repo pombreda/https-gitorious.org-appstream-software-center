@@ -141,11 +141,12 @@ class RecommendedForMeCategory(Category):
         for item in result_list['recommendations']:
             pkgs.append(item['package_name'])
         self.query = get_query_for_pkgnames(pkgs)
+        self.emit("needs-refresh")
 
     def _recommender_service_error(self, recommender_agent, error_type):
         LOG.warn("Error while accessing the recommender service: %s" 
                                                             % error_type)
-
+        self.emit("needs-refresh")
 
 class CategoriesParser(object):
     """ 
