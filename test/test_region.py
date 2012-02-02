@@ -6,7 +6,7 @@ import unittest
 
 from testutils import setup_test_env
 setup_test_env()
-from softwarecenter.region import get_region
+from softwarecenter.region import get_region, get_region_geoclue
 from softwarecenter.i18n import init_locale
 
 class TestRegion(unittest.TestCase):
@@ -20,6 +20,9 @@ class TestRegion(unittest.TestCase):
         init_locale()
         self.assertEqual(get_region(), "ZM")
 
+    def test_get_region_geoclue(self):
+        res = get_region_geoclue()
+        self.assertNotEqual(len(res), 0)
 
 
 if __name__ == "__main__":

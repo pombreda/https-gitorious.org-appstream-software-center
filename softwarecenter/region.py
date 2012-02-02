@@ -31,3 +31,7 @@ def get_region():
         return ""
     return loc.split("_")[1]
 
+
+def get_region_geoclue():
+    """ return the region from a geoclue provider """
+    return {}
