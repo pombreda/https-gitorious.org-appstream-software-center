@@ -32,8 +32,10 @@ from gettext import gettext as _
 LOG=logging.getLogger(__name__)
 
 # warning displayed if region does not match
-REGION_WARNING_STRING = _('This software requires a different region than '
-                          'the one you are currently in.')
+REGION_WARNING_STRING = _("Sorry, this software is not available in your "
+                          "region.")
+                          
+
 
 def get_region_name(countrycode):
     """ return translated region name from countrycode using iso3166 """
