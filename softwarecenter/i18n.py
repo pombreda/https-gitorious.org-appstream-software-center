@@ -74,7 +74,7 @@ def langcode_to_name(langcode):
         path = os.path.join("/usr/share/xml/iso-codes/", iso+".xml")
         if os.path.exists(path):
             root = xml.etree.ElementTree.parse(path)
-            xpath = ".//iso_639_3_entry[@part1_code='%s']" % langcode
+            xpath = ".//%s_entry[@part1_code='%s']" % (iso, langcode)
             match = root.find(xpath)
             if match is not None:
                 return dgettext(iso, match.attrib["name"])
