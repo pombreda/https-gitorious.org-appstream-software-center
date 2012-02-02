@@ -60,11 +60,17 @@ class AllowedResources:
 
 class RegionDiscover(object):
 
-    def _get_region_dumb(self):
-        """ return dict estimate about the current countrycode/country """
+    def get_region(self):
+        """ return a dict with at least "county" and "countrycode" as
+            keys - they may be empty if no region is found
+        """
         res = { 'countrycode' : '',
                 'country' : '',
                 }
+
+    def _get_region_dumb(self):
+        """ return dict estimate about the current countrycode/country """
+        res = {}
         try:
             # use LC_MONETARY as the best guess
             loc = locale.getlocale(locale.LC_MONETARY)[0]

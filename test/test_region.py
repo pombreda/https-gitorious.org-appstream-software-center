@@ -29,6 +29,9 @@ class TestRegion(unittest.TestCase):
         self.assertTrue("countrycode" in res)
         self.assertTrue("country" in res)
 
+    def test_get_region(self):
+        res = self.region.get_region()
+        self.assertNotEqual(len(res), 0)
 
 if __name__ == "__main__":
     import logging
