@@ -80,3 +80,7 @@ def langcode_to_name(langcode):
             if match is not None:
                 return dgettext(iso, match.attrib["name"])
     return langcode
+
+def get_region():
+    """ return the current region """
+    return None
