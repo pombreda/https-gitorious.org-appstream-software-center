@@ -67,8 +67,11 @@ class RegionDiscover(object):
             keys - they may be empty if no region is found
         """
         res = {}
+        # try geoclue first
         try:
             res = self._get_region_geoclue()
+            if res:
+                return res
         except Exception as e:
             LOG.warn("failed to use geoclue: '%s'" % e)
         # fallback
