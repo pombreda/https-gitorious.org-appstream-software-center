@@ -14,6 +14,11 @@ from softwarecenter.i18n import (
 class TestI18n(unittest.TestCase):
     """ tests the sc i18n """
 
+    def tearDown(self):
+        os.environ["LANGUAGE"] = ""
+        os.environ["LC_ALL"] = ""
+        os.environ["LANG"] = ""
+
     def test_langcode_to_name(self):
         self.assertEqual(langcode_to_name("de"), "German")
 
@@ -48,8 +53,9 @@ class TestI18n(unittest.TestCase):
             locale.getlocale(locale.LC_MESSAGES), ("en_US", "UTF-8"))
         
     def test_get_region(self):
-        os.environ["LC_ALL"] = "de_DE"
-        self.assertEqual(get_region(), "DE")
+        os.environ["LANG"] = "en_ZM.utf8"
+        init_locale()
+        self.assertEqual(get_region(), "ZM")
 
 
 
