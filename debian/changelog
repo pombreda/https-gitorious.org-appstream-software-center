@@ -28,8 +28,11 @@ software-center (5.1.8) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/recommends-ui-lobby:
     - initial recommends UI implementation, limited to non-personalized
       recommends currently
+  * lp:~gary-lasker/software-center/appdetailsview-button-focus-fix:
+    - make sure the action button in the applications details view
+      always gets the initial focus (LP: #925613)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 01 Feb 2012 00:02:34 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 02 Feb 2012 13:53:18 -0500
 
 software-center (5.1.7) precise; urgency=low
 
