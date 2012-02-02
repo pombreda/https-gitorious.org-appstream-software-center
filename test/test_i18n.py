@@ -8,8 +8,7 @@ from testutils import setup_test_env
 setup_test_env()
 from softwarecenter.i18n import (
     init_locale, 
-    get_language,  get_languages, langcode_to_name,
-    get_region)
+    get_language,  get_languages, langcode_to_name)
 
 class TestI18n(unittest.TestCase):
     """ tests the sc i18n """
@@ -52,12 +51,6 @@ class TestI18n(unittest.TestCase):
         self.assertEqual(
             locale.getlocale(locale.LC_MESSAGES), ("en_US", "UTF-8"))
         
-    def test_get_region(self):
-        os.environ["LANG"] = "en_ZM.utf8"
-        init_locale()
-        self.assertEqual(get_region(), "ZM")
-
-
 
 if __name__ == "__main__":
     import logging

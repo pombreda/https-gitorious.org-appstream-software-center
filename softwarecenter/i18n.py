@@ -80,13 +80,3 @@ def langcode_to_name(langcode):
                 return dgettext(iso, match.attrib["name"])
     return langcode
 
-def get_region():
-    """ return estimate about the current region """
-    # FIXME: this should use some geolocation service 
-    # use LC_MONETARY as the best guess
-    try:
-        loc = locale.getlocale(locale.LC_MONETARY)[0]
-    except Exception as e:
-        LOG.warn("Failed to get locale: '%s'" % e)
-        return ""
-    return loc.split("_")[1]
