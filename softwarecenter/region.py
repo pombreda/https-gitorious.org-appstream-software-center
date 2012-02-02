@@ -16,6 +16,12 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from gi.repository import GObject
+import dbus
+
+from dbus.mainloop.glib import DBusGMainLoop
+DBusGMainLoop(set_as_default=True)
+
 import locale
 
 def get_region():
@@ -31,7 +37,39 @@ def get_region():
         return ""
     return loc.split("_")[1]
 
+# the first parameter of SetRequirements
+class AccuracyLevel:
+ NONE = 0
+ COUNTRY = 1
+ REGION = 2
+ LOCALITY = 3
+ POSTALCODE = 4
+ STREET = 5
+ DETAILED = 6
+
+class AllowedResources:
+    NONE = 0
+    NETWORK = 1 << 0
+    CELL = 1 << 1
+    GPS = 1 << 2
+    ALL = (1 << 10) -1
 
 def get_region_geoclue():
     """ return the region from a geoclue provider """
-    return {}
+    bus = dbus.SessionBus()
+    master = bus.get_object(
+        'org.freedesktop.Geoclue.Master', '/org/freedesktop/Geoclue/Master')
+    client = bus.get_object(
+        'org.freedesktop.Geoclue.Master', master.Create())
+    client.SetRequirements(AccuracyLevel.COUNTRY,   # (i) accuracy_level
+                           0,                       # (i) time
+                           False,                   # (b) require_updates
+                           AllowedResources.ALL)    # (i) allowed_resoures
+    address = dbus.Interface(
+        client, dbus_interface='org.freedesktop.Geoclue.Address')
+    # this is crucial
+    client.AddressStart()
+    # now get the data
+    time, address_res, accuracy = client.GetAddress()
+    return address_res
+

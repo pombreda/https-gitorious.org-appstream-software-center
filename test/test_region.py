@@ -23,6 +23,7 @@ class TestRegion(unittest.TestCase):
     def test_get_region_geoclue(self):
         res = get_region_geoclue()
         self.assertNotEqual(len(res), 0)
+        self.assertTrue("countrycode" in res)
 
 
 if __name__ == "__main__":
