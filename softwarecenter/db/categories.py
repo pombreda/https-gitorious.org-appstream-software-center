@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from gi.repository import GObject
 import gettext
 import glob
 import locale
@@ -74,12 +75,13 @@ def get_query_for_category(db, untranslated_category_name):
     return False
 
 
-class Category(object):
+class Category(GObject.GObject):
     """represents a menu category"""
     def __init__(self, untranslated_name, name, iconname, query,
                  only_unallocated=True, dont_display=False, flags=[], 
                  subcategories=[], sortmode=SortMethods.BY_ALPHABET,
                  item_limit=0):
+        GObject.GObject.__init__(self)
         if type(name) == str:
             self.name = unicode(name, 'utf8').encode('utf8')
         else:
@@ -124,6 +126,17 @@ class Category(object):
 
 class RecommendedForYouCategory(Category):
 
+    __gsignals__ = {
+        "needs-refresh" : (GObject.SIGNAL_RUN_LAST,
+                           GObject.TYPE_NONE, 
+                           (),
+                          ),
+        "needs-refresh-on_error" : (GObject.SIGNAL_RUN_LAST,
+                                 GObject.TYPE_NONE, 
+                                 (str,),
+                                ),
+        }
+
     def __init__(self):
         super(RecommendedForYouCategory, self).__init__(
             u"Recommended for You", _("Recommended for You"), None, 
@@ -143,10 +156,10 @@ class RecommendedForYouCategory(Category):
         self.query = get_query_for_pkgnames(pkgs)
         self.emit("needs-refresh")
 
-    def _recommender_service_error(self, recommender_agent, error_type):
+    def _recommender_service_error(self, recommender_agent, msg):
         LOG.warn("Error while accessing the recommender service: %s" 
-                                                            % error_type)
-        self.emit("needs-refresh")
+                                                            % msg)
+        self.emit("needs-refresh-on-error", msg)
 
 class CategoriesParser(object):
     """ 
