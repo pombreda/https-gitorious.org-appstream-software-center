@@ -102,11 +102,6 @@ class Category(GObject.GObject):
     def is_forced_sort_mode(self):
         return (self.sortmode != SortMethods.BY_ALPHABET)
 
-    def __str__(self):
-        return "<Category: name='%s', sortmode='%s', "\
-               "item_limit='%s'>" % (
-                   self.name, self.sortmode, self.item_limit)
-
     def get_documents(self, db):
         """ return the database docids for the given category """
         enq = AppEnquire(db._aptcache, db)
@@ -123,6 +118,11 @@ class Category(GObject.GObject):
                       nonblocking_load=False)
         return enq.get_documents()
 
+    def __str__(self):
+        return "<Category: name='%s', sortmode='%s', "\
+               "item_limit='%s'>" % (
+                   self.name, self.sortmode, self.item_limit)
+
 
 class RecommendedForYouCategory(Category):
 
@@ -131,10 +131,10 @@ class RecommendedForYouCategory(Category):
                            GObject.TYPE_NONE, 
                            (),
                           ),
-        "needs-refresh-on_error" : (GObject.SIGNAL_RUN_LAST,
-                                 GObject.TYPE_NONE, 
-                                 (str,),
-                                ),
+        "recommender-agent-error" : (GObject.SIGNAL_RUN_LAST,
+                                     GObject.TYPE_NONE, 
+                                     (GObject.TYPE_STRING,),
+                                    ),
         }
 
     def __init__(self):
@@ -146,7 +146,7 @@ class RecommendedForYouCategory(Category):
         self.recommender_agent.connect(
             "recommend-top", self._recommend_top_result)
         self.recommender_agent.connect(
-            "error", self._recommender_service_error)
+            "error", self._recommender_agent_error)
         self.recommender_agent.query_recommend_top()
 
     def _recommend_top_result(self, recommender_agent, result_list):
@@ -156,10 +156,10 @@ class RecommendedForYouCategory(Category):
         self.query = get_query_for_pkgnames(pkgs)
         self.emit("needs-refresh")
 
-    def _recommender_service_error(self, recommender_agent, msg):
+    def _recommender_agent_error(self, recommender_agent, msg):
         LOG.warn("Error while accessing the recommender service: %s" 
                                                             % msg)
-        self.emit("needs-refresh-on-error", msg)
+        self.emit("recommender-agent-error", msg)
 
 class CategoriesParser(object):
     """ 

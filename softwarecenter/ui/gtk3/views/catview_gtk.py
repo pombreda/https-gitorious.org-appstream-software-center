@@ -422,42 +422,42 @@ class LobbyViewGtk(CategoriesViewGtk):
                 'clicked', self.on_category_clicked, whats_new_cat) 
         return
 
-    def _get_recommended_for_you_category_content(self, pkgs):
-        recommended_for_you_cat = RecommendedForYouCategory()
-        # FIXME: this needs to be moved into the RecommendedForYouCategory
-        recommended_for_you_cat.query = get_query_for_pkgnames(pkgs)
-        return recommended_for_you_cat
-        
-    def _recommend_top_result(self, recommender_agent, result_list):
-        pkgs = []
-        for item in result_list['recommendations']:
-            pkgs.append(item['package_name'])
-        
-        recommended_for_you_cat, docs = self._get_recommended_for_you_category_content(pkgs)
+    def _on_recommended_for_you_refresh(self):
+
+        docs = self.recommended_for_you_cat.get_documents()
+
         # display docs
         if len(docs) > 0:
             self._add_tiles_to_flowgrid(docs, self.recommended_for_you, 8)
             self.recommended_for_you.show_all()
             self.recommended_for_you_frame.hide_spinner()
-            self.recommended_for_you_frame.more.connect('clicked',
-                                                        self.on_category_clicked,
-                                                        recommended_for_you_cat)
+            self.recommended_for_you_frame.more.connect(
+                                                'clicked',
+                                                self.on_category_clicked,
+                                                self.recommended_for_you_cat)
         else:
             # TODO: this test for zero docs is temporary and will not be
-            # needed once the recommendation service is up and running
+            # needed once the recommendation agent is up and running
             self._hide_recommended_for_you()
         return
         
-    def _recommender_service_error(self, recommender_agent, error_type):
-        LOG.warn("Error while accessing the recommender service: %s" 
-                                                            % error_type)
-        # TODO: temporary, instead we display cached recommendations here
+    def _on_recommender_agent_error(self, msg):
+        LOG.warn("Error while accessing the recommender agent: %s" 
+                                                            % msg)
+        # TODO: temporary, instead we will display cached recommendations here
         self._hide_recommended_for_you()
 
     def _update_recommended_for_you_content(self):
         # remove any existing children from the grid widget
         self.recommended_for_you.remove_all()
         self.recommended_for_you_frame.show_spinner()
+        # get the recommendations from the recommender agent
+        self.recommended_for_you_cat = RecommendedForYouCategory()
+        self.recommended_for_you_cat.connect(
+                                        'needs-refresh',
+                                        self._on_recommended_for_you_refresh)
+        self.recommended_for_you_cat.connect('recommender-agent-error',
+                                             self._on_recommender_agent_error)
 
     def _append_recommended_for_you(self):
         # TODO: This space will initially contain an opt-in screen, and this
