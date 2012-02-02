@@ -374,11 +374,11 @@ class TestDatabase(unittest.TestCase):
             mock_hw.__get__.return_value={}
             self.assertTrue(details.hardware_requirements_satisfied)
 
-    @patch("softwarecenter.db.application.RegionDiscover")
+    @patch("softwarecenter.db.application.get_region_cached")
     def test_region_requirements_satisfied(self, mock_region_discover):
-        mock_region_discover.get_region.return_value = { 
+        mock_region_discover.return_value = { 
             'country' : 'Germany',
-            'countrycode' : 'de',
+            'countrycode' : 'DE',
             }
         with patch.object(AppDetails, 'tags') as mock_tags:
             # setup env
@@ -393,7 +393,7 @@ class TestDatabase(unittest.TestCase):
             mock_tags.__get__.return_value = ["region::DE"]
             self.assertTrue(details.region_requirements_satisfied)
             # empty is satisfied
-            mock_region.__get__.return_value=[]
+            mock_tags.__get__.return_value=["other::tag"]
             self.assertTrue(details.region_requirements_satisfied)
 
     def test_parse_axi_values_file(self):

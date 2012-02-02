@@ -117,3 +117,10 @@ class RegionDiscover(object):
         time, address_res, accuracy = client.GetAddress()
         return address_res
 
+my_region = None
+def get_region_cached():
+    global my_region
+    if my_region is None:
+        rd = RegionDiscover()
+        my_region = rd.get_region()
+    return my_region

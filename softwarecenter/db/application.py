@@ -33,7 +33,7 @@ from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
 from softwarecenter.utils import utf8, split_icon_ext
-from softwarecenter.region import RegionDiscover
+from softwarecenter.region import get_region_cached
 
 LOG = logging.getLogger(__name__)
 
@@ -684,7 +684,17 @@ class AppDetails(GObject.GObject):
 
     @property
     def region_requirements_satisfied(self):
-        pass
+        my_region = get_region_cached()["countrycode"]
+        # if there are no region tag we are good
+        res = True
+        for tag in self.tags:
+            if tag.startswith("region::"):
+                # we found a region tag, now the region must match
+                res = False
+            if tag == "region::%s" % my_region:
+                # we have the right region
+                return True
+        return res
 
     @property
     def hardware_requirements_satisfied(self):
