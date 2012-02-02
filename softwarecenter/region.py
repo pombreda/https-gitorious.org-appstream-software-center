@@ -23,9 +23,12 @@ from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
 
 import locale
+import logging
 import os
 import xml.etree.ElementTree
 from gettext import dgettext
+
+LOG=logging.getLogger(__name__)
 
 def get_region_name(countrycode):
     # find translated name
@@ -39,7 +42,6 @@ def get_region_name(countrycode):
                 if match is not None:
                     return dgettext(iso, match.attrib["name"])
     return ""
-
 
 # the first parameter of SetRequirements
 class AccuracyLevel:
@@ -64,13 +66,20 @@ class RegionDiscover(object):
         """ return a dict with at least "county" and "countrycode" as
             keys - they may be empty if no region is found
         """
-        res = { 'countrycode' : '',
-                'country' : '',
-                }
+        res = {}
+        try:
+            res = self._get_region_geoclue()
+        except Exception as e:
+            LOG.warn("failed to use geoclue: '%s'" % e)
+        # fallback
+        res = self._get_region_dumb()
+        return res
 
     def _get_region_dumb(self):
         """ return dict estimate about the current countrycode/country """
-        res = {}
+        res = { 'countrycode' : '',
+                'country' : '',
+                }
         try:
             # use LC_MONETARY as the best guess
             loc = locale.getlocale(locale.LC_MONETARY)[0]
