@@ -15,6 +15,7 @@ from softwarecenter.testutils import get_mock_app_from_real_app, do_events
 from softwarecenter.ui.gtk3.widgets.labels import HardwareRequirementsBox
 from softwarecenter.ui.gtk3.views.appdetailsview import get_test_window_appdetails
 from softwarecenter.enums import PkgStates
+from softwarecenter.region import REGION_WARNING_STRING
 
 from test.test_database import make_purchased_app_details
 
@@ -320,7 +321,7 @@ class RegionRequirementsTestCase(unittest.TestCase):
         self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
 
     def test_show_region_requirements(self):
-        self.app_mock.details.False_requirements_satisfied = False
+        self.app_mock.details.region_requirements_satisfied = False
         self.view.show_app(self.app_mock)
         do_events()
         # ensure that the button is correct

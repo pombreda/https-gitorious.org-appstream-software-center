@@ -27,10 +27,16 @@ import logging
 import os
 import xml.etree.ElementTree
 from gettext import dgettext
+from gettext import gettext as _
 
 LOG=logging.getLogger(__name__)
 
+# warning displayed if region does not match
+REGION_WARNING_STRING = _('This software requires a different region than '
+                          'the one you are currently in.')
+
 def get_region_name(countrycode):
+    """ return translated region name from countrycode using iso3166 """
     # find translated name
     if countrycode:
         for iso in ["iso_3166", "iso_3166_2"]:
