@@ -374,6 +374,28 @@ class TestDatabase(unittest.TestCase):
             mock_hw.__get__.return_value={}
             self.assertTrue(details.hardware_requirements_satisfied)
 
+    @patch("softwarecenter.db.application.RegionDiscover")
+    def test_region_requirements_satisfied(self, mock_region_discover):
+        mock_region_discover.get_region.return_value = { 
+            'country' : 'Germany',
+            'countrycode' : 'de',
+            }
+        with patch.object(AppDetails, 'tags') as mock_tags:
+            # setup env
+            db = get_test_db()
+            app = Application("", "software-center")
+            mock_tags.__get__ = Mock()
+            # not good
+            mock_tags.__get__.return_value = ["region::ZM"]
+            details = AppDetails(db, application=app)
+            self.assertFalse(details.region_requirements_satisfied)
+            # this if good
+            mock_tags.__get__.return_value = ["region::DE"]
+            self.assertTrue(details.region_requirements_satisfied)
+            # empty is satisfied
+            mock_region.__get__.return_value=[]
+            self.assertTrue(details.region_requirements_satisfied)
+
     def test_parse_axi_values_file(self):
         s = """
 # This file contains the mapping between names of numeric values indexed in the

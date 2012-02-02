@@ -33,6 +33,7 @@ from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
 from softwarecenter.utils import utf8, split_icon_ext
+from softwarecenter.region import RegionDiscover
 
 LOG = logging.getLogger(__name__)
 
@@ -680,6 +681,10 @@ class AppDetails(GObject.GObject):
     def license_key_path(self):
         if self._doc:
             return self._doc.get_value(XapianValues.LICENSE_KEY_PATH)
+
+    @property
+    def region_requirements_satisfied(self):
+        pass
 
     @property
     def hardware_requirements_satisfied(self):
