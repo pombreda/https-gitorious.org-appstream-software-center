@@ -525,6 +525,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         self._update_top_rated_content()
         self._update_whats_new_content()
+        self._update_recommended_for_you_content()
         self._update_appcount()
         return
 
