@@ -25,6 +25,9 @@ software-center (5.1.8) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/launcher-integration-lp761851:
     - update to the Unity launcher integration implementation to
       support the revamped functionality on the Unity side (LP: #761851) 
+  * lp:~gary-lasker/software-center/recommends-ui-lobby:
+    - initial recommends UI implementation, limited to non-personalized
+      recommends currently
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 01 Feb 2012 00:02:34 -0500
 

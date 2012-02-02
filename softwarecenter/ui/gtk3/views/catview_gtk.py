@@ -47,6 +47,7 @@ from softwarecenter.db.appfilter import AppFilter, get_global_filter
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.categories import (Category,
                                           CategoriesParser,
+                                          RecommendedForYouCategory,
                                           get_category_by_name,
                                           categories_sorted_by_name)
 from softwarecenter.db.utils import get_query_for_pkgnames
@@ -108,6 +109,8 @@ class CategoriesViewGtk(Viewport, CategoriesParser):
         self.cache = cache
         self.db = db
         self.icons = icons
+        self.properties_helper = AppPropertiesHelper(
+            self.db, self.cache, self.icons)
         self.section = None
 
         Viewport.__init__(self)
@@ -152,9 +155,9 @@ class CategoriesViewGtk(Viewport, CategoriesParser):
            amount = number of tiles to add from start of doc range'''
         amount = min(len(docs), amount)
         for doc in docs[0:amount]:
-            tile = FeaturedTile(self.helper, doc)
+            tile = FeaturedTile(self.properties_helper, doc)
             tile.connect('clicked', self.on_app_clicked,
-                         self.helper.get_application(doc))
+                         self.properties_helper.get_application(doc))
             flowgrid.add_child(tile)
         return
 
@@ -248,10 +251,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.right_column = Gtk.Box.new(Gtk.Orientation.VERTICAL, self.SPACING)
         self.top_hbox.pack_start(self.right_column, True, True, 0)
 
-        self._append_new()
-        #~ self._append_recommendations()
+        self._append_whats_new()
         self._append_top_rated()
-
+        self._append_recommended_for_you()
         self._append_appcount()
 
         #self._append_video_clips()
@@ -363,129 +365,127 @@ class LobbyViewGtk(CategoriesViewGtk):
             cat_vbox.pack_start(label, False, False, 0)
         return
 
-    def _get_toprated_category_content(self):
-        toprated_cat = get_category_by_name(self.categories, 
-                                            u"Top Rated")  # unstranslated name
-        if toprated_cat is None:
-            LOG.warn("No 'toprated' category found!!")
-            return None, []
-
-        enq = AppEnquire(self.cache, self.db)
-        app_filter = AppFilter(self.db, self.cache)
-        enq.set_query(toprated_cat.query,
-                      limit=TOP_RATED_CAROUSEL_LIMIT,
-                      sortmode=toprated_cat.sortmode,
-                      filter=app_filter,
-                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
-                      nonblocking_load=False)
-
-        if not hasattr(self, "helper"):
-            self.helper = AppPropertiesHelper(self.db,
-                                              self.cache,
-                                              self.icons)
-
-        return toprated_cat, enq.get_documents()
-
-    def _update_toprated_content(self):
+    # FIXME: _update_{top_rated,whats_new,recommended_for_you}_conent()
+    #        duplicates a lot of code
+    def _update_top_rated_content(self):
         # remove any existing children from the grid widget
-        self.toprated.remove_all()
-        # get toprated category and docs
-        toprated_cat, docs = self._get_toprated_category_content()
-        # display docs
-        self._add_tiles_to_flowgrid(docs, self.toprated,
-                                    TOP_RATED_CAROUSEL_LIMIT)
-        self.toprated.show_all()
-        return toprated_cat
+        self.top_rated.remove_all()
+        # get top_rated category and docs
+        top_rated_cat = get_category_by_name(
+            self.categories, u"Top Rated")  # untranslated name
+        if top_rated_cat:
+            docs = top_rated_cat.get_documents(self.db)
+            self._add_tiles_to_flowgrid(docs, self.top_rated,
+                                        TOP_RATED_CAROUSEL_LIMIT)
+            self.top_rated.show_all()
+        return top_rated_cat
 
     def _append_top_rated(self):
-        self.toprated = FlowableGrid()
-        #~ self.featured.row_spacing = StockEms.SMALL
-        frame = FramedHeaderBox()
-        frame.set_header_label(_("Top Rated"))
-        frame.add(self.toprated)
-        self.toprated_frame = frame
-        self.right_column.pack_start(frame, True, True, 0)
-
-        toprated_cat = self._update_toprated_content()
-        # only display the 'More' LinkButton if we have toprated content
-        if toprated_cat is not None:
-            frame.header_implements_more_button()
-            frame.more.connect('clicked', self.on_category_clicked, toprated_cat) 
+        self.top_rated = FlowableGrid()
+        #~ self.top_rated.row_spacing = StockEms.SMALL
+        self.top_rated_frame = FramedHeaderBox()
+        self.top_rated_frame.set_header_label(_("Top Rated"))
+        self.top_rated_frame.add(self.top_rated)
+        self.right_column.pack_start(self.top_rated_frame, True, True, 0)
+        top_rated_cat = self._update_top_rated_content()
+        # only display the 'More' LinkButton if we have top_rated content
+        if top_rated_cat is not None:
+            self.top_rated_frame.header_implements_more_button()
+            self.top_rated_frame.more.connect('clicked', 
+                               self.on_category_clicked, top_rated_cat) 
         return
 
-    def _get_new_category_content(self):
-        whatsnew_cat = get_category_by_name(self.categories, 
-                                            u"What\u2019s New") # unstranslated name
-        if whatsnew_cat is None:
-            LOG.warn("No 'new' category found!!")
-            return None, []
-
-        enq = AppEnquire(self.cache, self.db)
-        app_filter = AppFilter(self.db, self.cache)
-        app_filter.set_available_only(True)
-        app_filter.set_not_installed_only(True)
-        enq.set_query(whatsnew_cat.query,
-                      limit=8,
-                      filter=app_filter,
-                      sortmode=SortMethods.BY_CATALOGED_TIME,
-                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
-                      nonblocking_load=False)
-
-        if not hasattr(self, "helper"):
-            self.helper = AppPropertiesHelper(self.db,
-                                              self.cache,
-                                              self.icons)
-
-        return whatsnew_cat, enq.get_documents()
-
-    def _update_new_content(self):
+    def _update_whats_new_content(self):
         # remove any existing children from the grid widget
-        self.featured.remove_all()
-        # get toprated category and docs
-        whatsnew_cat, docs = self._get_new_category_content()
-        # display docs
-        self._add_tiles_to_flowgrid(docs, self.featured, 8)
-        self.featured.show_all()
-        return whatsnew_cat
+        self.whats_new.remove_all()
+        # get top_rated category and docs
+        whats_new_cat = get_category_by_name(
+            self.categories,  u"What\u2019s New") # untranslated name
+        if whats_new_cat:
+            docs = whats_new_cat.get_documents(self.db)
+            self._add_tiles_to_flowgrid(docs, self.whats_new, 8)
+            self.whats_new.show_all()
+        return whats_new_cat
 
-    def _append_new(self):
-        self.featured = FlowableGrid()
-        frame = FramedHeaderBox()
-        frame.set_header_label(_(u"What\u2019s New"))
-        frame.add(self.featured)
-        self.new_frame = frame
+    def _append_whats_new(self):
+        self.whats_new = FlowableGrid()
+        self.whats_new_frame = FramedHeaderBox()
+        self.whats_new_frame.set_header_label(_(u"What\u2019s New"))
+        self.whats_new_frame.add(self.whats_new)
 
-        whatsnew_cat = self._update_new_content()
-        if whatsnew_cat is not None:
+        whats_new_cat = self._update_whats_new_content()
+        if whats_new_cat is not None:
             # only add to the visible right_frame if we actually have it
-            self.right_column.pack_start(frame, True, True, 0)
-            frame.header_implements_more_button()
-            frame.more.connect('clicked', self.on_category_clicked, whatsnew_cat) 
+            self.right_column.pack_start(self.whats_new_frame, True, True, 0)
+            self.whats_new_frame.header_implements_more_button()
+            self.whats_new_frame.more.connect(
+                'clicked', self.on_category_clicked, whats_new_cat) 
         return
 
-    #~ def _append_recommendations(self):
-        #~ featured_cat = get_category_by_name(self.categories, 
-                                            #~ u"Featured")  # unstranslated name
-#~ 
-        #~ enq = AppEnquire(self.cache, self.db)
-        #~ app_filter = AppFilter(self.db, self.cache)
-        #~ enq.set_query(featured_cat.query,
-                      #~ limit=12,
-                      #~ filter=app_filter,
-                      #~ nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
-                      #~ nonblocking_load=False)
-#~ 
-        #~ self.featured = FlowableGrid()
-        #~ frame = FramedHeaderBox(Gtk.Orientation.VERTICAL)
-        #~ frame.add(self.featured)
-        #~ frame.set_header_label(_("Recommended For You"))
-        #~ frame.header_implements_more_button()
-        #~ self.right_column.pack_start(frame, True, True, 0)
-#~ 
-        #~ self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        #~ docs = enq.get_documents()
-        #~ self._add_tiles_to_flowgrid(docs, self.featured, 12)
-        #~ return
+    def _on_recommended_for_you_refresh(self, cat):
+        docs = cat.get_documents(self.db)
+        # display the recommendedations
+        if len(docs) > 0:
+            self._add_tiles_to_flowgrid(docs, self.recommended_for_you, 8)
+            self.recommended_for_you.show_all()
+            self.recommended_for_you_frame.hide_spinner()
+            self.recommended_for_you_frame.more.connect(
+                                                'clicked',
+                                                self.on_category_clicked,
+                                                cat)
+        else:
+            # TODO: this test for zero docs is temporary and will not be
+            # needed once the recommendation agent is up and running
+            self._hide_recommended_for_you()
+        return
+        
+    def _on_recommender_agent_error(self, agent, msg):
+        LOG.warn("Error while accessing the recommender agent: %s" 
+                                                            % msg)
+        # TODO: temporary, instead we will display cached recommendations here
+        self._hide_recommended_for_you()
+
+    def _update_recommended_for_you_content(self):
+        # remove any existing children from the grid widget
+        self.recommended_for_you.remove_all()
+        self.recommended_for_you_frame.show_spinner()
+        # get the recommendations from the recommender agent
+        self.recommended_for_you_cat = RecommendedForYouCategory()
+        self.recommended_for_you_cat.connect(
+                                        'needs-refresh',
+                                        self._on_recommended_for_you_refresh)
+        self.recommended_for_you_cat.connect('recommender-agent-error',
+                                             self._on_recommender_agent_error)
+
+    def _append_recommended_for_you(self):
+        # TODO: This space will initially contain an opt-in screen, and this
+        #       will update to the tile view of recommended apps when ready
+        #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
+        self.bottom_hbox = Gtk.HBox(spacing=StockEms.SMALL)
+        bottom_hbox_alignment = Gtk.Alignment()
+        bottom_hbox_alignment.set_padding(0, 0, StockEms.MEDIUM-2, StockEms.MEDIUM-2)
+        bottom_hbox_alignment.add(self.bottom_hbox)
+        self.vbox.pack_start(bottom_hbox_alignment, False, False, 0)
+        
+        # TODO: During development, place the "Recommended for You" panel
+        #       at the bottom, but swap this with the Top Rated panel once
+        #       the recommended for you pieces are done and deployed
+        #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
+        self.recommended_for_you = FlowableGrid()
+        self.recommended_for_you_frame = FramedHeaderBox()
+        self.recommended_for_you_frame.set_header_label(
+                                                _(u"Recommended for You"))
+        self.recommended_for_you_frame.add(self.recommended_for_you)
+        self.recommended_for_you_frame.header_implements_more_button()
+        self.bottom_hbox.pack_start(self.recommended_for_you_frame, 
+                                    True, True, 0)
+        
+        # get the recommendations from the recommender agent
+        self._update_recommended_for_you_content()
+        
+    def _hide_recommended_for_you(self):
+        # and hide the pane
+        self.recommended_for_you_frame.hide()
 
     def _update_appcount(self):
         enq = AppEnquire(self.cache, self.db)
@@ -523,8 +523,9 @@ class LobbyViewGtk(CategoriesViewGtk):
             return
         self._supported_only = supported_only
 
-        self._update_toprated_content()
-        self._update_new_content()
+        self._update_top_rated_content()
+        self._update_whats_new_content()
+        self._update_recommended_for_you_content()
         self._update_appcount()
         return
 
@@ -547,14 +548,14 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # data
         self.root_category = root_category
         self.enquire = AppEnquire(self.cache, self.db)
-        self.helper = AppPropertiesHelper(self.db,
-                                          self.cache,
-                                          self.icons)
+        self.properties_helper = AppPropertiesHelper(
+            self.db, self.cache, self.icons)
 
         # sections
         self.current_category = None
         self.departments = None
-        self.toprated = None
+        self.top_rated = None
+        self.recommended_for_you = None
         self.appcount = None
 
         # widgetry
@@ -563,7 +564,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.vbox.set_margin_top(StockEms.MEDIUM)
         return
 
-    def _get_sub_toprated_content(self, category):
+    def _get_sub_top_rated_content(self, category):
         app_filter = AppFilter(self.db, self.cache)
         self.enquire.set_query(category.query,
                                limit=TOP_RATED_CAROUSEL_LIMIT,
@@ -574,23 +575,24 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         return self.enquire.get_documents()
 
     @wait_for_apt_cache_ready # be consistent with new apps
-    def _update_sub_toprated_content(self, category):
-        self.toprated.remove_all()
+    def _update_sub_top_rated_content(self, category):
+        self.top_rated.remove_all()
         # FIXME: should this be m = "%s %s" % (_(gettext text), header text) ??
 	# TRANSLATORS: %s is a category name, like Internet or Development Tools
         m = _('Top Rated %(category)s') % { 'category' : GObject.markup_escape_text(self.header)}
-        self.toprated_frame.set_header_label(m)
-        docs = self._get_sub_toprated_content(category)
-        self._add_tiles_to_flowgrid(docs, self.toprated, TOP_RATED_CAROUSEL_LIMIT)
+        self.top_rated_frame.set_header_label(m)
+        docs = self._get_sub_top_rated_content(category)
+        self._add_tiles_to_flowgrid(docs, self.top_rated, 
+                                    TOP_RATED_CAROUSEL_LIMIT)
         return
 
-    def _append_sub_toprated(self):
-        self.toprated = FlowableGrid()
-        self.toprated.set_row_spacing(6)
-        self.toprated.set_column_spacing(6)
-        self.toprated_frame = FramedHeaderBox()
-        self.toprated_frame.pack_start(self.toprated, True, True, 0)
-        self.vbox.pack_start(self.toprated_frame, False, True, 0)
+    def _append_sub_top_rated(self):
+        self.top_rated = FlowableGrid()
+        self.top_rated.set_row_spacing(6)
+        self.top_rated.set_column_spacing(6)
+        self.top_rated_frame = FramedHeaderBox()
+        self.top_rated_frame.pack_start(self.top_rated, True, True, 0)
+        self.vbox.pack_start(self.top_rated_frame, False, True, 0)
         return
 
     def _update_subcat_departments(self, category, num_items):
@@ -637,14 +639,14 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.departments = FlowableGrid(paint_grid_pattern=False)
         self.departments.set_row_spacing(StockEms.SMALL)
         self.departments.set_column_spacing(StockEms.SMALL)
-        frame = FramedBox(spacing=StockEms.MEDIUM,
-                          padding=StockEms.MEDIUM)
+        self.departments_frame = FramedBox(spacing=StockEms.MEDIUM,
+                                           padding=StockEms.MEDIUM)
         # set x/y-alignment and x/y-expand
-        frame.set(0.5, 0.0, 1.0, 1.0)
-        frame.pack_start(self.subcat_label, False, False, 0)
-        frame.pack_start(self.departments, True, True, 0)
+        self.departments_frame.set(0.5, 0.0, 1.0, 1.0)
+        self.departments_frame.pack_start(self.subcat_label, False, False, 0)
+        self.departments_frame.pack_start(self.departments, True, True, 0)
         # append the departments section to the page
-        self.vbox.pack_start(frame, False, True, 0)
+        self.vbox.pack_start(self.departments_frame, False, True, 0)
         return
 
     def _update_appcount(self, appcount):
@@ -666,14 +668,14 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
         self._append_subcat_departments()
-        self._append_sub_toprated()
+        self._append_sub_top_rated()
         self._append_appcount()
         self._built = True
         return
 
     def _update_subcat_view(self, category, num_items=0):
         num_items = self._update_subcat_departments(category, num_items)
-        self._update_sub_toprated_content(category)
+        self._update_sub_top_rated_content(category)
         self._update_appcount(num_items)
         self.show_all()
         return
@@ -768,7 +770,7 @@ def get_test_window_catview():
     n.append_page(scroll, Gtk.Label(label="Subcats"))
 
     win.add(n)
-    win.set_size_request(800,600)
+    win.set_size_request(800,800)
     win.show_all()
     win.connect('destroy', Gtk.main_quit)
     return win

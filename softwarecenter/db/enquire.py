@@ -28,7 +28,6 @@ from softwarecenter.enums import (SortMethods,
                                   XapianValues, 
                                   NonAppVisibility,
                                   DEFAULT_SEARCH_LIMIT)
-from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.db.database import (
     SearchQuery, LocaleSorter, TopRatedSorter)
 from softwarecenter.distro import get_distro
@@ -186,6 +185,7 @@ class AppEnquire(GObject.GObject):
                 else:
                     LOG.warning("no catelogedtime in axi")
             elif self.sortmode == SortMethods.BY_TOP_RATED:
+                from softwarecenter.backend.reviews import get_review_loader
                 review_loader = get_review_loader(self.cache, self.db)
                 sorter = TopRatedSorter(self.db, review_loader)
                 enquire.set_sort_by_key(sorter, reverse=True)
@@ -339,3 +339,5 @@ class AppEnquire(GObject.GObject):
         """ get the xapian.Document objects of the current matches """
         xdb = self.db.xapiandb
         return [xdb.get_document(m.docid) for m in self._matches]
+
+

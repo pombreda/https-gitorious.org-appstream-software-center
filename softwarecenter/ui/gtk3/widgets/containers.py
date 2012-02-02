@@ -495,15 +495,37 @@ class HeaderPosition:
 class FramedHeaderBox(FramedBox):
 
     MARKUP = '<b>%s</b>'
+    
+    # pages for the spinner notebook
+    (CONTENT,
+     SPINNER) = range(2)
 
-    def __init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=0, padding=0):
+    def __init__(self, orientation=Gtk.Orientation.VERTICAL,
+                 spacing=0,
+                 padding=0,
+                 show_spinner=False):
         FramedBox.__init__(self, Gtk.Orientation.VERTICAL, spacing, padding)
+        # make the header
         self.header = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, spacing)
         self.header_alignment = Gtk.Alignment()
         self.header_alignment.add(self.header)
         self.box.pack_start(self.header_alignment, False, False, 0)
+        # make the content box
         self.content_box = Gtk.Box.new(orientation, spacing)
-        self.box.add(self.content_box)
+        # and a spinner (to be used only if needed)
+        # TODO: cosmetic tweak needed - draw a line at the top of the spinner
+        #       area so that the header has a proper border
+        self.spinner = Gtk.Spinner()
+        self.spinner.set_size_request(32, 32)
+        self.spinner.set_valign(Gtk.Align.CENTER)
+        self.spinner.set_halign(Gtk.Align.CENTER)
+        # finally, a notebook for the spinner and the content box to share
+        self.spinner_notebook = Gtk.Notebook()
+        self.spinner_notebook.set_show_tabs(False)
+        self.spinner_notebook.set_show_border(False)
+        self.spinner_notebook.append_page(self.content_box, None)
+        self.spinner_notebook.append_page(self.spinner, None)
+        self.box.add(self.spinner_notebook)
         return
 
     def on_draw(self, cr):
@@ -523,6 +545,16 @@ class FramedHeaderBox(FramedBox):
 
     def pack_end(self, *args, **kwargs):
         return self.content_box.pack_end(*args, **kwargs)
+        
+    def show_spinner(self):
+        self.spinner.start()
+        self.spinner.show()
+        self.spinner_notebook.set_current_page(self.SPINNER)
+            
+    def hide_spinner(self):
+        self.spinner.stop()
+        self.spinner.hide()
+        self.spinner_notebook.set_current_page(self.CONTENT)
 
     # XXX: non-functional with current code...
     #~ def set_header_expand(self, expand):
@@ -553,7 +585,7 @@ class FramedHeaderBox(FramedBox):
         self.title.set_markup(self.MARKUP % label)
         return
 
-    def header_implements_more_button(self, callback=None):
+    def header_implements_more_button(self):
         if not hasattr(self, "more"):
             self.more = MoreLink()
             self.header.pack_end(self.more, False, False, 0)
