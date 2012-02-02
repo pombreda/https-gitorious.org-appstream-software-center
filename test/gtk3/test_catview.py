@@ -7,9 +7,14 @@ from testutils import setup_test_env
 setup_test_env()
 
 from softwarecenter.enums import SortMethods
-from softwarecenter.testutils import make_recommender_agent_recommend_top_dict
+from softwarecenter.backend.recommends import RecommenderAgent
+from softwarecenter.testutils import (get_test_db,
+                                      make_recommender_agent_recommend_top_dict)
 
 class TestCatView(unittest.TestCase):
+
+    def setUp(self):
+        self.db = get_test_db()
 
     def _on_category_selected(self, subcatview, category):
         #print "**************", subcatview, category
@@ -88,8 +93,11 @@ class TestCatView(unittest.TestCase):
         win = get_test_window_catview()
         lobby = win.get_data("lobby")
         # we fake the callback from the agent here
-        lobby._recommend_top_result(None, 
-                                    make_recommender_agent_recommend_top_dict())
+        lobby.recommended_for_you_cat._recommend_top_result(
+                                None,
+                                make_recommender_agent_recommend_top_dict())
+        self.assertNotEqual(
+                lobby.recommended_for_you_cat.get_documents(self.db), [])
         self._p()
         # test clicking recommended_for_you More button
         lobby.connect("category-selected", self._on_category_selected)

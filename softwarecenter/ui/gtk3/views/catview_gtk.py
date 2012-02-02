@@ -422,11 +422,9 @@ class LobbyViewGtk(CategoriesViewGtk):
                 'clicked', self.on_category_clicked, whats_new_cat) 
         return
 
-    def _on_recommended_for_you_refresh(self):
-
-        docs = self.recommended_for_you_cat.get_documents()
-
-        # display docs
+    def _on_recommended_for_you_refresh(self, cat):
+        docs = cat.get_documents(self.db)
+        # display the recommendedations
         if len(docs) > 0:
             self._add_tiles_to_flowgrid(docs, self.recommended_for_you, 8)
             self.recommended_for_you.show_all()
@@ -434,7 +432,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.recommended_for_you_frame.more.connect(
                                                 'clicked',
                                                 self.on_category_clicked,
-                                                self.recommended_for_you_cat)
+                                                cat)
         else:
             # TODO: this test for zero docs is temporary and will not be
             # needed once the recommendation agent is up and running
