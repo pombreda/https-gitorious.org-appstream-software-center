@@ -7,10 +7,16 @@ import unittest
 from testutils import setup_test_env
 setup_test_env()
 from softwarecenter.i18n import (
-    init_locale, get_language,  get_languages, langcode_to_name)
+    init_locale, 
+    get_language,  get_languages, langcode_to_name)
 
 class TestI18n(unittest.TestCase):
     """ tests the sc i18n """
+
+    def tearDown(self):
+        os.environ["LANGUAGE"] = ""
+        os.environ["LC_ALL"] = ""
+        os.environ["LANG"] = ""
 
     def test_langcode_to_name(self):
         self.assertEqual(langcode_to_name("de"), "German")
@@ -45,7 +51,6 @@ class TestI18n(unittest.TestCase):
         self.assertEqual(
             locale.getlocale(locale.LC_MESSAGES), ("en_US", "UTF-8"))
         
-
 
 if __name__ == "__main__":
     import logging

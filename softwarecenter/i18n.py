@@ -55,7 +55,6 @@ def get_languages():
 def get_language():
     """Helper that returns the current language
     """
-    import locale
     try:
         language = locale.getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
     except Exception as e:
@@ -75,8 +74,9 @@ def langcode_to_name(langcode):
         path = os.path.join("/usr/share/xml/iso-codes/", iso+".xml")
         if os.path.exists(path):
             root = xml.etree.ElementTree.parse(path)
-            xpath = ".//iso_639_3_entry[@part1_code='%s']" % langcode
+            xpath = ".//%s_entry[@part1_code='%s']" % (iso, langcode)
             match = root.find(xpath)
             if match is not None:
                 return dgettext(iso, match.attrib["name"])
     return langcode
+
