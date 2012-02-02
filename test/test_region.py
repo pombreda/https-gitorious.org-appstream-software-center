@@ -41,7 +41,7 @@ class TestRegion(unittest.TestCase):
 
     def test_get_region_normal(self):
         self._mock_internal_region_finders()
-        res = self.region.get_region()
+        self.region.get_region()
         self.assertTrue(self.region._get_region_geoclue.called)
         self.assertFalse(self.region._get_region_dumb.called)
 
@@ -49,7 +49,7 @@ class TestRegion(unittest.TestCase):
         # test fallback (no geoclue)
         self._mock_internal_region_finders()
         self.region._get_region_geoclue.side_effect = Exception("raise test exception")
-        res = self.region.get_region()
+        self.region.get_region()
         self.assertTrue(self.region._get_region_dumb.called)
         self.assertTrue(self.region._get_region_geoclue.called)
 

@@ -9,7 +9,6 @@ setup_test_env()
 from softwarecenter.utils import (decode_xml_char_reference,
                                   release_filename_in_lists_from_deb_line,
                                   get_http_proxy_string_from_libproxy,
-                                  get_region,
                                   )
 
 
