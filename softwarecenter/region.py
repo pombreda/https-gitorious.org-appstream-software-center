@@ -23,6 +23,9 @@ from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
 
 import locale
+import os
+import xml.etree.ElementTree
+from gettext import dgettext
 
 def get_region():
     """ return dict estimate about the current countrycode/country """
@@ -37,8 +40,20 @@ def get_region():
         return res
     if not loc:
         return res
-    res["countrycode"] = loc.split("_")[1]
-    
+    countrycode = loc.split("_")[1]
+    res["countrycode"] = countrycode
+
+    # find translated name
+    if countrycode:
+        for iso in ["iso_3166", "iso_3166_2"]:
+            path = os.path.join("/usr/share/xml/iso-codes/", iso+".xml")
+            if os.path.exists(path):
+                root = xml.etree.ElementTree.parse(path)
+                xpath = ".//%s_entry[@alpha_2_code='%s']" % (iso, countrycode)
+                match = root.find(xpath)
+                if match is not None:
+                    res["country"] = dgettext(iso, match.attrib["name"])
+                    break
     return res
 
 

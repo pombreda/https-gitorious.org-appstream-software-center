@@ -19,7 +19,7 @@ class TestRegion(unittest.TestCase):
         os.environ["LANG"] = "en_ZM.utf8"
         init_locale()
         self.assertEqual(get_region()["countrycode"], "ZM")
-        self.assertEqual(get_region()["country"], "Zimbabe")
+        self.assertEqual(get_region()["country"], "Zambia")
 
     def test_get_region_geoclue(self):
         res = get_region_geoclue()
