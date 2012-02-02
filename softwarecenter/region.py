@@ -27,7 +27,7 @@ import os
 import xml.etree.ElementTree
 from gettext import dgettext
 
-def _get_region_name(countrycode):
+def get_region_name(countrycode):
     # find translated name
     if countrycode:
         for iso in ["iso_3166", "iso_3166_2"]:
@@ -39,25 +39,6 @@ def _get_region_name(countrycode):
                 if match is not None:
                     return dgettext(iso, match.attrib["name"])
     return ""
-
-def get_region():
-    """ return dict estimate about the current countrycode/country """
-    res = { 'countrycode' : '',
-            'country' : '',
-          }
-    try:
-        # use LC_MONETARY as the best guess
-        loc = locale.getlocale(locale.LC_MONETARY)[0]
-    except Exception as e:
-        LOG.warn("Failed to get locale: '%s'" % e)
-        return res
-    if not loc:
-        return res
-    countrycode = loc.split("_")[1]
-    res["countrycode"] = countrycode
-    res["country"] = _get_region_name(countrycode)
-    return res
-
 
 
 # the first parameter of SetRequirements
@@ -77,24 +58,44 @@ class AllowedResources:
     GPS = 1 << 2
     ALL = (1 << 10) -1
 
-def get_region_geoclue():
-    """ return the dict with at least countrycode,country from a geoclue
-        provider 
-   """
-    bus = dbus.SessionBus()
-    master = bus.get_object(
-        'org.freedesktop.Geoclue.Master', '/org/freedesktop/Geoclue/Master')
-    client = bus.get_object(
-        'org.freedesktop.Geoclue.Master', master.Create())
-    client.SetRequirements(AccuracyLevel.COUNTRY,   # (i) accuracy_level
-                           0,                       # (i) time
-                           False,                   # (b) require_updates
-                           AllowedResources.ALL)    # (i) allowed_resoures
-    address = dbus.Interface(
-        client, dbus_interface='org.freedesktop.Geoclue.Address')
-    # this is crucial
-    client.AddressStart()
-    # now get the data
-    time, address_res, accuracy = client.GetAddress()
-    return address_res
+class RegionDiscover(object):
+
+    def _get_region_dumb(self):
+        """ return dict estimate about the current countrycode/country """
+        res = { 'countrycode' : '',
+                'country' : '',
+                }
+        try:
+            # use LC_MONETARY as the best guess
+            loc = locale.getlocale(locale.LC_MONETARY)[0]
+        except Exception as e:
+            LOG.warn("Failed to get locale: '%s'" % e)
+            return res
+        if not loc:
+            return res
+        countrycode = loc.split("_")[1]
+        res["countrycode"] = countrycode
+        res["country"] = get_region_name(countrycode)
+        return res
+
+    def _get_region_geoclue(self):
+        """ return the dict with at least countrycode,country from a geoclue
+            provider 
+        """
+        bus = dbus.SessionBus()
+        master = bus.get_object(
+            'org.freedesktop.Geoclue.Master', '/org/freedesktop/Geoclue/Master')
+        client = bus.get_object(
+            'org.freedesktop.Geoclue.Master', master.Create())
+        client.SetRequirements(AccuracyLevel.COUNTRY,   # (i) accuracy_level
+                               0,                       # (i) time
+                               False,                   # (b) require_updates
+                               AllowedResources.ALL)    # (i) allowed_resoures
+        address = dbus.Interface(
+            client, dbus_interface='org.freedesktop.Geoclue.Address')
+        # this is crucial
+        client.AddressStart()
+        # now get the data
+        time, address_res, accuracy = client.GetAddress()
+        return address_res
 
