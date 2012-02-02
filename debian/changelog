@@ -15,6 +15,10 @@ software-center (5.1.8) UNRELEASED; urgency=low
       compatibility with the old clients
   * lp:~mvo/software-center/fix-cachedir-for-public-api:
     - add missing cachedir argument
+  * lp:~mvo/software-center/region-support:
+    - add support for a region tag and display a warning to
+      the user if an application is not suitable for their
+      region
 
   [ Brendan Donegan ]
   * lp:~brendan-donegan/software-center/test_utils_get_nice_date_string:
@@ -32,7 +36,7 @@ software-center (5.1.8) UNRELEASED; urgency=low
     - make sure the action button in the applications details view
       always gets the initial focus (LP: #925613)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 02 Feb 2012 13:53:18 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 02 Feb 2012 15:49:19 -0500
 
 software-center (5.1.7) precise; urgency=low
 

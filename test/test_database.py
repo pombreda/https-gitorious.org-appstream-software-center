@@ -38,7 +38,7 @@ from softwarecenter.testutils import (
     make_software_center_agent_subscription_dict,
     make_software_center_agent_app_dict,
     )
-
+from softwarecenter.region import REGIONTAG
 
 class TestDatabase(unittest.TestCase):
     """ tests the store database """
@@ -373,6 +373,28 @@ class TestDatabase(unittest.TestCase):
             # empty is satisfied
             mock_hw.__get__.return_value={}
             self.assertTrue(details.hardware_requirements_satisfied)
+
+    @patch("softwarecenter.db.application.get_region_cached")
+    def test_region_requirements_satisfied(self, mock_region_discover):
+        mock_region_discover.return_value = { 
+            'country' : 'Germany',
+            'countrycode' : 'DE',
+            }
+        with patch.object(AppDetails, 'tags') as mock_tags:
+            # setup env
+            db = get_test_db()
+            app = Application("", "software-center")
+            mock_tags.__get__ = Mock()
+            # not good
+            mock_tags.__get__.return_value = [REGIONTAG+"ZM"]
+            details = AppDetails(db, application=app)
+            self.assertFalse(details.region_requirements_satisfied)
+            # this if good
+            mock_tags.__get__.return_value = [REGIONTAG+"DE"]
+            self.assertTrue(details.region_requirements_satisfied)
+            # empty is satisfied
+            mock_tags.__get__.return_value=["other::tag"]
+            self.assertTrue(details.region_requirements_satisfied)
 
     def test_parse_axi_values_file(self):
         s = """

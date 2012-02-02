@@ -33,6 +33,7 @@ from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
 from softwarecenter.utils import utf8, split_icon_ext
+from softwarecenter.region import get_region_cached, REGIONTAG
 
 LOG = logging.getLogger(__name__)
 
@@ -680,6 +681,20 @@ class AppDetails(GObject.GObject):
     def license_key_path(self):
         if self._doc:
             return self._doc.get_value(XapianValues.LICENSE_KEY_PATH)
+
+    @property
+    def region_requirements_satisfied(self):
+        my_region = get_region_cached()["countrycode"]
+        # if there are no region tag we are good
+        res = True
+        for tag in self.tags:
+            if tag.startswith(REGIONTAG):
+                # we found a region tag, now the region must match
+                res = False
+            if tag == REGIONTAG+my_region:
+                # we have the right region
+                return True
+        return res
 
     @property
     def hardware_requirements_satisfied(self):

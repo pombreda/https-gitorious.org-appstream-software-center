@@ -68,6 +68,7 @@ from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 import softwarecenter.ui.gtk3.dialogs as dialogs
 
 from softwarecenter.hw import get_hw_missing_long_description
+from softwarecenter.region import REGION_WARNING_STRING
 
 from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
@@ -308,7 +309,8 @@ class PackageStatusBar(StatusBar):
             #        won't vary based on locale and as such we don't want
             #        it translated
             self.set_label("US$ %s" % app_details.price)
-            if app_details.hardware_requirements_satisfied:
+            if (app_details.hardware_requirements_satisfied and
+                app_details.region_requirements_satisfied):
                 self.set_button_label(_(u'Buy\u2026'))
             else:
                 self.set_button_label(_(u'Buy Anyway\u2026'))
@@ -340,7 +342,8 @@ class PackageStatusBar(StatusBar):
             else:
                 # TRANSLATORS: Free here means Gratis
                 self.set_label(_("Free"))
-            if app_details.hardware_requirements_satisfied:
+            if (app_details.hardware_requirements_satisfied and
+                app_details.region_requirements_satisfied):
                 self.set_button_label(_('Install'))
             else:
                 self.set_button_label(_('Install Anyway'))
@@ -1359,11 +1362,18 @@ class AppDetailsView(Viewport):
         return
 
     def _update_warning_bar(self, app_details):
-        s = get_hw_missing_long_description(app_details.hardware_requirements)
-        self.pkg_warningbar.label.set_text(s)
-        if app_details.hardware_requirements_satisfied:
+        if (app_details.hardware_requirements_satisfied and
+            app_details.region_requirements_satisfied):
             self.pkg_warningbar.hide()
         else:
+            s = get_hw_missing_long_description(
+                app_details.hardware_requirements)
+            if not app_details.region_requirements_satisfied:
+                if len(s) > 0:
+                    s += "\n"+REGION_WARNING_STRING
+                else:
+                    s = REGION_WARNING_STRING
+            self.pkg_warningbar.label.set_text(s)
             self.pkg_warningbar.show()
 
     def _update_pkg_info_table(self, app_details):
