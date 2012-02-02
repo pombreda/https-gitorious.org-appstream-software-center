@@ -47,12 +47,12 @@ from softwarecenter.db.appfilter import AppFilter, get_global_filter
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.categories import (Category,
                                           CategoriesParser,
+                                          RecommendedForYouCategory,
                                           get_category_by_name,
                                           categories_sorted_by_name)
 from softwarecenter.db.utils import get_query_for_pkgnames
 from softwarecenter.distro import get_distro
 from softwarecenter.backend.scagent import SoftwareCenterAgent
-from softwarecenter.backend.recommends import RecommenderAgent
 
 LOG=logging.getLogger(__name__)
 
@@ -426,7 +426,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         recommended_for_you_cat = RecommendedForYouCategory()
         # FIXME: this needs to be moved into the RecommendedForYouCategory
         recommended_for_you_cat.query = get_query_for_pkgnames(pkgs)
-        return recommended_for_you
+        return recommended_for_you_cat
         
     def _recommend_top_result(self, recommender_agent, result_list):
         pkgs = []
