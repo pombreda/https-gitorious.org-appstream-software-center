@@ -38,7 +38,7 @@ from softwarecenter.testutils import (
     make_software_center_agent_subscription_dict,
     make_software_center_agent_app_dict,
     )
-
+from softwarecenter.region import REGIONTAG
 
 class TestDatabase(unittest.TestCase):
     """ tests the store database """
@@ -386,11 +386,11 @@ class TestDatabase(unittest.TestCase):
             app = Application("", "software-center")
             mock_tags.__get__ = Mock()
             # not good
-            mock_tags.__get__.return_value = ["region::ZM"]
+            mock_tags.__get__.return_value = [REGIONTAG+"ZM"]
             details = AppDetails(db, application=app)
             self.assertFalse(details.region_requirements_satisfied)
             # this if good
-            mock_tags.__get__.return_value = ["region::DE"]
+            mock_tags.__get__.return_value = [REGIONTAG+"DE"]
             self.assertTrue(details.region_requirements_satisfied)
             # empty is satisfied
             mock_tags.__get__.return_value=["other::tag"]

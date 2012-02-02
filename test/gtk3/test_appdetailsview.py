@@ -336,8 +336,7 @@ class RegionRequirementsTestCase(unittest.TestCase):
         # check if the warning bar is displayed
         self.assertTrue(self.view.pkg_warningbar.get_property("visible"))
         self.assertEqual(self.view.pkg_warningbar.label.get_text(),
-                         _('This software requires a different region than '
-                           'the one you are currently in.'))
+                         REGION_WARNING_STRING)
 
 
 class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):

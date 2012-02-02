@@ -33,7 +33,7 @@ from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
 from softwarecenter.utils import utf8, split_icon_ext
-from softwarecenter.region import get_region_cached
+from softwarecenter.region import get_region_cached, REGIONTAG
 
 LOG = logging.getLogger(__name__)
 
@@ -688,10 +688,10 @@ class AppDetails(GObject.GObject):
         # if there are no region tag we are good
         res = True
         for tag in self.tags:
-            if tag.startswith("region::"):
+            if tag.startswith(REGIONTAG):
                 # we found a region tag, now the region must match
                 res = False
-            if tag == "region::%s" % my_region:
+            if tag == REGIONTAG+my_region:
                 # we have the right region
                 return True
         return res
