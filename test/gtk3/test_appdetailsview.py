@@ -225,6 +225,16 @@ class TestAppdetailsView(unittest.TestCase):
         self.view._submit_reviews_done_callback(None, 0)
 
         self.assertTrue(button.is_sensitive())
+        
+    def test_action_button_has_initial_focus(self):
+        app = Application("", "software-center")
+        mock_app = get_mock_app_from_real_app(app)
+        self.view.app = mock_app
+        mock_details = mock_app.get_details(None)
+        self.view.app_details = mock_details
+        self.view.show_app(mock_app)
+        do_events()
+        self.assertTrue(self.view.pkg_statusbar.button.has_focus())
 
 class HardwareRequirementsTestCase(unittest.TestCase):
     
