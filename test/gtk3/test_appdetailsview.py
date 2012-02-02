@@ -56,6 +56,9 @@ class TestAppdetailsView(unittest.TestCase):
         app = Application("", "abiword")
         self.view.show_app(app)
         do_events()
+        
+        # check that the action bar is given initial focus in the view
+        self.assertTrue(self.view.pkg_statusbar.button.has_focus())
 
         # create mock app
         mock_app = get_mock_app_from_real_app(app)
@@ -226,6 +229,7 @@ class TestAppdetailsView(unittest.TestCase):
         self.view._submit_reviews_done_callback(None, 0)
 
         self.assertTrue(button.is_sensitive())
+        
 
 class HardwareRequirementsTestCase(unittest.TestCase):
     

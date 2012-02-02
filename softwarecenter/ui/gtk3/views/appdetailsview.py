@@ -1051,6 +1051,8 @@ class AppDetailsView(Viewport):
 
     def _on_realize(self, widget):
         self.addons_statusbar.hide()
+        # the install button gets initial focus
+        self.pkg_statusbar.button.grab_focus()
         return
 
     def _on_homepage_clicked(self, label, link):
