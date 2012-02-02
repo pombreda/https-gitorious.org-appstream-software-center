@@ -1,13 +1,12 @@
 from gi.repository import Gtk
 import time
 import unittest
-from mock import Mock, patch
+from mock import patch
 
 from testutils import setup_test_env
 setup_test_env()
 
 from softwarecenter.enums import SortMethods
-from softwarecenter.backend.recommends import RecommenderAgent
 from softwarecenter.testutils import make_recommender_agent_recommend_top_dict
 
 class TestCatView(unittest.TestCase):

@@ -50,7 +50,6 @@ from softwarecenter.utils import (upstream_version_compare,
                                   wilson_score,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
-                                  APP_INSTALL_PATH,
                                   XAPIAN_BASE_PATH,
                                   )
 from softwarecenter.enums import ReviewSortMethods
