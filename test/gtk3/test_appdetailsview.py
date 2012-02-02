@@ -55,6 +55,9 @@ class TestAppdetailsView(unittest.TestCase):
         app = Application("", "abiword")
         self.view.show_app(app)
         do_events()
+        
+        # check that the action bar is given initial focus in the view
+        self.assertTrue(self.view.pkg_statusbar.button.has_focus())
 
         # create mock app
         mock_app = get_mock_app_from_real_app(app)
@@ -226,15 +229,6 @@ class TestAppdetailsView(unittest.TestCase):
 
         self.assertTrue(button.is_sensitive())
         
-    def test_action_button_has_initial_focus(self):
-        app = Application("", "software-center")
-        mock_app = get_mock_app_from_real_app(app)
-        self.view.app = mock_app
-        mock_details = mock_app.get_details(None)
-        self.view.app_details = mock_details
-        self.view.show_app(mock_app)
-        do_events()
-        self.assertTrue(self.view.pkg_statusbar.button.has_focus())
 
 class HardwareRequirementsTestCase(unittest.TestCase):
     
