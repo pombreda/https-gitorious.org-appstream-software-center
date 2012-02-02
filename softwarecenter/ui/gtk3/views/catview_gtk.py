@@ -441,7 +441,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             self._hide_recommended_for_you()
         return
         
-    def _on_recommender_agent_error(self, msg):
+    def _on_recommender_agent_error(self, agent, msg):
         LOG.warn("Error while accessing the recommender agent: %s" 
                                                             % msg)
         # TODO: temporary, instead we will display cached recommendations here
