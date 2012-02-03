@@ -58,7 +58,7 @@ class TestAppdetailsView(unittest.TestCase):
         do_events()
         
         # check that the action bar is given initial focus in the view
-        self.assertTrue(self.view.pkg_statusbar.button.has_focus())
+        self.assertTrue(self.view.pkg_statusbar.button.is_focus())
 
         # create mock app
         mock_app = get_mock_app_from_real_app(app)

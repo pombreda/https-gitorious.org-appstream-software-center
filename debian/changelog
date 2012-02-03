@@ -1,4 +1,4 @@
-software-center (5.1.8) UNRELEASED; urgency=low
+software-center (5.1.8) precise; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/db/update.py:
@@ -36,7 +36,7 @@ software-center (5.1.8) UNRELEASED; urgency=low
     - make sure the action button in the applications details view
       always gets the initial focus (LP: #925613)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 02 Feb 2012 15:49:19 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 03 Feb 2012 18:34:43 +0100
 
 software-center (5.1.7) precise; urgency=low
 

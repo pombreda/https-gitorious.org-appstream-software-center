@@ -1654,7 +1654,7 @@ class AppDetailsView(Viewport):
         # this is a bit silly, but without it and self.title being selectable
         # gtk will select the entire title (which looks ugly). this grab works
         # around that
-        self.icon.grab_focus()
+        self.pkg_statusbar.button.grab_focus()
 
         self.emit("selected", self.app)
         return
