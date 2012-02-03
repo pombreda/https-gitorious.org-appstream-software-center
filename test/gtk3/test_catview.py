@@ -34,6 +34,7 @@ class TestCatView(unittest.TestCase):
         self.assertNotEqual(self._cat, None)
         self.assertEqual(self._cat.name, "Top Rated")
         self.assertEqual(self._cat.sortmode, SortMethods.BY_TOP_RATED)
+        win.destroy()
 
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recommends.RecommenderAgent'
@@ -51,6 +52,7 @@ class TestCatView(unittest.TestCase):
         # encoding is utf-8 (since r2218, see category.py)
         self.assertEqual(self._cat.name, 'What\xe2\x80\x99s New')
         self.assertEqual(self._cat.sortmode, SortMethods.BY_CATALOGED_TIME)
+        win.destroy()
 
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recommends.RecommenderAgent'
@@ -91,6 +93,7 @@ class TestCatView(unittest.TestCase):
         self._p()
         self.assertFalse(view.whats_new_frame.get_property("visible"))
         self._p()
+        win.destroy()
         
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recommends.RecommenderAgent'
@@ -113,6 +116,7 @@ class TestCatView(unittest.TestCase):
         self._p()
         self.assertNotEqual(self._cat, None)
         self.assertEqual(self._cat.name, "Recommended for You")
+        win.destroy()
 
     def _p(self):
         for i in range(5):
