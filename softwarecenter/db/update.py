@@ -196,12 +196,13 @@ class SCAApplicationParser(AppInfoParserBase):
 
         # detect if its for the partner channel and set the channel
         # attribute appropriately so that the channel-adding magic works
-        u = urlparse(self.sca_application.archive_root)
-        if u.scheme == "http" and u.netloc ==  "archive.canonical.com":
-            distroseries = get_distro().get_codename()
-            self.sca_application.channel = "%s-partner" % distroseries
-        if u.scheme == "http" and u.netloc ==  "extras.ubuntu.com":
-            self.sca_application.channel = "ubuntu-extras"
+        if hasattr(self.sca_application, "archive_root"):
+            u = urlparse(self.sca_application.archive_root)
+            if u.scheme == "http" and u.netloc ==  "archive.canonical.com":
+                distroseries = get_distro().get_codename()
+                self.sca_application.channel = "%s-partner" % distroseries
+            if u.scheme == "http" and u.netloc ==  "extras.ubuntu.com":
+                self.sca_application.channel = "ubuntu-extras"
 
     def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:
