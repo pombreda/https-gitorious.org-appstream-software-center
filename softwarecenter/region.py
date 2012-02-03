@@ -117,8 +117,6 @@ class RegionDiscover(object):
                                0,                       # (i) time
                                False,                   # (b) require_updates
                                AllowedResources.ALL)    # (i) allowed_resoures
-        address = dbus.Interface(
-            client, dbus_interface='org.freedesktop.Geoclue.Address')
         # this is crucial
         client.AddressStart()
         # now get the data
