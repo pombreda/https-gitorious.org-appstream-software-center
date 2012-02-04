@@ -338,7 +338,7 @@ class Worker(threading.Thread):
                 errs = error_msg["__all__"]
                 err_str = _("Server's response was:")
                 for err in errs:
-                    err_str = _("%s\n%s" % (err_str, err))
+                    err_str = _("%s\n%s") % (err_str, err)
             except:
                 err_str = _("Unknown error communicating with server. Check your log "
                         "and consider raising a bug report if this problem persists")
@@ -916,7 +916,7 @@ class SubmitReviewsApp(BaseApp):
             self.gwibber_combo.append_text(acct_text)
 
         # add "all" to both combo and accounts (the later is only pseudo)
-        self.gwibber_combo.append_text("All my Gwibber services")
+        self.gwibber_combo.append_text(_("All my Gwibber services"))
         self.gwibber_accounts.append({ "id" : "pseudo-sc-all",
                                      })
 
@@ -1061,14 +1061,17 @@ class SubmitReviewsApp(BaseApp):
             #comma separates services for all accounts in list up to the last one, if there is 3 or more
             if failed > 2:
                 for i in range(1,failed-1):
-                    failed_services_string = failed_services_string + (", %s" % failed_services[i])
+                    # Translators: this is the second part of "There was a problem posting this review to %s, %s and %s"
+                    failed_services_string = failed_services_string + (_(", %s") % failed_services[i])
             #final account in list is added to end of string with 'and'
-            failed_services_string = failed_services_string + (" and %s" % failed_services[failed-1])
+            # Translators: this is the last part of "There was a problem posting this review to %s, %s and %s"
+            failed_services_string = failed_services_string + (_(" and %s") % failed_services[failed-1])
             
         glade_dialog = SimpleGtkbuilderDialog(self.datadir, domain="software-center")
         dialog = glade_dialog.dialog_gwibber_error
         dialog.set_transient_for(self.submit_window)
-        dialog.set_markup("There was a problem posting this review to %s." % failed_services_string)
+        # Translators: this is the first part of "There was a problem posting this review to %s, %s and %s"
+        dialog.set_markup(_("There was a problem posting this review to %s.") % failed_services_string)
         dialog.format_secondary_text(error)
         result = dialog.run()
         dialog.destroy()
