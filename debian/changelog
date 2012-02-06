@@ -1,3 +1,12 @@
+software-center (5.1.8.1) UNRELEASED; urgency=low
+
+  [ Gabor Kelemen ]  
+  * lp:~kelemeng/software-center/bug926743:
+    - Mark strings for translation, add translator comment where needed
+      (LP: #926743)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 06 Feb 2012 09:33:08 +0100
+
 software-center (5.1.8) precise; urgency=low
 
   [ Michael Vogt ]
