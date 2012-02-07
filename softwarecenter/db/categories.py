@@ -208,8 +208,8 @@ class CategoriesParser(object):
         """ this build the dict used to substitute menu entries dynamically,
             currently used for the CURRENT_REGION
         """
-        region_tag = "region::%s" % get_region_cached()["countrycode"]
-        self._template_dict = { 'CURRENT_REGION' : region_tag,
+        region = "%s" % get_region_cached()["countrycode"]
+        self._template_dict = { 'CURRENT_REGION' : region,
                               }
 
     def _substitute_string_if_needed(self, t):
