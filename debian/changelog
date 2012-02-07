@@ -9,6 +9,8 @@ software-center (5.1.8) UNRELEASED; urgency=low
   * lp:~mvo/software-center/arb-partner-channels:
     - add support for extras.ubuntu.com and archive.canonical.com
       channel detection and adding via software-center-agent
+  * increase dependency on python-apt for the required
+    apt_pkg.DepCache.policy_priority() support
 
   [ Brendan Donegan ]
   * lp:~brendan-donegan/software-center/test_utils_get_nice_date_string:
