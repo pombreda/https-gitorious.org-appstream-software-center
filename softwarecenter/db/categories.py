@@ -269,6 +269,10 @@ class CategoriesParser(object):
                 LOG.debug("adding type: %s" % and_elem.text)
                 q = xapian.Query("AT"+and_elem.text.lower())
                 query = xapian.Query(xapian_op, query, q)
+            elif and_elem.tag == "SCDebtag":
+                LOG.debug("adding debtag: %s" % and_elem.text)
+                q = xapian.Query("XT"+and_elem.text.lower())
+                query = xapian.Query(xapian_op, query, q)
             elif and_elem.tag == "SCChannel":
                 LOG.debug("adding channel: %s" % and_elem.text)
                 q = xapian.Query("AH"+and_elem.text.lower())

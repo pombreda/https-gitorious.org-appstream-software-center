@@ -73,9 +73,10 @@ class TestCategoryTemplates(unittest.TestCase):
         db = get_test_db()
         parser = CategoriesParser(db)
         cats = parser.parse_applications_menu("./data/")
-        print cats
         cat = get_category_by_name(cats, 'Debtag')
-        self.assertEqual(str(cat.query), "XTregion::de")
+        self.assertEqual(
+            "%s" % cat.query, 
+            "Xapian::Query((<alldocuments> AND XTregion::de))")
 
 
 if __name__ == "__main__":
