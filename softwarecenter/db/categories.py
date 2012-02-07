@@ -22,6 +22,7 @@ import glob
 import locale
 import logging
 import os
+import string
 import xapian
 
 from xml.etree import ElementTree as ET
@@ -35,6 +36,7 @@ from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.utils import get_query_for_pkgnames
 from softwarecenter.paths import APP_INSTALL_PATH
+from softwarecenter.region import get_region_cached
 
 from gettext import gettext as _
 
@@ -168,7 +170,9 @@ class CategoriesParser(object):
 
     def __init__(self, db):
         self.db = db
-    
+        # build the string substituion support
+        self._build_string_template_dict()
+
     def parse_applications_menu(self, datadir):
         """ parse a application menu and return a list of Category objects """
         categories = []
@@ -199,6 +203,20 @@ class CategoriesParser(object):
         for cat in categories:
             LOG.debug("%s %s %s" % (cat.name, cat.iconname, cat.query))
         return categories
+
+    def _build_string_template_dict(self):
+        """ this build the dict used to substitute menu entries dynamically,
+            currently used for the CURRENT_REGION
+        """
+        region = "%s" % get_region_cached()["countrycode"]
+        self._template_dict = { 'CURRENT_REGION' : region,
+                              }
+
+    def _substitute_string_if_needed(self, t):
+        """ substitute the given string with the current supported dynamic
+            menu keys
+        """
+        return string.Template(t).substitute(self._template_dict)
     
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
@@ -245,54 +263,64 @@ class CategoriesParser(object):
 
     def _parse_and_or_not_tag(self, element, query, xapian_op):
         """parse a <And>, <Or>, <Not> tag """
-        for and_elem in element.getchildren():
-            if and_elem.tag == "Not":
-                query = self._parse_and_or_not_tag(and_elem, query, xapian.Query.OP_AND_NOT)
-            elif and_elem.tag == "Or":
-                or_elem = self._parse_and_or_not_tag(and_elem, xapian.Query(), xapian.Query.OP_OR)
+        for operator_elem in element.getchildren():
+            # get the query-text
+            if operator_elem.text:
+                qtext = self._substitute_string_if_needed(operator_elem.text).lower()
+            # parse the indivdual element
+            if operator_elem.tag == "Not":
+                query = self._parse_and_or_not_tag(
+                    operator_elem, query, xapian.Query.OP_AND_NOT)
+            elif operator_elem.tag == "Or":
+                or_elem = self._parse_and_or_not_tag(
+                    operator_elem, xapian.Query(), xapian.Query.OP_OR)
                 query = xapian.Query(xapian.Query.OP_AND, or_elem, query)
-            elif and_elem.tag == "Category":
-                LOG.debug("adding: %s" % and_elem.text)
-                q = xapian.Query("AC"+and_elem.text.lower())
+            elif operator_elem.tag == "Category":
+                LOG.debug("adding: %s" % operator_elem.text)
+                q = xapian.Query("AC"+qtext)
                 query = xapian.Query(xapian_op, query, q)
-            elif and_elem.tag == "SCSection":
-                LOG.debug("adding section: %s" % and_elem.text)
+            elif operator_elem.tag == "SCSection":
+                LOG.debug("adding section: %s" % operator_elem.text)
                 # we have the section once in apt-xapian-index and once
                 # in our own DB this is why we need two prefixes
                 # FIXME: ponder if it makes sense to simply write
                 #        out XS in update-software-center instead of AE?
                 q = xapian.Query(xapian.Query.OP_OR,
-                                 xapian.Query("XS"+and_elem.text.lower()),
-                                 xapian.Query("AE"+and_elem.text.lower()))
+                                 xapian.Query("XS"+qtext),
+                                 xapian.Query("AE"+qtext))
                 query = xapian.Query(xapian_op, query, q)
-            elif and_elem.tag == "SCType":
-                LOG.debug("adding type: %s" % and_elem.text)
-                q = xapian.Query("AT"+and_elem.text.lower())
+            elif operator_elem.tag == "SCType":
+                LOG.debug("adding type: %s" % operator_elem.text)
+                q = xapian.Query("AT"+qtext)
                 query = xapian.Query(xapian_op, query, q)
-            elif and_elem.tag == "SCChannel":
-                LOG.debug("adding channel: %s" % and_elem.text)
-                q = xapian.Query("AH"+and_elem.text.lower())
+            elif operator_elem.tag == "SCDebtag":
+                LOG.debug("adding debtag: %s" % operator_elem.text)
+                q = xapian.Query("XT"+qtext)
                 query = xapian.Query(xapian_op, query, q)
-            elif and_elem.tag == "SCOrigin":
-                LOG.debug("adding origin: %s" % and_elem.text)
+            elif operator_elem.tag == "SCChannel":
+                LOG.debug("adding channel: %s" % operator_elem.text)
+                q = xapian.Query("AH"+qtext)
+                query = xapian.Query(xapian_op, query, q)
+            elif operator_elem.tag == "SCOrigin":
+                LOG.debug("adding origin: %s" % operator_elem.text)
                 # FIXME: origin is currently case-sensitive?!?
-                q = xapian.Query("XOO"+and_elem.text)
+                q = xapian.Query("XOO"+operator_elem.text)
                 query = xapian.Query(xapian_op, query, q)
-            elif and_elem.tag == "SCPkgname":
-                LOG.debug("adding tag: %s" % and_elem.text)
+            elif operator_elem.tag == "SCPkgname":
+                LOG.debug("adding tag: %s" % operator_elem.text)
                 # query both axi and s-c
-                q1 = xapian.Query("AP"+and_elem.text.lower())
+                q1 = xapian.Query("AP"+qtext)
                 q = xapian.Query(xapian.Query.OP_OR, q1,
-                                 xapian.Query("XP"+and_elem.text.lower()))
+                                 xapian.Query("XP"+qtext))
                 query = xapian.Query(xapian_op, query, q)
-            elif and_elem.tag == "SCPkgnameWildcard":
-                LOG.debug("adding tag: %s" % and_elem.text)
+            elif operator_elem.tag == "SCPkgnameWildcard":
+                LOG.debug("adding tag: %s" % operator_elem.text)
                 # query both axi and s-c
-                s = "pkg_wildcard:%s" % and_elem.text.lower()
+                s = "pkg_wildcard:%s" % qtext
                 q = self.db.xapian_parser.parse_query(s, xapian.QueryParser.FLAG_WILDCARD)
                 query = xapian.Query(xapian_op, query, q)
             else: 
-                LOG.warn("UNHANDLED: %s %s" % (and_elem.tag, and_elem.text))
+                LOG.warn("UNHANDLED: %s %s" % (operator_elem.tag, operator_elem.text))
         return query
 
     def _parse_include_tag(self, element):
