@@ -647,9 +647,7 @@ class AppDetails(GObject.GObject):
             ubuntu-backports
         """
         if self._pkg:
-            print self._pkg.versions
             for v in self._pkg.versions:
-                print v
                 if v.not_automatic:
                     return True
         return False
