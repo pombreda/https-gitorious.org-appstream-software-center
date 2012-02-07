@@ -1,0 +1,17 @@
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+ "http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd">
+
+<Menu>
+
+
+  <Menu>
+    <Name>Debtag</Name>
+    <Include>
+      <And>
+        <SCDebtag>region::de</SCDebtag>
+      </And>
+    </Include>
+  </Menu> 
+
+
+</Menu> 

@@ -67,6 +67,15 @@ class TestCatParsing(unittest.TestCase):
         for doc in docs:
             self.assertEqual(type(doc), xapian.Document)
 
+class TestCategoryTemplates(unittest.TestCase):
+
+    def test_category_debtags(self):
+        db = get_test_db()
+        parser = CategoriesParser(db)
+        cats = parser.parse_applications_menu("./data/")
+        print cats
+        cat = get_category_by_name(cats, 'Debtag')
+        self.assertEqual(str(cat.query), "XTregion::de")
 
 
 if __name__ == "__main__":
