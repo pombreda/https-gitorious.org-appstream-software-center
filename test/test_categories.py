@@ -45,15 +45,9 @@ class TestCatParsing(unittest.TestCase):
     """ tests the "where is it in the menu" code """
 
     def setUp(self):
-        cache = get_pkg_info()
-        cache.open()
-        xapian_base_path = XAPIAN_BASE_PATH
-        pathname = os.path.join(xapian_base_path, "xapian")
-        self.db = StoreDatabase(pathname, cache)
-        self.db.open()
-        self.catview = CategoriesParser(self.db)
-        self.catview.db = self.db
-        self.cats = self.catview.parse_applications_menu(
+        self.db = get_test_db()
+        parser = CategoriesParser(self.db)
+        self.cats = parser.parse_applications_menu(
             '/usr/share/app-install')
 
     def test_get_cat_by_name(self):
@@ -74,7 +68,8 @@ class TestCatParsing(unittest.TestCase):
             self.assertEqual(type(doc), xapian.Document)
 
 
+
 if __name__ == "__main__":
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()
