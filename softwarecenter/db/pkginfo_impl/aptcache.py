@@ -87,7 +87,7 @@ class AptCacheVersion(_Version):
     @property
     def not_automatic(self):
         priority = self.ver.policy_priority
-        if priority < 100:
+        if priority <= 100:
             return True
         return False
 
