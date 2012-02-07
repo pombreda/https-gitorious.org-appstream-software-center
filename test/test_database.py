@@ -572,6 +572,7 @@ class NotAutomaticChannelSupportTestCase(unittest.TestCase):
         ver.description ="not_automatic: %s" % not_automatic
         ver.summary ="summary not_automatic: %s" % not_automatic
         ver.version = "version not_automatic: %s" % not_automatic
+        ver.archive_suite = "precise-backports"
         ver.not_automatic = not_automatic
         return ver
 
@@ -600,8 +601,9 @@ class NotAutomaticChannelSupportTestCase(unittest.TestCase):
                          not_automatic_version.summary)
         self.assertEqual(details.version,
                          not_automatic_version.version)
-        self.assertEqual(app.pkgname,
-                         "software-center=%s" % not_automatic_version.version)
+        self.assertEqual(
+            app.pkgname,
+            "software-center/%s" % not_automatic_version.archive_suite)
         # clearing works
         details.force_not_automatic_version(False)
         self.assertEqual(app.pkgname, "software-center")
