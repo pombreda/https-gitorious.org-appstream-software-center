@@ -23,17 +23,17 @@ class InstallBackend(object):
         self.pending_transactions = {}
         self.pending_purchases = []
 
-    def upgrade(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
+    def upgrade(self, app, iconname, addons_install=[], addons_remove=[], metadata=None):
         pass
-    def remove(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
+    def remove(self, app, iconname, addons_install=[], addons_remove=[], metadata=None):
         pass
-    def remove_multiple(self, pkgnames, appnames, iconnames, addons_install=[], addons_remove=[], metadatas=None):
+    def remove_multiple(self, apps, iconnames, addons_install=[], addons_remove=[], metadatas=None):
         pass
-    def install(self, pkgname, appname, iconname, filename=None, addons_install=[], addons_remove=[], metadata=None):
+    def install(self, app, iconname, filename=None, addons_install=[], addons_remove=[], metadata=None):
         pass
-    def install_multiple(self, pkgnames, appnames, iconnames, addons_install=[], addons_remove=[], metadatas=None):
+    def install_multiple(self, apps, iconnames, addons_install=[], addons_remove=[], metadatas=None):
         pass
-    def apply_changes(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
+    def apply_changes(self, app, iconname, addons_install=[], addons_remove=[], metadata=None):
         pass
     def reload(self, sources_list=None, metadata=None):
         """ reload package list """

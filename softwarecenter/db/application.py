@@ -57,6 +57,10 @@ class Application(object):
         # the request can take additional "request" data like apturl
         # strings or the path of a local deb package
         self.request = request
+        # a archive_suite can be used to force a specific version that
+        # would not be installed automatically (like ubuntu-backports)
+        self.archive_suite = ""
+        # popcon
         self._popcon = popcon
         # a "?" in the name means its a apturl request
         if "?" in pkgname:
@@ -669,11 +673,10 @@ class AppDetails(GObject.GObject):
             not_automatic_archive_suite = _get_not_automatic_archive_suite(
                 self._pkg.versions)
             if not "/" in self._app.pkgname:
-                self._app.pkgname = "%s/%s" % (self._app.pkgname,
-                                               not_automatic_archive_suite)
+                self._app.archive_suite = not_automatic_archive_suite
         else:
             # clear version
-            self._app.pkgname = self._app.pkgname.partition("/")[0]
+            self._app.archive_suite = ""
 
     @property
     def warning(self):

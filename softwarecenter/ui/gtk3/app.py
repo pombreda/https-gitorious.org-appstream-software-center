@@ -738,7 +738,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             for pkgname in installed_purchased_packages:
                 app = Application(pkgname=pkgname)
                 appdetails = app.get_details(self.db)
-                self.backend.remove(app.pkgname, app.appname, appdetails.icon)
+                self.backend.remove(app, appdetails.icon)
             
             # TODO: remove the corresponding private PPA sources
             # FIXME: this should really be done using aptdaemon, update this if/when

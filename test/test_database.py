@@ -603,14 +603,14 @@ class NotAutomaticChannelSupportTestCase(unittest.TestCase):
                          not_automatic_version.summary)
         self.assertEqual(details.version,
                          not_automatic_version.version)
-        self.assertEqual(app.pkgname,
-            "software-center/%s" % not_automatic_version.origins[0].archive)
+        self.assertEqual(app.archive_suite,
+                         not_automatic_version.origins[0].archive)
         # clearing works
         details.force_not_automatic_version(False)
-        self.assertEqual(app.pkgname, "software-center")
+        self.assertEqual(app.archive_suite, "")
 
 
 if __name__ == "__main__":
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()
