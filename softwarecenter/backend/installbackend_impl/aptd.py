@@ -311,7 +311,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         appname = app.appname
         # this will force aptdaemon to use the right archive suite on install
         if app.archive_suite:
-            pkgname = "%s%s" % (pkgname, app.archive_suite)
+            pkgname = "%s/%s" % (pkgname, app.archive_suite)
         try:
             if filename:
                 # force means on lintian failure
