@@ -35,6 +35,7 @@ from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.utils import get_query_for_pkgnames
 from softwarecenter.paths import APP_INSTALL_PATH
+from softwarecenter.region import get_region_cached
 
 from gettext import gettext as _
 

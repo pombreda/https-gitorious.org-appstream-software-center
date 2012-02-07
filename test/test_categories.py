@@ -69,14 +69,25 @@ class TestCatParsing(unittest.TestCase):
 
 class TestCategoryTemplates(unittest.TestCase):
 
-    def test_category_debtags(self):
+    @classmethod
+    def setUpClass(cls):
         db = get_test_db()
         parser = CategoriesParser(db)
-        cats = parser.parse_applications_menu("./data/")
-        cat = get_category_by_name(cats, 'Debtag')
+        cls.cats = parser.parse_applications_menu("./data/")
+
+    def test_category_debtags(self):
+        cat = get_category_by_name(self.cats, 'Debtag')
         self.assertEqual(
             "%s" % cat.query, 
             "Xapian::Query((<alldocuments> AND XTregion::de))")
+
+    @patch("softwarecenter.db.categories.get_region_cached")
+    def test_category_dynamic_categories(self, mock_get_region_cached):
+        mock_get_region_cached.return_value("us")
+        cat = get_category_by_name(self.cats, 'Dynamic')
+        self.assertEqual(
+            "%s" % cat.query, 
+            "Xapian::Query((<alldocuments> AND XTregion::us))")
 
 
 if __name__ == "__main__":

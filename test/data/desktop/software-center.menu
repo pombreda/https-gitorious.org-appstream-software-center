@@ -3,12 +3,22 @@
 
 <Menu>
 
-
+  <!-- test debtags -->
   <Menu>
     <Name>Debtag</Name>
     <Include>
       <And>
         <SCDebtag>region::de</SCDebtag>
+      </And>
+    </Include>
+  </Menu> 
+
+  <!-- test dynamic menus -->
+  <Menu>
+    <Name>Dynamic</Name>
+    <Include>
+      <And>
+        <SCDebtag>${CURRENT_REGION}</SCDebtag>
       </And>
     </Include>
   </Menu> 
