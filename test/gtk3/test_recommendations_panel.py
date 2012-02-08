@@ -28,6 +28,7 @@ class TestRecommendationsPanel(unittest.TestCase):
         from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
         win = get_test_window_recommendations_panel()
         rec_panel = win.get_data("rec_panel")
+        rec_panel.update_recommended_for_you_content()
         self._p()
         self.assertTrue(rec_panel.recommended_for_you_frame.spinner_notebook.get_current_page() == FramedHeaderBox.SPINNER)
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
