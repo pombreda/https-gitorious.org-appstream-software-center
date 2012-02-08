@@ -8,7 +8,7 @@ setup_test_env()
 
 from softwarecenter.enums import SortMethods
 from softwarecenter.testutils import (get_test_db,
-                                      make_recommender_agent_recommend_top_dict)
+                                      make_recommender_agent_recommend_me_dict)
 
 class TestCatView(unittest.TestCase):
 
@@ -21,8 +21,8 @@ class TestCatView(unittest.TestCase):
     
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recommends.RecommenderAgent'
-           '.query_recommend_top')
-    def test_subcatview_top_rated(self, mock_query_recommend_top):
+           '.query_recommend_me')
+    def test_subcatview_top_rated(self, mock_query):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
@@ -38,8 +38,8 @@ class TestCatView(unittest.TestCase):
 
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recommends.RecommenderAgent'
-           '.query_recommend_top')
-    def test_subcatview_new(self, mock_query_recommend_top):
+           '.query_recommend_me')
+    def test_subcatview_new(self, mock_query):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
@@ -56,8 +56,8 @@ class TestCatView(unittest.TestCase):
 
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recommends.RecommenderAgent'
-           '.query_recommend_top')
-    def test_subcatview_new_no_sort_info_yet(self, mock_query_recommend_top):
+           '.query_recommend_me')
+    def test_subcatview_new_no_sort_info_yet(self, mock_query):
         # ensure that we don't show a empty "whats new" category
         # see LP: #865985
         from softwarecenter.testutils import get_test_db
@@ -97,16 +97,16 @@ class TestCatView(unittest.TestCase):
         
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recommends.RecommenderAgent'
-           '.query_recommend_top')
-    def test_subcatview_recommended_for_you(self, mock_query_recommend_top):
+           '.query_recommend_me')
+    def test_subcatview_recommended_for_you(self, mock_query):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
         lobby = win.get_data("lobby")
         # we fake the callback from the agent here
-        lobby.recommended_for_you_cat._recommend_top_result(
+        lobby.recommended_for_you_cat._recommend_me_result(
                                 None,
-                                make_recommender_agent_recommend_top_dict())
+                                make_recommender_agent_recommend_me_dict())
         self.assertNotEqual(
                 lobby.recommended_for_you_cat.get_documents(self.db), [])
         self._p()
