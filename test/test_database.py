@@ -585,11 +585,12 @@ class MultipleVersionsSupportTestCase(unittest.TestCase):
         db = get_test_db()
         app = Application("", "software-center")
         details = app.get_details(db)
-        details._pkg.versions = [ 
+        versions = [ 
             self._make_version(not_automatic=True),
             self._make_version(not_automatic=False) ]
-        self.assertEqual(details.get_not_automatic_archive_suites(),
-                         ["precise-backports"])
+        details._pkg.versions = versions
+        self.assertEqual(details.get_not_automatic_archive_versions(),
+                         [ (versions[0].version, "precise-backports") ])
 
     def test_not_automatic_version(self):
         db = get_test_db()
@@ -599,8 +600,8 @@ class MultipleVersionsSupportTestCase(unittest.TestCase):
         not_automatic_version = self._make_version(not_automatic=True)
         details._pkg.versions = [normal_version, not_automatic_version]
         # force not-automatic with invalid data
-        self.assertFalse(details.force_not_automatic_archive_suite(
-                "random-string"))
+        self.assertRaises(
+            ValueError, details.force_not_automatic_archive_suite, "random-string")
         # force not-automatic with valid data
         self.assertTrue(details.force_not_automatic_archive_suite(
                 not_automatic_version.origins[0].archive))
