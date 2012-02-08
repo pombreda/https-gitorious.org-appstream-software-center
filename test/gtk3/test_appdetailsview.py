@@ -249,21 +249,26 @@ class NotAutomaticVersionsTestCase(unittest.TestCase):
 
     def test_multiple_versions_automatic_button(self):
         # normal app
-        self.app_mock.details.get_not_automatic_archive_suites = lambda: []
         self.view.show_app(self.app_mock)
         self.assertFalse(self.view.pkg_statusbar.combo_multiple_versions.get_visible())
         # switch to not-automatic app with different description
-        self.app_mock.details.get_not_automatic_archive_suites = lambda: [
+        self.app_mock.details.get_not_automatic_archive_suites = lambda: [ 
             "precise-backports"]
-        not_automatic_descr = "the not automatic one"
-        self.app_mock.details.description = not_automatic_descr
         self.view.show_app(self.app_mock)
         self.assertTrue(self.view.pkg_statusbar.combo_multiple_versions.get_visible())
-        # test button press
-        self.assertNotEqual(self.view.desc._text, not_automatic_descr)
+
+    def test_combo_multiple_versions(self):
+        # ensure we have the button
+        self.app_mock.details.get_not_automatic_archive_suites = lambda: [ 
+            "precise-backports"]
+        # ensure that the right method is called
+        self.app_mock.details.force_not_automatic_archive_suite = Mock()
+        self.view.show_app(self.app_mock)
+        # test combo box switch
         self.view.pkg_statusbar.combo_multiple_versions.set_active(1)
-        self.assertEqual(self.view.desc._text, not_automatic_descr)
-        self.assertEqual(self.view.pkg_statusbar.combo_multiple_versions.get_active(), 1)
+        self.assertTrue(
+            self.app_mock.details.force_not_automatic_archive_suite.called)
+
 
 class HardwareRequirementsTestCase(unittest.TestCase):
     

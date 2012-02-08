@@ -157,6 +157,8 @@ class PackageStatusBar(StatusBar):
         self.label.set_line_wrap(True)
         self.button = Gtk.Button()
         self.combo_multiple_versions = Gtk.ComboBoxText.new()
+        self.combo_multiple_versions.connect(
+            "changed", self._on_combo_multiple_versions_changed)
         self.progress = Gtk.ProgressBar()
 
         # theme engine hint for bug #606942
@@ -181,6 +183,26 @@ class PackageStatusBar(StatusBar):
             self.progress.get_fraction() == 0.0):
             self.progress.pulse()
         return True
+
+    def _on_combo_multiple_versions_changed(self, combo):
+        # disconnect to ensure no updates are happening in here
+        combo.disconnect_by_func(self._on_combo_multiple_versions_changed)
+        archive_suite = combo.get_active_text()
+        # ignore if there is nothing set here
+        if archive_suite is None:
+            return
+        # reset "release" to "" as this is what it takes to reset the
+        # thing
+        if archive_suite == "release":
+            archive_suite = ""
+        if archive_suite != self.view.app.archive_suite:
+            # force not-automatic version
+            self.view.app_details.force_not_automatic_archive_suite(
+                archive_suite)
+            # update it
+            self.view._update_all(self.view.app_details)
+        # reconnect again
+        combo.connect("changed", self._on_combo_multiple_versions_changed)
 
     def _on_button_clicked(self, button):
         button.set_sensitive(False)
@@ -224,6 +246,20 @@ class PackageStatusBar(StatusBar):
     def get_button_label(self):
         return self.button.get_label()
 
+    def _build_combo_multiple_versions(self):
+        app_archive_suite = self.app_details._app.archive_suite or _("release")
+        not_automatic_suites = self.app_details.get_not_automatic_archive_suites()
+        if not_automatic_suites:
+            self.combo_multiple_versions.get_model().clear()
+            not_automatic_suites.insert(0, _("release"))
+            for i, archive_suite in enumerate(not_automatic_suites):
+                self.combo_multiple_versions.append_text(archive_suite)
+                if archive_suite == app_archive_suite:
+                    self.combo_multiple_versions.set_active(i)
+            self.combo_multiple_versions.show()
+        else:
+            self.combo_multiple_versions.hide()
+
     def configure(self, app_details, state):
         LOG.debug("configure %s state=%s pkgstate=%s" % (
                 app_details.pkgname, state, app_details.pkg_state))
@@ -231,16 +267,7 @@ class PackageStatusBar(StatusBar):
         self.app_details = app_details
 
         # configure the not-automatic stuff
-        not_automatic_suites = self.app_details.get_not_automatic_archive_suites()
-        if not_automatic_suites:
-            self.combo_multiple_versions.get_model().clear()
-            self.combo_multiple_versions.append_text(_("release"))
-            for archive_suite in not_automatic_suites:
-                self.combo_multiple_versions.append_text(archive_suite)
-            self.combo_multiple_versions.set_active(0)
-            self.combo_multiple_versions.show()
-        else:
-            self.combo_multiple_versions.hide()
+        self._build_combo_multiple_versions()
 
         if state in (PkgStates.INSTALLING,
                      PkgStates.INSTALLING_PURCHASED,

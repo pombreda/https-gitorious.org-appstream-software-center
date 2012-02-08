@@ -672,11 +672,11 @@ class AppDetails(GObject.GObject):
             for ver in self._pkg.versions:
                 if (ver.not_automatic and 
                     archive_suite in [origin.archive for origin in ver.origins]):
-                    if not "/" in self._app.pkgname:
-                        self._app.archive_suite = archive_suite
-                        return True
+                    self._app.archive_suite = archive_suite
+                    return True
             # no suitable archive found
-            return False
+            raise ValueError("Pkg '%s' has no archive_suite '%s'" % (
+                    self._pkg, archive_suite))
         else:
             # clear version
             self._app.archive_suite = ""
