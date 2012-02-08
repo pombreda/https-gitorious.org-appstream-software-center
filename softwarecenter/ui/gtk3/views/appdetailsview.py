@@ -144,20 +144,6 @@ class WarningStatusBar(StatusBar):
         # override _bg
         self._bg = [1, 1, 0, 0.3]
 
-class MultipleVersionsStatusBar(StatusBar):
-
-    def __init__(self, view):
-        StatusBar.__init__(self, view)
-        self.label = Gtk.Label()
-        self.label.set_line_wrap(True)
-        self.label.set_alignment(0.0, 0.5)
-        self.button = Gtk.Button()
-        self.hbox.pack_start(self.label, True, True, 0)
-        self.hbox.pack_end(self.button, False, False, 0)
-        # override _bg
-        self._bg = [1, 1, 0, 0.3]
-
-
 class PackageStatusBar(StatusBar):
     """ Package specific status bar that contains a state label,
         a action button and a progress bar.
@@ -170,6 +156,7 @@ class PackageStatusBar(StatusBar):
         self.label = Gtk.Label()
         self.label.set_line_wrap(True)
         self.button = Gtk.Button()
+        self.combo_multiple_versions = Gtk.ComboBoxText.new()
         self.progress = Gtk.ProgressBar()
 
         # theme engine hint for bug #606942
@@ -180,6 +167,7 @@ class PackageStatusBar(StatusBar):
         self.hbox.pack_start(self.installed_icon, False, False, 0)
         self.hbox.pack_start(self.label, False, False, 0)
         self.hbox.pack_end(self.button, False, False, 0)
+        self.hbox.pack_end(self.combo_multiple_versions, False, False, 0)
         self.hbox.pack_end(self.progress, False, False, 0)
         self.show_all()
 
@@ -241,6 +229,18 @@ class PackageStatusBar(StatusBar):
                 app_details.pkgname, state, app_details.pkg_state))
         self.pkg_state = state
         self.app_details = app_details
+
+        # configure the not-automatic stuff
+        not_automatic_suites = self.app_details.get_not_automatic_archive_suites()
+        if not_automatic_suites:
+            self.combo_multiple_versions.get_model().clear()
+            self.combo_multiple_versions.append_text(_("release"))
+            for archive_suite in not_automatic_suites:
+                self.combo_multiple_versions.append_text(archive_suite)
+            self.combo_multiple_versions.set_active(0)
+            self.combo_multiple_versions.show()
+        else:
+            self.combo_multiple_versions.hide()
 
         if state in (PkgStates.INSTALLING,
                      PkgStates.INSTALLING_PURCHASED,
@@ -1116,12 +1116,6 @@ class AppDetailsView(Viewport):
         self.pkg_warningbar = WarningStatusBar(self)
         vb.pack_start(self.pkg_warningbar, False, False, 0)
 
-        # the not-automatic bar
-        self.bar_multiple_versions = MultipleVersionsStatusBar(self)
-        self.bar_multiple_versions.button.connect(
-            "clicked", self._on_bar_multiple_versions_button_clicked)
-        vb.pack_start(self.bar_multiple_versions, False, False, 0)
-
         # the package status bar
         self.pkg_statusbar = PackageStatusBar(self)
         vb.pack_start(self.pkg_statusbar, False, False, 0)
@@ -1271,11 +1265,6 @@ class AppDetailsView(Viewport):
     def _on_review_submit_usefulness(self, button, review_id, is_useful):
         self._review_submit_usefulness(review_id, is_useful)
 
-    def _on_bar_multiple_versions_button_clicked(self, button):
-        archive_suites = self.app_details.get_not_automatic_archive_suites()
-        self.app_details.force_not_automatic_archive_suite(archive_suites[0])
-        self._update_all(self.app_details)
-
     def _update_title_markup(self, appname, summary):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
@@ -1389,15 +1378,6 @@ class AppDetailsView(Viewport):
         else:
             self.pkg_warningbar.show()
 
-    def _update_multiple_versions_bar(self, app_details):
-        if self.app_details.get_not_automatic_archive_suites():
-            self.bar_multiple_versions.label.set_text(
-                _("There is a more recent but less tested version available"))
-            self.bar_multiple_versions.button.set_label(_("Use"))
-            self.bar_multiple_versions.show()
-        else:
-            self.bar_multiple_versions.hide()
-
     def _update_pkg_info_table(self, app_details):
         # set the strings in the package info table
         if app_details.version:
@@ -1479,7 +1459,6 @@ class AppDetailsView(Viewport):
         self._update_weblive(app_details)
         self._update_pkg_info_table(app_details)
         self._update_warning_bar(app_details)
-        self._update_multiple_versions_bar(app_details)
         if not skip_update_addons:
             self._update_addons(app_details)
         else:
@@ -1502,7 +1481,6 @@ class AppDetailsView(Viewport):
         self._update_app_icon(app_details)
         self._update_pkg_info_table(app_details)
         self._update_warning_bar(app_details)
-        self._update_multiple_versions_bar(app_details)
 #        self._update_addons_minimal(app_details)
 
         # depending on pkg install state set action labels
