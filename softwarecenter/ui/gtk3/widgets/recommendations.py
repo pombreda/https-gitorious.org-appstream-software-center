@@ -66,11 +66,10 @@ def get_test_window_recommendations_panel():
     win = Gtk.Window()
     win.connect("destroy", lambda x: Gtk.main_quit())
     win.add(view)
+    win.set_data("rec_panel", view)
     win.set_size_request(800, 300)
     win.show_all()
     
-    view.update_recommended_for_you_content()
-
     return win
     
 
