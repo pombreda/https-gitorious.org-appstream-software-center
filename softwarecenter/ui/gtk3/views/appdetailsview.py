@@ -1272,8 +1272,8 @@ class AppDetailsView(Viewport):
         self._review_submit_usefulness(review_id, is_useful)
 
     def _on_bar_multiple_versions_button_clicked(self, button):
-        archive_suite = self.app.archive_suite
-        self.app_details.force_not_automatic_archive_suite(archive_suite)
+        archive_suites = self.app_details.get_not_automatic_archive_suites()
+        self.app_details.force_not_automatic_archive_suite(archive_suites[0])
         self._update_all(self.app_details)
 
     def _update_title_markup(self, appname, summary):
