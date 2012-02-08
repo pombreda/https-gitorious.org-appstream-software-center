@@ -21,11 +21,11 @@ class TestRecommenderAgent(unittest.TestCase):
         self.loop.quit()
         
     def on_query_error(self, recagent, error):
+        print "query error received: ", error
         self.loop.quit()
         self.error = True
         
-    # disabled as the server returns 503 currently
-    def disabled_test_recagent_query_recommend_top(self):
+    def test_recagent_query_recommend_top(self):
         # NOTE: This requires a working recommender host that is reachable
         os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com/"
         recommender_agent = RecommenderAgent()
