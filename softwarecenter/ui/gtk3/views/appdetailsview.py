@@ -157,6 +157,8 @@ class PackageStatusBar(StatusBar):
         self.label.set_line_wrap(True)
         self.button = Gtk.Button()
         self.combo_multiple_versions = Gtk.ComboBoxText.new()
+        model = Gtk.ListStore(str, str)
+        self.combo_multiple_versions.set_model(model)
         self.combo_multiple_versions.connect(
             "changed", self._on_combo_multiple_versions_changed)
         self.progress = Gtk.ProgressBar()
@@ -186,16 +188,17 @@ class PackageStatusBar(StatusBar):
 
     def _on_combo_multiple_versions_changed(self, combo):
         # disconnect to ensure no updates are happening in here
-        archive_suite = combo.get_active_text()
+        model = combo.get_model()
+        it = combo.get_active_iter()
+        if it is None:
+            return
+        archive_suite = model[it][1]
         # ignore if there is nothing set here
         if archive_suite is None:
             return
         combo.disconnect_by_func(self._on_combo_multiple_versions_changed)
         # reset "default" to "" as this is what it takes to reset the
         # thing
-        # FIXME: make this elegant
-        if "(default)" in archive_suite:
-            archive_suite = ""
         if archive_suite != self.view.app.archive_suite:
             # force not-automatic version
             self.view.app_details.force_not_automatic_archive_suite(
@@ -251,14 +254,16 @@ class PackageStatusBar(StatusBar):
         app_archive_suite = self.app_details._app.archive_suite
         not_automatic_suites = self.app_details.get_not_automatic_archive_versions()
         if not_automatic_suites:
-            self.combo_multiple_versions.get_model().clear()
+            model = self.combo_multiple_versions.get_model()
+            model.clear()
             for i, archive_suite in enumerate(not_automatic_suites):
-                self.combo_multiple_versions.append_text("v%s (%s)" % (
-                        archive_suite[0], archive_suite[1]))
+                ver, archive_suite = archive_suite
+                s = "v%s (%s)" % (ver, archive_suite or _("default"))
+                model.append( (s, archive_suite) )
                 if archive_suite == app_archive_suite:
                     self.combo_multiple_versions.set_active(i)
             # if nothing is found, set to default
-            if self.combo_multiple_versions.get_active_text() is None:
+            if self.combo_multiple_versions.get_active_iter() is None:
                 self.combo_multiple_versions.set_active(0)
             self.combo_multiple_versions.show()
         else:

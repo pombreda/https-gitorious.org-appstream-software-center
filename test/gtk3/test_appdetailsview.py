@@ -253,7 +253,7 @@ class MultipleVersionsTestCase(unittest.TestCase):
         self.assertFalse(self.view.pkg_statusbar.combo_multiple_versions.get_visible())
         # switch to not-automatic app with different description
         self.app_mock.details.get_not_automatic_archive_versions = lambda: [ 
-            ("5.0", "default"),
+            ("5.0", ""),
             ("12.0", "precise-backports"),
             ]
         self.view.show_app(self.app_mock)
@@ -264,7 +264,7 @@ class MultipleVersionsTestCase(unittest.TestCase):
     def test_combo_multiple_versions(self):
         # ensure we have the button
         self.app_mock.details.get_not_automatic_archive_versions = lambda: [
-            ("5.0",  "default"),
+            ("5.0",  ""),
             ("12.0", "precise-backports") 
             ]
         # ensure that the right method is called
@@ -275,7 +275,7 @@ class MultipleVersionsTestCase(unittest.TestCase):
         self.assertTrue(
             self.app_mock.details.force_not_automatic_archive_suite.called)
         call_args = self.app_mock.details.force_not_automatic_archive_suite.call_args
-        self.assertEqual(call_args, ("precise-backports", {}))
+        self.assertEqual(call_args, (("precise-backports",), {}))
 
 
 class HardwareRequirementsTestCase(unittest.TestCase):
