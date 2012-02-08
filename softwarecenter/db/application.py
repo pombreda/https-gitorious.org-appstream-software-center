@@ -651,15 +651,16 @@ class AppDetails(GObject.GObject):
         elif self._doc:
             return self._doc.get_value(XapianValues.VERSION_INFO)
 
-    def get_not_automatic_archive_suites(self):
-        """ this will return the "archive_suites" of additional versions 
-            of the given package
+    def get_not_automatic_archive_versions(self):
+        """ this will return list of tuples (version, archive_suites)
+            with additional versions of the given package that can
+            be forced with force_not_automatic_archive_suite
         """
         archive_suites = []
         if self._pkg:
             for v in self._pkg.versions:
                 if v.not_automatic:
-                    archive_suites.append(v.origins[0].archive)
+                    archive_suites.append((v.version, v.origins[0].archive))
         return archive_suites
 
     def force_not_automatic_archive_suite(self, archive_suite):
