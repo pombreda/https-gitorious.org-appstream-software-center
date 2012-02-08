@@ -8,6 +8,11 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * lp:~mvo/software-center/latest-recommender:
     - import latest recommender client
+  * lp:~mvo/software-center/dynamic-region-menu:
+    - allow dynamic template in the software-center.menu file, currently
+      supported is ${CURRENT_REGION}. This allows to build a dynamic
+      "Your region" menu once we actually tag packages with the region
+      information
 
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 06 Feb 2012 11:16:50 -0500
 

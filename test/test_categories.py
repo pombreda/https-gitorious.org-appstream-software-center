@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import os
 import unittest
 import xapian
 from mock import patch
@@ -8,10 +7,6 @@ from mock import patch
 from testutils import setup_test_env
 setup_test_env()
 
-from softwarecenter.paths import XAPIAN_BASE_PATH
-
-from softwarecenter.db.database import StoreDatabase
-from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.categories import (
     CategoriesParser, RecommendedForYouCategory,
     get_category_by_name, get_query_for_category)
@@ -45,15 +40,9 @@ class TestCatParsing(unittest.TestCase):
     """ tests the "where is it in the menu" code """
 
     def setUp(self):
-        cache = get_pkg_info()
-        cache.open()
-        xapian_base_path = XAPIAN_BASE_PATH
-        pathname = os.path.join(xapian_base_path, "xapian")
-        self.db = StoreDatabase(pathname, cache)
-        self.db.open()
-        self.catview = CategoriesParser(self.db)
-        self.catview.db = self.db
-        self.cats = self.catview.parse_applications_menu(
+        self.db = get_test_db()
+        parser = CategoriesParser(self.db)
+        self.cats = parser.parse_applications_menu(
             '/usr/share/app-install')
 
     def test_get_cat_by_name(self):
@@ -72,6 +61,31 @@ class TestCatParsing(unittest.TestCase):
         self.assertNotEqual(docs, [])
         for doc in docs:
             self.assertEqual(type(doc), xapian.Document)
+
+class TestCategoryTemplates(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.db = get_test_db()
+        cls.parser = CategoriesParser(cls.db)
+        cls.cats = cls.parser.parse_applications_menu("./data/")
+
+    def test_category_debtags(self):
+        cat = get_category_by_name(self.cats, 'Debtag')
+        self.assertEqual(
+            "%s" % cat.query, 
+            "Xapian::Query((<alldocuments> AND XTregion::de))")
+
+    @patch("softwarecenter.db.categories.get_region_cached")
+    def test_category_dynamic_categories(self, mock_get_region_cached):
+        mock_get_region_cached.return_value = { "countrycode" : "us", 
+                                              }
+        parser = CategoriesParser(self.db)
+        cats = parser.parse_applications_menu("./data/")
+        cat = get_category_by_name(cats, 'Dynamic')
+        self.assertEqual(
+            "%s" % cat.query, 
+            "Xapian::Query((<alldocuments> AND XTregion::us))")
 
 
 if __name__ == "__main__":
