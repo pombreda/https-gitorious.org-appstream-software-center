@@ -98,7 +98,7 @@ class TestCatView(unittest.TestCase):
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recommends.RecommenderAgent'
            '.query_recommend_top')
-    def test_subcatview_recommended_for_me(self, mock_query_recommend_top):
+    def test_subcatview_recommended_for_you(self, mock_query_recommend_top):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
