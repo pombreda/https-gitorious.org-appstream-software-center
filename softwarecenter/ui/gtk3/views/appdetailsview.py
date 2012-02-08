@@ -191,9 +191,10 @@ class PackageStatusBar(StatusBar):
         if archive_suite is None:
             return
         combo.disconnect_by_func(self._on_combo_multiple_versions_changed)
-        # reset "release" to "" as this is what it takes to reset the
+        # reset "default" to "" as this is what it takes to reset the
         # thing
-        if archive_suite == "release":
+        # FIXME: make this elegant
+        if "(default)" in archive_suite:
             archive_suite = ""
         if archive_suite != self.view.app.archive_suite:
             # force not-automatic version

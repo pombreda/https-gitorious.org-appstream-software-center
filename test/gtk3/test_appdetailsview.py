@@ -274,6 +274,8 @@ class MultipleVersionsTestCase(unittest.TestCase):
         self.view.pkg_statusbar.combo_multiple_versions.set_active(1)
         self.assertTrue(
             self.app_mock.details.force_not_automatic_archive_suite.called)
+        call_args = self.app_mock.details.force_not_automatic_archive_suite.call_args
+        self.assertEqual(call_args, ("precise-backports", {}))
 
 
 class HardwareRequirementsTestCase(unittest.TestCase):
