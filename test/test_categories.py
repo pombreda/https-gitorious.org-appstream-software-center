@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import os
 import unittest
 import xapian
 from mock import patch
@@ -8,10 +7,6 @@ from mock import patch
 from testutils import setup_test_env
 setup_test_env()
 
-from softwarecenter.paths import XAPIAN_BASE_PATH
-
-from softwarecenter.db.database import StoreDatabase
-from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.categories import (
     CategoriesParser, RecommendedForYouCategory,
     get_category_by_name, get_query_for_category)
