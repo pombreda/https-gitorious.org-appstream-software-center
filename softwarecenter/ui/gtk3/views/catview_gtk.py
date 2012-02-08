@@ -428,7 +428,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         if len(docs) > 0:
             self._add_tiles_to_flowgrid(docs, self.recommended_for_you, 8)
             self.recommended_for_you.show_all()
-            self.recommended_for_you_frame.hide_spinner()
+            self.recommended_for_you_frame.show_content()
             self.recommended_for_you_frame.more.connect(
                                                 'clicked',
                                                 self.on_category_clicked,
