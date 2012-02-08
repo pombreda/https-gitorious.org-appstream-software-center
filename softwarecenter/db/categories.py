@@ -146,12 +146,12 @@ class RecommendedForYouCategory(Category):
             item_limit=60)
         self.recommender_agent = RecommenderAgent()
         self.recommender_agent.connect(
-            "recommend-top", self._recommend_top_result)
+            "recommend-me", self._recommend_me_result)
         self.recommender_agent.connect(
             "error", self._recommender_agent_error)
-        self.recommender_agent.query_recommend_top()
+        self.recommender_agent.query_recommend_me()
 
-    def _recommend_top_result(self, recommender_agent, result_list):
+    def _recommend_me_result(self, recommender_agent, result_list):
         pkgs = []
         for item in result_list['recommendations']:
             pkgs.append(item['package_name'])
