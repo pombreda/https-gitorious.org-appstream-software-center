@@ -43,6 +43,7 @@ from softwarecenter.enums import (AppActions,
                                   Icons, 
                                   SOFTWARE_CENTER_PKGNAME)
 from softwarecenter.utils import (is_unity_running, 
+                                  upstream_version,
                                   get_exec_line_from_desktop,
                                   SimpleFileDownloader,
                                   utf8)
@@ -251,14 +252,21 @@ class PackageStatusBar(StatusBar):
         return self.button.get_label()
 
     def _build_combo_multiple_versions(self):
+        # the currently forced archive_suite for the given app
         app_archive_suite = self.app_details._app.archive_suite
+        # all available not-automatic (version, archive_suits)
         not_automatic_suites = self.app_details.get_not_automatic_archive_versions()
+        # populat the combobox if 
         if not_automatic_suites:
             model = self.combo_multiple_versions.get_model()
             model.clear()
             for i, archive_suite in enumerate(not_automatic_suites):
+                # get the version, archive_suite
                 ver, archive_suite = archive_suite
-                s = "v%s (%s)" % (ver, archive_suite or _("default"))
+                # the string to display is something like:
+                #  "v1.0 (precise-backports)"
+                s = "v%s (%s)" % (upstream_version(ver),
+                                  archive_suite or _("default"))
                 model.append( (s, archive_suite) )
                 if archive_suite == app_archive_suite:
                     self.combo_multiple_versions.set_active(i)
