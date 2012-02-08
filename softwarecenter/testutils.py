@@ -191,7 +191,7 @@ def make_software_center_agent_subscription_dict(app_dict):
         }
     return subscription_dict
 
-def make_recommender_agent_recommend_top_dict():
+def make_recommender_agent_recommend_me_dict():
     # best to have a list of likely not-installed items
     app_dict = {
         u'recommendations': [
