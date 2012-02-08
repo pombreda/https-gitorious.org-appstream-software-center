@@ -186,11 +186,11 @@ class PackageStatusBar(StatusBar):
 
     def _on_combo_multiple_versions_changed(self, combo):
         # disconnect to ensure no updates are happening in here
-        combo.disconnect_by_func(self._on_combo_multiple_versions_changed)
         archive_suite = combo.get_active_text()
         # ignore if there is nothing set here
         if archive_suite is None:
             return
+        combo.disconnect_by_func(self._on_combo_multiple_versions_changed)
         # reset "release" to "" as this is what it takes to reset the
         # thing
         if archive_suite == "release":
