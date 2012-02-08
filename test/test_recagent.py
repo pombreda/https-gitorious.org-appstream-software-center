@@ -36,15 +36,15 @@ class TestRecommenderAgent(unittest.TestCase):
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
         
-#    def test_recagent_query_recommend_me(self):
-#        os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com/"
-#        recommender_agent = RecommenderAgent()
-#        recommender_agent.connect("recommend-me", self.on_query_done)
-#        recommender_agent.connect("error", self.on_query_error)
-#        recommender_agent.query_recommend_me()
-#        self.loop.run()
-#        self.assertFalse(self.error)
-#        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
+    def disabled_test_recagent_query_recommend_me(self):
+        os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com/"
+        recommender_agent = RecommenderAgent()
+        recommender_agent.connect("recommend-me", self.on_query_done)
+        recommender_agent.connect("error", self.on_query_error)
+        recommender_agent.query_recommend_me()
+        self.loop.run()
+        self.assertFalse(self.error)
+        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
         
     def test_recagent_query_error(self):
         # there definitely ain't no server here
