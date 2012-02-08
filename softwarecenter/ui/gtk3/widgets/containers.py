@@ -551,7 +551,7 @@ class FramedHeaderBox(FramedBox):
         self.spinner.show()
         self.spinner_notebook.set_current_page(self.SPINNER)
             
-    def hide_spinner(self):
+    def show_content(self):
         self.spinner.stop()
         self.spinner.hide()
         self.spinner_notebook.set_current_page(self.CONTENT)
