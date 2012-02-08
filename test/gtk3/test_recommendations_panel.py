@@ -13,7 +13,7 @@ class TestRecommendationsPanel(unittest.TestCase):
 
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recommends.RecommenderAgent'
-           '.query_recommend_top')
+           '.query_recommend_me')
     def test_recommendations_panel(self, mock_query):
         from softwarecenter.ui.gtk3.widgets.recommendations import get_test_window_recommendations_panel
         win = get_test_window_recommendations_panel()
