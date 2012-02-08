@@ -11,7 +11,7 @@ from softwarecenter.db.categories import (
     CategoriesParser, RecommendedForYouCategory,
     get_category_by_name, get_query_for_category)
 from softwarecenter.testutils import (get_test_db,
-                                      make_recommender_agent_recommend_top_dict)
+                                      make_recommender_agent_recommend_me_dict)
 
 class TestCategories(unittest.TestCase):
     
@@ -25,11 +25,11 @@ class TestCategories(unittest.TestCase):
         recommends_cat = RecommendedForYouCategory()
         docids = recommends_cat.get_documents(self.db)
         self.assertEqual(docids, [])
-        self.assertTrue(agent_mock_instance.query_recommend_top.called)
+        self.assertTrue(agent_mock_instance.query_recommend_me.called)
         # ensure we get a query when the callback is called
-        recommends_cat._recommend_top_result(
+        recommends_cat._recommend_me_result(
                                 None, 
-                                make_recommender_agent_recommend_top_dict())
+                                make_recommender_agent_recommend_me_dict())
         self.assertNotEqual(recommends_cat.get_documents(self.db), [])
    
     def test_get_query(self):
