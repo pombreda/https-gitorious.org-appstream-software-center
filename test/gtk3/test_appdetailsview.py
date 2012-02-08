@@ -260,9 +260,10 @@ class NotAutomaticVersionsTestCase(unittest.TestCase):
         self.view.show_app(self.app_mock)
         self.assertTrue(self.view.pkg_statusbar.combo_multiple_versions.get_visible())
         # test button press
-        #self.assertNotEqual(self.view.desc._text, not_automatic_descr)
-        #self.view.bar_multiple_versions.button.clicked()
-        #self.assertEqual(self.view.desc._text, not_automatic_descr)
+        self.assertNotEqual(self.view.desc._text, not_automatic_descr)
+        self.view.pkg_statusbar.combo_multiple_versions.set_active(1)
+        self.assertEqual(self.view.desc._text, not_automatic_descr)
+        self.assertEqual(self.view.pkg_statusbar.combo_multiple_versions.get_active(), 1)
 
 class HardwareRequirementsTestCase(unittest.TestCase):
     
