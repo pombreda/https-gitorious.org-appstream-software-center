@@ -249,20 +249,20 @@ class NotAutomaticVersionsTestCase(unittest.TestCase):
 
     def test_multiple_versions_automatic_button(self):
         # normal app
-        self.app_mock.details.has_not_automatic_version = False
+        self.app_mock.details.get_not_automatic_archive_suites = lambda: []
         self.view.show_app(self.app_mock)
         self.assertFalse(self.view.bar_multiple_versions.get_visible())
         # switch to not-automatic app with different description
-        self.app_mock.details.has_not_automatic_version = True
+        self.app_mock.details.get_not_automatic_archive_suites = lambda: [
+            "precise-backports"]
         not_automatic_descr = "the not automatic one"
         self.app_mock.details.description = not_automatic_descr
         self.view.show_app(self.app_mock)
         self.assertTrue(self.view.bar_multiple_versions.get_visible())
         # test button press
+        self.assertNotEqual(self.view.desc._text, not_automatic_descr)
         self.view.bar_multiple_versions.button.clicked()
-        self.assertEqual(self.view.desc._text,
-                         not_automatic_descr)
-                         
+        self.assertEqual(self.view.desc._text, not_automatic_descr)
 
 class HardwareRequirementsTestCase(unittest.TestCase):
     

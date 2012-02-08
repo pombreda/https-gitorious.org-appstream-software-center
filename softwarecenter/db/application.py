@@ -651,7 +651,6 @@ class AppDetails(GObject.GObject):
         elif self._doc:
             return self._doc.get_value(XapianValues.VERSION_INFO)
 
-    @property
     def get_not_automatic_archive_suites(self):
         """ this will return the "archive_suites" of additional versions 
             of the given package

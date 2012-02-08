@@ -1272,7 +1272,8 @@ class AppDetailsView(Viewport):
         self._review_submit_usefulness(review_id, is_useful)
 
     def _on_bar_multiple_versions_button_clicked(self, button):
-        self.app_details.force_not_automatic_version(True)
+        archive_suite = self.app.archive_suite
+        self.app_details.force_not_automatic_archive_suite(archive_suite)
         self._update_all(self.app_details)
 
     def _update_title_markup(self, appname, summary):
@@ -1389,7 +1390,7 @@ class AppDetailsView(Viewport):
             self.pkg_warningbar.show()
 
     def _update_multiple_versions_bar(self, app_details):
-        if self.app_details.has_not_automatic_version:
+        if self.app_details.get_not_automatic_archive_suites():
             self.bar_multiple_versions.label.set_text(
                 _("There is a more recent but less tested version available"))
             self.bar_multiple_versions.button.set_label(_("Use"))
