@@ -226,7 +226,7 @@ class TestAppdetailsView(unittest.TestCase):
 
         self.assertTrue(button.is_sensitive())
 
-class NotAutomaticVersionsTestCase(unittest.TestCase):
+class MultipleVersionsTestCase(unittest.TestCase):
     
     @classmethod
     def setUpClass(cls):
@@ -252,15 +252,21 @@ class NotAutomaticVersionsTestCase(unittest.TestCase):
         self.view.show_app(self.app_mock)
         self.assertFalse(self.view.pkg_statusbar.combo_multiple_versions.get_visible())
         # switch to not-automatic app with different description
-        self.app_mock.details.get_not_automatic_archive_suites = lambda: [ 
-            "precise-backports"]
+        self.app_mock.details.get_not_automatic_archive_versions = lambda: [ 
+            ("5.0", "default"),
+            ("12.0", "precise-backports"),
+            ]
         self.view.show_app(self.app_mock)
         self.assertTrue(self.view.pkg_statusbar.combo_multiple_versions.get_visible())
+        text = self.view.pkg_statusbar.combo_multiple_versions.get_active_text()
+        self.assertEqual(text, "v5.0 (default)")
 
     def test_combo_multiple_versions(self):
         # ensure we have the button
-        self.app_mock.details.get_not_automatic_archive_suites = lambda: [ 
-            "precise-backports"]
+        self.app_mock.details.get_not_automatic_archive_versions = lambda: [
+            ("5.0",  "default"),
+            ("12.0", "precise-backports") 
+            ]
         # ensure that the right method is called
         self.app_mock.details.force_not_automatic_archive_suite = Mock()
         self.view.show_app(self.app_mock)

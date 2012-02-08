@@ -589,8 +589,11 @@ class MultipleVersionsSupportTestCase(unittest.TestCase):
             self._make_version(not_automatic=True),
             self._make_version(not_automatic=False) ]
         details._pkg.versions = versions
-        self.assertEqual(details.get_not_automatic_archive_versions(),
-                         [ (versions[0].version, "precise-backports") ])
+        details._pkg.candidate = versions[1]
+        self.assertEqual(
+            details.get_not_automatic_archive_versions(), 
+            [  (versions[1].version, "default"),
+               (versions[0].version, "precise-backports") ])
 
     def test_not_automatic_version(self):
         db = get_test_db()

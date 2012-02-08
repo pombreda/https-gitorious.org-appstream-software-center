@@ -247,15 +247,18 @@ class PackageStatusBar(StatusBar):
         return self.button.get_label()
 
     def _build_combo_multiple_versions(self):
-        app_archive_suite = self.app_details._app.archive_suite or _("release")
-        not_automatic_suites = self.app_details.get_not_automatic_archive_suites()
+        app_archive_suite = self.app_details._app.archive_suite
+        not_automatic_suites = self.app_details.get_not_automatic_archive_versions()
         if not_automatic_suites:
             self.combo_multiple_versions.get_model().clear()
-            not_automatic_suites.insert(0, _("release"))
             for i, archive_suite in enumerate(not_automatic_suites):
-                self.combo_multiple_versions.append_text(archive_suite)
+                self.combo_multiple_versions.append_text("v%s (%s)" % (
+                        archive_suite[0], archive_suite[1]))
                 if archive_suite == app_archive_suite:
                     self.combo_multiple_versions.set_active(i)
+            # if nothing is found, set to default
+            if self.combo_multiple_versions.get_active_text() is None:
+                self.combo_multiple_versions.set_active(0)
             self.combo_multiple_versions.show()
         else:
             self.combo_multiple_versions.hide()
