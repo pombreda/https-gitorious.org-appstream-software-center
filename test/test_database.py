@@ -564,7 +564,7 @@ class AppDetailsPkgStateTestCase(unittest.TestCase):
             PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
             state)
 
-class NotAutomaticChannelSupportTestCase(unittest.TestCase):
+class MultipleVersionsSupportTestCase(unittest.TestCase):
 
     def _make_version(self, not_automatic):
         from softwarecenter.db.pkginfo import _Version
@@ -573,7 +573,10 @@ class NotAutomaticChannelSupportTestCase(unittest.TestCase):
         ver.summary ="summary not_automatic: %s" % not_automatic
         ver.version = "version not_automatic: %s" % not_automatic
         mock_origin = Mock()
-        mock_origin.archive = "precise-backports"
+        if not_automatic:
+            mock_origin.archive = "precise-backports"
+        else:
+            mock_origin.archive = "precise"
         ver.origins = [ mock_origin ]
         ver.not_automatic = not_automatic
         return ver
@@ -585,7 +588,8 @@ class NotAutomaticChannelSupportTestCase(unittest.TestCase):
         details._pkg.versions = [ 
             self._make_version(not_automatic=True),
             self._make_version(not_automatic=False) ]
-        self.assertTrue(details.has_not_automatic_version)
+        self.assertEqual(details.get_not_automatic_archive_suites,
+                         ["precise-backports"])
 
     def test_not_automatic_version(self):
         db = get_test_db()
@@ -594,8 +598,12 @@ class NotAutomaticChannelSupportTestCase(unittest.TestCase):
         normal_version = self._make_version(not_automatic=False)
         not_automatic_version = self._make_version(not_automatic=True)
         details._pkg.versions = [normal_version, not_automatic_version]
-        # force not-automatic
-        details.force_not_automatic_version(True)
+        # force not-automatic with invalid data
+        self.assertFalse(details.force_not_automatic_archive_suite(
+                "random-string"))
+        # force not-automatic with valid data
+        self.assertTrue(details.force_not_automatic_archive_suite(
+                not_automatic_version.origins[0].archive))
         # ensure we get the description of the not-automatic version
         self.assertEqual(details.description,
                          not_automatic_version.description)
@@ -606,7 +614,7 @@ class NotAutomaticChannelSupportTestCase(unittest.TestCase):
         self.assertEqual(app.archive_suite,
                          not_automatic_version.origins[0].archive)
         # clearing works
-        details.force_not_automatic_version(False)
+        details.force_not_automatic_archive_suite("")
         self.assertEqual(app.archive_suite, "")
 
 

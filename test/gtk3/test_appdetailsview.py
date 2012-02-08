@@ -247,7 +247,7 @@ class NotAutomaticVersionsTestCase(unittest.TestCase):
         self.app_mock = get_mock_app_from_real_app(app)
         self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
 
-    def test_not_automatic_button(self):
+    def test_multiple_versions_automatic_button(self):
         # normal app
         self.app_mock.details.has_not_automatic_version = False
         self.view.show_app(self.app_mock)

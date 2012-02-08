@@ -191,7 +191,6 @@ class AppDetails(GObject.GObject):
         if (self._app.pkgname in self._cache and
             self._cache[self._app.pkgname].candidate):
             self._pkg = self._cache[self._app.pkgname]
-        self._force_not_automatic_version = False
 
         # load xapian document
         self._doc = doc
@@ -226,6 +225,19 @@ class AppDetails(GObject.GObject):
             except IndexError:
                 LOG.warn("document no longer valid after db reopen")
                 self._doc = None
+
+    def _get_version_for_archive_suite(self, pkg, archive_suite):
+        """ helper for the multiple versions support """
+        if not archive_suite:
+            return pkg.candidate
+        else:
+            for ver in pkg.versions:
+                archive_suites = [origin.archive for origin in ver.origins]
+                if archive_suite in archive_suites:
+                    return ver
+        raise ValueError("pkg '%s' has not archive_suite '%s'" % (
+                pkg, archive_suite))
+
 
     @property
     def channelname(self):
@@ -290,15 +302,12 @@ class AppDetails(GObject.GObject):
     def desktop_file(self):
         if self._doc:
             return self._doc.get_value(XapianValues.DESKTOP_FILE)
-
     @property
     def description(self):
         if self._pkg:
-            if self._force_not_automatic_version:
-                for ver in self._pkg.versions:
-                    if ver.not_automatic:
-                        return ver.description
-            return self._pkg.candidate.description
+            ver = self._get_version_for_archive_suite(
+                self._pkg, self._app.archive_suite)
+            return ver.description
         elif self._doc:
             if self._doc.get_value(XapianValues.SC_DESCRIPTION):
                 return self._doc.get_value(XapianValues.SC_DESCRIPTION)
@@ -599,10 +608,10 @@ class AppDetails(GObject.GObject):
     @property
     def summary(self):
         # not-automatic
-        if self._pkg and self._force_not_automatic_version:
-            for ver in self._pkg.versions:
-                if ver.not_automatic:
-                    return ver.summary
+        if self._pkg and self._app.archive_suite:
+            ver = self._get_version_for_archive_suite(
+                self._pkg, self._app.archive_suite)
+            return ver.summary
         # normal case
         if self._doc:
             return self._db.get_summary(self._doc)
@@ -633,50 +642,46 @@ class AppDetails(GObject.GObject):
     @property
     def version(self):
         if self._pkg:
-            if self._force_not_automatic_version:
-                for ver in self._pkg.versions:
-                    if ver.not_automatic:
-                        return ver.version
-            if self._pkg.installed:
+            if self._pkg.installed and not self._app.archive_suite:
                 return self._pkg.installed.version
             else:
-                return self._pkg.candidate.version
+                ver = self._get_version_for_archive_suite(
+                    self._pkg, self._app.archive_suite)
+                return ver.version
         elif self._doc:
             return self._doc.get_value(XapianValues.VERSION_INFO)
 
     @property
-    def has_not_automatic_version(self):
-        """ this will check if there is a additional "not-automatic" version
-            for the given package. This is useful for e.g. support of 
-            ubuntu-backports
+    def get_not_automatic_archive_suites(self):
+        """ this will return the "archive_suites" of additional versions 
+            of the given package
         """
+        archive_suites = []
         if self._pkg:
             for v in self._pkg.versions:
                 if v.not_automatic:
-                    return True
-        return False
+                    archive_suites.append(v.origins[0].archive)
+        return archive_suites
 
-    def force_not_automatic_version(self, value):
-        """ this will force to use the not-automatic version of this app
+    def force_not_automatic_archive_suite(self, archive_suite):
+        """ this will force to use the given "archive_suite" version
+            of the app (or clears it if archive_suite is empty)
         """
-        def _get_not_automatic_archive_suite(versions):
-            """ small helper for the version finding """
-            for ver in versions:
-                if ver.not_automatic:
-                    for origin in ver.origins:
-                        return origin.archive
-            return ""
         # set or reset value
-        self._force_not_automatic_version = value
-        if value:
-            # add not-automatic version to pkgname
-            not_automatic_archive_suite = _get_not_automatic_archive_suite(
-                self._pkg.versions)
-            if not "/" in self._app.pkgname:
-                self._app.archive_suite = not_automatic_archive_suite
+        if archive_suite:
+            # add not-automatic suite to app
+            for ver in self._pkg.versions:
+                if (ver.not_automatic and 
+                    archive_suite in [origin.archive for origin in ver.origins]):
+                    if not "/" in self._app.pkgname:
+                        self._app.archive_suite = archive_suite
+                        return True
+            # no suitable archive found
+            return False
         else:
             # clear version
             self._app.archive_suite = ""
+            return True
 
     @property
     def warning(self):
