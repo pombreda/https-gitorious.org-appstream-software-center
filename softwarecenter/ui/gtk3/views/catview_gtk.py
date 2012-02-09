@@ -435,7 +435,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         #       at the bottom, but swap this with the Top Rated panel once
         #       the recommended for you pieces are done and deployed
         #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
-        self.recommended_for_you_panel = RecommendationsPanel()
+        self.recommended_for_you_panel = RecommendationsPanel(self)
         self.bottom_hbox.pack_start(self.recommended_for_you_panel, 
                                     True, True, 0)
 
