@@ -16,12 +16,15 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * lp:~mvo/software-center/sca-video:
     - add the ability to display embedded videos in the application
       details view
+  * lp:~mvo/software-center/multiple-screenshots:
+    - add support for the display of multiple screenshots in the
+      application details view, as provided by the software-center-agent
 
   [ Kiwinote ]
   * data/ui/gtk3/css/*.css:
     - use 'px' suffixes as required by latest gtk
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 09 Feb 2012 15:33:34 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 09 Feb 2012 15:42:31 -0500
 
 software-center (5.1.8) precise; urgency=low
 
