@@ -29,7 +29,7 @@ def get_big_em():
 EM = get_em()
 SMALL_EM = get_small_em()
 BIG_EM = get_big_em()
-LOG.info("EM's: %s %s %s" % (EM, SMALL_EM, BIG_EM))
+LOG.debug("EM's: %s %s %s" % (EM, SMALL_EM, BIG_EM))
 
 
 def em(multiplier=1, min=1):

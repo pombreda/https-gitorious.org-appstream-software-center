@@ -63,7 +63,7 @@ def init_sc_css_provider(toplevel, settings, screen, datadir):
 
     # things seem ok, now set the css provider for softwarecenter
     msg = "Softwarecenter style provider for %s Gtk theme: %s"
-    LOG.info(msg % (theme_name, css_path))
+    LOG.debug(msg % (theme_name, css_path))
 
     provider = Gtk.CssProvider()
     provider._theme_name = theme_name
