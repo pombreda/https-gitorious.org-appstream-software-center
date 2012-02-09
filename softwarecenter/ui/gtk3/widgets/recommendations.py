@@ -30,31 +30,24 @@ from softwarecenter.db.categories import RecommendedForYouCategory
 
 LOG = logging.getLogger(__name__)
 
-class RecommendationsPanel(Gtk.Alignment):
+class RecommendationsPanel(FramedHeaderBox):
     """
     Panel for use in the main view that manages the recommendations experience,
     includes the initial opt-in screen and display of recommendations once they
     have been received from the recommender agent
     """
     def __init__(self, catview):
-        Gtk.Alignment.__init__(self)
+        FramedHeaderBox.__init__(self)
         self.catview = catview
-        self.hbox = Gtk.HBox(spacing=StockEms.SMALL)
-        self.set_padding(0, 0, StockEms.MEDIUM-2, StockEms.MEDIUM-2)
-        self.add(self.hbox)
-
-        self.recommended_for_you_frame = FramedHeaderBox()
-        self.recommended_for_you_frame.set_header_label(
-                                                _(u"Recommended for You"))
+        self.set_header_label(_(u"Recommended for You"))
                 
         if not self._is_opted_in():
             self._show_opt_in_view()
         else:
             self._update_recommended_for_you_content()
             
-        self.recommended_for_you_frame.add(self.recommended_for_you_content)
-        self.recommended_for_you_frame.header_implements_more_button()
-        self.hbox.pack_start(self.recommended_for_you_frame, True, True, 0)
+        self.add(self.recommended_for_you_content)
+        self.header_implements_more_button()
         
     def _show_opt_in_view(self):
         self.opt_in_vbox = Gtk.VBox(spacing=12)
@@ -89,14 +82,14 @@ class RecommendationsPanel(Gtk.Alignment):
         
     def _upload_user_profile_and_get_recommendations(self):
         # show a spinner while the user profile is uploaded
-        self.recommended_for_you_frame.show_spinner()
+        self.show_spinner()
         
         # TODO: after the user profile has finished uploading, initiate a
         #       request for the personalized list of recommendations
         
     def _update_recommended_for_you_content(self):
         self.recommended_for_you_content = FlowableGrid()
-        self.recommended_for_you_frame.show_spinner()
+        self.show_spinner()
         # get the recommendations from the recommender agent
         self.recommended_for_you_cat = RecommendedForYouCategory()
         self.recommended_for_you_cat.connect(
@@ -112,11 +105,10 @@ class RecommendationsPanel(Gtk.Alignment):
             self.catview._add_tiles_to_flowgrid(docs,
                                         self.recommended_for_you_content, 8)
             self.recommended_for_you_content.show_all()
-            self.recommended_for_you_frame.show_content()
-            self.recommended_for_you_frame.more.connect(
-                                            'clicked',
-                                            self.catview.on_category_clicked,
-                                            cat)
+            self.show_content()
+            self.more.connect('clicked',
+                              self.catview.on_category_clicked,
+                              cat)
         else:
             # TODO: this test for zero docs is temporary and will not be
             # needed once the recommendation agent is up and running
@@ -131,7 +123,7 @@ class RecommendationsPanel(Gtk.Alignment):
 
     def _hide_recommended_for_you_panel(self):
         # and hide the pane
-        self.recommended_for_you_frame.hide()
+        self.hide()
 
     def _is_opted_in(self):
         ''' Return True if the user has opted in to the recommendations service

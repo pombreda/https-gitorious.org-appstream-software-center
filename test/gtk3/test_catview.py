@@ -112,7 +112,7 @@ class TestCatView(unittest.TestCase):
         self._p()
         # test clicking recommended_for_you More button
         lobby.connect("category-selected", self._on_category_selected)
-        lobby.recommended_for_you_panel.recommended_for_you_frame.more.clicked()
+        lobby.recommended_for_you_panel.more.clicked()
         self._p()
         self.assertNotEqual(self._cat, None)
         self.assertEqual(self._cat.name, "Recommended for You")
