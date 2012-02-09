@@ -45,6 +45,10 @@ from softwarecenter.ui.gtk3.review_gui_helper import (
 #import httplib2
 #httplib2.debuglevel = 1
 
+# the glib docs tell us that this is no longer needed, but if its omited
+# the system will hang on submit *sigh*
+from gi.repository import GLib
+GLib.threads_init()
 
 if __name__ == "__main__":
     try:
@@ -71,6 +75,7 @@ if __name__ == "__main__":
                                                            backupCount=5)
     logfile_handler.setLevel(logging.INFO)
     logging.getLogger().addHandler(logfile_handler)
+    logging.getLogger().addHandler(logging.StreamHandler())
 
     # run review personality
     if "submit_review" in sys.argv[0]:
