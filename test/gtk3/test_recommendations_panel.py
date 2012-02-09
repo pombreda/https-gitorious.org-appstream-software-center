@@ -17,7 +17,7 @@ class TestRecommendationsPanel(unittest.TestCase):
     def test_recommendations_panel_is_displayed(self, mock_query):
         from softwarecenter.ui.gtk3.widgets.recommendations import get_test_window_recommendations_panel
         win = get_test_window_recommendations_panel()
-#        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
         
     # patch out the agent query method to avoid making the actual server call
