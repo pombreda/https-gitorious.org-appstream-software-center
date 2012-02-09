@@ -70,8 +70,8 @@ class VideoPlayer(Gtk.VBox):
 
     # uri property
     def _set_uri(self, v):
-        self._uri = v
-        self.webkit.load_uri(v)
+        self._uri = v or ""
+        self.webkit.load_uri(self._uri)
     def _get_uri(self):
         return self._uri
     uri = property(_get_uri, _set_uri, None, "uri property")
