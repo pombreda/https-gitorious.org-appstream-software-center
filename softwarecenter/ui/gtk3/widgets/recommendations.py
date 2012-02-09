@@ -41,19 +41,21 @@ class RecommendationsPanel(Gtk.Alignment):
         self.hbox = Gtk.HBox(spacing=StockEms.SMALL)
         self.set_padding(0, 0, StockEms.MEDIUM-2, StockEms.MEDIUM-2)
         self.add(self.hbox)
-        
-        # TODO: Check opt-in state here and either show the opt-in view
-        #       or display the recommendations
-        self._build_opt_in_view()
-        
+
         self.recommended_for_you_frame = FramedHeaderBox()
         self.recommended_for_you_frame.set_header_label(
                                                 _(u"Recommended for You"))
+                
+        if not self._is_opted_in():
+            self._show_opt_in_view()
+        else:
+            self._update_recommended_for_you_content()
+            
         self.recommended_for_you_frame.add(self.recommended_for_you_content)
         self.recommended_for_you_frame.header_implements_more_button()
         self.hbox.pack_start(self.recommended_for_you_frame, True, True, 0)
-
-    def _build_opt_in_view(self):
+        
+    def _show_opt_in_view(self):
         self.opt_in_vbox = Gtk.VBox(spacing=12)
         opt_in_button = Gtk.Button()
         opt_in_button_label = Gtk.Label()
@@ -141,6 +143,12 @@ class RecommendationsPanel(Gtk.Alignment):
     def _hide_recommended_for_you_panel(self):
         # and hide the pane
         self.recommended_for_you_frame.hide()
+        
+    def _is_opted_in(self):
+        ''' Return True if the user has opted in to the recommendations service
+        '''
+        # TODO: Implement this
+        return True
 
 
 
