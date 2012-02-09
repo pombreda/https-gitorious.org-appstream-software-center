@@ -23,8 +23,9 @@ import re
 import os
 import string
 import shutil
-import xapian
 import time
+import urllib
+import xapian
 
 from aptsources.sourceslist import SourceEntry
 from gi.repository import GObject
@@ -207,6 +208,13 @@ class SCAApplicationParser(AppInfoParserBase):
                 self.sca_application.channel = "%s-partner" % distroseries
             if u.scheme == "http" and u.netloc ==  "extras.ubuntu.com":
                 self.sca_application.channel = "ubuntu-extras"
+        
+        # support multiple screenshots
+        if hasattr(self.sca_application, "screenshot_urls"):
+            # ensure to html-quote "," as this is also our seperator
+            s = ",".join([url.replace(",", "%2C") 
+                          for url in self.sca_application.screenshot_urls])
+            self.sca_application.screenshot_url = s
 
     def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:
@@ -790,7 +798,7 @@ def make_doc_from_parser(parser, cache):
     # screenshot (for third party)
     if parser.has_option_desktop("X-AppInstall-Screenshot-Url"):
         url = parser.get_desktop("X-AppInstall-Screenshot-Url")
-        doc.add_value(XapianValues.SCREENSHOT_URL, url)
+        doc.add_value(XapianValues.SCREENSHOT_URLS, url)
     # thumbnail (for third party)
     if parser.has_option_desktop("X-AppInstall-Thumbnail-Url"):
         url = parser.get_desktop("X-AppInstall-Thumbnail-Url")
