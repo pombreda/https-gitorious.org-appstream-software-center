@@ -37,6 +37,7 @@ from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.viewport import Viewport
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, FramedBox, FlowableGrid)
+from softwarecenter.ui.gtk3.widgets.recommendations import RecommendationsPanel
 from softwarecenter.ui.gtk3.widgets.exhibits import (
     ExhibitBanner, FeaturedExhibit)
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
@@ -422,41 +423,6 @@ class LobbyViewGtk(CategoriesViewGtk):
                 'clicked', self.on_category_clicked, whats_new_cat) 
         return
 
-    def _on_recommended_for_you_refresh(self, cat):
-        docs = cat.get_documents(self.db)
-        # display the recommendedations
-        if len(docs) > 0:
-            self._add_tiles_to_flowgrid(docs, self.recommended_for_you, 8)
-            self.recommended_for_you.show_all()
-            self.recommended_for_you_frame.show_content()
-            self.recommended_for_you_frame.more.connect(
-                                                'clicked',
-                                                self.on_category_clicked,
-                                                cat)
-        else:
-            # TODO: this test for zero docs is temporary and will not be
-            # needed once the recommendation agent is up and running
-            self._hide_recommended_for_you()
-        return
-        
-    def _on_recommender_agent_error(self, agent, msg):
-        LOG.warn("Error while accessing the recommender agent: %s" 
-                                                            % msg)
-        # TODO: temporary, instead we will display cached recommendations here
-        self._hide_recommended_for_you()
-
-    def _update_recommended_for_you_content(self):
-        # remove any existing children from the grid widget
-        self.recommended_for_you.remove_all()
-        self.recommended_for_you_frame.show_spinner()
-        # get the recommendations from the recommender agent
-        self.recommended_for_you_cat = RecommendedForYouCategory()
-        self.recommended_for_you_cat.connect(
-                                        'needs-refresh',
-                                        self._on_recommended_for_you_refresh)
-        self.recommended_for_you_cat.connect('recommender-agent-error',
-                                             self._on_recommender_agent_error)
-
     def _append_recommended_for_you(self):
         # TODO: This space will initially contain an opt-in screen, and this
         #       will update to the tile view of recommended apps when ready
@@ -471,21 +437,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         #       at the bottom, but swap this with the Top Rated panel once
         #       the recommended for you pieces are done and deployed
         #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
-        self.recommended_for_you = FlowableGrid()
-        self.recommended_for_you_frame = FramedHeaderBox()
-        self.recommended_for_you_frame.set_header_label(
-                                                _(u"Recommended for You"))
-        self.recommended_for_you_frame.add(self.recommended_for_you)
-        self.recommended_for_you_frame.header_implements_more_button()
-        self.bottom_hbox.pack_start(self.recommended_for_you_frame, 
+        self.recommended_for_you_panel = RecommendationsPanel()
+        self.bottom_hbox.pack_start(self.recommended_for_you_panel, 
                                     True, True, 0)
-        
-        # get the recommendations from the recommender agent
-        self._update_recommended_for_you_content()
-        
-    def _hide_recommended_for_you(self):
-        # and hide the pane
-        self.recommended_for_you_frame.hide()
 
     def _update_appcount(self):
         enq = AppEnquire(self.cache, self.db)
