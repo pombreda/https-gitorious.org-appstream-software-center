@@ -17,7 +17,7 @@ class TestRecommendationsPanel(unittest.TestCase):
     def test_recommendations_panel_is_displayed(self, mock_query):
         from softwarecenter.ui.gtk3.widgets.recommendations import get_test_window_recommendations_panel
         win = get_test_window_recommendations_panel()
-        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+#        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
         
     # patch out the agent query method to avoid making the actual server call
@@ -30,7 +30,7 @@ class TestRecommendationsPanel(unittest.TestCase):
         rec_panel = win.get_data("rec_panel")
         self._p()
         self.assertTrue(rec_panel.recommended_for_you_frame.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
-        self.assertTrue(rec_panel.recommended_for_you_frame.opt_in_label.get_property("visible"))
+        self.assertTrue(rec_panel.opt_in_vbox.get_property("visible"))
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
         
@@ -42,7 +42,7 @@ class TestRecommendationsPanel(unittest.TestCase):
         from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
         win = get_test_window_recommendations_panel()
         rec_panel = win.get_data("rec_panel")
-        rec_panel.update_recommended_for_you_content()
+        rec_panel._update_recommended_for_you_content()
         self._p()
         self.assertTrue(rec_panel.recommended_for_you_frame.spinner_notebook.get_current_page() == FramedHeaderBox.SPINNER)
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
