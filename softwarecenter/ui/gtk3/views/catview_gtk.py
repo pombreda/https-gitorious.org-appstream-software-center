@@ -237,7 +237,6 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _build_homepage_view(self):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
-        #~ self._append_recommendations()
         self._append_banner_ads()
 
         self.top_hbox = Gtk.HBox(spacing=StockEms.SMALL)
@@ -365,7 +364,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             cat_vbox.pack_start(label, False, False, 0)
         return
 
-    # FIXME: _update_{top_rated,whats_new,recommended_for_you}_conent()
+    # FIXME: _update_{top_rated,whats_new,recommended_for_you}_content()
     #        duplicates a lot of code
     def _update_top_rated_content(self):
         # remove any existing children from the grid widget

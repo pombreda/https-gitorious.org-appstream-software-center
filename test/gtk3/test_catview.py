@@ -104,15 +104,15 @@ class TestCatView(unittest.TestCase):
         win = get_test_window_catview()
         lobby = win.get_data("lobby")
         # we fake the callback from the agent here
-        lobby.recommended_for_you_cat._recommend_me_result(
+        lobby.recommended_for_you_panel.recommended_for_you_cat._recommend_me_result(
                                 None,
                                 make_recommender_agent_recommend_me_dict())
         self.assertNotEqual(
-                lobby.recommended_for_you_cat.get_documents(self.db), [])
+                lobby.recommended_for_you_panel.recommended_for_you_cat.get_documents(self.db), [])
         self._p()
         # test clicking recommended_for_you More button
         lobby.connect("category-selected", self._on_category_selected)
-        lobby.recommended_for_you_frame.more.clicked()
+        lobby.recommended_for_you_panel.recommended_for_you_frame.more.clicked()
         self._p()
         self.assertNotEqual(self._cat, None)
         self.assertEqual(self._cat.name, "Recommended for You")
@@ -128,5 +128,5 @@ class TestCatView(unittest.TestCase):
 
 if __name__ == "__main__":
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+#    logging.basicConfig(level=logging.DEBUG)
     unittest.main()
