@@ -522,7 +522,7 @@ class AppDetails(GObject.GObject):
         if self._doc:
             # we do support multiple screenshots in the database but
             # return only one here
-            screenshot_url = self._doc.get_value(XapianValues.SCREENSHOT_URL)
+            screenshot_url = self._doc.get_value(XapianValues.SCREENSHOT_URLS)
             if screenshot_url:
                 return screenshot_url.split(",")[0]
         # else use the default
@@ -554,7 +554,7 @@ class AppDetails(GObject.GObject):
     def _get_multiple_screenshots_from_db(self):
         screenshot_list = []
         if self._doc:
-            screenshot_url = self._doc.get_value(XapianValues.SCREENSHOT_URL)
+            screenshot_url = self._doc.get_value(XapianValues.SCREENSHOT_URLS)
             if screenshot_url and len(screenshot_url.split(",")) > 1:
                 for screenshot in screenshot_url.split(","):
                     screenshot_list.append({'small_image_url' : screenshot,

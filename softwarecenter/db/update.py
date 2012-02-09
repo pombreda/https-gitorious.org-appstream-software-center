@@ -794,7 +794,7 @@ def make_doc_from_parser(parser, cache):
     # screenshot (for third party)
     if parser.has_option_desktop("X-AppInstall-Screenshot-Url"):
         url = parser.get_desktop("X-AppInstall-Screenshot-Url")
-        doc.add_value(XapianValues.SCREENSHOT_URL, url)
+        doc.add_value(XapianValues.SCREENSHOT_URLS, url)
     # thumbnail (for third party)
     if parser.has_option_desktop("X-AppInstall-Thumbnail-Url"):
         url = parser.get_desktop("X-AppInstall-Thumbnail-Url")

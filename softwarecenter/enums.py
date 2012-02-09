@@ -128,9 +128,9 @@ class XapianValues:
     ARCHIVE_DEB_LINE = 182
     ARCHIVE_SIGNING_KEY_ID = 183
     PURCHASED_DATE = 184
-    SCREENSHOT_URL = 185
+    SCREENSHOT_URLS = 185             # multiple urls, comma seperated
     ICON_NEEDS_DOWNLOAD = 186         # no longer used
-    THUMBNAIL_URL = 187
+    THUMBNAIL_URL = 187               # no longer used
     SC_DESCRIPTION = 188
     APPNAME_UNTRANSLATED = 189
     ICON_URL = 190
@@ -154,7 +154,7 @@ AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME = "available-for-pay"
 class CustomKeys:
     APPNAME = "AppName"
     ICON = "Icon"
-    SCREENSHOT_URL = "Screenshot-Url"
+    SCREENSHOT_URLS = "Screenshot-Url"
     THUMBNAIL_URL = "Thumbnail-Url"
     CATEGORY = "Category"
 
