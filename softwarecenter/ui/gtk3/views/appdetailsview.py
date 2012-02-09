@@ -1336,8 +1336,8 @@ class AppDetailsView(Viewport):
         return
 
     def _update_app_video(self, app_details):
+        self.videoplayer.uri = app_details.video_url
         if app_details.video_url:
-            self.videoplayer.uri = app_details.video_url
             self.videoplayer.show()
         else:
             self.videoplayer.hide()

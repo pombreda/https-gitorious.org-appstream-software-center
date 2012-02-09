@@ -102,7 +102,7 @@ class SpawnHelper(GObject.GObject):
         if res == 0:
             self.emit("exited", res)
         else:
-            LOG.warn("exit code %s from helper" % res)
+            LOG.warn("exit code %s from helper for '%s'" % (res, self._cmd))
             # check stderr
             err = os.read(stderr, 4*1024)
             self._stderr = err

@@ -184,6 +184,10 @@ class SCAApplicationParser(AppInfoParserBase):
             self.sca_application.Description = "\n".join(
                 self.sca_application.description.split("\n")[1:]).strip()
 
+        # we only support a single video currently :/
+        if hasattr(self.sca_application, "video_urls"):
+            self.sca_application.video_url = self.sca_application.video_urls[0]
+
         # XXX 2012-01-16 bug=917109
         # We can remove these work-arounds once the above bug is fixed on
         # the server. Until then, we fake a channel here and empty category
