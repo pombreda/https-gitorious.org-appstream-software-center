@@ -48,7 +48,6 @@ from softwarecenter.db.appfilter import AppFilter, get_global_filter
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.categories import (Category,
                                           CategoriesParser,
-                                          RecommendedForYouCategory,
                                           get_category_by_name,
                                           categories_sorted_by_name)
 from softwarecenter.db.utils import get_query_for_pkgnames
