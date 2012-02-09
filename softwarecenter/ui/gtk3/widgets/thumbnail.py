@@ -471,19 +471,13 @@ class ThumbnailGallery(Gtk.HBox):
 
         # if there are multiple screenshots
         n = data.get_n_screenshots()
-
         if n <= 1:
             return
 
-        # get a random selection of thumbnails from those avaialble
-        import random
-        seq = random.sample(
-            range(n),
-            min(n, ThumbnailGallery.THUMBNAIL_MAX_COUNT))
-
-        seq.sort()
-
-        for i in seq:
+        # pick the first ones, the data is sorted by most appropriate
+        # version first - if at some later point we have a lot of
+        # screenshots we could consider randomizing again
+        for i in range(min(n, ThumbnailGallery.THUMBNAIL_MAX_COUNT)):
             url = data.get_nth_small_screenshot(i)
             self._create_thumbnail_for_url(i, url)
 

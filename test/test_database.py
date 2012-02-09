@@ -61,8 +61,7 @@ class TestDatabase(unittest.TestCase):
         v2 = { "version" : "2.0", }
         v3 = { "version" : "3.0", }
         screenshots_list = [ v1, v2, v3 ]
-        res = details._sort_screenshots_by_best_possible_version(
-            screenshots_list)
+        res = details._sort_screenshots_by_best_version(screenshots_list)
         self.assertEqual(res, [ v2, v1 ])
 
 
