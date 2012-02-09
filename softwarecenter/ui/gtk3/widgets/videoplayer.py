@@ -37,6 +37,7 @@ LOG = logging.getLogger(__name__)
 class VideoPlayer(Gtk.VBox):
     def __init__(self):
         super(VideoPlayer, self).__init__()
+        self.set_size_request(200, 200)
         self.webkit = WebKit.WebView()
         self.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
         self.pack_start(self.webkit, True, True, 0)
