@@ -207,7 +207,9 @@ class SCAApplicationParser(AppInfoParserBase):
         
         # support multiple screenshots
         if hasattr(self.sca_application, "screenshot_urls"):
-            s = ",".join(self.sca_application.screenshot_urls)
+            # ensure to html-quote "," as this is also our seperator
+            s = ",".join([url.replace(",", "%2C") 
+                          for url in self.sca_application.screenshot_urls])
             self.sca_application.screenshot_url = s
 
     def get_desktop(self, key, translated=True):
