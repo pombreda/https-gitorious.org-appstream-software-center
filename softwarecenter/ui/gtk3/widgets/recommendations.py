@@ -36,8 +36,9 @@ class RecommendationsPanel(Gtk.Alignment):
     includes the initial opt-in screen and display of recommendations once they
     have been received from the recommender agent
     """
-    def __init__(self):
+    def __init__(self, catview):
         Gtk.Alignment.__init__(self)
+        self.catview = catview
         self.hbox = Gtk.HBox(spacing=StockEms.SMALL)
         self.set_padding(0, 0, StockEms.MEDIUM-2, StockEms.MEDIUM-2)
         self.add(self.hbox)
@@ -105,17 +106,17 @@ class RecommendationsPanel(Gtk.Alignment):
                                              self._on_recommender_agent_error)
         
     def _on_recommended_for_you_agent_refresh(self, cat):
-        docs = cat.get_documents(self.db)
+        docs = cat.get_documents(self.catview.db)
         # display the recommendedations
         if len(docs) > 0:
-            self._add_tiles_to_flowgrid(docs,
+            self.catview._add_tiles_to_flowgrid(docs,
                                         self.recommended_for_you_content, 8)
             self.recommended_for_you_content.show_all()
             self.recommended_for_you_frame.show_content()
             self.recommended_for_you_frame.more.connect(
-                                                'clicked',
-                                                self.on_category_clicked,
-                                                cat)
+                                            'clicked',
+                                            self.catview.on_category_clicked,
+                                            cat)
         else:
             # TODO: this test for zero docs is temporary and will not be
             # needed once the recommendation agent is up and running
@@ -127,23 +128,11 @@ class RecommendationsPanel(Gtk.Alignment):
                                                             % msg)
         # TODO: temporary, instead we will display cached recommendations here
         self._hide_recommended_for_you_panel()
-        
-    def _add_tiles_to_flowgrid(self, docs, flowgrid, amount):
-        '''Adds application tiles to a FlowableGrid:
-           docs = xapian documents (apps)
-           flowgrid = the FlowableGrid to add tiles to
-           amount = number of tiles to add from start of doc range'''
-        amount = min(len(docs), amount)
-        for doc in docs[0:amount]:
-            tile = FeaturedTile(self.properties_helper, doc)
-            tile.connect('clicked', self.on_app_clicked,
-                         self.properties_helper.get_application(doc))
-            flowgrid.add_child(tile)
-                                             
+
     def _hide_recommended_for_you_panel(self):
         # and hide the pane
         self.recommended_for_you_frame.hide()
-        
+
     def _is_opted_in(self):
         ''' Return True if the user has opted in to the recommendations service
         '''
