@@ -567,6 +567,9 @@ class AppDetails(GObject.GObject):
             LOG.exception("failed to load content")
 
 
+    def _sort_screenshots_by_best_possible_version(self, screenshot_list):
+        pass
+
     def _gio_screenshots_json_download_complete_cb(self, source, result, path):
         try:
             res, content, etag = source.load_contents_finish(result)

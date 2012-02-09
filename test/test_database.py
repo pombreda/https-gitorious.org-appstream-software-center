@@ -49,6 +49,23 @@ class TestDatabase(unittest.TestCase):
         self.cache = get_pkg_info()
         self.cache.open()
 
+    def test_multiple_versions_sorting(self):
+        db = get_test_db()
+        app = Application("", "software-center")
+        details = AppDetails(db, application=app)
+        details._pkg = Mock()
+        details._pkg.installed = Mock()
+        details._pkg.installed.version  = "2.0"
+        self.assertEqual(details.version, "2.0")
+        v1 = { "version" : "1.0", }
+        v2 = { "version" : "2.0", }
+        v3 = { "version" : "3.0", }
+        screenshots_list = [ v1, v2, v3 ]
+        res = details._sort_screenshots_by_best_possible_version(
+            screenshots_list)
+        self.assertEqual(res, [ v2, v1 ])
+
+
     def test_update_from_desktop_file(self):
         # ensure we index with german locales to test i18n
         os.environ["LANGUAGE"] = "de"
@@ -224,7 +241,7 @@ class TestDatabase(unittest.TestCase):
         details = app.get_details(db)
         distro = get_distro().get_codename()
         self.assertEqual(app.request, 'channel=' + distro + '-partner')
-
+    
     def ensure_installation_date_and_lazy_history_loading(self, appdetails):
         # we run two tests, the first is to ensure that we get a
         # result from installation_data immediately (at this point the
