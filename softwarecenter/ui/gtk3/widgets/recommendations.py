@@ -83,9 +83,12 @@ class RecommendationsPanel(FramedHeaderBox):
     def _upload_user_profile_and_get_recommendations(self):
         # show a spinner while the user profile is uploaded
         self.show_spinner()
-        
-        # TODO: after the user profile has finished uploading, initiate a
-        #       request for the personalized list of recommendations
+
+        # TODO: initiate upload of the user profile here
+                
+        # after the user profile data has been uploaded, make the request
+        # and load the the recommended_for_you content
+        self._update_recommended_for_you_content()
         
     def _update_recommended_for_you_content(self):
         self.recommended_for_you_content = FlowableGrid()
