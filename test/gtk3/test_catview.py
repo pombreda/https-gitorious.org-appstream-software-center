@@ -135,6 +135,8 @@ class TestCatView(unittest.TestCase):
                                 make_recommender_agent_recommend_me_dict())
         self.assertNotEqual(
                 lobby.recommended_for_you_panel.recommended_for_you_cat.get_documents(self.db), [])
+        from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
+        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
         self._p()
         # test clicking recommended_for_you More button
         lobby.connect("category-selected", self._on_category_selected)
