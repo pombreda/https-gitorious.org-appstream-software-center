@@ -116,28 +116,33 @@ class TestCatView(unittest.TestCase):
         self.assertTrue(rec_panel.opt_in_vbox.get_property("visible"))
         win.destroy()
         
-#    # patch out the agent query method to avoid making the actual server call
-#    @patch('softwarecenter.backend.recommends.RecommenderAgent'
-#           '.query_recommend_me')
-#    def test_subcatview_recommended_for_you_display_recommendations(self, mock_query):
-#        from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
-#        # get the widgets we need
-#        win = get_test_window_catview()
-#        lobby = win.get_data("lobby")
-#        # we fake the callback from the agent here
-#        lobby.recommended_for_you_panel.recommended_for_you_cat._recommend_me_result(
-#                                None,
-#                                make_recommender_agent_recommend_me_dict())
-#        self.assertNotEqual(
-#                lobby.recommended_for_you_panel.recommended_for_you_cat.get_documents(self.db), [])
-#        self._p()
-#        # test clicking recommended_for_you More button
-#        lobby.connect("category-selected", self._on_category_selected)
-#        lobby.recommended_for_you_panel.more.clicked()
-#        self._p()
-#        self.assertNotEqual(self._cat, None)
-#        self.assertEqual(self._cat.name, "Recommended for You")
-#        win.destroy()
+    # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recommends.RecommenderAgent'
+           '.query_recommend_me')
+    def test_subcatview_recommended_for_you_display_recommendations(self, mock_query):
+        from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
+        # get the widgets we need
+        win = get_test_window_catview()
+        lobby = win.get_data("lobby")
+        rec_panel = lobby.recommended_for_you_panel
+        self._p()
+        # click the opt-in button to initiate the process, this will show the spinner
+        rec_panel.opt_in_button.emit('clicked')
+        self._p()
+        # we fake the callback from the agent here
+        lobby.recommended_for_you_panel.recommended_for_you_cat._recommend_me_result(
+                                None,
+                                make_recommender_agent_recommend_me_dict())
+        self.assertNotEqual(
+                lobby.recommended_for_you_panel.recommended_for_you_cat.get_documents(self.db), [])
+        self._p()
+        # test clicking recommended_for_you More button
+        lobby.connect("category-selected", self._on_category_selected)
+        lobby.recommended_for_you_panel.more.clicked()
+        self._p()
+        self.assertNotEqual(self._cat, None)
+        self.assertEqual(self._cat.name, "Recommended for You")
+        win.destroy()
 
     def _p(self):
         for i in range(5):
