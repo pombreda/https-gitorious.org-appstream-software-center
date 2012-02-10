@@ -128,8 +128,8 @@ class RecommendationsPanel(FramedHeaderBox):
     def _is_opted_in(self):
         ''' Return True if the user has opted in to the recommendations service
         '''
-        # TODO: Implement this
-        return True
+        # TODO: Implement this (persist the state, or the uuid)
+        return False
 
 
 
