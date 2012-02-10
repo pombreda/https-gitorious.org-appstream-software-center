@@ -35,7 +35,7 @@ BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_AGENT_HOST") or os.environ.
 BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_AGENT_HOST") or os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "http://software-center.ubuntu.com"
 
 # recommender
-RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or "https://recommender.ubuntu.com"
+RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or "https://rec.ubuntu.com"
 #RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or "https://rec.staging.ubuntu.com"
 
 # for the sso login
