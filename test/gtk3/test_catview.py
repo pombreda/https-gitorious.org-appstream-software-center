@@ -114,6 +114,7 @@ class TestCatView(unittest.TestCase):
         from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
         self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.SPINNER)
         self.assertTrue(rec_panel.opt_in_vbox.get_property("visible"))
+        self.assertTrue(rec_panel.spinner.spinner_label)
         win.destroy()
         
     # patch out the agent query method to avoid making the actual server call
