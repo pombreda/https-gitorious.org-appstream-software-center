@@ -13,12 +13,28 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
       supported is ${CURRENT_REGION}. This allows to build a dynamic
       "Your region" menu once we actually tag packages with the region
       information
+  * lp:~mvo/software-center/sca-video:
+    - add the ability to display embedded videos in the application
+      details view
+  * lp:~mvo/software-center/multiple-screenshots:
+    - add support for the display of multiple screenshots in the
+      application details view, as provided by the software-center-agent
+  * lp:~mvo/software-center/submit-review-hang-fix:
+    - fix hang when submitting a review on precise
+  * lp:~mvo/software-center/screenshots-sorting:
+    - ensure the multiple screenshots are sorted properly when
+      they come from the json API
 
   [ Kiwinote ]
   * data/ui/gtk3/css/*.css:
     - use 'px' suffixes as required by latest gtk
 
- -- Kiwinote <kiwinote@gmail.com>  Thu, 09 Feb 2012 14:37:50 +0000
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/recommender-service-url:
+    - update to the correct production url for the recommender
+      service 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 10 Feb 2012 16:19:07 -0500
 
 software-center (5.1.8) precise; urgency=low
 

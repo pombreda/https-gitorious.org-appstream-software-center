@@ -32,7 +32,7 @@ from softwarecenter.enums import PkgStates, XapianValues, Icons
 from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
-from softwarecenter.utils import utf8, split_icon_ext
+from softwarecenter.utils import utf8, split_icon_ext, version_compare
 from softwarecenter.region import get_region_cached, REGIONTAG
 
 LOG = logging.getLogger(__name__)
@@ -169,7 +169,7 @@ class AppDetails(GObject.GObject):
         # FIXME: why two error states ?
         self._error = None
         self._error_not_found = None
-        self._screenshot_list = None
+        self._screenshot_list = []
 
         # load application
         self._app = application
@@ -520,8 +520,11 @@ class AppDetails(GObject.GObject):
         """ return screenshot url """
         # if there is a custom screenshot url provided, use that
         if self._doc:
-            if self._doc.get_value(XapianValues.SCREENSHOT_URL):
-                return self._doc.get_value(XapianValues.SCREENSHOT_URL)
+            # we do support multiple screenshots in the database but
+            # return only one here
+            screenshot_url = self._doc.get_value(XapianValues.SCREENSHOT_URLS)
+            if screenshot_url:
+                return screenshot_url.split(",")[0]
         # else use the default
         return self._distro.SCREENSHOT_LARGE_URL % { 'pkgname' : self.pkgname,
                                                      'version' : self.version or 0 }
@@ -530,7 +533,7 @@ class AppDetails(GObject.GObject):
     def screenshots(self):
         """ return list of screenshots, this requies that
             "query_multiple_screenshos" was run before and emited the signal
-         """
+        """
         if not self._screenshot_list:
             return [ {'small_image_url': self.thumbnail,
                       'large_image_url': self.screenshot,
@@ -548,10 +551,26 @@ class AppDetails(GObject.GObject):
                     terms.add(term_iter.term[2:])
         return terms
 
+    def _get_multiple_screenshots_from_db(self):
+        screenshot_list = []
+        if self._doc:
+            screenshot_url = self._doc.get_value(XapianValues.SCREENSHOT_URLS)
+            if screenshot_url and len(screenshot_url.split(",")) > 1:
+                for screenshot in screenshot_url.split(","):
+                    screenshot_list.append({'small_image_url' : screenshot,
+                                            'large_image_url' : screenshot,
+                                            'version' : self.version,
+                                            })
+        return screenshot_list
+
     def query_multiple_screenshots(self):
         """ query if multiple screenshots for the given app are available
             and if so, emit "screenshots-available" signal
         """
+        # get screenshot list from the db, if that is empty thats fine, 
+        # and we will query the screenshot server
+        if not self._screenshot_list:
+            self._screenshot_list = self._get_multiple_screenshots_from_db()
         # check if we have it cached
         if self._screenshot_list:
             self.emit("screenshots-available", self._screenshot_list)
@@ -566,6 +585,20 @@ class AppDetails(GObject.GObject):
         except:
             LOG.exception("failed to load content")
 
+    def _sort_screenshots_by_best_version(self, screenshot_list):
+        """ take a screenshot result dict from screenshots.debian.org 
+            and sort it
+        """
+        my_version = self.version
+        # remove all versions we don't have
+        for item in screenshot_list[:]:
+            if version_compare(my_version, item["version"]) < 0:
+                screenshot_list.remove(item)
+        # now sort from high to low
+        return sorted(
+            screenshot_list, 
+            cmp=lambda a,b: version_compare(a["version"], b["version"]),
+            reverse=True)
 
     def _gio_screenshots_json_download_complete_cb(self, source, result, path):
         try:
@@ -574,7 +607,6 @@ class AppDetails(GObject.GObject):
             # ignore read errors, most likely transient
             return
         if content is not None:
-            import json
             content = json.loads(content)
 
         if isinstance(content, dict):
@@ -585,8 +617,9 @@ class AppDetails(GObject.GObject):
             screenshot_list = []
 
         # save for later and emit
-        self._screenshot_list = screenshot_list
-        self.emit("screenshots-available", screenshot_list)
+        self._screenshot_list = self._sort_screenshots_by_best_version(
+            screenshot_list)
+        self.emit("screenshots-available", self._screenshot_list)
         return
 
     @property

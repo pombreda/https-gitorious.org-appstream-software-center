@@ -76,7 +76,7 @@ class SoftwareCenterMetadataPlugin:
               XapianValues.ICON
               XapianValues.ICON_NEEDS_DOWNLOAD
               XapianValues.ICON_URL
-              XapianValues.SCREENSHOT_URL
+              XapianValues.SCREENSHOT_URLS
               XapianValues.THUMBNAIL_URL
             """)
 
@@ -116,9 +116,9 @@ class SoftwareCenterMetadataPlugin:
                 document.add_value(XapianValues.ICON_URL, url)
             except StopIteration:
                 pass
-        if CustomKeys.SCREENSHOT_URL in ver.record:
-            screenshot_url = ver.record[CustomKeys.SCREENSHOT_URL]
-            document.add_value(XapianValues.SCREENSHOT_URL, screenshot_url)
+        if CustomKeys.SCREENSHOT_URLS in ver.record:
+            screenshot_url = ver.record[CustomKeys.SCREENSHOT_URLS]
+            document.add_value(XapianValues.SCREENSHOT_URLS, screenshot_url)
         if CustomKeys.THUMBNAIL_URL in ver.record:
             url = ver.record[CustomKeys.THUMBNAIL_URL]
             document.add_value(XapianValues.THUMBNAIL_URL, url)
