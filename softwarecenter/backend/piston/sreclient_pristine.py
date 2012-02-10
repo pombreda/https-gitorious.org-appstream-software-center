@@ -25,14 +25,18 @@ class SoftwareCenterRecommenderAPI(PistonAPI):
 
     @oauth_protected
     @returns_json
-    def submit_profile(self, uuid, installed_packages, extra):
+    def submit_profile(self, data):
+        return self._post('profile', data=data,
+            scheme=AUTHENTICATED_API_SCHEME)
+
+    @returns_json
+    def submit_anon_profile(self, uuid, installed_packages, extra):
         data = {
-            'uuid': uuid,
             'installed_packages': installed_packages,
             'extra': extra,
         }
-        return self._post('profile', data=data,
-            scheme=AUTHENTICATED_API_SCHEME)
+        return self._post('profile/%s/' % uuid, data=data,
+            scheme=PUBLIC_API_SCHEME)
 
     @oauth_protected
     def recommend_me(self):
@@ -43,6 +47,10 @@ class SoftwareCenterRecommenderAPI(PistonAPI):
     def recommend_app(self, pkgname):
         return self._get('recommend_app/%s/' % pkgname,
             scheme=PUBLIC_API_SCHEME)
+
+    @returns_json
+    def recommend_all_apps(self):
+        return self._get('recommend_all_apps/', scheme=PUBLIC_API_SCHEME)
 
     @returns_json
     def recommend_top(self):
