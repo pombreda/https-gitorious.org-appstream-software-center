@@ -51,14 +51,14 @@ class RecommendationsPanel(FramedHeaderBox):
         
     def _show_opt_in_view(self):
         self.opt_in_vbox = Gtk.VBox(spacing=12)
-        opt_in_button = Gtk.Button()
+        self.opt_in_button = Gtk.Button()
         opt_in_button_label = Gtk.Label()
         opt_in_button_label.set_markup('<big>%s</big>' % _("Turn On Recommendations"))
         opt_in_button_label.set_padding(StockEms.SMALL, StockEms.SMALL)
-        opt_in_button.add(opt_in_button_label)
-        opt_in_button.connect("clicked", self._on_opt_in_button_clicked)
+        self.opt_in_button.add(opt_in_button_label)
+        self.opt_in_button.connect("clicked", self._on_opt_in_button_clicked)
         opt_in_button_hbox = Gtk.HBox()
-        opt_in_button_hbox.pack_start(opt_in_button, False, False, 0)
+        opt_in_button_hbox.pack_start(self.opt_in_button, False, False, 0)
         opt_in_text = _("To make recommendations, Ubuntu Software Center "
                         "will occasionally send to Canonical an anonymous list "
                         "of software currently installed.")

@@ -112,7 +112,7 @@ class TestCatView(unittest.TestCase):
         rec_panel.opt_in_button.emit('clicked')
         self._p()
         from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
-        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
+        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.SPINNER)
         self.assertTrue(rec_panel.opt_in_vbox.get_property("visible"))
         win.destroy()
         
