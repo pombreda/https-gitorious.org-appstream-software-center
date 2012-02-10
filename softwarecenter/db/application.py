@@ -32,7 +32,7 @@ from softwarecenter.enums import PkgStates, XapianValues, Icons
 from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
-from softwarecenter.utils import utf8, split_icon_ext
+from softwarecenter.utils import utf8, split_icon_ext, version_compare
 from softwarecenter.region import get_region_cached, REGIONTAG
 
 LOG = logging.getLogger(__name__)
@@ -585,6 +585,20 @@ class AppDetails(GObject.GObject):
         except:
             LOG.exception("failed to load content")
 
+    def _sort_screenshots_by_best_version(self, screenshot_list):
+        """ take a screenshot result dict from screenshots.debian.org 
+            and sort it
+        """
+        my_version = self.version
+        # remove all versions we don't have
+        for item in screenshot_list[:]:
+            if version_compare(my_version, item["version"]) < 0:
+                screenshot_list.remove(item)
+        # now sort from high to low
+        return sorted(
+            screenshot_list, 
+            cmp=lambda a,b: version_compare(a["version"], b["version"]),
+            reverse=True)
 
     def _gio_screenshots_json_download_complete_cb(self, source, result, path):
         try:
@@ -593,7 +607,6 @@ class AppDetails(GObject.GObject):
             # ignore read errors, most likely transient
             return
         if content is not None:
-            import json
             content = json.loads(content)
 
         if isinstance(content, dict):
@@ -604,8 +617,9 @@ class AppDetails(GObject.GObject):
             screenshot_list = []
 
         # save for later and emit
-        self._screenshot_list = screenshot_list
-        self.emit("screenshots-available", screenshot_list)
+        self._screenshot_list = self._sort_screenshots_by_best_version(
+            screenshot_list)
+        self.emit("screenshots-available", self._screenshot_list)
         return
 
     @property
