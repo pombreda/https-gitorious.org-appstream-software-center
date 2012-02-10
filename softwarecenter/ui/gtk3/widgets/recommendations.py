@@ -74,24 +74,26 @@ class RecommendationsPanel(FramedHeaderBox):
     def _on_opt_in_button_clicked(self, button):
         # TODO: we upload the user profile here, and only after this is finished
         #       do we fire the request for recommendations and finally display
-        #       them here -- the spinner is shown for this process (the spec
+        #       them here -- a spinner is shown for this process (the spec
         #       wants a progress bar, but we don't have access to real-time
         #       progress info)
         # TODO: set and persist the opt-in state
         self._upload_user_profile_and_get_recommendations()
         
     def _upload_user_profile_and_get_recommendations(self):
-        # show a spinner while the user profile is uploaded
-        self.show_spinner()
-
-        # TODO: initiate upload of the user profile here
-                
+        # initiate upload of the user profile here
+        self._upload_user_profile()
         # after the user profile data has been uploaded, make the request
         # and load the the recommended_for_you content
         self._update_recommended_for_you_content()
         
+    def _upload_user_profile(self):
+        self.spinner.set_text(_("Submitting inventory…"))
+        self.show_spinner()
+        
     def _update_recommended_for_you_content(self):
         self.recommended_for_you_content = FlowableGrid()
+        self.spinner.set_text(_("Receiving recommendations…"))
         self.show_spinner()
         # get the recommendations from the recommender agent
         self.recommended_for_you_cat = RecommendedForYouCategory()
