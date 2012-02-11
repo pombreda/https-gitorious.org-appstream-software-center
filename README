@@ -39,12 +39,12 @@ prefixes.
 
 == environment ==
 
-The following environment is suported:
+The following environment variables are supported:
 
-SOFTWARE_CENTER_AGENT_HOST - use a alternative hosts to query for pay software
-SOFTWARE_CENTER_REVIEWS_HOST - a alternative host for the ratings&reviews
+SOFTWARE_CENTER_AGENT_HOST - an alternative host to query for pay software
+SOFTWARE_CENTER_REVIEWS_HOST - an alternative host for the ratings&reviews
 SOFTWARE_CENTER_DEBUG_HTTP - enable httplib2 debuging
-SOFTWARE_CENTER_IPSUM_REVIEWS - geneate random reviews
+SOFTWARE_CENTER_IPSUM_REVIEWS - generate random reviews
 SOFTWARE_CENTER_FAKE_REVIEW_API - use a fake server for all review network operations
 SOFTWARE_CENTER_GWIBBER_MOCK_USERS=2 - use mock gwibber service
 SOFTWARE_CENTER_AGENT_INCLUDE_QA - show not yet QA apps available from the agent
@@ -54,6 +54,8 @@ SOFTWARE_CENTER_DISTRO_CODENAME - overwrite "lsb_release -c -s" output
 SOFTWARE_CENTER_ARCHITECTURE - overwrite the current architecture
 SOFTWARE_CENTER_NO_SC_AGENT - disable the software-center-agent
 SOFTWARE_CENTER_DEBUG_TABS - show notebook tabs for debugging
+SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK - disables certificates checking in webkit views (for use in test environments)
+SOFTWARE_CENTER_FORCE_NON_SSL - disable SSL (for use in test environments)
 
 == applications.menu ==
 

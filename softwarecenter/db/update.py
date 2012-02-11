@@ -24,7 +24,6 @@ import os
 import string
 import shutil
 import time
-import urllib
 import xapian
 
 from aptsources.sourceslist import SourceEntry
