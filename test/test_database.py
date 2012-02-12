@@ -454,6 +454,11 @@ app-popcon	4	# app-install .desktop popcon rank
                            nonblocking_load=False)
         self.assertTrue(len(enquirer.get_docids()) > 0)
         # FIXME: test more of the interface
+        
+    def test_utils_get_installed_package_list(self):
+        from softwarecenter.db.utils import get_installed_package_list
+        installed_pkgs = get_installed_package_list()
+        self.assertTrue(len(installed_pkgs) > 0)
 
 
 def make_purchased_app_details(db=None, supported_series=None):
