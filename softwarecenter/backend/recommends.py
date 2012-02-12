@@ -38,6 +38,10 @@ class RecommenderAgent(GObject.GObject):
                               GObject.TYPE_NONE, 
                               (GObject.TYPE_PYOBJECT,),
                              ),
+        "recommend-all-apps" : (GObject.SIGNAL_RUN_LAST,
+                                GObject.TYPE_NONE, 
+                                (GObject.TYPE_PYOBJECT,),
+                               ),
         "error" : (GObject.SIGNAL_RUN_LAST,
                    GObject.TYPE_NONE, 
                    (str,),
@@ -66,12 +70,24 @@ class RecommenderAgent(GObject.GObject):
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
         spawner.run_generic_piston_helper(
             "SoftwareCenterRecommenderAPI", "recommend_top")
+            
+    def query_recommend_all_apps(self):
+        # build the command
+        spawner = SpawnHelper()
+        spawner.parent_xid = self.xid
+        spawner.connect("data-available", self._on_recommend_all_apps_data)
+        spawner.connect("error", lambda spawner, err: self.emit("error", err))
+        spawner.run_generic_piston_helper(
+            "SoftwareCenterRecommenderAPI", "recommend_all_apps")
 
     def _on_recommend_top_data(self, spawner, piston_top_apps):
         self.emit("recommend-top", piston_top_apps)
 
     def _on_recommend_me_data(self, spawner, piston_me_apps):
         self.emit("recommend-me", piston_me_apps)
+        
+    def _on_recommend_all_apps_data(self, spawner, piston_all_apps):
+        self.emit("recommend-all-apps", piston_all_apps)
 
    
 if __name__ == "__main__":
