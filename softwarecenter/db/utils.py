@@ -31,5 +31,11 @@ def get_query_for_pkgnames(pkgnames):
     return query
     
 def get_installed_package_list():
-    """ return a list of all of the currently installed packages """
-    return []
+    """ return a set of all of the currently installed packages """
+    import apt
+    installed_pkgs = set()
+    cache=apt.Cache()
+    for pkg in cache:
+        if pkg.is_installed:
+            installed_pkgs.add(pkg.name)
+    return installed_pkgs
