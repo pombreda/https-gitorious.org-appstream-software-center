@@ -47,6 +47,17 @@ class TestRecommenderAgent(unittest.TestCase):
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
         
+    def test_recagent_query_recommend_apps(self):
+        # NOTE: This requires a working recommender host that is reachable
+        os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
+        recommender_agent = RecommenderAgent()
+        recommender_agent.connect("recommend-apps", self.on_query_done)
+        recommender_agent.connect("error", self.on_query_error)
+        recommender_agent.query_recommend_apps()
+        self.loop.run()
+        self.assertFalse(self.error)
+        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
+        
     def test_recagent_query_recommend_all_apps(self):
         # NOTE: This requires a working recommender host that is reachable
         os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
