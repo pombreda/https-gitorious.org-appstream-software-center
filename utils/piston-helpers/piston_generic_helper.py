@@ -69,7 +69,7 @@ SoftwareCenterRecommenderAPI.default_service_root = RECOMMENDER_HOST+"/api/1.0"
 RatingsAndReviewsAPI # pyflakes
 UbuntuSsoAPI # pyflakes
 SoftwareCenterAgentAPI # pyflakes
-SoftwareCenterRecommenderAPI
+SoftwareCenterRecommenderAPI # pyflakes
 
 from gettext import gettext as _
 
