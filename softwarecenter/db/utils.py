@@ -29,3 +29,7 @@ def get_query_for_pkgnames(pkgnames):
                              query,
                              xapian.Query("AP"+pkgname))
     return query
+    
+def get_installed_package_list():
+    """ return a list of all of the currently installed packages """
+    return []
