@@ -7,7 +7,7 @@ import os
 from testutils import setup_test_env
 setup_test_env()
 
-from softwarecenter.backend.recommends import RecommenderAgent
+from softwarecenter.backend.recagent import RecommenderAgent
 
 class TestRecommenderAgent(unittest.TestCase):
     """ tests the recommender agent """
