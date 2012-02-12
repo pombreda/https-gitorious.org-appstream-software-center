@@ -31,7 +31,7 @@ from xml.sax.saxutils import unescape as xml_unescape
 
 from softwarecenter.enums import (
     SortMethods, NonAppVisibility)
-from softwarecenter.backend.recommends import RecommenderAgent
+from softwarecenter.backend.recagent import RecommenderAgent
 from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.utils import get_query_for_pkgnames

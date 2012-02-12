@@ -99,7 +99,7 @@ class TestCatView(unittest.TestCase):
         win.destroy()
         
     # patch out the agent query method to avoid making the actual server call
-    @patch('softwarecenter.backend.recommends.RecommenderAgent'
+    @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.query_recommend_me')
     def test_subcatview_recommended_for_you_spinner_display(self, mock_query):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
@@ -118,7 +118,7 @@ class TestCatView(unittest.TestCase):
         win.destroy()
         
     # patch out the agent query method to avoid making the actual server call
-    @patch('softwarecenter.backend.recommends.RecommenderAgent'
+    @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.query_recommend_me')
     def test_subcatview_recommended_for_you_display_recommendations(self, mock_query):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
