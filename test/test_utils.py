@@ -118,6 +118,11 @@ class TestSCUtils(unittest.TestCase):
 
         over_a_week = now + datetime.timedelta(days=-7)
         self.assertEqual(get_nice_date_string(over_a_week), over_a_week.isoformat().split('T')[0])
+        
+    def test_get_uuid(self):
+        from softwarecenter.utils import get_uuid
+        uuid = get_uuid()
+        self.assertTrue(uuid and len(uuid) > 0)
 
 
 if __name__ == "__main__":
