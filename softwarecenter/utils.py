@@ -576,8 +576,8 @@ def mangle_paths_if_running_in_local_checkout():
     return (datadir, xapian_base_path)
     
 def get_uuid():
-    return None
-
+    import uuid
+    return str(uuid.uuid4())
 
 
 class SimpleFileDownloader(GObject.GObject):
