@@ -9,8 +9,7 @@ setup_test_env()
 
 from softwarecenter.backend.recagent import RecommenderAgent
 
-from softwarecenter.utils import get_uuid
-recommender_uuid = get_uuid()
+from softwarecenter.testutils import make_recommender_profile_upload_data
 
 class TestRecommenderAgent(unittest.TestCase):
     """ tests the recommender agent """
@@ -47,7 +46,7 @@ class TestRecommenderAgent(unittest.TestCase):
         recommender_agent = RecommenderAgent()
         recommender_agent.connect("submit-profile", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
-        recommender_agent.query_submit_profile(data=self._make_recommender_profile_upload_data())
+        recommender_agent.query_submit_profile(data=make_recommender_profile_upload_data())
         self.loop.run()
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
@@ -137,27 +136,6 @@ class TestRecommenderAgent(unittest.TestCase):
         self.loop.run()
         self.assertTrue(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
-
-    def _make_recommender_profile_upload_data(self): 
-        profile_upload_data = [
-            {
-                'uuid': recommender_uuid, 
-                'package_list': [
-                    u'clementine',
-                    u'hedgewars',
-                    u'gelemental',
-                    u'nexuiz',
-                    u'fgo',
-                    u'musique',
-                    u'pybik',
-                    u'radiotray',
-                    u'cherrytree',
-                    u'phlipple'
-                ]
-            }
-        ]
-        return profile_upload_data
-
 
 if __name__ == "__main__":
     import logging

@@ -229,3 +229,25 @@ def make_recommender_agent_recommend_me_dict():
 }
     return app_dict
     
+def make_recommender_profile_upload_data(): 
+    from softwarecenter.utils import get_uuid
+    recommender_uuid = get_uuid()
+    profile_upload_data = [
+        {
+            'uuid': recommender_uuid, 
+            'package_list': [
+                u'clementine',
+                u'hedgewars',
+                u'gelemental',
+                u'nexuiz',
+                u'fgo',
+                u'musique',
+                u'pybik',
+                u'radiotray',
+                u'cherrytree',
+                u'phlipple'
+            ]
+        }
+    ]
+    return profile_upload_data
+    
