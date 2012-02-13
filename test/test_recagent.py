@@ -39,7 +39,7 @@ class TestRecommenderAgent(unittest.TestCase):
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
         
-    def test_recagent_query_submit_profile(self):
+    def disabled_test_recagent_query_submit_profile(self):
         # NOTE: This requires a working recommender host that is reachable
         os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
         recommender_agent = RecommenderAgent()
@@ -50,7 +50,7 @@ class TestRecommenderAgent(unittest.TestCase):
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
         
-    def test_recagent_query_submit_anon_profile(self):
+    def disabled_test_recagent_query_submit_anon_profile(self):
         # NOTE: This requires a working recommender host that is reachable
         os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
         recommender_agent = RecommenderAgent()
