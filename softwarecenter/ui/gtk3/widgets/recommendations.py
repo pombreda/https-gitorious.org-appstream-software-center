@@ -35,7 +35,23 @@ LOG = logging.getLogger(__name__)
 
 class RecommendationsPanel(FramedHeaderBox):
     """
-    Panel for use in the main view that manages the recommendations experience,
+    Base class for widgets that display recommendations
+    """
+    def __init__(self, catview):
+        FramedHeaderBox.__init__(self)
+        self.catview = catview
+        
+        self.recommender_uuid = ""
+        # FIXME: probs should just pass this on in instead of reading config
+        config = get_config()
+        if config.has_option("general", "recommender_uuid"):
+            self.recommender_uuid = config.get("general",
+                                               "recommender_uuid")
+
+
+class RecommendationsPanelLobby(RecommendationsPanel):
+    """
+    Panel for use in the lobby view that manages the recommendations experience,
     includes the initial opt-in screen and display of recommendations once they
     have been received from the recommender agent
     """
@@ -52,16 +68,9 @@ class RecommendationsPanel(FramedHeaderBox):
         }
         
     def __init__(self, catview):
-        FramedHeaderBox.__init__(self)
-        self.catview = catview
+        RecommendationsPanel.__init__(self, catview)
         self.set_header_label(_(u"Recommended for You"))
         
-        self.recommender_uuid = ""
-        # FIXME: probs should just pass this on in instead of reading config
-        config = get_config()
-        if config.has_option("general", "recommender_uuid"):
-            self.recommender_uuid = config.get("general",
-                                               "recommender_uuid") 
         if not self.recommender_uuid:
             self._show_opt_in_view()
         else:

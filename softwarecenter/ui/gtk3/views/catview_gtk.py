@@ -36,7 +36,8 @@ from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.viewport import Viewport
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, FramedBox, FlowableGrid)
-from softwarecenter.ui.gtk3.widgets.recommendations import RecommendationsPanel
+from softwarecenter.ui.gtk3.widgets.recommendations import (
+    RecommendationsPanelLobby)
 from softwarecenter.ui.gtk3.widgets.exhibits import (
     ExhibitBanner, FeaturedExhibit)
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
@@ -434,7 +435,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         #       at the bottom, but swap this with the Top Rated panel once
         #       the recommended for you pieces are done and deployed
         #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
-        self.recommended_for_you_panel = RecommendationsPanel(self)
+        self.recommended_for_you_panel = RecommendationsPanelLobby(self)
         self.bottom_hbox.pack_start(self.recommended_for_you_panel, 
                                     True, True, 0)
 
