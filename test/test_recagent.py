@@ -40,14 +40,14 @@ class TestRecommenderAgent(unittest.TestCase):
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
         
-    def disabled_test_recagent_query_submit_profile(self):
+    def test_recagent_query_submit_profile(self):
         # NOTE: This requires a working recommender host that is reachable
         if not "SOFTWARE_CENTER_RECOMMENDER_HOST" in os.environ:
             os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
         recommender_agent = RecommenderAgent()
         recommender_agent.connect("submit-profile", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
-        recommender_agent.query_submit_profile(data=["pitivi", "fretsonfire"])
+        recommender_agent.query_submit_profile(data=self._make_recommender_profile_upload_data())
         self.loop.run()
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
@@ -79,7 +79,7 @@ class TestRecommenderAgent(unittest.TestCase):
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
 
-    def disabled_test_recagent_query_recommend_me(self):
+    def test_recagent_query_recommend_me(self):
         # NOTE: This requires a working recommender host that is reachable
         if not "SOFTWARE_CENTER_RECOMMENDER_HOST" in os.environ:
             os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
@@ -136,8 +136,27 @@ class TestRecommenderAgent(unittest.TestCase):
         recommender_agent.query_recommend_top()
         self.loop.run()
         self.assertTrue(self.error)
-        
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
+
+    def _make_recommender_profile_upload_data(self): 
+        profile_upload_data = [
+            {
+                'uuid': recommender_uuid, 
+                'package_list': [
+                    u'clementine',
+                    u'hedgewars',
+                    u'gelemental',
+                    u'nexuiz',
+                    u'fgo',
+                    u'musique',
+                    u'pybik',
+                    u'radiotray',
+                    u'cherrytree',
+                    u'phlipple'
+                ]
+            }
+        ]
+        return profile_upload_data
 
 
 if __name__ == "__main__":
