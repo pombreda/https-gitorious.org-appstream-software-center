@@ -38,6 +38,14 @@ class RecommenderAgent(GObject.GObject):
                      GObject.TYPE_NONE, 
                      (GObject.TYPE_PYOBJECT,),
                     ),
+        "submit-profile" : (GObject.SIGNAL_RUN_LAST,
+                            GObject.TYPE_NONE, 
+                            (GObject.TYPE_PYOBJECT,),
+                           ),
+        "submit-anon-profile" : (GObject.SIGNAL_RUN_LAST,
+                                 GObject.TYPE_NONE, 
+                                 (GObject.TYPE_PYOBJECT,),
+                                ),
         "recommend-me" : (GObject.SIGNAL_RUN_LAST,
                               GObject.TYPE_NONE, 
                               (GObject.TYPE_PYOBJECT,),
@@ -73,6 +81,32 @@ class RecommenderAgent(GObject.GObject):
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
         spawner.run_generic_piston_helper(
             "SoftwareCenterRecommenderAPI", "server_status")
+            
+    def query_submit_profile(self, data):
+        # build the command
+        spawner = SpawnHelper()
+        spawner.parent_xid = self.xid
+        spawner.needs_auth = True
+        spawner.connect("data-available", self._on_submit_profile_data)
+        spawner.connect("error", lambda spawner, err: self.emit("error", err))
+        spawner.run_generic_piston_helper(
+            "SoftwareCenterRecommenderAPI",
+            "submit_profile",
+            data=data)
+            
+    def query_submit_anon_profile(self, uuid, installed_packages, extra):
+        # build the command
+        spawner = SpawnHelper()
+        spawner.parent_xid = self.xid
+        spawner.needs_auth = True
+        spawner.connect("data-available", self._on_submit_anon_profile_data)
+        spawner.connect("error", lambda spawner, err: self.emit("error", err))
+        spawner.run_generic_piston_helper(
+            "SoftwareCenterRecommenderAPI",
+            "submit_anon_profile",
+            uuid=uuid,
+            installed_packages=installed_packages,
+            extra=extra)
             
     def query_profile(self, pkgnames):
         # build the command
@@ -130,6 +164,12 @@ class RecommenderAgent(GObject.GObject):
         
     def _on_profile_data(self, spawner, piston_profile):
         self.emit("profile", piston_profile)
+        
+    def _on_submit_profile_data(self, spawner, piston_submit_profile):
+        self.emit("submit-profile", piston_submit_profile)
+        
+    def _on_submit_anon_profile_data(self, spawner, piston_submit_anon_profile):
+        self.emit("submit-anon_profile", piston_submit_anon_profile)
 
     def _on_recommend_me_data(self, spawner, piston_me_apps):
         self.emit("recommend-me", piston_me_apps)
