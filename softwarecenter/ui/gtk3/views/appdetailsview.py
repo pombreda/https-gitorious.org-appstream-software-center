@@ -1165,8 +1165,12 @@ class AppDetailsView(Viewport):
 
         # video
         from softwarecenter.ui.gtk3.widgets.videoplayer import VideoPlayer
+        mini_hb = Gtk.HBox()
         self.videoplayer = VideoPlayer()
-        vb.pack_start(self.videoplayer, False, False, 0)
+        mini_hb.pack_start(self.videoplayer, False, False, 0)
+        # add a empty label here to ensure bg is set properly
+        mini_hb.pack_start(Gtk.Label(), True, True, 0)
+        vb.pack_start(mini_hb, False, False, 0)
 
         # add the links footer to the description widget
         footer_hb = Gtk.HBox(spacing=6)
