@@ -171,13 +171,6 @@ class RecommendationsPanel(FramedHeaderBox):
         # and hide the pane
         self.hide()
 
-    def _is_opted_in(self):
-        ''' Return True if the user has opted in to the recommendations service
-        '''
-        # TODO: Implement this (persist the state, or the uuid)
-        return False
-
-
 
 def get_test_window_recommendations_panel():
     import softwarecenter.log
