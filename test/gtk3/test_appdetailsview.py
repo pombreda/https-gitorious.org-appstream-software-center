@@ -457,8 +457,9 @@ class AppRecommendationsTestCase(unittest.TestCase):
     def test_show_recommendations_for_app(self):
         self.view.show_app(self.app_mock)
         do_events()
-        # trivial first test, check for a recommender agent
-        self.assertTrue(self.view.recommender_agent is not None)
+        # trivial first test, check for the new recommendations panel
+        # widget for the details view
+        self.assertTrue(self.view.recommended_for_app_panel is not None)
 
 
 

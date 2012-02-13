@@ -182,14 +182,13 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self.hide()
 
 
-def get_test_window_recommendations_panel():
+def get_test_window_recommendations_panel_lobby():
     import softwarecenter.log
     softwarecenter.log.root.setLevel(level=logging.DEBUG)
     fmt = logging.Formatter("%(name)s - %(message)s", None)
     softwarecenter.log.handler.setFormatter(fmt)
     
-    from softwarecenter.ui.gtk3.widgets.recommendations import RecommendationsPanel
-    view = RecommendationsPanel()
+    view = RecommendationsPanelLobby()
 
     win = Gtk.Window()
     win.connect("destroy", lambda x: Gtk.main_quit())
