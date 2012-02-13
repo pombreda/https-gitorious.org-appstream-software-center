@@ -100,7 +100,7 @@ class TestCatView(unittest.TestCase):
         
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
-           '.query_recommend_me')
+           '.query_submit_anon_profile')
     def test_subcatview_recommended_for_you_spinner_display(self, mock_query):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
@@ -119,7 +119,7 @@ class TestCatView(unittest.TestCase):
         
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
-           '.query_recommend_me')
+           '.query_submit_anon_profile')
     def test_subcatview_recommended_for_you_display_recommendations(self, mock_query):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
@@ -129,6 +129,8 @@ class TestCatView(unittest.TestCase):
         self._p()
         # click the opt-in button to initiate the process, this will show the spinner
         rec_panel.opt_in_button.emit('clicked')
+        self._p()
+        rec_panel._update_recommended_for_you_content()
         self._p()
         # we fake the callback from the agent here
         lobby.recommended_for_you_panel.recommended_for_you_cat._recommend_me_result(
