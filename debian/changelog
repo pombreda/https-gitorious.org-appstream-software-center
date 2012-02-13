@@ -28,6 +28,8 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   [ Kiwinote ]
   * data/ui/gtk3/css/*.css:
     - use 'px' suffixes as required by latest gtk
+  * softwarecenter/ui/gtk3/views/appdetailsview.py:
+    - replace ... and ' with their unicode eequivalents (LP: #844799)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/recommender-service-url:
@@ -36,7 +38,7 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/import-latest-sreclient:
     - import latest recommender client 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 10 Feb 2012 19:01:58 -0500
+ -- Kiwinote <kiwinote@gmail.com>  Mon, 13 Feb 2012 16:31:36 +0000
 
 software-center (5.1.8) precise; urgency=low
 
