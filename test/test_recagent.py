@@ -36,28 +36,17 @@ class TestRecommenderAgent(unittest.TestCase):
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
         
-    def test_recagent_query_profile(self):
+    def disabled_test_recagent_query_profile(self):
         # NOTE: This requires a working recommender host that is reachable
         os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
         recommender_agent = RecommenderAgent()
         recommender_agent.connect("profile", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
-        recommender_agent.query_profile()
+        recommender_agent.query_profile(["pitivi", "fretsonfire"])
         self.loop.run()
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
-        
-    def test_recagent_query_recommend_top(self):
-        # NOTE: This requires a working recommender host that is reachable
-        os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
-        recommender_agent = RecommenderAgent()
-        recommender_agent.connect("recommend-top", self.on_query_done)
-        recommender_agent.connect("error", self.on_query_error)
-        recommender_agent.query_recommend_top()
-        self.loop.run()
-        self.assertFalse(self.error)
-        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
-        
+
     def disabled_test_recagent_query_recommend_me(self):
         # NOTE: This requires a working recommender host that is reachable
         os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
@@ -87,6 +76,17 @@ class TestRecommenderAgent(unittest.TestCase):
         recommender_agent.connect("recommend-all-apps", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_all_apps()
+        self.loop.run()
+        self.assertFalse(self.error)
+        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
+        
+    def test_recagent_query_recommend_top(self):
+        # NOTE: This requires a working recommender host that is reachable
+        os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
+        recommender_agent = RecommenderAgent()
+        recommender_agent.connect("recommend-top", self.on_query_done)
+        recommender_agent.connect("error", self.on_query_error)
+        recommender_agent.query_recommend_top()
         self.loop.run()
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
