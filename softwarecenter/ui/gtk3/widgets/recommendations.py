@@ -172,8 +172,8 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         return
         
     def _on_recommender_agent_error(self, agent, msg):
-        LOG.warn("Error while accessing the recommender agent: %s" 
-                                                            % msg)
+        LOG.warn("Error while accessing the recommender agent for the "
+                 "lobby recommendations: %s" % msg)
         # TODO: temporary, instead we will display cached recommendations here
         self._hide_recommended_for_you_panel()
 
@@ -190,6 +190,22 @@ class RecommendationsPanelDetails(RecommendationsPanel):
     def __init__(self):
         RecommendationsPanel.__init__(self)
         self.set_header_label(_(u"People Also Installed"))
+        
+        self.recommender_agent.connect("recommend-app",
+                                       self._on_app_recommendations)
+        self.recommender_agent.connect("error",
+                                       self._on_app_recommendations_error)
+        
+    def _get_recommendations_for_app(self, pkgname):
+        self.recommender_agent.query_recommend_app(pkgname)
+        
+    def _on_app_recommendations(self, agent, data):
+        print ">>> on_app_recommendations returned: ", data
+    
+    def _on_app_recommendations_error(self, agent, msg):
+        LOG.warn("Error while accessing the recommender agent for the "
+                 "details view recommendations: %s" % msg)
+    
 
 
 def get_test_window_recommendations_panel_lobby():
@@ -211,5 +227,5 @@ def get_test_window_recommendations_panel_lobby():
     
 
 if __name__ == "__main__":
-    win = get_test_window_recommendations_panel()
+    win = get_test_window_recommendations_panel_lobby()
     Gtk.main()
