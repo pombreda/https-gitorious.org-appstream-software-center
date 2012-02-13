@@ -42,13 +42,6 @@ class RecommendationsPanel(FramedHeaderBox):
         
         self.recommender_agent = RecommenderAgent()
         
-        self.recommender_uuid = ""
-        # FIXME: probs should just pass this on in instead of reading config
-        config = get_config()
-        if config.has_option("general", "recommender_uuid"):
-            self.recommender_uuid = config.get("general",
-                                               "recommender_uuid")
-
 
 class RecommendationsPanelLobby(RecommendationsPanel):
     """
@@ -72,6 +65,13 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         RecommendationsPanel.__init__(self)
         self.catview = catview
         self.set_header_label(_(u"Recommended for You"))
+        
+        self.recommender_uuid = ""
+        # FIXME: probs should just pass this on in instead of reading config
+        config = get_config()
+        if config.has_option("general", "recommender_uuid"):
+            self.recommender_uuid = config.get("general",
+                                               "recommender_uuid")
         
         if not self.recommender_uuid:
             self._show_opt_in_view()
@@ -180,6 +180,16 @@ class RecommendationsPanelLobby(RecommendationsPanel):
     def _hide_recommended_for_you_panel(self):
         # and hide the pane
         self.hide()
+        
+class RecommendationsPanelDetails(RecommendationsPanel):
+    """
+    Panel for use in the lobby view that manages the recommendations experience,
+    includes the initial opt-in screen and display of recommendations once they
+    have been received from the recommender agent
+    """
+    def __init__(self):
+        RecommendationsPanel.__init__(self)
+        self.set_header_label(_(u"People Also Installed"))
 
 
 def get_test_window_recommendations_panel_lobby():
