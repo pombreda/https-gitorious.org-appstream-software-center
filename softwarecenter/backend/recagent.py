@@ -30,10 +30,14 @@ LOG = logging.getLogger(__name__)
 class RecommenderAgent(GObject.GObject):
 
     __gsignals__ = {
-        "recommend-top" : (GObject.SIGNAL_RUN_LAST,
-                              GObject.TYPE_NONE, 
-                              (GObject.TYPE_PYOBJECT,),
-                             ),
+        "server-status" : (GObject.SIGNAL_RUN_LAST,
+                           GObject.TYPE_NONE, 
+                           (GObject.TYPE_PYOBJECT,),
+                          ),
+        "profile" : (GObject.SIGNAL_RUN_LAST,
+                     GObject.TYPE_NONE, 
+                     (GObject.TYPE_PYOBJECT,),
+                    ),
         "recommend-me" : (GObject.SIGNAL_RUN_LAST,
                               GObject.TYPE_NONE, 
                               (GObject.TYPE_PYOBJECT,),
@@ -46,6 +50,10 @@ class RecommenderAgent(GObject.GObject):
                                 GObject.TYPE_NONE, 
                                 (GObject.TYPE_PYOBJECT,),
                                ),
+        "recommend-top" : (GObject.SIGNAL_RUN_LAST,
+                           GObject.TYPE_NONE, 
+                           (GObject.TYPE_PYOBJECT,),
+                          ),
         "error" : (GObject.SIGNAL_RUN_LAST,
                    GObject.TYPE_NONE, 
                    (str,),
@@ -55,6 +63,28 @@ class RecommenderAgent(GObject.GObject):
     def __init__(self, xid=None):
         GObject.GObject.__init__(self)
         self.xid = xid
+        
+    def query_server_status(self):
+        # build the command
+        spawner = SpawnHelper()
+        spawner.parent_xid = self.xid
+        spawner.needs_auth = True
+        spawner.connect("data-available", self._on_server_status_data)
+        spawner.connect("error", lambda spawner, err: self.emit("error", err))
+        spawner.run_generic_piston_helper(
+            "SoftwareCenterRecommenderAPI", "server_status")
+            
+    def query_profile(self, pkgnames):
+        # build the command
+        spawner = SpawnHelper()
+        spawner.parent_xid = self.xid
+        spawner.needs_auth = True
+        spawner.connect("data-available", self._on_profile_data)
+        spawner.connect("error", lambda spawner, err: self.emit("error", err))
+        spawner.run_generic_piston_helper(
+            "SoftwareCenterRecommenderAPI",
+            "profile",
+            pkgnames=pkgnames)
 
     def query_recommend_me(self):
         # build the command
@@ -65,15 +95,6 @@ class RecommenderAgent(GObject.GObject):
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
         spawner.run_generic_piston_helper(
             "SoftwareCenterRecommenderAPI", "recommend_me")
-
-    def query_recommend_top(self):
-        # build the command
-        spawner = SpawnHelper()
-        spawner.parent_xid = self.xid
-        spawner.connect("data-available", self._on_recommend_top_data)
-        spawner.connect("error", lambda spawner, err: self.emit("error", err))
-        spawner.run_generic_piston_helper(
-            "SoftwareCenterRecommenderAPI", "recommend_top")
             
     def query_recommend_app(self, pkgname):
         # build the command
@@ -94,9 +115,21 @@ class RecommenderAgent(GObject.GObject):
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
         spawner.run_generic_piston_helper(
             "SoftwareCenterRecommenderAPI", "recommend_all_apps")
-
-    def _on_recommend_top_data(self, spawner, piston_top_apps):
-        self.emit("recommend-top", piston_top_apps)
+            
+    def query_recommend_top(self):
+        # build the command
+        spawner = SpawnHelper()
+        spawner.parent_xid = self.xid
+        spawner.connect("data-available", self._on_recommend_top_data)
+        spawner.connect("error", lambda spawner, err: self.emit("error", err))
+        spawner.run_generic_piston_helper(
+            "SoftwareCenterRecommenderAPI", "recommend_top")
+            
+    def _on_server_status_data(self, spawner, piston_server_status):
+        self.emit("server-status", piston_server_status)
+        
+    def _on_profile_data(self, spawner, piston_profile):
+        self.emit("profile", piston_profile)
 
     def _on_recommend_me_data(self, spawner, piston_me_apps):
         self.emit("recommend-me", piston_me_apps)
@@ -106,6 +139,9 @@ class RecommenderAgent(GObject.GObject):
         
     def _on_recommend_all_apps_data(self, spawner, piston_all_apps):
         self.emit("recommend-all-apps", piston_all_apps)
+        
+    def _on_recommend_top_data(self, spawner, piston_top_apps):
+        self.emit("recommend-top", piston_top_apps)
 
    
 if __name__ == "__main__":
