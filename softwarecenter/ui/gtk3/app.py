@@ -258,6 +258,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.scagent = None
         self.sso = None
         self.available_for_me_query = None
+        self.recommender_uuid = ""
 
         Gtk.Window.set_default_icon_name("softwarecenter")
 
@@ -453,9 +454,25 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def on_available_pane_created(self, widget):
         self.available_pane.searchentry.grab_focus()
+        # connect a signal to monitor the recommendations opt-in state and
+        # persist the recommendations uuid on an opt-in
+        self.available_pane.cat_view.recommended_for_you_panel.connect(
+                        "recommendations-opt-in",
+                        self._on_recommendations_opt_in)
+        self.available_pane.cat_view.recommended_for_you_panel.connect(
+                        "recommendations-opt-out",
+                        self._on_recommendations_opt_out)
     
     #~ def on_installed_pane_created(self, widget):
         #~ pass
+        
+    def _on_recommendations_opt_in(self, recommender_uuid):
+        self.recommender_uuid = recommender_uuid
+    
+    def _on_recommendations_opt_out(self):
+        # if the user opts back out of the recommender service, we
+        # reset the UUID to indicate it
+        self.recommender_uuid = ""
     
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
@@ -1196,6 +1213,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         else:
             # initial default state is to add to launcher, per spec
             self.available_pane.add_to_launcher_enabled = True
+        if self.config.has_option("general", "recommender_uuid"):
+            self.recommender_uuid = self.config.get("general",
+                                                    "recommender_uuid")
 
     def save_state(self):
         LOG.debug("save_state")
@@ -1217,6 +1237,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.config.set("general", "add_to_launcher", "True")
         else:
             self.config.set("general", "add_to_launcher", "False")
+        self.config.set("general",
+                        "recommender_uuid",
+                        self.recommender_uuid)
         self.config.write()
 
     def run(self, args):

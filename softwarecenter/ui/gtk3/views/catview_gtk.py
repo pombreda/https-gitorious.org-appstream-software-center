@@ -19,8 +19,7 @@
 
 import cairo
 import gettext
-from gi.repository import Gtk
-from gi.repository import GObject
+from gi.repository import Gtk, GObject
 import logging
 import os
 import xapian

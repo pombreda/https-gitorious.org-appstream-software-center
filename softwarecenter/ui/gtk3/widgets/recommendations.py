@@ -17,7 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 import logging
 
 from gettext import gettext as _
@@ -26,6 +26,10 @@ from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.containers import (FramedHeaderBox,
                                                        FlowableGrid)
 from softwarecenter.db.categories import RecommendedForYouCategory
+from softwarecenter.backend.recagent import RecommenderAgent
+from softwarecenter.db.utils import get_installed_package_list
+from softwarecenter.utils import get_uuid
+from softwarecenter.config import get_config
 
 LOG = logging.getLogger(__name__)
 
@@ -35,19 +39,37 @@ class RecommendationsPanel(FramedHeaderBox):
     includes the initial opt-in screen and display of recommendations once they
     have been received from the recommender agent
     """
+    
+    __gsignals__ = {
+        "recommendations-opt-in" : (GObject.SIGNAL_RUN_LAST,
+                                    GObject.TYPE_NONE, 
+                                    (GObject.TYPE_STRING,),
+                                   ),
+        "recommendations-opt-out" : (GObject.SIGNAL_RUN_LAST,
+                                     GObject.TYPE_NONE, 
+                                     (),
+                                    ),
+        }
+        
     def __init__(self, catview):
         FramedHeaderBox.__init__(self)
         self.catview = catview
         self.set_header_label(_(u"Recommended for You"))
-                
-        if not self._is_opted_in():
+        
+        self.recommender_uuid = ""
+        # FIXME: probs should just pass this on in instead of reading config
+        config = get_config()
+        if config.has_option("general", "recommender_uuid"):
+            self.recommender_uuid = config.get("general",
+                                               "recommender_uuid") 
+        if not self.recommender_uuid:
             self._show_opt_in_view()
         else:
             self._update_recommended_for_you_content()
             
         self.add(self.recommended_for_you_content)
         self.header_implements_more_button()
-        
+
     def _show_opt_in_view(self):
         self.opt_in_vbox = Gtk.VBox(spacing=12)
         self.opt_in_button = Gtk.Button()
@@ -71,24 +93,44 @@ class RecommendationsPanel(FramedHeaderBox):
         self.recommended_for_you_content.add(self.opt_in_vbox)
         
     def _on_opt_in_button_clicked(self, button):
-        # TODO: we upload the user profile here, and only after this is finished
-        #       do we fire the request for recommendations and finally display
-        #       them here -- a spinner is shown for this process (the spec
-        #       wants a progress bar, but we don't have access to real-time
-        #       progress info)
-        # TODO: set and persist the opt-in state
+        # we upload the user profile here, and only after this is finished
+        # do we fire the request for recommendations and finally display
+        # them here -- a spinner is shown for this process (the spec
+        # wants a progress bar, but we don't have access to real-time
+        # progress info)
         self._upload_user_profile_and_get_recommendations()
         
     def _upload_user_profile_and_get_recommendations(self):
         # initiate upload of the user profile here
         self._upload_user_profile()
-        # after the user profile data has been uploaded, make the request
-        # and load the the recommended_for_you content
-        self._update_recommended_for_you_content()
         
     def _upload_user_profile(self):
         self.spinner.set_text(_("Submitting inventory…"))
         self.show_spinner()
+        self.recommender_uuid = get_uuid()
+        installed_pkglist = get_installed_package_list()
+        recommender_agent = RecommenderAgent()
+        recommender_agent.connect("submit-anon-profile",
+                                  self._on_anon_profile_submitted)
+        recommender_agent.connect("error",
+                                  self._on_anon_profile_submitted_error)
+        recommender_agent.query_submit_anon_profile(self.recommender_uuid, 
+                                                    installed_pkglist,
+                                                    None)
+                                                
+    def _on_anon_profile_submitted(self):
+        # after the user profile data has been uploaded, make the request
+        # and load the the recommended_for_you content
+        LOG.debug("The recommendations profile has been successfully "
+                  "submitted to the recommender agent")
+        self.emit("recommendations-opt-in", self.recommender_uuid)
+        self._update_recommended_for_you_content()
+        
+    def _on_anon_profile_submitted_error(self, agent, msg):
+        LOG.warn("Error while submitting the recommendations profile to the "
+                 "recommender agent: %s" % msg)
+        # TODO: handle this! display an error message in the panel
+        self._hide_recommended_for_you_panel()
         
     def _update_recommended_for_you_content(self):
         self.recommended_for_you_content = FlowableGrid()
