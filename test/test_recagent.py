@@ -9,6 +9,9 @@ setup_test_env()
 
 from softwarecenter.backend.recagent import RecommenderAgent
 
+from softwarecenter.utils import get_uuid
+recommender_uuid = get_uuid()
+
 class TestRecommenderAgent(unittest.TestCase):
     """ tests the recommender agent """
 
@@ -36,13 +39,38 @@ class TestRecommenderAgent(unittest.TestCase):
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
         
+    def test_recagent_query_submit_profile(self):
+        # NOTE: This requires a working recommender host that is reachable
+        os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
+        recommender_agent = RecommenderAgent()
+        recommender_agent.connect("submit-profile", self.on_query_done)
+        recommender_agent.connect("error", self.on_query_error)
+        recommender_agent.query_submit_profile(data=["pitivi", "fretsonfire"])
+        self.loop.run()
+        self.assertFalse(self.error)
+        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
+        
+    def test_recagent_query_submit_anon_profile(self):
+        # NOTE: This requires a working recommender host that is reachable
+        os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
+        recommender_agent = RecommenderAgent()
+        recommender_agent.connect("submit-anon-profile", self.on_query_done)
+        recommender_agent.connect("error", self.on_query_error)
+        recommender_agent.query_submit_anon_profile(
+                uuid=recommender_uuid,
+                installed_packages=["pitivi", "fretsonfire"],
+                extra="")
+        self.loop.run()
+        self.assertFalse(self.error)
+        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
+        
     def disabled_test_recagent_query_profile(self):
         # NOTE: This requires a working recommender host that is reachable
         os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
         recommender_agent = RecommenderAgent()
         recommender_agent.connect("profile", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
-        recommender_agent.query_profile(["pitivi", "fretsonfire"])
+        recommender_agent.query_profile(pkgnames=["pitivi", "fretsonfire"])
         self.loop.run()
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
