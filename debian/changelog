@@ -24,6 +24,9 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * lp:~mvo/software-center/screenshots-sorting:
     - ensure the multiple screenshots are sorted properly when
       they come from the json API
+  * lp:~mvo/software-center/sca-video-updates:
+    - update the client to follow the server side changes for
+      videos from software-center-agent
 
   [ Kiwinote ]
   * data/ui/gtk3/css/*.css:
@@ -36,7 +39,7 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/import-latest-sreclient:
     - import latest recommender client 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 10 Feb 2012 19:01:58 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 13 Feb 2012 11:38:19 -0500
 
 software-center (5.1.8) precise; urgency=low
 
