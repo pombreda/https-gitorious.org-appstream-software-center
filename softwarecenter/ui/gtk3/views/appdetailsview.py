@@ -64,6 +64,8 @@ from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotGallery
 from softwarecenter.ui.gtk3.widgets.videoplayer import VideoPlayer
 from softwarecenter.ui.gtk3.widgets.weblivedialog import (
                                     ShowWebLiveServerChooserDialog)
+from softwarecenter.ui.gtk3.widgets.recommendations import (
+                                            RecommendationsPanelDetails)
 from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 
 import softwarecenter.ui.gtk3.dialogs as dialogs
@@ -1195,6 +1197,9 @@ class AppDetailsView(Viewport):
 
         self.addons_hbar = self._hbars[1]
         info_vb.pack_start(self.addons_hbar, False, False, StockEms.SMALL)
+        
+        # recommendations panel
+        self.recommended_for_app_panel = RecommendationsPanelDetails()
 
         # package info
         self.info_keys = []

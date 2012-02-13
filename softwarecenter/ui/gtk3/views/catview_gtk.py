@@ -37,9 +37,9 @@ from softwarecenter.ui.gtk3.widgets.viewport import Viewport
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, FramedBox, FlowableGrid)
 from softwarecenter.ui.gtk3.widgets.recommendations import (
-    RecommendationsPanelLobby)
+                                        RecommendationsPanelLobby)
 from softwarecenter.ui.gtk3.widgets.exhibits import (
-    ExhibitBanner, FeaturedExhibit)
+                                        ExhibitBanner, FeaturedExhibit)
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
