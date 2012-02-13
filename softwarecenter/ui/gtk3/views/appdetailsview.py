@@ -37,6 +37,7 @@ from softwarecenter.netstatus import (NetState, get_network_watcher,
 from softwarecenter.db.application import Application
 from softwarecenter.db import DebFileApplication
 from softwarecenter.backend.reviews import ReviewStats
+from softwarecenter.backend.recagent import RecommenderAgent
 #from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import (AppActions, 
                                   PkgStates,
@@ -803,6 +804,9 @@ class AppDetailsView(Viewport):
         self._reviews_server_language = None
         self._reviews_relaxed = False
         self._review_sort_method = 0
+        
+        # recommendations
+        self.recommender_agent = RecommenderAgent()
         
         # switches
         self._show_overlay = False
