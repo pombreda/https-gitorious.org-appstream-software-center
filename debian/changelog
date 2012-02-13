@@ -1,3 +1,10 @@
+software-center (5.1.8.1ubuntu1) oneiric; urgency=low
+
+  * softwarecenter/backend/launchpad.py:
+    - replaced EDGE_SERVICE_ROOT with LPNET_SERVICE_ROOT. (LP: #737697)
+
+ -- Juhana Jauhiainen <juhana.jauhiainen@gmail.com>  Mon, 13 Feb 2012 21:53:46 +0200
+
 software-center (5.1.8.1) UNRELEASED; urgency=low
 
   [ Gabor Kelemen ]  
