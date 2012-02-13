@@ -25,7 +25,6 @@ from gettext import gettext as _
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.containers import (FramedHeaderBox,
                                                        FlowableGrid)
-from softwarecenter.ui.gtk3.widgets.buttons import FeaturedTile
 from softwarecenter.db.categories import RecommendedForYouCategory
 
 LOG = logging.getLogger(__name__)
