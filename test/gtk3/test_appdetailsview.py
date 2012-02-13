@@ -434,6 +434,32 @@ class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
             self.assertEqual(
                 [method_name],
                 all_method_calls)
+                
+class AppRecommendationsTestCase(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        # Set these as class attributes as we don't modify either
+        # during the tests.
+        cls.win = get_test_window_appdetails()
+        cls.view = cls.win.get_data("view")
+
+    @classmethod
+    def tearDownClass(cls):
+        GObject.timeout_add(TIMEOUT, lambda: cls.win.destroy())
+        Gtk.main()
+
+    def setUp(self):
+        app = Application("", "pitivi")
+        self.app_mock = get_mock_app_from_real_app(app)
+        self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
+
+    def test_show_recommendations_for_app(self):
+        self.view.show_app(self.app_mock)
+        do_events()
+        # trivial first test, check for a recommender agent
+        self.assertTrue(self.view.recommender_agent is not None)
+
 
 
 if __name__ == "__main__":
