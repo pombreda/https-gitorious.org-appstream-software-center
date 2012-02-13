@@ -37,9 +37,10 @@ class RecommendationsPanel(FramedHeaderBox):
     """
     Base class for widgets that display recommendations
     """
-    def __init__(self, catview):
+    def __init__(self):
         FramedHeaderBox.__init__(self)
-        self.catview = catview
+        
+        self.recommender_agent = RecommenderAgent()
         
         self.recommender_uuid = ""
         # FIXME: probs should just pass this on in instead of reading config
@@ -68,7 +69,8 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         }
         
     def __init__(self, catview):
-        RecommendationsPanel.__init__(self, catview)
+        RecommendationsPanel.__init__(self)
+        self.catview = catview
         self.set_header_label(_(u"Recommended for You"))
         
         if not self.recommender_uuid:
@@ -118,12 +120,11 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self.show_spinner()
         self.recommender_uuid = get_uuid()
         installed_pkglist = get_installed_package_list()
-        recommender_agent = RecommenderAgent()
-        recommender_agent.connect("submit-anon-profile",
+        self.recommender_agent.connect("submit-anon-profile",
                                   self._on_anon_profile_submitted)
-        recommender_agent.connect("error",
+        self.recommender_agent.connect("error",
                                   self._on_anon_profile_submitted_error)
-        recommender_agent.query_submit_anon_profile(self.recommender_uuid, 
+        self.recommender_agent.query_submit_anon_profile(self.recommender_uuid, 
                                                     installed_pkglist,
                                                     None)
                                                 
