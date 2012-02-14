@@ -13,7 +13,7 @@ setup_test_env()
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.utils import ExecutionTime
 
-class testAptCache(unittest.TestCase):
+class TestAptCache(unittest.TestCase):
 
     def test_open_aptcache(self):
         # mvo: for the performance, its critical to have a 
@@ -33,6 +33,14 @@ class testAptCache(unittest.TestCase):
         with ExecutionTime("plain apt: apt.Cache(memonly=True)"):
             self.cache = apt.Cache(memonly=True)
 
+    def test_get_total_size(self):
+        cache = get_pkg_info()
+        pkgname = "software-center"
+        addons_to_install = addons_to_remove = []
+        archive_suite = ""
+        cache.get_total_size_on_install(
+            pkgname, addons_to_install, addons_to_remove, archive_suite)
+        
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
