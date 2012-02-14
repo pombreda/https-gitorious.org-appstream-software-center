@@ -156,7 +156,7 @@ class Distro(object):
 
 def _get_distro():
     distro_info = platform.linux_distribution()
-    distro_id = distro_info[0]
+    distro_id = distro_info[0].strip()
     LOG.debug("get_distro: '%s'", distro_id)
     # start with a import, this gives us only a softwarecenter module
     module =  __import__(distro_id, globals(), locals(), [], -1)
