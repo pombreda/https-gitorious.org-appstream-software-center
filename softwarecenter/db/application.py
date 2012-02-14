@@ -719,8 +719,7 @@ class AppDetails(GObject.GObject):
         if archive_suite:
             # add not-automatic suite to app
             for ver in self._pkg.versions:
-                if (ver.not_automatic and 
-                    archive_suite in [origin.archive for origin in ver.origins]):
+                if archive_suite in [origin.archive for origin in ver.origins]:
                     self._app.archive_suite = archive_suite
                     return True
             # no suitable archive found
