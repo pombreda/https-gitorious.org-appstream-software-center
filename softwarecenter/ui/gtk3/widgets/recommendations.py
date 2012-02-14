@@ -226,7 +226,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
             self.app_recommendations_content.show_all()
             self.show_content()
         else:
-            self._hide_app_recommendations()
+            self._hide_app_recommendations_panel()
         return
         
     def _on_recommender_agent_error(self, agent, msg):
