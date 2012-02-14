@@ -210,7 +210,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
     def _get_recommendations_for_app(self, pkgname):
         self.recommender_agent.query_recommend_app(pkgname)
         
-    def _on_app_recommendations(self, agent, data):
+    def _on_app_recommendations(self, data):
         print ">>> on_app_recommendations returned: ", data
     
     def _on_app_recommendations_error(self, agent, msg):
