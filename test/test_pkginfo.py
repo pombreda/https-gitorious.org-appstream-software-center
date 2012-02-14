@@ -7,7 +7,7 @@ import logging
 import time
 import unittest
 
-from mock import Mock,patch
+from mock import patch
 
 from testutils import setup_test_env
 setup_test_env()
@@ -47,7 +47,7 @@ class TestAptCache(unittest.TestCase):
         addons_to_install = addons_to_remove = []
         archive_suite = "foo"
         with patch.object(cache, "_set_candidate_release") as f_mock:
-            res = cache.get_total_size_on_install(
+            cache.get_total_size_on_install(
                 pkg.name, addons_to_install, addons_to_remove, archive_suite)
             # ensure it got called with the right arguments
             f_mock.assert_called_with(pkg, archive_suite)

@@ -297,7 +297,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         """ queue a list of packages for removal  """
         if metadatas == None:
             metadatas = []
-            for item in pkgnames:
+            for item in apps:
                 metadatas.append(None)
         for app, iconname, metadata in zip(apps, iconnames, metadatas):
             yield self.remove(app, iconname, metadata)
@@ -337,9 +337,9 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         """ queue a list of packages for install  """
         if metadatas == None:
             metadatas = []
-            for item in pkgnames:
+            for item in apps:
                 metadatas.append(None)
-        for app, iconname, metadata in zip(pkgnames, appnames, iconnames, metadatas):
+        for app, iconname, metadata in zip(apps, iconnames, metadatas):
             yield self.install(app, iconname, metadata=metadata)
             
     @inline_callbacks
