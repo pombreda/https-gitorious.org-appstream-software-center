@@ -120,15 +120,15 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self.show_spinner()
         self.recommender_uuid = get_uuid()
         installed_pkglist = get_installed_package_list()
-        self.recommender_agent.connect("submit-anon-profile",
-                                  self._on_anon_profile_submitted)
+        self.recommender_agent.connect("submit-profile",
+                                  self._on_profile_submitted)
         self.recommender_agent.connect("error",
-                                  self._on_anon_profile_submitted_error)
-        self.recommender_agent.query_submit_anon_profile(self.recommender_uuid, 
-                                                    installed_pkglist,
-                                                    None)
+                                  self._on_profile_submitted_error)
+        self.recommender_agent.query_submit_profile(
+                self._generate_submit_profile_data(self.recommender_uuid, 
+                                                   installed_pkglist))
                                                 
-    def _on_anon_profile_submitted(self):
+    def _on_profile_submitted(self):
         # after the user profile data has been uploaded, make the request
         # and load the the recommended_for_you content
         LOG.debug("The recommendations profile has been successfully "
@@ -136,7 +136,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self.emit("recommendations-opt-in", self.recommender_uuid)
         self._update_recommended_for_you_content()
         
-    def _on_anon_profile_submitted_error(self, agent, msg):
+    def _on_profile_submitted_error(self, agent, msg):
         LOG.warn("Error while submitting the recommendations profile to the "
                  "recommender agent: %s" % msg)
         # TODO: handle this! display an error message in the panel
@@ -180,6 +180,17 @@ class RecommendationsPanelLobby(RecommendationsPanel):
     def _hide_recommended_for_you_panel(self):
         # and hide the pane
         self.hide()
+        
+    def _generate_submit_profile_data(self,
+                                      recommender_uuid,
+                                      package_list):
+        submit_profile_data = [
+            {
+                'uuid': recommender_uuid, 
+                'package_list': package_list
+            }
+        ]
+        return submit_profile_data
         
 class RecommendationsPanelDetails(RecommendationsPanel):
     """
