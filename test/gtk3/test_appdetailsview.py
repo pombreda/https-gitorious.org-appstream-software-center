@@ -450,15 +450,29 @@ class AppRecommendationsTestCase(unittest.TestCase):
         Gtk.main()
 
     def setUp(self):
+        self.loop = GObject.MainLoop(GObject.main_context_default())
+        self.error = False
         app = Application("", "pitivi")
         self.app_mock = get_mock_app_from_real_app(app)
         self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
+        
+    def on_query_done(self, recagent, data):
+        print "query done, data: '%s'" % data
+        self.loop.quit()
+        
+    def on_query_error(self, recagent, error):
+        print "query error received: ", error
+        self.loop.quit()
+        self.error = True
 
     def test_show_recommendations_for_app(self):
         self.view.show_app(self.app_mock)
         do_events()
-        self.assertTrue(self.view.recommended_for_app_panel is not None)
+        self.view.recommended_for_app_panel.recommender_agent.connect("recommend-app", self.on_query_done)
+        self.view.recommended_for_app_panel.recommender_agent.connect("error", self.on_query_error)
         self.view.recommended_for_app_panel._get_recommendations_for_app("pitivi")
+        self.loop.run()
+        self.assertFalse(self.error)
 
 
 
