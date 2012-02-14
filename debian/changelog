@@ -1,3 +1,4 @@
+
 software-center (5.1.8.1) UNRELEASED; urgency=low
 
   [ Gabor Kelemen ]  
@@ -38,6 +39,10 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
       service 
   * lp:~gary-lasker/software-center/import-latest-sreclient:
     - import latest recommender client 
+  
+  [ Juhana Jauhiainen ]
+  * softwarecenter/backend/launchpad.py:
+    - replaced EDGE_SERVICE_ROOT with LPNET_SERVICE_ROOT. (LP: #737697)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 13 Feb 2012 11:38:19 -0500
 
