@@ -842,6 +842,10 @@ class AppDetailsView(Viewport):
         self.addons_statusbar.button_apply.set_sensitive(sensitive)
         self.addons_statusbar.button_cancel.set_sensitive(sensitive)
         return
+        
+    def _update_recommendations(self, pkgname):
+        # recommendations panel
+        self.recommended_for_app_panel = RecommendationsPanelDetails(pkgname)
 
     # FIXME: should we just this with _check_for_reviews?
     def _update_reviews(self, app_details):
@@ -1194,9 +1198,6 @@ class AppDetailsView(Viewport):
         self.addons_hbar = self._hbars[1]
         info_vb.pack_start(self.addons_hbar, False, False, StockEms.SMALL)
         
-        # recommendations panel
-        self.recommended_for_app_panel = RecommendationsPanelDetails()
-
         # package info
         self.info_keys = []
 
@@ -1471,6 +1472,7 @@ class AppDetailsView(Viewport):
             self.totalsize_info.set_value(_("Calculating..."))
             GObject.idle_add(self.update_totalsize,
                              priority=GObject.PRIORITY_LOW)
+        self._update_recommendations(app_details.pkgname)
         self._update_reviews(app_details)
 
         # show where it is
