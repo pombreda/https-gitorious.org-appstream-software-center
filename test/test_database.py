@@ -57,12 +57,13 @@ class TestDatabase(unittest.TestCase):
         details._pkg.installed = Mock()
         details._pkg.installed.version  = "2.0"
         self.assertEqual(details.version, "2.0")
+        v0 = { "version" : None, }
         v1 = { "version" : "1.0", }
         v2 = { "version" : "2.0", }
         v3 = { "version" : "3.0", }
-        screenshots_list = [ v1, v2, v3 ]
+        screenshots_list = [ v0, v1, v2, v3 ]
         res = details._sort_screenshots_by_best_version(screenshots_list)
-        self.assertEqual(res, [ v2, v1 ])
+        self.assertEqual(res, [ v2, v1, v0 ])
 
 
     def test_update_from_desktop_file(self):

@@ -590,14 +590,16 @@ class AppDetails(GObject.GObject):
             and sort it
         """
         my_version = self.version
-        # remove all versions we don't have
+        # discard screenshots which are more recent than the available version
         for item in screenshot_list[:]:
-            if version_compare(my_version, item["version"]) < 0:
+            v = item['version']
+            if v and version_compare(my_version, v) < 0:
                 screenshot_list.remove(item)
         # now sort from high to low
         return sorted(
             screenshot_list, 
-            cmp=lambda a,b: version_compare(a["version"], b["version"]),
+            cmp=lambda a,b: version_compare(a["version"] or '', 
+                                            b["version"] or ''),
             reverse=True)
 
     def _gio_screenshots_json_download_complete_cb(self, source, result, path):

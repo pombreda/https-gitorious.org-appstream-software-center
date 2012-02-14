@@ -258,23 +258,23 @@ class PackageStatusBar(StatusBar):
         #         are managed centrally:  button text, button sensitivity,
         #         and the associated callback.
         if state == PkgStates.INSTALLING:
-            self.set_label(_('Installing...'))
+            self.set_label(_(u'Installing\u2026'))
             self.button.set_sensitive(False)
         elif state == PkgStates.INSTALLING_PURCHASED:
             self.set_label(_(u'Installing purchase\u2026'))
             self.button.hide()
             self.progress.show()
         elif state == PkgStates.REMOVING:
-            self.set_label(_('Removing...'))
+            self.set_label(_(u'Removing\u2026'))
             self.button.set_sensitive(False)
         elif state == PkgStates.UPGRADING:
-            self.set_label(_('Upgrading...'))
+            self.set_label(_(u'Upgrading\u2026'))
             self.button.set_sensitive(False)
         elif state == PkgStates.INSTALLED or state == PkgStates.REINSTALLABLE:
             #special label only if the app being viewed is software centre itself
             self.installed_icon.show()
             if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
-                self.set_label(_("Installed (you're using it right now)"))
+                self.set_label(_(u'Installed (you\u2019re using it right now)'))
             else:
                 if app_details.purchase_date:
                     # purchase_date is a string, must first convert to 
@@ -338,7 +338,7 @@ class PackageStatusBar(StatusBar):
             #special label only if the app being viewed is software centre
             # itself
             if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
-                self.set_label(_("Removed (close it and it'll be gone)"))
+                self.set_label(_(u'Removed (close it and it\u2019ll be gone)'))
             else:
                 # TRANSLATORS: Free here means Gratis
                 self.set_label(_("Free"))
@@ -1165,8 +1165,12 @@ class AppDetailsView(Viewport):
 
         # video
         from softwarecenter.ui.gtk3.widgets.videoplayer import VideoPlayer
+        mini_hb = Gtk.HBox()
         self.videoplayer = VideoPlayer()
-        vb.pack_start(self.videoplayer, False, False, 0)
+        mini_hb.pack_start(self.videoplayer, False, False, 0)
+        # add a empty label here to ensure bg is set properly
+        mini_hb.pack_start(Gtk.Label(), True, True, 0)
+        vb.pack_start(mini_hb, False, False, 0)
 
         # add the links footer to the description widget
         footer_hb = Gtk.HBox(spacing=6)
@@ -1933,11 +1937,8 @@ class AppDetailsView(Viewport):
             remove_size = GLib.format_size(-total_install_size)
             label_string += _("%s to be freed") % (remove_size)
         
-        if label_string == "":
-            self.totalsize_info.set_value(_("Unknown"))
-        else:
-            self.totalsize_info.set_value(label_string)
-#            self.totalsize_info.show_all()
+        self.totalsize_info.set_value(label_string or _("Unknown"))
+#        self.totalsize_info.show_all()
         return False
 
     def set_section(self, section):
