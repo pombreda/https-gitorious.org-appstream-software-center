@@ -162,6 +162,44 @@ class RecommendedForYouCategory(Category):
         LOG.warn("Error while accessing the recommender service: %s" 
                                                             % msg)
         self.emit("recommender-agent-error", msg)
+        
+class AppRecommendationsCategory(Category):
+
+    __gsignals__ = {
+        "needs-refresh" : (GObject.SIGNAL_RUN_LAST,
+                           GObject.TYPE_NONE, 
+                           (),
+                          ),
+        "recommender-agent-error" : (GObject.SIGNAL_RUN_LAST,
+                                     GObject.TYPE_NONE, 
+                                     (GObject.TYPE_STRING,),
+                                    ),
+        }
+
+    def __init__(self, pkgname):
+        super(AppRecommendationsCategory, self).__init__(
+            u"People Also Installed", _("People Also Installed"), None, 
+            xapian.Query(),flags=['available-only', 'not-installed-only'], 
+            item_limit=4)
+        self.recommender_agent = RecommenderAgent()
+        self.recommender_agent.connect(
+            "recommend-app", self._recommend_app_result)
+        self.recommender_agent.connect(
+            "error", self._recommender_agent_error)
+        self.recommender_agent.query_recommend_app(pkgname)
+
+    def _recommend_app_result(self, recommender_agent, result_list):
+        pkgs = []
+        print ">>> result_list", result_list
+        for item in result_list['recommendations']:
+            pkgs.append(item['package_name'])
+        self.query = get_query_for_pkgnames(pkgs)
+        self.emit("needs-refresh")
+
+    def _recommender_agent_error(self, recommender_agent, msg):
+        LOG.warn("Error while accessing the recommender service: %s" 
+                                                            % msg)
+        self.emit("recommender-agent-error", msg)
 
 class CategoriesParser(object):
     """ 
