@@ -1,4 +1,3 @@
-
 software-center (5.1.8.1) UNRELEASED; urgency=low
 
   [ Gabor Kelemen ]  
@@ -32,6 +31,8 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   [ Kiwinote ]
   * data/ui/gtk3/css/*.css:
     - use 'px' suffixes as required by latest gtk
+  * softwarecenter/ui/gtk3/views/appdetailsview.py:
+    - replace ... and ' with their unicode eequivalents (LP: #844799)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/recommender-service-url:
@@ -44,7 +45,7 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * softwarecenter/backend/launchpad.py:
     - replaced EDGE_SERVICE_ROOT with LPNET_SERVICE_ROOT. (LP: #737697)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 13 Feb 2012 11:38:19 -0500
+ -- Kiwinote <kiwinote@gmail.com>  Mon, 13 Feb 2012 16:31:36 +0000
 
 software-center (5.1.8) precise; urgency=low
 
