@@ -213,7 +213,8 @@ class TestDatabase(unittest.TestCase):
         self.assertNotEqual(appdetails.pkg, None)
         # from the fake test/data/appdetails/var/lib/dpkg/status
         self.assertEqual(appdetails.pkg.is_installed, True)
-        self.assertEqual(appdetails.pkg_state, PkgStates.INSTALLED)
+        self.assertTrue(appdetails.pkg_state in (PkgStates.INSTALLED,
+                                                 PkgStates.UPGRADABLE))
         # FIXME: test description for unavailable pkg
         self.assertTrue(
             appdetails.description.startswith("Ubuntu Software Center lets you"))
@@ -268,7 +269,8 @@ class TestDatabase(unittest.TestCase):
         # FIXME: this will only work if software-center is installed
         app = Application("Ubuntu Software Center Test", "software-center")
         appdetails = app.get_details(db)
-        self.assertEqual(appdetails.pkg_state, PkgStates.INSTALLED)
+        self.assertTrue(appdetails.pkg_state in (PkgStates.INSTALLED,
+                                                  PkgStates.UPGRADABLE))
         # test PkgStates.UNINSTALLED
         # test PkgStates.UPGRADABLE
         # test PkgStates.REINSTALLABLE
