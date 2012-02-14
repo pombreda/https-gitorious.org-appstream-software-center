@@ -202,6 +202,9 @@ class RecommendationsPanelDetails(RecommendationsPanel):
         self.pkgname = pkgname
         self.set_header_label(_(u"People Also Installed"))
         
+        self._update_app_recommendations_content()
+        self.add(self.app_recommendations_content)
+        
     def _update_app_recommendations_content(self):
         self.app_recommendations_content = FlowableGrid()
         self.spinner.set_text(_("Receiving recommendations…"))
@@ -216,18 +219,13 @@ class RecommendationsPanelDetails(RecommendationsPanel):
         
     def _on_app_recommendations_agent_refresh(self, cat):
         docs = cat.get_documents(self.catview.db)
-        # display the recommendedations
+        # display the recommendations
         if len(docs) > 0:
             self.catview._add_tiles_to_flowgrid(docs,
                                         self.app_recommendations_content, 8)
             self.app_recommendations_content.show_all()
             self.show_content()
-            self.more.connect('clicked',
-                              self.catview.on_category_clicked,
-                              cat)
         else:
-            # TODO: this test for zero docs is temporary and will not be
-            # needed once the recommendation agent is up and running
             self._hide_app_recommendations()
         return
         
