@@ -753,6 +753,7 @@ class AppDetailsView(Viewport):
         self.cache.connect("cache-ready", self._on_cache_ready)
         self.connect("destroy", self._on_destroy)
         self.datadir = datadir
+        self.pane = pane
         self.app = None
         self.appdetails = None
         self.addons_to_install = []
@@ -764,7 +765,6 @@ class AppDetailsView(Viewport):
         self.set_shadow_type(Gtk.ShadowType.NONE)
         self.set_name("view")
 
-        self._pane = pane
         self.section = None
         # app specific data
         self.app = None
@@ -846,7 +846,9 @@ class AppDetailsView(Viewport):
         
     def _update_recommendations(self, pkgname):
         # recommendations panel
-        self.recommended_for_app_panel = RecommendationsPanelDetails(pkgname)
+        self.recommended_for_app_panel = RecommendationsPanelDetails(
+                                                    self.pane.cat_view,
+                                                    pkgname)
 
     # FIXME: should we just this with _check_for_reviews?
     def _update_reviews(self, app_details):
@@ -2001,11 +2003,19 @@ def get_test_window_appdetails():
 
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
+    
+    from mock import Mock
+    pane = Mock()
+    # need a catview to test the recommendations panel
+    from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
+    catview_win = get_test_window_catview()
+    catview = catview_win.get_data("lobby")
+    pane.catview = catview
 
     # gui
     win = Gtk.Window()
     scroll = Gtk.ScrolledWindow()
-    view = AppDetailsView(db, distro, icons, cache, datadir, win)
+    view = AppDetailsView(db, distro, icons, cache, datadir, pane)
 
     import sys
     if len(sys.argv) > 1:

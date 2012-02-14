@@ -25,7 +25,8 @@ from gettext import gettext as _
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.containers import (FramedHeaderBox,
                                                        FlowableGrid)
-from softwarecenter.db.categories import RecommendedForYouCategory
+from softwarecenter.db.categories import (RecommendedForYouCategory,
+                                          AppRecommendationsCategory)
 from softwarecenter.backend.recagent import RecommenderAgent
 from softwarecenter.db.utils import get_installed_package_list
 from softwarecenter.utils import get_uuid
@@ -200,11 +201,6 @@ class RecommendationsPanelDetails(RecommendationsPanel):
         RecommendationsPanel.__init__(self, catview)
         self.pkgname = pkgname
         self.set_header_label(_(u"People Also Installed"))
-        
-        self.recommender_agent.connect("recommend-app",
-                                       self._on_app_recommendations)
-        self.recommender_agent.connect("error",
-                                       self._on_app_recommendations_error)
         
     def _update_app_recommendations_content(self):
         self.app_recommendations_content = FlowableGrid()

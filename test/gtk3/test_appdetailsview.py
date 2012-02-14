@@ -469,7 +469,7 @@ class AppRecommendationsTestCase(unittest.TestCase):
     def test_show_recommendations_for_app(self, mock_query):
         self.view.show_app(self.app_mock)
         do_events()
-        self.view.recommended_for_app_panel._update_app_recommendations_content(self.app_mock.pkgname)
+        self.view.recommended_for_app_panel._update_app_recommendations_content()
         do_events()
 #        from softwarecenter.testutils import make_recommend_app_data
 #        self.view.recommended_for_app_panel._on_app_recommendations(make_recommend_app_data())
