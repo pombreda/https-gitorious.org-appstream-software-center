@@ -51,20 +51,20 @@ class TestRecommenderAgent(unittest.TestCase):
         self.assertFalse(self.error)
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
         
-    def disabled_test_recagent_query_submit_anon_profile(self):
-        # NOTE: This requires a working recommender host that is reachable
-        if not "SOFTWARE_CENTER_RECOMMENDER_HOST" in os.environ:
-            os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
-        recommender_agent = RecommenderAgent()
-        recommender_agent.connect("submit-anon-profile", self.on_query_done)
-        recommender_agent.connect("error", self.on_query_error)
-        recommender_agent.query_submit_anon_profile(
-                uuid=recommender_uuid,
-                installed_packages=["pitivi", "fretsonfire"],
-                extra="")
-        self.loop.run()
-        self.assertFalse(self.error)
-        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
+#    def disabled_test_recagent_query_submit_anon_profile(self):
+#        # NOTE: This requires a working recommender host that is reachable
+#        if not "SOFTWARE_CENTER_RECOMMENDER_HOST" in os.environ:
+#            os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
+#        recommender_agent = RecommenderAgent()
+#        recommender_agent.connect("submit-anon-profile", self.on_query_done)
+#        recommender_agent.connect("error", self.on_query_error)
+#        recommender_agent.query_submit_anon_profile(
+#                uuid=recommender_uuid,
+#                installed_packages=["pitivi", "fretsonfire"],
+#                extra="")
+#        self.loop.run()
+#        self.assertFalse(self.error)
+#        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
         
     def disabled_test_recagent_query_profile(self):
         # NOTE: This requires a working recommender host that is reachable

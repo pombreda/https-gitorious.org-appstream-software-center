@@ -11,7 +11,7 @@ setup_test_env()
 from mock import Mock, patch
 
 from softwarecenter.db.application import Application
-from softwarecenter.testutils import get_mock_app_from_real_app, do_events
+from softwarecenter.testutils import get_mock_app_from_real_app, do_events, make_recommend_app_data
 from softwarecenter.ui.gtk3.widgets.labels import HardwareRequirementsBox
 from softwarecenter.ui.gtk3.views.appdetailsview import get_test_window_appdetails
 from softwarecenter.enums import PkgStates
@@ -471,6 +471,10 @@ class AppRecommendationsTestCase(unittest.TestCase):
         do_events()
         self.view.recommended_for_app_panel._update_app_recommendations_content()
         do_events()
+        # we fake the callback from the agent here
+        self.view.recommended_for_app_panel.app_recommendations_cat._recommend_app_result(
+                                None,
+                                make_recommend_app_data())
 #        from softwarecenter.testutils import make_recommend_app_data
 #        self.view.recommended_for_app_panel._on_app_recommendations(make_recommend_app_data())
 
