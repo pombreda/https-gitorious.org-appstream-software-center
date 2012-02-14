@@ -267,7 +267,6 @@ class MultipleVersionsTestCase(unittest.TestCase):
         self.assertEqual(text, "v5.0 (default)")
 
     def test_combo_multiple_versions(self):
-        # ensure we have the button
         self.app_mock.details.get_not_automatic_archive_versions = lambda: [
             ("5.0",  ""),
             ("12.0", "precise-backports") 
@@ -281,6 +280,20 @@ class MultipleVersionsTestCase(unittest.TestCase):
             self.app_mock.details.force_not_automatic_archive_suite.called)
         call_args = self.app_mock.details.force_not_automatic_archive_suite.call_args
         self.assertEqual(call_args, (("precise-backports",), {}))
+
+    def test_installed_multiple_version_default(self):
+        self.app_mock.details.get_not_automatic_archive_versions = lambda: [
+            ("5.0",  ""),
+            ("12.0", "precise-backports") 
+            ]
+        self.app_mock.details.pkg_state = PkgStates.INSTALLED
+        self.app_mock.version = "12.0"
+        self.view.show_app(self.app_mock)
+        active = self.view.pkg_statusbar.combo_multiple_versions.get_active_text()
+        print active
+        # ensure that the combo points to "precise-backports"
+        self.assertEqual(active, "v12.0 (precise-backports)")
+        
 
 
 class HardwareRequirementsTestCase(unittest.TestCase):
