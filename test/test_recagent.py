@@ -127,7 +127,8 @@ class TestRecommenderAgent(unittest.TestCase):
         del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
         
     def test_recagent_query_error(self):
-        # forces an error 'cuz there definitely ain't a server here!!
+        # NOTE: This tests the error condition itself! it simply forces an error
+        #       'cuz there definitely isn't a server here  :)
         os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://orange.staging.ubuntu.com"
         recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-top", self.on_query_done)
