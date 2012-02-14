@@ -708,7 +708,7 @@ class AppDetails(GObject.GObject):
         # always pick the default too
         if archive_suites:
             archive_suites.insert(0, (self._pkg.candidate.version, 
-                                      v.origins[0].archive))
+                                      self._pkg.candidate.origins[0].archive))
         return archive_suites
 
     def force_not_automatic_archive_suite(self, archive_suite):

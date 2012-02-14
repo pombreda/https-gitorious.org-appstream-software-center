@@ -260,6 +260,8 @@ class PackageStatusBar(StatusBar):
         not_automatic_suites = self.app_details.get_not_automatic_archive_versions()
         # populat the combobox if 
         if not_automatic_suites:
+            combo = self.combo_multiple_versions
+            combo.disconnect_by_func(self._on_combo_multiple_versions_changed)
             model = self.combo_multiple_versions.get_model()
             model.clear()
             for i, archive_suite in enumerate(not_automatic_suites):
@@ -279,6 +281,7 @@ class PackageStatusBar(StatusBar):
             if self.combo_multiple_versions.get_active_iter() is None:
                 self.combo_multiple_versions.set_active(0)
             self.combo_multiple_versions.show()
+            combo.connect("changed", self._on_combo_multiple_versions_changed)
         else:
             self.combo_multiple_versions.hide()
 
