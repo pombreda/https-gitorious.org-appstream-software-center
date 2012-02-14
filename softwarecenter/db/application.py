@@ -707,8 +707,15 @@ class AppDetails(GObject.GObject):
         # if we have a not automatic version, ensure that the user can
         # always pick the default too
         if archive_suites:
-            archive_suites.insert(0, (self._pkg.candidate.version, 
-                                      self._pkg.candidate.origins[0].archive))
+            # get candidate
+            ver = self._pkg.candidate
+            # if the candidate is the not-automatic version, find the first
+            # non-not-automatic one
+            if ver.not_automatic:
+                for ver in sorted(self._pkg.versions, reverse=True):
+                    if ver.downloadable and not ver.not_automatic:
+                        break
+            archive_suites.insert(0, (ver.version, ver.origins[0].archive))
         return archive_suites
 
     def force_not_automatic_archive_suite(self, archive_suite):
