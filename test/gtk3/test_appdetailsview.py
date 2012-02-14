@@ -288,12 +288,19 @@ class MultipleVersionsTestCase(unittest.TestCase):
             ]
         self.app_mock.details.pkg_state = PkgStates.INSTALLED
         self.app_mock.details.version = "12.0"
+        self.app_mock.details.force_not_automatic_archive_suite = Mock()
         self.view.show_app(self.app_mock)
         active = self.view.pkg_statusbar.combo_multiple_versions.get_active_text()
         # ensure that the combo points to "precise-backports"
         self.assertEqual(active, "v12.0 (precise-backports)")
+        # now change the installed version from 12.0 to 5.0
+        self.view.pkg_statusbar.combo_multiple_versions.set_active(0)
+        # ensure that now the default version is forced
+        self.assertTrue(
+            self.app_mock.details.force_not_automatic_archive_suite.called)
+        call_args = self.app_mock.details.force_not_automatic_archive_suite.call_args
+        self.assertEqual(call_args, (("",), {}))
         
-
 
 class HardwareRequirementsTestCase(unittest.TestCase):
     

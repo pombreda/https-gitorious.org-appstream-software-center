@@ -270,7 +270,6 @@ class PackageStatusBar(StatusBar):
                 s = "v%s (%s)" % (upstream_version(ver),
                                   archive_suite or _("default"))
                 model.append( (s, archive_suite) )
-                print "app_version: ", app_version, ver
                 if app_version == ver:
                     self.combo_multiple_versions.set_active(i)
             # if nothing is found, set to default
