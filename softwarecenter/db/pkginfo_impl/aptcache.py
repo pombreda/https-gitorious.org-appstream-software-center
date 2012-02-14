@@ -508,9 +508,20 @@ class AptCache(PackageInfo):
             if change != pkg.name and changes[change] == PkgStates.REMOVING:
                 removing_deps.append(change)
         return removing_deps
-
-    def get_total_size_on_install(self, pkgname, addons_install=None,
-                                addons_remove=None):
+    def _set_candidate_release(self, pkg, archive_suite):
+        # Check if the package is provided in the release
+        for version in pkg.versions:
+            if [origin for origin in version.origins
+                if origin.archive == archive_suite]:
+                break
+        else:
+            return False
+        pkg._pcache._depcache.set_candidate_release(
+            pkg._pkg, version._cand, release)
+        return True
+    def get_total_size_on_install(self, pkgname, 
+                                  addons_install=None, addons_remove=None,
+                                  archive_suite=None):
         pkgs_to_install = []
         pkgs_to_remove = []
         total_download_size = 0 # in kB 
@@ -528,6 +539,8 @@ class AptCache(PackageInfo):
         
         if version == None:
             all_install.append(pkgname)
+            if archive_suite:
+                self._set_candidate_release(pkg, archive_suite)
 
         for p in all_install:
             version = max(self._cache[p].versions)

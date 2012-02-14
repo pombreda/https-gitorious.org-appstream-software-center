@@ -7,6 +7,8 @@ import logging
 import time
 import unittest
 
+from mock import Mock,patch
+
 from testutils import setup_test_env
 setup_test_env()
 
@@ -34,12 +36,21 @@ class TestAptCache(unittest.TestCase):
             self.cache = apt.Cache(memonly=True)
 
     def test_get_total_size(self):
+        # get a cache 
         cache = get_pkg_info()
-        pkgname = "software-center"
+        cache.open()
+        # pick first uninstalled pkg
+        for pkg in cache:
+            if not pkg.is_installed:
+                break
+        # prepare args
         addons_to_install = addons_to_remove = []
-        archive_suite = ""
-        cache.get_total_size_on_install(
-            pkgname, addons_to_install, addons_to_remove, archive_suite)
+        archive_suite = "foo"
+        with patch.object(cache, "_set_candidate_release") as f_mock:
+            res = cache.get_total_size_on_install(
+                pkg.name, addons_to_install, addons_to_remove, archive_suite)
+            # ensure it got called with the right arguments
+            f_mock.assert_called_with(pkg, archive_suite)
         
 
 if __name__ == "__main__":

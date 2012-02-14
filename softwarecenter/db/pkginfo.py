@@ -167,11 +167,13 @@ class PackageInfo(GObject.GObject):
         which will be removed if the package is installed."""
         return []
 
-    def get_total_size_on_install(self, pkgname, addons_install=None,
-                                addons_remove=None):
+    def get_total_size_on_install(self, pkgname, 
+                                  addons_install=None, addons_remove=None,
+                                  archive_suite=None):
         """ Returns a tuple (download_size, installed_size)
         with disk size in KB calculated for pkgname installation
-        plus addons change.
+        plus addons change and a (optional) archive_suite that the 
+        package comes from
         """
         return (0, 0)
 

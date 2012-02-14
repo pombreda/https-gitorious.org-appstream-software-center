@@ -1,4 +1,4 @@
-bsoftware-center (5.1.8.1) UNRELEASED; urgency=low
+software-center (5.1.8.1) UNRELEASED; urgency=low
 
   [ Gabor Kelemen ]  
   * lp:~kelemeng/software-center/bug926743:

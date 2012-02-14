@@ -1970,10 +1970,11 @@ class AppDetailsView(Viewport):
 
         label_string = ""
 
-        res = self.cache.get_total_size_on_install(self.app_details.pkgname,
-                self.addons_manager.addons_to_install,
-                self.addons_manager.addons_to_remove
-        )
+        res = self.cache.get_total_size_on_install(
+            self.app_details.pkgname,
+            self.addons_manager.addons_to_install,
+            self.addons_manager.addons_to_remove,
+            self.app.archive_suite)
         total_download_size, total_install_size = res
         if res==(0,0) and type(self.app)==DebFileApplication:
             total_install_size = self.app_details.installed_size
