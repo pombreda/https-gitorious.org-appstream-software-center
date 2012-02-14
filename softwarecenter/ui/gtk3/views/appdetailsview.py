@@ -255,6 +255,7 @@ class PackageStatusBar(StatusBar):
     def _build_combo_multiple_versions(self):
         # the currently forced archive_suite for the given app
         app_archive_suite = self.app_details._app.archive_suite
+        app_version = self.app_details.version
         # all available not-automatic (version, archive_suits)
         not_automatic_suites = self.app_details.get_not_automatic_archive_versions()
         # populat the combobox if 
@@ -269,7 +270,8 @@ class PackageStatusBar(StatusBar):
                 s = "v%s (%s)" % (upstream_version(ver),
                                   archive_suite or _("default"))
                 model.append( (s, archive_suite) )
-                if archive_suite == app_archive_suite:
+                print "app_version: ", app_version, ver
+                if app_version == ver:
                     self.combo_multiple_versions.set_active(i)
             # if nothing is found, set to default
             if self.combo_multiple_versions.get_active_iter() is None:

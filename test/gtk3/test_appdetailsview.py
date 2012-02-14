@@ -287,10 +287,9 @@ class MultipleVersionsTestCase(unittest.TestCase):
             ("12.0", "precise-backports") 
             ]
         self.app_mock.details.pkg_state = PkgStates.INSTALLED
-        self.app_mock.version = "12.0"
+        self.app_mock.details.version = "12.0"
         self.view.show_app(self.app_mock)
         active = self.view.pkg_statusbar.combo_multiple_versions.get_active_text()
-        print active
         # ensure that the combo points to "precise-backports"
         self.assertEqual(active, "v12.0 (precise-backports)")
         
@@ -503,5 +502,5 @@ class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
 
 if __name__ == "__main__":
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()
