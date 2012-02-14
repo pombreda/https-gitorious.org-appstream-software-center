@@ -465,12 +465,14 @@ class AppRecommendationsTestCase(unittest.TestCase):
 
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
-           '.query_submit_profile')
+           '.query_recommend_app')
     def test_show_recommendations_for_app(self, mock_query):
         self.view.show_app(self.app_mock)
         do_events()
-        from softwarecenter.testutils import make_recommend_app_data
-        self.view.recommended_for_app_panel._on_app_recommendations(make_recommend_app_data())
+        self.view.recommended_for_app_panel._update_app_recommendations_content(self.app_mock.pkgname)
+        do_events()
+#        from softwarecenter.testutils import make_recommend_app_data
+#        self.view.recommended_for_app_panel._on_app_recommendations(make_recommend_app_data())
 
 
 

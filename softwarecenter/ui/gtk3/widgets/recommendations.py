@@ -37,9 +37,9 @@ class RecommendationsPanel(FramedHeaderBox):
     """
     Base class for widgets that display recommendations
     """
-    def __init__(self):
+    def __init__(self, catview):
         FramedHeaderBox.__init__(self)
-        
+        self.catview = catview
         self.recommender_agent = RecommenderAgent()
         
 
@@ -62,8 +62,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         }
         
     def __init__(self, catview):
-        RecommendationsPanel.__init__(self)
-        self.catview = catview
+        RecommendationsPanel.__init__(self, catview)
         self.set_header_label(_(u"Recommended for You"))
         
         self.recommender_uuid = ""
@@ -194,12 +193,12 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         
 class RecommendationsPanelDetails(RecommendationsPanel):
     """
-    Panel for use in the lobby view that manages the recommendations experience,
-    includes the initial opt-in screen and display of recommendations once they
-    have been received from the recommender agent
+    Panel for use in the details view to display recommendations for a given
+    application
     """
-    def __init__(self):
-        RecommendationsPanel.__init__(self)
+    def __init__(self, catview, pkgname):
+        RecommendationsPanel.__init__(self, catview)
+        self.pkgname = pkgname
         self.set_header_label(_(u"People Also Installed"))
         
         self.recommender_agent.connect("recommend-app",
@@ -207,15 +206,44 @@ class RecommendationsPanelDetails(RecommendationsPanel):
         self.recommender_agent.connect("error",
                                        self._on_app_recommendations_error)
         
-    def _get_recommendations_for_app(self, pkgname):
-        self.recommender_agent.query_recommend_app(pkgname)
+    def _update_app_recommendations_content(self):
+        self.app_recommendations_content = FlowableGrid()
+        self.spinner.set_text(_("Receiving recommendations…"))
+        self.show_spinner()
+        # get the recommendations from the recommender agent
+        self.app_recommendations_cat = AppRecommendationsCategory(self.pkgname)
+        self.app_recommendations_cat.connect(
+                                    'needs-refresh',
+                                    self._on_app_recommendations_agent_refresh)
+        self.app_recommendations_cat.connect('recommender-agent-error',
+                                             self._on_recommender_agent_error)
         
-    def _on_app_recommendations(self, data):
-        print ">>> on_app_recommendations returned: ", data
-    
-    def _on_app_recommendations_error(self, agent, msg):
+    def _on_app_recommendations_agent_refresh(self, cat):
+        docs = cat.get_documents(self.catview.db)
+        # display the recommendedations
+        if len(docs) > 0:
+            self.catview._add_tiles_to_flowgrid(docs,
+                                        self.app_recommendations_content, 8)
+            self.app_recommendations_content.show_all()
+            self.show_content()
+            self.more.connect('clicked',
+                              self.catview.on_category_clicked,
+                              cat)
+        else:
+            # TODO: this test for zero docs is temporary and will not be
+            # needed once the recommendation agent is up and running
+            self._hide_app_recommendations()
+        return
+        
+    def _on_recommender_agent_error(self, agent, msg):
         LOG.warn("Error while accessing the recommender agent for the "
                  "details view recommendations: %s" % msg)
+        # TODO: temporary, instead we will display cached recommendations here
+        self._hide_app_recommendations_panel()
+
+    def _hide_app_recommendations_panel(self):
+        # and hide the pane
+        self.hide()
     
 
 
