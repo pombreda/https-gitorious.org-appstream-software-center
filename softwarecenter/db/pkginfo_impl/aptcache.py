@@ -541,13 +541,17 @@ class AptCache(PackageInfo):
             # its important that its the first pkg as the depcache will
             # get cleared for each pkg and that will means that the
             # set_candidate_release is lost again
-            all_install.insert(0, pkgname)
-            if archive_suite:
-                self._set_candidate_release(pkg, archive_suite)
+            all_install.append(pkgname)
 
         for p in all_install:
+            # ensure that the archive_suite is set if needed, this needs to
+            # be in the loop as the cache is cleared in each loop iteration
+            if archive_suite:
+                self._set_candidate_release(pkg, archive_suite)
+            # now get the right version
             version = self._cache[p].candidate
             pkgs_to_install.append(version)
+            # now do it
             deps_inst = self._try_install_and_get_all_deps_installed(self._cache[p])
             for dep in deps_inst:
                 if self._cache[dep].installed == None:
