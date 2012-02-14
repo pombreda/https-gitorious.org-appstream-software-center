@@ -845,7 +845,9 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 yield trans.set_meta_data(sc_iconname=iconname, defer=True)
             # we do not always have a pkgname, e.g. "cache_update" does not
             if pkgname:
-                yield trans.set_meta_data(sc_pkgname=pkgname, defer=True)
+                # ensure the metadata is just the pkgname
+                sc_pkgname = pkgname.split("/")[0].split("=")[0]
+                yield trans.set_meta_data(sc_pkgname=sc_pkgname, defer=True)
                 # setup debconf only if we have a pkg
                 yield trans.set_debconf_frontend("gnome", defer=True)
                 trans.set_remove_obsoleted_depends(True, defer=True)

@@ -254,7 +254,6 @@ class PackageStatusBar(StatusBar):
 
     def _build_combo_multiple_versions(self):
         # the currently forced archive_suite for the given app
-        app_archive_suite = self.app_details._app.archive_suite
         app_version = self.app_details.version
         # all available not-automatic (version, archive_suits)
         not_automatic_suites = self.app_details.get_not_automatic_archive_versions()
@@ -380,7 +379,7 @@ class PackageStatusBar(StatusBar):
             else:
                 self.set_button_label(_(u'Buy Anyway\u2026'))
         elif state == PkgStates.FORCE_VERSION:
-                self.set_button_label(_('Change'))
+            self.set_button_label(_('Change'))
         elif state in (
             PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
             PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES):
@@ -1886,6 +1885,7 @@ class AppDetailsView(Viewport):
             self.app_details.pkgname == pkgname):
             if not self.pkg_statusbar.progress.get_property('visible'):
                 self.pkg_statusbar.button.hide()
+                self.pkg_statusbar.combo_multiple_versions.hide()
                 self.pkg_statusbar.progress.show()
             if pkgname in backend.pending_transactions:
                 self.pkg_statusbar.progress.set_fraction(progress/100.0)
