@@ -252,8 +252,7 @@ def make_recommender_profile_upload_data():
     return profile_upload_data
     
 def make_recommend_app_data():
-    recommend_app_data = 
-            {u'rid': u'265c0bb1dece93a96c5a528e7ea5dd75',
+    recommend_app_data = {u'rid': u'265c0bb1dece93a96c5a528e7ea5dd75',
              u'data': [{u'rating': 4.0, u'package_name': u'kftpgrabber'},
                       {u'rating': 4.0, u'package_name': u'sugar-emulator-0.90'}, 
                       {u'rating': 3.0, u'package_name': u'wakeup'}, 

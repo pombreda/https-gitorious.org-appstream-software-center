@@ -465,6 +465,9 @@ class AppRecommendationsTestCase(unittest.TestCase):
         self.loop.quit()
         self.error = True
 
+    # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recagent.RecommenderAgent'
+           '.query_submit_profile')
     def test_show_recommendations_for_app(self):
         self.view.show_app(self.app_mock)
         do_events()
