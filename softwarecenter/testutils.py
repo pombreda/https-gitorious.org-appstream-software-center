@@ -264,4 +264,5 @@ def make_recommend_app_data():
                       {u'rating': 2.0, u'package_name': u'gnome-mousetrap'}, 
                       {u'rating': 1.5, u'package_name': u'tucan'}],
               u'app': u'pitivi'}
+    return recommend_app_data
     

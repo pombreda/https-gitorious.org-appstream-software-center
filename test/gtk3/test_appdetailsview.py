@@ -450,8 +450,6 @@ class AppRecommendationsTestCase(unittest.TestCase):
         Gtk.main()
 
     def setUp(self):
-        self.loop = GObject.MainLoop(GObject.main_context_default())
-        self.error = False
         app = Application("", "pitivi")
         self.app_mock = get_mock_app_from_real_app(app)
         self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
@@ -468,14 +466,11 @@ class AppRecommendationsTestCase(unittest.TestCase):
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.query_submit_profile')
-    def test_show_recommendations_for_app(self):
+    def test_show_recommendations_for_app(self, mock_query):
         self.view.show_app(self.app_mock)
         do_events()
-        self.view.recommended_for_app_panel.recommender_agent.connect("recommend-app", self.on_query_done)
-        self.view.recommended_for_app_panel.recommender_agent.connect("error", self.on_query_error)
-        self.view.recommended_for_app_panel._get_recommendations_for_app("pitivi")
-        self.loop.run()
-        self.assertFalse(self.error)
+        from softwarecenter.testutils import make_recommend_app_data
+        self.view.recommended_for_app_panel._on_app_recommendations(make_recommend_app_data())
 
 
 
