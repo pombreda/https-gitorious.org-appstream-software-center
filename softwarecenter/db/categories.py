@@ -193,7 +193,6 @@ class AppRecommendationsCategory(Category):
         for item in result_list['data']:
             pkgs.append(item['package_name'])
         self.query = get_query_for_pkgnames(pkgs)
-        print ">>> self.query: ", self.query
         self.emit("needs-refresh")
 
     def _recommender_agent_error(self, recommender_agent, msg):
