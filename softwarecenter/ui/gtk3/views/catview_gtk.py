@@ -726,6 +726,37 @@ def get_test_window_catview():
     win.show_all()
     win.connect('destroy', Gtk.main_quit)
     return win
+    
+def get_test_catview():
+
+    def on_category_selected(view, cat):
+        print("on_category_selected %s %s" % view, cat)
+
+    from softwarecenter.db.pkginfo import get_pkg_info
+    cache = get_pkg_info()
+    cache.open()
+
+    from softwarecenter.db.database import StoreDatabase
+    xapian_base_path = "/var/cache/software-center"
+    pathname = os.path.join(xapian_base_path, "xapian")
+    db = StoreDatabase(pathname, cache)
+    db.open()
+
+    import softwarecenter.paths
+    datadir = softwarecenter.paths.datadir
+
+    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
+    icons = get_sc_icon_theme(datadir)
+
+    import softwarecenter.distro
+    distro = softwarecenter.distro.get_distro()
+
+    apps_filter = AppFilter(db, cache)
+
+    from softwarecenter.paths import APP_INSTALL_PATH
+    cat_view = LobbyViewGtk(datadir, APP_INSTALL_PATH,
+                        cache, db, icons, distro, apps_filter)
+    return cat_view
 
 if __name__ == "__main__":
     import os

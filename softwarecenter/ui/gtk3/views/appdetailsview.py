@@ -2007,9 +2007,8 @@ def get_test_window_appdetails():
     from mock import Mock
     pane = Mock()
     # need a catview to test the recommendations panel
-    from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
-    catview_win = get_test_window_catview()
-    catview = catview_win.get_data("lobby")
+    from softwarecenter.ui.gtk3.views.catview_gtk import get_test_catview
+    catview = get_test_catview()
     pane.catview = catview
 
     # gui
