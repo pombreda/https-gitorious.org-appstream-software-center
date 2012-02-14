@@ -224,7 +224,7 @@ class PackageStatusBar(StatusBar):
             app_manager.reinstall_purchased(app)
         elif state == PkgStates.NEEDS_PURCHASE:
             app_manager.buy_app(app)
-        elif state == PkgStates.UNINSTALLED:
+        elif state in (PkgStates.UNINSTALLED, PkgStates.FORCE_VERSION):
             app_manager.install(
                 app, addons_to_install, addons_to_remove)
         elif state == PkgStates.REINSTALLABLE:
