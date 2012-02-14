@@ -15,6 +15,7 @@ from softwarecenter.testutils import get_mock_app_from_real_app, do_events
 from softwarecenter.ui.gtk3.widgets.labels import HardwareRequirementsBox
 from softwarecenter.ui.gtk3.views.appdetailsview import get_test_window_appdetails
 from softwarecenter.enums import PkgStates
+from softwarecenter.region import REGION_WARNING_STRING
 
 from test.test_database import make_purchased_app_details
 
@@ -55,6 +56,9 @@ class TestAppdetailsView(unittest.TestCase):
         app = Application("", "abiword")
         self.view.show_app(app)
         do_events()
+        
+        # check that the action bar is given initial focus in the view
+        self.assertTrue(self.view.pkg_statusbar.button.is_focus())
 
         # create mock app
         mock_app = get_mock_app_from_real_app(app)
@@ -225,6 +229,7 @@ class TestAppdetailsView(unittest.TestCase):
         self.view._submit_reviews_done_callback(None, 0)
 
         self.assertTrue(button.is_sensitive())
+        
 
 class MultipleVersionsTestCase(unittest.TestCase):
     
@@ -350,6 +355,46 @@ class HardwareRequirementsTestCase(unittest.TestCase):
         # check if the warning bar is invisible
         self.assertFalse(self.view.pkg_warningbar.get_property("visible"))
 
+class RegionRequirementsTestCase(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        # Set these as class attributes as we don't modify either
+        # during the tests.
+        from softwarecenter.testutils import get_test_db
+        cls.db = get_test_db()
+        cls.win = get_test_window_appdetails()
+        cls.view = cls.win.get_data("view")
+
+    @classmethod
+    def tearDownClass(cls):
+        GObject.timeout_add(TIMEOUT, lambda: cls.win.destroy())
+        Gtk.main()
+
+    def setUp(self):
+        app = Application("", "software-center")
+        self.app_mock = get_mock_app_from_real_app(app)
+        self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
+
+    def test_show_region_requirements(self):
+        self.app_mock.details.region_requirements_satisfied = False
+        self.view.show_app(self.app_mock)
+        do_events()
+        # ensure that the button is correct
+        self.assertEqual(
+            self.view.pkg_statusbar.button.get_label(), "Install Anyway")
+        # and again for purchase
+        self.app_mock.details.pkg_state = PkgStates.NEEDS_PURCHASE
+        self.view.show_app(self.app_mock)
+        self.assertEqual(
+            self.view.pkg_statusbar.button.get_label(), 
+            _(u"Buy Anyway\u2026").encode("utf-8"))
+        # check if the warning bar is displayed
+        self.assertTrue(self.view.pkg_warningbar.get_property("visible"))
+        self.assertEqual(self.view.pkg_warningbar.label.get_text(),
+                         REGION_WARNING_STRING)
+
+
 class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
 
     @classmethod
@@ -445,5 +490,5 @@ class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
 
 if __name__ == "__main__":
     import logging
-    #logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     unittest.main()

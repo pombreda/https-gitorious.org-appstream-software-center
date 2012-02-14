@@ -11,3 +11,6 @@ data/submit_usefulness_gtk3.py
 data/ui/gtk/GBTestWidget.ui
 data/ui/gtk3/GBTestWidget.ui
 doc/example_plugin.py
+test/gtk3/test_appdetailsview.py
+test/gtk3/test_reviews.py
+test/gtk3/test_widgets.py

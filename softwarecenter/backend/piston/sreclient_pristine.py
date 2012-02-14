@@ -1,5 +1,9 @@
 from piston_mini_client import (PistonAPI, returns_json)
-from piston_mini_client.validators import (validate, oauth_protected)
+from piston_mini_client.validators import (
+    validate_integer,
+    validate_pattern,
+    oauth_protected,
+    )
 
 # These are factored out as constants for if you need to work against a
 # server that doesn't support both schemes (like http-only dev servers)
@@ -7,7 +11,7 @@ PUBLIC_API_SCHEME = 'http'
 AUTHENTICATED_API_SCHEME = 'https'
 
 class SoftwareCenterRecommenderAPI(PistonAPI):
-    default_service_root = 'http://localhost:8000/api/2.0'
+    default_service_root = 'http://localhost:8000/api/1.0'
 
     @returns_json
     def server_status(self):
@@ -15,25 +19,51 @@ class SoftwareCenterRecommenderAPI(PistonAPI):
 
     @oauth_protected
     @returns_json
-    def profile(self):
-        return self._get('profile', scheme=PUBLIC_API_SCHEME)
+    def profile(self, pkgnames):
+        """Return True if a profile has already been uploaded."""
+        return self._get('profile', scheme=AUTHENTICATED_API_SCHEME)
+
+    @oauth_protected
+    @returns_json
+    def submit_profile(self, data):
+        return self._post('profile', data=data,
+            scheme=AUTHENTICATED_API_SCHEME)
+
+    @returns_json
+    def submit_anon_profile(self, uuid, installed_packages, extra):
+        data = {
+            'installed_packages': installed_packages,
+            'extra': extra,
+        }
+        return self._post('profile/%s/' % uuid, data=data,
+            scheme=PUBLIC_API_SCHEME)
 
     @oauth_protected
     def recommend_me(self):
-        return self._get('recommend_me', scheme=PUBLIC_API_SCHEME)
+        return self._get('recommend_me', scheme=AUTHENTICATED_API_SCHEME)
 
-    @oauth_protected
-    @validate('pkgname', str)
+    @validate_pattern('pkgname', '[^/]+')
+    @returns_json
     def recommend_app(self, pkgname):
-        return self._get('recommend_app/%s/' % pkgname, 
-                         scheme=PUBLIC_API_SCHEME)
+        return self._get('recommend_app/%s/' % pkgname,
+            scheme=PUBLIC_API_SCHEME)
+
+    @returns_json
+    def recommend_all_apps(self):
+        return self._get('recommend_all_apps/', scheme=PUBLIC_API_SCHEME)
 
     @returns_json
     def recommend_top(self):
         return self._get('recommend_top', scheme=PUBLIC_API_SCHEME)
 
+    @oauth_protected
+    @validate_pattern('rid', '\w+')
+    @validate_integer('feedback')
     @returns_json
-    def feedback(self):
-        return self._get('feedback', scheme=PUBLIC_API_SCHEME)
-
-
+    def feedback(self, rid, feedback):
+        data = {
+            'feedback': feedback,
+            'rid': rid,
+            }
+        return self._post('feedback', data=data,
+            scheme=AUTHENTICATED_API_SCHEME)

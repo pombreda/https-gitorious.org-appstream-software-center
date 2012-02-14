@@ -29,7 +29,7 @@ from softwarecenter.distro import get_distro
 
 from launchpadlib.launchpad import Launchpad
 from launchpadlib.credentials import RequestTokenAuthorizationEngine
-from launchpadlib.uris import EDGE_SERVICE_ROOT
+from launchpadlib.uris import LPNET_SERVICE_ROOT
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 
 # py3 compat
@@ -42,7 +42,7 @@ except ImportError:
 from login import LoginBackend
 
 # LP to use
-SERVICE_ROOT = EDGE_SERVICE_ROOT
+SERVICE_ROOT = LPNET_SERVICE_ROOT
 
 # internal
 

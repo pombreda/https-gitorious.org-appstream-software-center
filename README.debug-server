@@ -13,10 +13,17 @@ $ PYTHONPATH=. utils/piston-helpers/piston_generic_helper.py \
   '{ "lang" : "en", "series" : "oneiric", "arch" : "i386" }'
 
 $ PYTHONPATH=. utils/piston-helpers/piston_generic_helper.py \
+  --output=text --debug  \
+  SoftwareCenterAgentAPI available_apps \
+  '{ "lang" : "en", "series" : "oneiric", "arch" : "i386" }'
+
+$ PYTHONPATH=. utils/piston-helpers/piston_generic_helper.py \
    --output=text --debug \
    SoftwareCenterRecommenderAPI recommend_top
 
 
-
 Any piston-mini-client API should work, first name is the class
 second the method to run, optional is a json encoded kwargs string.
+
+To get http debug output you can use the environment variable
+SOFTWARE_CENTER_DEBUG_HTTP=1.

@@ -43,7 +43,7 @@ class ScreenshotData(GObject.GObject):
     def __init__(self):
         GObject.GObject.__init__(self)
         self._sig = 0
-        self.screenshots = []
+        self._screenshots = []
         return
 
     def set_app_details(self, app_details):
@@ -57,22 +57,22 @@ class ScreenshotData(GObject.GObject):
         self._sig = self.app_details.connect(
             "screenshots-available", self._on_screenshots_available)
 
+        self._screenshots = []
         self.app_details.query_multiple_screenshots()
-        self.screenshots = []
         return
 
     def _on_screenshots_available(self, screenshot_data, screenshots):
-        self.screenshots = screenshots
+        self._screenshots = screenshots
         self.emit("screenshots-available")
 
     def get_n_screenshots(self):
-        return len(self.screenshots)
+        return len(self._screenshots)
 
     def get_nth_large_screenshot(self, index):
-        return self.screenshots[index]['large_image_url']
+        return self._screenshots[index]['large_image_url']
 
     def get_nth_small_screenshot(self, index):
-        return self.screenshots[index]['small_image_url']
+        return self._screenshots[index]['small_image_url']
 
 
 class ScreenshotButton(Gtk.Button):
@@ -471,19 +471,13 @@ class ThumbnailGallery(Gtk.HBox):
 
         # if there are multiple screenshots
         n = data.get_n_screenshots()
-
         if n <= 1:
             return
 
-        # get a random selection of thumbnails from those avaialble
-        import random
-        seq = random.sample(
-            range(n),
-            min(n, ThumbnailGallery.THUMBNAIL_MAX_COUNT))
-
-        seq.sort()
-
-        for i in seq:
+        # pick the first ones, the data is sorted by most appropriate
+        # version first - if at some later point we have a lot of
+        # screenshots we could consider randomizing again
+        for i in range(min(n, ThumbnailGallery.THUMBNAIL_MAX_COUNT)):
             url = data.get_nth_small_screenshot(i)
             self._create_thumbnail_for_url(i, url)
 

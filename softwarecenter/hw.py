@@ -27,7 +27,7 @@ TAG_DESCRIPTION = {
     'hardware::laptop' : _('notebook computer'),
     'hardware::printer': _('printer'),
     'hardware::scanner' : _('scanner'),
-    'hardware::stoarge:cd' : _('CD drive'),
+    'hardware::storage:cd' : _('CD drive'),
     'hardware::storage:cd-writer' : _('CD burner'),
     'hardware::storage:dvd' : _('DVD drive'),
     'hardware::storage:dvd-writer' : _('DVD burner'),

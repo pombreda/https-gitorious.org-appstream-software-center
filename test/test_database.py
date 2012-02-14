@@ -38,7 +38,7 @@ from softwarecenter.testutils import (
     make_software_center_agent_subscription_dict,
     make_software_center_agent_app_dict,
     )
-
+from softwarecenter.region import REGIONTAG
 
 class TestDatabase(unittest.TestCase):
     """ tests the store database """
@@ -48,6 +48,23 @@ class TestDatabase(unittest.TestCase):
                                "./data/appdetails/var/lib/dpkg/status")
         self.cache = get_pkg_info()
         self.cache.open()
+
+    def test_multiple_versions_sorting(self):
+        db = get_test_db()
+        app = Application("", "software-center")
+        details = AppDetails(db, application=app)
+        details._pkg = Mock()
+        details._pkg.installed = Mock()
+        details._pkg.installed.version  = "2.0"
+        self.assertEqual(details.version, "2.0")
+        v0 = { "version" : None, }
+        v1 = { "version" : "1.0", }
+        v2 = { "version" : "2.0", }
+        v3 = { "version" : "3.0", }
+        screenshots_list = [ v0, v1, v2, v3 ]
+        res = details._sort_screenshots_by_best_version(screenshots_list)
+        self.assertEqual(res, [ v2, v1, v0 ])
+
 
     def test_update_from_desktop_file(self):
         # ensure we index with german locales to test i18n
@@ -224,7 +241,7 @@ class TestDatabase(unittest.TestCase):
         details = app.get_details(db)
         distro = get_distro().get_codename()
         self.assertEqual(app.request, 'channel=' + distro + '-partner')
-
+    
     def ensure_installation_date_and_lazy_history_loading(self, appdetails):
         # we run two tests, the first is to ensure that we get a
         # result from installation_data immediately (at this point the
@@ -373,6 +390,28 @@ class TestDatabase(unittest.TestCase):
             # empty is satisfied
             mock_hw.__get__.return_value={}
             self.assertTrue(details.hardware_requirements_satisfied)
+
+    @patch("softwarecenter.db.application.get_region_cached")
+    def test_region_requirements_satisfied(self, mock_region_discover):
+        mock_region_discover.return_value = { 
+            'country' : 'Germany',
+            'countrycode' : 'DE',
+            }
+        with patch.object(AppDetails, 'tags') as mock_tags:
+            # setup env
+            db = get_test_db()
+            app = Application("", "software-center")
+            mock_tags.__get__ = Mock()
+            # not good
+            mock_tags.__get__.return_value = [REGIONTAG+"ZM"]
+            details = AppDetails(db, application=app)
+            self.assertFalse(details.region_requirements_satisfied)
+            # this if good
+            mock_tags.__get__.return_value = [REGIONTAG+"DE"]
+            self.assertTrue(details.region_requirements_satisfied)
+            # empty is satisfied
+            mock_tags.__get__.return_value=["other::tag"]
+            self.assertTrue(details.region_requirements_satisfied)
 
     def test_parse_axi_values_file(self):
         s = """

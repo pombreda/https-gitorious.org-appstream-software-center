@@ -163,9 +163,11 @@ class SCAApplicationParserTestCase(unittest.TestCase):
 
         # Delete the keys which are not yet provided via the API:
         del(inverse_map['video_url'])
+        del(inverse_map['tags'])
 
         for key in inverse_map:
-            self.assertTrue(parser.has_option_desktop(inverse_map[key]))
+            self.assertTrue(parser.has_option_desktop(inverse_map[key]),
+                            "missing key from inverse_map '%s'" % key)
             self.assertEqual(
                 getattr(parser.sca_application, key),
                 parser.get_desktop(inverse_map[key]))

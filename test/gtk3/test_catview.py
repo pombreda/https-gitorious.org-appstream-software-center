@@ -1,46 +1,63 @@
 from gi.repository import Gtk
 import time
 import unittest
+from mock import patch
 
 from testutils import setup_test_env
 setup_test_env()
 
 from softwarecenter.enums import SortMethods
+from softwarecenter.testutils import (get_test_db,
+                                      make_recommender_agent_recommend_top_dict)
 
 class TestCatView(unittest.TestCase):
+
+    def setUp(self):
+        self.db = get_test_db()
 
     def _on_category_selected(self, subcatview, category):
         #print "**************", subcatview, category
         self._cat = category
     
-    def test_subcatview_toprated(self):
+    # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recommends.RecommenderAgent'
+           '.query_recommend_top')
+    def test_subcatview_top_rated(self, mock_query_recommend_top):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
         lobby = win.get_data("lobby")
-        # test clicking toprated
+        # test clicking top_rated
         lobby.connect("category-selected", self._on_category_selected)
-        lobby.toprated_frame.more.clicked()
+        lobby.top_rated_frame.more.clicked()
         self._p()
         self.assertNotEqual(self._cat, None)
         self.assertEqual(self._cat.name, "Top Rated")
         self.assertEqual(self._cat.sortmode, SortMethods.BY_TOP_RATED)
+        win.destroy()
 
-    def test_subcatview_new(self):
+    # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recommends.RecommenderAgent'
+           '.query_recommend_top')
+    def test_subcatview_new(self, mock_query_recommend_top):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
         lobby = win.get_data("lobby")
         # test clicking new
         lobby.connect("category-selected", self._on_category_selected)
-        lobby.new_frame.more.clicked()
+        lobby.whats_new_frame.more.clicked()
         self._p()
         self.assertNotEqual(self._cat, None)
         # encoding is utf-8 (since r2218, see category.py)
         self.assertEqual(self._cat.name, 'What\xe2\x80\x99s New')
         self.assertEqual(self._cat.sortmode, SortMethods.BY_CATALOGED_TIME)
+        win.destroy()
 
-    def test_subcatview_new_no_sort_info_yet(self):
+    # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recommends.RecommenderAgent'
+           '.query_recommend_top')
+    def test_subcatview_new_no_sort_info_yet(self, mock_query_recommend_top):
         # ensure that we don't show a empty "whats new" category
         # see LP: #865985
         from softwarecenter.testutils import get_test_db
@@ -74,8 +91,32 @@ class TestCatView(unittest.TestCase):
         win.show()
         # test visibility
         self._p()
-        self.assertFalse(view.new_frame.get_property("visible"))
+        self.assertFalse(view.whats_new_frame.get_property("visible"))
         self._p()
+        win.destroy()
+        
+    # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recommends.RecommenderAgent'
+           '.query_recommend_top')
+    def test_subcatview_recommended_for_me(self, mock_query_recommend_top):
+        from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
+        # get the widgets we need
+        win = get_test_window_catview()
+        lobby = win.get_data("lobby")
+        # we fake the callback from the agent here
+        lobby.recommended_for_you_cat._recommend_top_result(
+                                None,
+                                make_recommender_agent_recommend_top_dict())
+        self.assertNotEqual(
+                lobby.recommended_for_you_cat.get_documents(self.db), [])
+        self._p()
+        # test clicking recommended_for_you More button
+        lobby.connect("category-selected", self._on_category_selected)
+        lobby.recommended_for_you_frame.more.clicked()
+        self._p()
+        self.assertNotEqual(self._cat, None)
+        self.assertEqual(self._cat.name, "Recommended for You")
+        win.destroy()
 
     def _p(self):
         for i in range(5):

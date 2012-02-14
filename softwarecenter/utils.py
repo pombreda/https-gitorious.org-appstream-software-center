@@ -576,6 +576,7 @@ def mangle_paths_if_running_in_local_checkout():
     return (datadir, xapian_base_path)
 
 
+
 class SimpleFileDownloader(GObject.GObject):
 
     LOG = logging.getLogger("softwarecenter.simplefiledownloader")

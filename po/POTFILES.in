@@ -4,7 +4,7 @@ utils/update-software-center
 data/ubuntu-software-center.desktop.in
 data/unbranded-software-center.desktop.in
 [type: gettext/xml] data/featured.menu.in
-[type: gettext/xml] data/new.menu.in
+[type: gettext/xml] data/whats_new.menu.in
 [type: gettext/xml] data/software-center.menu.in
 softwarecenter/backend/channel.py
 softwarecenter/backend/login_sso.py
@@ -15,14 +15,18 @@ softwarecenter/backend/oneconfhandler/core.py
 softwarecenter/backend/installbackend_impl/aptd.py
 softwarecenter/backend/installbackend_impl/packagekitd.py
 softwarecenter/db/application.py
+softwarecenter/db/categories.py
 softwarecenter/db/database.py
 softwarecenter/db/update.py
 softwarecenter/db/pkginfo_impl/aptcache.py
 softwarecenter/db/pkginfo_impl/packagekit.py
 softwarecenter/distro/Debian.py
+softwarecenter/distro/Fedora.py
 softwarecenter/distro/__init__.py
 softwarecenter/distro/Ubuntu.py
 softwarecenter/enums.py
+softwarecenter/hw.py
+softwarecenter/region.py
 softwarecenter/utils.py
 [type: gettext/glade]data/ui/gtk3/SoftwareCenter.ui
 [type: gettext/glade]data/ui/gtk3/dialogs.ui
@@ -55,6 +59,7 @@ softwarecenter/ui/gtk3/widgets/apptreeview.py
 softwarecenter/ui/gtk3/widgets/backforward.py
 softwarecenter/ui/gtk3/widgets/buttons.py
 softwarecenter/ui/gtk3/widgets/exhibits.py
+softwarecenter/ui/gtk3/widgets/labels.py
 softwarecenter/ui/gtk3/widgets/reviews.py
 softwarecenter/ui/gtk3/widgets/searchaid.py
 softwarecenter/ui/gtk3/widgets/searchentry.py

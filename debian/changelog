@@ -1,4 +1,57 @@
-software-center (5.1.8) UNRELEASED; urgency=low
+bsoftware-center (5.1.8.1) UNRELEASED; urgency=low
+
+  [ Gabor Kelemen ]  
+  * lp:~kelemeng/software-center/bug926743:
+    - Mark strings for translation, add translator comment where needed
+      (LP: #926743)
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/latest-recommender:
+    - import latest recommender client
+  * lp:~mvo/software-center/dynamic-region-menu:
+    - allow dynamic template in the software-center.menu file, currently
+      supported is ${CURRENT_REGION}. This allows to build a dynamic
+      "Your region" menu once we actually tag packages with the region
+      information
+  * lp:~mvo/software-center/sca-video:
+    - add the ability to display embedded videos in the application
+      details view
+  * lp:~mvo/software-center/multiple-screenshots:
+    - add support for the display of multiple screenshots in the
+      application details view, as provided by the software-center-agent
+  * lp:~mvo/software-center/submit-review-hang-fix:
+    - fix hang when submitting a review on precise
+  * lp:~mvo/software-center/screenshots-sorting:
+    - ensure the multiple screenshots are sorted properly when
+      they come from the json API
+  * lp:~mvo/software-center/sca-video-updates:
+    - update the client to follow the server side changes for
+      videos from software-center-agent
+  * increase dependency on python-apt for the required
+    apt_pkg.DepCache.policy_priority() support
+
+  [ Kiwinote ]
+  * data/ui/gtk3/css/*.css:
+    - use 'px' suffixes as required by latest gtk
+  * softwarecenter/ui/gtk3/views/appdetailsview.py:
+    - replace ... and ' with their unicode eequivalents (LP: #844799)
+  * softwarecenter/db/application.py:
+    - don't crash if the version nr associated with a screenshot is None
+
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/recommender-service-url:
+    - update to the correct production url for the recommender
+      service 
+  * lp:~gary-lasker/software-center/import-latest-sreclient:
+    - import latest recommender client 
+  
+  [ Juhana Jauhiainen ]
+  * softwarecenter/backend/launchpad.py:
+    - replaced EDGE_SERVICE_ROOT with LPNET_SERVICE_ROOT. (LP: #737697)
+
+ -- Kiwinote <kiwinote@gmail.com>  Mon, 13 Feb 2012 16:31:36 +0000
+
+software-center (5.1.8) precise; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/db/update.py:
@@ -9,15 +62,34 @@ software-center (5.1.8) UNRELEASED; urgency=low
   * lp:~mvo/software-center/arb-partner-channels:
     - add support for extras.ubuntu.com and archive.canonical.com
       channel detection and adding via software-center-agent
-  * increase dependency on python-apt for the required
-    apt_pkg.DepCache.policy_priority() support
+  * data/software-center.menu.in:
+    - do not show "X-Publishing" in education because the
+      software-center-agent will send "X-Publishing;Education" for
+      compatibility with the old clients
+  * lp:~mvo/software-center/fix-cachedir-for-public-api:
+    - add missing cachedir argument
+  * lp:~mvo/software-center/region-support:
+    - add support for a region tag and display a warning to
+      the user if an application is not suitable for their
+      region
 
   [ Brendan Donegan ]
   * lp:~brendan-donegan/software-center/test_utils_get_nice_date_string:
     - add a test function in test_utils.py which covers all of
       get_nice_date_string
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 29 Jan 2012 22:57:47 -0500
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/launcher-integration-lp761851:
+    - update to the Unity launcher integration implementation to
+      support the revamped functionality on the Unity side (LP: #761851) 
+  * lp:~gary-lasker/software-center/recommends-ui-lobby:
+    - initial recommends UI implementation, limited to non-personalized
+      recommends currently
+  * lp:~gary-lasker/software-center/appdetailsview-button-focus-fix:
+    - make sure the action button in the applications details view
+      always gets the initial focus (LP: #925613)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 03 Feb 2012 18:34:43 +0100
 
 software-center (5.1.7) precise; urgency=low
 

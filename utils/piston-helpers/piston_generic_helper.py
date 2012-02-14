@@ -17,6 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import httplib2
 import argparse
 import logging
 import os
@@ -28,10 +29,10 @@ from gi.repository import GObject
 
 # useful for debugging
 if "SOFTWARE_CENTER_DEBUG_HTTP" in os.environ:
-    import httplib2
     httplib2.debuglevel = 1
 
 import piston_mini_client.auth
+from piston_mini_client.failhandlers import APIError
 
 try:
     import softwarecenter
@@ -184,13 +185,19 @@ if __name__ == "__main__":
                                                        token["consumer_secret"])
         api = klass(cachedir=cachedir, auth=auth)
     else:
-        api = klass()
+        api = klass(cachedir=cachedir)
         
     piston_reply = None
     # handle the args
     f = getattr(api, func)
     try:
         piston_reply = f(**kwargs)
+    except httplib2.ServerNotFoundError as e:
+        LOG.warn(e)
+        sys.exit(1)
+    except APIError as e:
+        LOG.warn(e)
+        sys.exit(1)
     except:
         LOG.exception("urclient_apps")
         sys.exit(1)
