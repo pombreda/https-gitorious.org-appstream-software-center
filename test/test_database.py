@@ -631,8 +631,22 @@ class MultipleVersionsSupportTestCase(unittest.TestCase):
         details._pkg.candidate = versions[1]
         self.assertEqual(
             details.get_not_automatic_archive_versions(), 
-            [  (versions[1].version, "default"),
+            [  (versions[1].version, ""),
                (versions[0].version, "precise-backports") ])
+
+    def test_multiple_version_pkg_states(self):
+        db = get_test_db()
+        app = Application("", "software-center")
+        details = app.get_details(db)
+        normal_version = self._make_version(not_automatic=False)
+        not_automatic_version = self._make_version(not_automatic=True)
+        details._pkg.versions = [normal_version, not_automatic_version]
+        details._pkg.installed = normal_version
+        details._pkg.is_installed = True
+        details._pkg.is_upgradable = True
+        self.assertEqual(details.pkg_state, PkgStates.UPGRADABLE)
+        app.archive_suite = not_automatic_version
+        self.assertEqual(details.pkg_state, PkgStates.FORCE_VERSION)
 
     def test_not_automatic_version(self):
         db = get_test_db()
