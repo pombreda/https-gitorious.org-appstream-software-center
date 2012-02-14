@@ -301,6 +301,8 @@ class MultipleVersionsTestCase(unittest.TestCase):
             self.app_mock.details.force_not_automatic_archive_suite.called)
         call_args = self.app_mock.details.force_not_automatic_archive_suite.call_args
         self.assertEqual(call_args, (("precise",), {}))
+        # ensure the button changes
+        self.assertEqual(self.view.pkg_statusbar.button.get_label(), "Change")
         
 
 class HardwareRequirementsTestCase(unittest.TestCase):
