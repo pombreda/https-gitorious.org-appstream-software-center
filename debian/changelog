@@ -33,6 +33,8 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
     - use 'px' suffixes as required by latest gtk
   * softwarecenter/ui/gtk3/views/appdetailsview.py:
     - replace ... and ' with their unicode eequivalents (LP: #844799)
+  * softwarecenter/db/application.py:
+    - don't crash if the version nr associated with a screenshot is None
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/recommender-service-url:
