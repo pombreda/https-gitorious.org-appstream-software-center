@@ -845,10 +845,14 @@ class AppDetailsView(Viewport):
         return
         
     def _update_recommendations(self, pkgname):
-        # recommendations panel
+        if (self.recommended_for_app_panel and
+            self.recommended_for_app_panel.get_parent()):
+            self.info_vb.remove(self.recommended_for_app_panel)
         self.recommended_for_app_panel = RecommendationsPanelDetails(
                                                     self.pane.cat_view,
                                                     pkgname)
+        self.info_vb.pack_start(self.recommended_for_app_panel, False, False, 0)
+        self.info_vb.reorder_child(self.recommended_for_app_panel, 1)
 
     # FIXME: should we just this with _check_for_reviews?
     def _update_reviews(self, app_details):
@@ -1204,6 +1208,8 @@ class AppDetailsView(Viewport):
         self.addons_hbar = self._hbars[1]
         info_vb.pack_start(self.addons_hbar, False, False, StockEms.SMALL)
         
+        self.recommended_for_app_panel = None
+
         # package info
         self.info_keys = []
 
