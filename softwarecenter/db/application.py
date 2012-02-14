@@ -707,7 +707,8 @@ class AppDetails(GObject.GObject):
         # if we have a not automatic version, ensure that the user can
         # always pick the default too
         if archive_suites:
-            archive_suites.insert(0, (self._pkg.candidate.version, ""))
+            archive_suites.insert(0, (self._pkg.candidate.version, 
+                                      v.origins[0].archive))
         return archive_suites
 
     def force_not_automatic_archive_suite(self, archive_suite):

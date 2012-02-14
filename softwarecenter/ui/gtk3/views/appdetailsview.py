@@ -267,8 +267,11 @@ class PackageStatusBar(StatusBar):
                 ver, archive_suite = archive_suite
                 # the string to display is something like:
                 #  "v1.0 (precise-backports)"
-                s = "v%s (%s)" % (upstream_version(ver),
-                                  archive_suite or _("default"))
+                displayed_archive_suite = archive_suite
+                if i == 0:
+                    displayed_archive_suite = _("default")
+                s = "v%s (%s)" % (upstream_version(ver), 
+                                  displayed_archive_suite)
                 model.append( (s, archive_suite) )
                 if app_version == ver:
                     self.combo_multiple_versions.set_active(i)

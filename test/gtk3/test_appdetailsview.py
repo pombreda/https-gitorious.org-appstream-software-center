@@ -258,7 +258,7 @@ class MultipleVersionsTestCase(unittest.TestCase):
         self.assertFalse(self.view.pkg_statusbar.combo_multiple_versions.get_visible())
         # switch to not-automatic app with different description
         self.app_mock.details.get_not_automatic_archive_versions = lambda: [ 
-            ("5.0", ""),
+            ("5.0", "precise"),
             ("12.0", "precise-backports"),
             ]
         self.view.show_app(self.app_mock)
@@ -268,7 +268,7 @@ class MultipleVersionsTestCase(unittest.TestCase):
 
     def test_combo_multiple_versions(self):
         self.app_mock.details.get_not_automatic_archive_versions = lambda: [
-            ("5.0",  ""),
+            ("5.0",  "precise"),
             ("12.0", "precise-backports") 
             ]
         # ensure that the right method is called
@@ -283,7 +283,7 @@ class MultipleVersionsTestCase(unittest.TestCase):
 
     def test_installed_multiple_version_default(self):
         self.app_mock.details.get_not_automatic_archive_versions = lambda: [
-            ("5.0",  ""),
+            ("5.0",  "precise"),
             ("12.0", "precise-backports") 
             ]
         self.app_mock.details.pkg_state = PkgStates.INSTALLED
@@ -294,12 +294,13 @@ class MultipleVersionsTestCase(unittest.TestCase):
         # ensure that the combo points to "precise-backports"
         self.assertEqual(active, "v12.0 (precise-backports)")
         # now change the installed version from 12.0 to 5.0
+        self.app_mock.details.force_not_automatic_archive_suite.reset_mock()
         self.view.pkg_statusbar.combo_multiple_versions.set_active(0)
         # ensure that now the default version is forced
         self.assertTrue(
             self.app_mock.details.force_not_automatic_archive_suite.called)
         call_args = self.app_mock.details.force_not_automatic_archive_suite.call_args
-        self.assertEqual(call_args, (("",), {}))
+        self.assertEqual(call_args, (("precise",), {}))
         
 
 class HardwareRequirementsTestCase(unittest.TestCase):
