@@ -124,22 +124,13 @@ def test_ping():
     global NETWORK_STATE
     import subprocess
 
-    # ping the main deb repository from the sources.list
-    import aptsources
-    source_list = aptsources.apt_pkg.SourceList()
-    source_list.read_main_list()
+    # ping freedesktop.org to test the internet
+    host = 'www.freedesktop.org'
+    msg = ("Attempting one time ping of %s to test if internet "
+           "connectivity exists." % host)
+    logging.info(msg)
 
-    if not source_list.list:
-        LOG.warn("apt sourcelist had no sources!!!")
-        NETWORK_STATE = NetState.NM_STATE_DISCONNECTED
-    else:
-        # get a host to ping
-        host = urlparse(source_list.list[0].uri)[1]
-        msg = ("Attempting one time ping of %s to test if internet "
-               "connectivity exists." % host)
-        logging.info(msg)
-
-        ping = subprocess.Popen(
+    ping = subprocess.Popen(
             ["ping", "-c", "1", host],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
