@@ -851,6 +851,7 @@ class AppDetailsView(Viewport):
         self.recommended_for_app_panel = RecommendationsPanelDetails(
                                                     self.pane.cat_view,
                                                     pkgname)
+        self.recommended_for_app_panel.show_all()
         self.info_vb.pack_start(self.recommended_for_app_panel, False, False, 0)
         self.info_vb.reorder_child(self.recommended_for_app_panel, 1)
 
