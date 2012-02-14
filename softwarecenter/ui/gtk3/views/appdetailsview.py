@@ -376,6 +376,8 @@ class PackageStatusBar(StatusBar):
                 self.set_button_label(_(u'Buy\u2026'))
             else:
                 self.set_button_label(_(u'Buy Anyway\u2026'))
+        elif state == PkgStates.FORCE_VERSION:
+                self.set_button_label(_('Change'))
         elif state in (
             PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
             PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES):
@@ -1850,7 +1852,8 @@ class AppDetailsView(Viewport):
         if state == PkgStates.NEEDS_PURCHASE:
             self.pkg_statusbar.configure(self.app_details, 
                                          PkgStates.INSTALLING_PURCHASED)
-        elif state == PkgStates.UNINSTALLED:
+        elif (state == PkgStates.UNINSTALLED or
+              state == PkgStates.FORCE_VERSION):
             self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING)
         elif state == PkgStates.INSTALLED:
             self.pkg_statusbar.configure(self.app_details, PkgStates.REMOVING)

@@ -288,6 +288,7 @@ class MultipleVersionsTestCase(unittest.TestCase):
             ]
         self.app_mock.details.pkg_state = PkgStates.INSTALLED
         self.app_mock.details.version = "12.0"
+
         self.app_mock.details.force_not_automatic_archive_suite = Mock()
         self.view.show_app(self.app_mock)
         active = self.view.pkg_statusbar.combo_multiple_versions.get_active_text()
@@ -295,6 +296,10 @@ class MultipleVersionsTestCase(unittest.TestCase):
         self.assertEqual(active, "v12.0 (precise-backports)")
         # now change the installed version from 12.0 to 5.0
         self.app_mock.details.force_not_automatic_archive_suite.reset_mock()
+        def _side_effect(*args):
+            self.app_mock.archive_suite="precise"
+            self.app_mock.details.pkg_state = PkgStates.FORCE_VERSION
+        self.app_mock.details.force_not_automatic_archive_suite.side_effect = _side_effect
         self.view.pkg_statusbar.combo_multiple_versions.set_active(0)
         # ensure that now the default version is forced
         self.assertTrue(
