@@ -450,7 +450,14 @@ class AppDetails(GObject.GObject):
         # - available for download (via sources.list)
         # - locally installed
         # - intalled and available for download
+        # - installed but the user wants to switch versions between
+        #   not-automatic channels (like experimental/backports)
         if self._pkg:
+            if self._pkg.installed and self._app.archive_suite:
+                archive_suites = [origin.archive 
+                                  for origin in self._pkg.installed.origins]
+                if not self._app.archive_suite in archive_suites:
+                    return PkgStates.FORCE_VERSION
             if self._pkg.installed and self._pkg.is_upgradable:
                 return PkgStates.UPGRADABLE
             if self._pkg.is_installed:
