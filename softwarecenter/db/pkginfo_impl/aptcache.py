@@ -517,7 +517,7 @@ class AptCache(PackageInfo):
         else:
             return False
         pkg._pcache._depcache.set_candidate_release(
-            pkg._pkg, version._cand, release)
+            pkg._pkg, version._cand, archive_suite)
         return True
     def get_total_size_on_install(self, pkgname, 
                                   addons_install=None, addons_remove=None,
