@@ -24,10 +24,17 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * lp:~mvo/software-center/screenshots-sorting:
     - ensure the multiple screenshots are sorted properly when
       they come from the json API
+  * lp:~mvo/software-center/sca-video-updates:
+    - update the client to follow the server side changes for
+      videos from software-center-agent
 
   [ Kiwinote ]
   * data/ui/gtk3/css/*.css:
     - use 'px' suffixes as required by latest gtk
+  * softwarecenter/ui/gtk3/views/appdetailsview.py:
+    - replace ... and ' with their unicode eequivalents (LP: #844799)
+  * softwarecenter/db/application.py:
+    - don't crash if the version nr associated with a screenshot is None
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/recommender-service-url:
@@ -35,8 +42,12 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
       service 
   * lp:~gary-lasker/software-center/import-latest-sreclient:
     - import latest recommender client 
+  
+  [ Juhana Jauhiainen ]
+  * softwarecenter/backend/launchpad.py:
+    - replaced EDGE_SERVICE_ROOT with LPNET_SERVICE_ROOT. (LP: #737697)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 10 Feb 2012 19:01:58 -0500
+ -- Kiwinote <kiwinote@gmail.com>  Mon, 13 Feb 2012 16:31:36 +0000
 
 software-center (5.1.8) precise; urgency=low
 

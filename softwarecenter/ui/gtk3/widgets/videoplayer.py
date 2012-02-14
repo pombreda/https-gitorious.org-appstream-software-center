@@ -38,7 +38,7 @@ LOG = logging.getLogger(__name__)
 class VideoPlayer(Gtk.VBox):
     def __init__(self):
         super(VideoPlayer, self).__init__()
-        self.set_size_request(400, 400)
+        self.set_size_request(400, 255)
         self.webkit = WebKit.WebView()
         settings = self.webkit.get_settings()
         # this disables the flash and other plugins so that we force html5
