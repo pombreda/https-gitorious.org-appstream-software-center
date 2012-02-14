@@ -363,7 +363,7 @@ class AptCache(PackageInfo):
     def _get_depends_by_type(self, pkg, types):
         version = pkg.installed
         if version == None:
-            version = max(pkg.versions)
+            version = pkg.candidate
         return version.get_dependencies(*types)
     def _get_depends_by_type_str(self, pkg, *types):
         def not_in_list(list, item):
@@ -516,9 +516,9 @@ class AptCache(PackageInfo):
                 break
         else:
             return False
-        pkg._pcache._depcache.set_candidate_release(
+        res = pkg._pcache._depcache.set_candidate_release(
             pkg._pkg, version._cand, archive_suite)
-        return True
+        return res
     def get_total_size_on_install(self, pkgname, 
                                   addons_install=None, addons_remove=None,
                                   archive_suite=None):
@@ -538,17 +538,20 @@ class AptCache(PackageInfo):
             all_install += addons_install
         
         if version == None:
-            all_install.append(pkgname)
+            # its important that its the first pkg as the depcache will
+            # get cleared for each pkg and that will means that the
+            # set_candidate_release is lost again
+            all_install.insert(0, pkgname)
             if archive_suite:
                 self._set_candidate_release(pkg, archive_suite)
 
         for p in all_install:
-            version = max(self._cache[p].versions)
+            version = self._cache[p].candidate
             pkgs_to_install.append(version)
             deps_inst = self._try_install_and_get_all_deps_installed(self._cache[p])
             for dep in deps_inst:
                 if self._cache[dep].installed == None:
-                    dep_version = max(self._cache[dep].versions)
+                    dep_version = self._cache[dep].candidate
                     pkgs_to_install.append(dep_version)
             deps_remove = self._try_install_and_get_all_deps_removed(self._cache[p])
             for dep in deps_remove:
@@ -563,7 +566,7 @@ class AptCache(PackageInfo):
             deps_inst = self._try_install_and_get_all_deps_installed(self._cache[p])
             for dep in deps_inst:
                 if self._cache[dep].installed == None:
-                    version = max(self._cache[dep].versions)
+                    version = self._cache[dep].candidate
                     pkgs_to_install.append(version)
             deps_remove = self._try_install_and_get_all_deps_removed(self._cache[p])
             for dep in deps_remove:
