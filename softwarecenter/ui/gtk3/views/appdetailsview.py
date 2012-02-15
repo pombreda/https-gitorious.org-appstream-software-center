@@ -50,6 +50,10 @@ from softwarecenter.distro import get_distro
 from softwarecenter.backend.weblive import get_weblive_backend
 from softwarecenter.ui.gtk3.dialogs import error
 
+# FIXME: this is needed for the recommendations but really should become
+#        a widget or something generic instead
+from softwarecenter.ui.gtk3.views.catview_gtk import CategoriesViewGtk
+
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.drawing import color_to_hex
 from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
@@ -741,7 +745,7 @@ class AppDetailsView(Viewport):
                     }
 
 
-    def __init__(self, db, distro, icons, cache, datadir, pane):
+    def __init__(self, db, distro, icons, cache, datadir):
         Viewport.__init__(self)
         # basic stuff
         self.db = db
@@ -752,7 +756,6 @@ class AppDetailsView(Viewport):
         self.cache.connect("cache-ready", self._on_cache_ready)
         self.connect("destroy", self._on_destroy)
         self.datadir = datadir
-        self.pane = pane
         self.app = None
         self.appdetails = None
         self.addons_to_install = []
@@ -844,15 +847,7 @@ class AppDetailsView(Viewport):
         return
         
     def _update_recommendations(self, pkgname):
-        if (self.recommended_for_app_panel and
-            self.recommended_for_app_panel.get_parent()):
-            self.info_vb.remove(self.recommended_for_app_panel)
-        self.recommended_for_app_panel = RecommendationsPanelDetails(
-                                                    self.pane.cat_view,
-                                                    pkgname)
-        self.recommended_for_app_panel.show_all()
-        self.info_vb.pack_start(self.recommended_for_app_panel, False, False, 0)
-        self.info_vb.reorder_child(self.recommended_for_app_panel, 1)
+        self.recommended_for_app_panel.set_pkgname(pkgname)
 
     # FIXME: should we just this with _check_for_reviews?
     def _update_reviews(self, app_details):
@@ -1208,9 +1203,14 @@ class AppDetailsView(Viewport):
 
         self.addons_hbar = self._hbars[1]
         info_vb.pack_start(self.addons_hbar, False, False, StockEms.SMALL)
-        
-        self.recommended_for_app_panel = None
 
+        # recommendations
+        catview = CategoriesViewGtk(
+            self.datadir, None, self.cache, self.db, self.icons, None)
+        self.recommended_for_app_panel = RecommendationsPanelDetails(catview)
+        self.recommended_for_app_panel.show_all()
+        self.info_vb.pack_start(self.recommended_for_app_panel, False, False, 0)
+        
         # package info
         self.info_keys = []
 
@@ -2011,17 +2011,10 @@ def get_test_window_appdetails():
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
     
-    from mock import Mock
-    pane = Mock()
-    # need a catview to test the recommendations panel
-    from softwarecenter.ui.gtk3.views.catview_gtk import get_test_catview
-    catview = get_test_catview()
-    pane.catview = catview
-
     # gui
     win = Gtk.Window()
     scroll = Gtk.ScrolledWindow()
-    view = AppDetailsView(db, distro, icons, cache, datadir, pane)
+    view = AppDetailsView(db, distro, icons, cache, datadir)
 
     import sys
     if len(sys.argv) > 1:

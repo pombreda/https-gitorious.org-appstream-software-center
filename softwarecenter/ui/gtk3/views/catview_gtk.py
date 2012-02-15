@@ -93,7 +93,7 @@ class CategoriesViewGtk(Viewport, CategoriesParser):
                  cache,
                  db,
                  icons,
-                 apps_filter,
+                 apps_filter=None, # FIXME: kill this, its not needed anymore?
                  apps_limit=0):
 
         """ init the widget, takes
