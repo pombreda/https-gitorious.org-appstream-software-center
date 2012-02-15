@@ -806,9 +806,9 @@ class AppDetailsView(Viewport):
     __gsignals__ = {'selected':(GObject.SignalFlags.RUN_FIRST,
                                 None,
                                 (GObject.TYPE_PYOBJECT,)),
-                    "application-selected" : (GObject.SignalFlags.RUN_LAST,
-                                   None,
-                                   (GObject.TYPE_PYOBJECT, )),
+                    "different-application-selected" : (GObject.SignalFlags.RUN_LAST,
+                                                        None,
+                                                        (GObject.TYPE_PYOBJECT, )),
                     }
 
 
@@ -1274,6 +1274,8 @@ class AppDetailsView(Viewport):
         catview = CategoriesViewGtk(
             self.datadir, None, self.cache, self.db, self.icons, None)
         self.recommended_for_app_panel = RecommendationsPanelDetails(catview)
+        self.recommended_for_app_panel.connect(
+            "application-activated", self._on_recommended_application_activated)
         self.recommended_for_app_panel.show_all()
         self.info_vb.pack_start(self.recommended_for_app_panel, False, False, 0)
         
@@ -1325,6 +1327,9 @@ class AppDetailsView(Viewport):
         # signals!
         self.connect('size-allocate', lambda w,a: w.queue_draw())
         return
+
+    def _on_recommended_application_activated(self, recwidget, app):
+        self.emit("different-application-selected", app)
 
     def _on_review_new(self, button):
         self._review_write_new()
