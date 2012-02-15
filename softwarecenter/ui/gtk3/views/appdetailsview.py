@@ -61,6 +61,7 @@ from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
 from softwarecenter.ui.gtk3.widgets.stars import Star, StarRatingsWidget
 from softwarecenter.ui.gtk3.widgets.description import AppDescription
 from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotGallery
+from softwarecenter.ui.gtk3.widgets.videoplayer import VideoPlayer
 from softwarecenter.ui.gtk3.widgets.weblivedialog import (
                                     ShowWebLiveServerChooserDialog)
 from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
@@ -1138,6 +1139,14 @@ class AppDetailsView(Viewport):
         frame.add(self.screenshot)
         right_vb.pack_start(frame, False, False, 0)
 
+        # video
+        mini_hb = Gtk.HBox()
+        self.videoplayer = VideoPlayer()
+        mini_hb.pack_start(self.videoplayer, False, False, 0)
+        # add a empty label here to ensure bg is set properly
+        mini_hb.pack_start(Gtk.Label(), True, True, 0)
+        right_vb.pack_start(mini_hb, False, False, 0)
+
         # the weblive test-drive stuff
         self.weblive = get_weblive_backend()
         if self.weblive.client is not None:
@@ -1162,15 +1171,6 @@ class AppDetailsView(Viewport):
         self.support_btn = Gtk.Label()
         self.support_btn.set_name("subtle-label")
         self.support_btn.connect('activate-link', self._on_homepage_clicked)
-
-        # video
-        from softwarecenter.ui.gtk3.widgets.videoplayer import VideoPlayer
-        mini_hb = Gtk.HBox()
-        self.videoplayer = VideoPlayer()
-        mini_hb.pack_start(self.videoplayer, False, False, 0)
-        # add a empty label here to ensure bg is set properly
-        mini_hb.pack_start(Gtk.Label(), True, True, 0)
-        vb.pack_start(mini_hb, False, False, 0)
 
         # add the links footer to the description widget
         footer_hb = Gtk.HBox(spacing=6)
