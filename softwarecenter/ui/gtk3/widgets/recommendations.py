@@ -40,6 +40,9 @@ class RecommendationsPanel(FramedHeaderBox):
     """
     def __init__(self, catview):
         FramedHeaderBox.__init__(self)
+        # FIXME: we only need the catview for "add_titles_to_flowgrid"
+        #        and "on_category_clicked" so we should be able to
+        #        extract this to a "leaner" widget
         self.catview = catview
         self.recommender_agent = RecommenderAgent()
         
