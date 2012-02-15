@@ -34,6 +34,8 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
     apt_pkg.DepCache.policy_priority() support
   * lp:~mvo/software-center/sca-debtags:
     - fix the debtags parsing from the software-center-agent
+  * lp:~mvo/software-center/multiple-versions:
+    - add support for multiple versions into software-center
 
   [ Kiwinote ]
   * data/ui/gtk3/css/*.css:
@@ -56,7 +58,7 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * softwarecenter/backend/launchpad.py:
     - replaced EDGE_SERVICE_ROOT with LPNET_SERVICE_ROOT. (LP: #737697)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Feb 2012 01:20:43 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Feb 2012 11:55:47 -0500
 
 software-center (5.1.8) precise; urgency=low
 
