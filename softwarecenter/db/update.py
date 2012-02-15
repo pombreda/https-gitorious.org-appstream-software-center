@@ -26,7 +26,6 @@ import shutil
 import time
 import xapian
 
-from aptsources.sourceslist import SourceEntry
 from gi.repository import GObject
 from piston_mini_client import PistonResponseObject
 
@@ -265,6 +264,7 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
     @classmethod
     def update_debline(cls, debline):
         # Be careful to handle deblines with pockets.
+        from aptsources.sourceslist import SourceEntry
         source_entry = SourceEntry(debline)
         distro_pocket = source_entry.dist.split('-')
         distro_pocket[0] = get_distro().get_codename()
