@@ -454,14 +454,16 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def on_available_pane_created(self, widget):
         self.available_pane.searchentry.grab_focus()
-        # connect a signal to monitor the recommendations opt-in state and
-        # persist the recommendations uuid on an opt-in
-        self.available_pane.cat_view.recommended_for_you_panel.connect(
-                        "recommendations-opt-in",
-                        self._on_recommendations_opt_in)
-        self.available_pane.cat_view.recommended_for_you_panel.connect(
-                        "recommendations-opt-out",
-                        self._on_recommendations_opt_out)
+        # FIXME: temporarily remove this with the other lobby recommendations
+        #        pieces and re-enable when the server-side support is in place
+#        # connect a signal to monitor the recommendations opt-in state and
+#        # persist the recommendations uuid on an opt-in
+#        self.available_pane.cat_view.recommended_for_you_panel.connect(
+#                        "recommendations-opt-in",
+#                        self._on_recommendations_opt_in)
+#        self.available_pane.cat_view.recommended_for_you_panel.connect(
+#                        "recommendations-opt-out",
+#                        self._on_recommendations_opt_out)
     
     #~ def on_installed_pane_created(self, widget):
         #~ pass
