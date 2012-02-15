@@ -7,7 +7,7 @@ from mock import Mock
 
 from testutils import setup_test_env
 setup_test_env()
-from softwarecenter.region import RegionDiscover
+from softwarecenter.region import RegionDiscover, get_region_name
 from softwarecenter.i18n import init_locale
 
 class TestRegion(unittest.TestCase):
@@ -23,6 +23,10 @@ class TestRegion(unittest.TestCase):
         self.assertEqual(res["countrycode"], "ZM")
         self.assertEqual(res["country"], "Zambia")
         os.environ["LANG"] = ""
+
+    def test_get_region_name(self):
+        self.assertEqual(get_region_name("BO"), "Bolivia")
+        self.assertEqual(get_region_name("DE"), "Germany")
 
     def test_get_region_geoclue(self):
         res = self.region._get_region_geoclue()
