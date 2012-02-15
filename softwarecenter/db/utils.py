@@ -32,9 +32,9 @@ def get_query_for_pkgnames(pkgnames):
     
 def get_installed_package_list():
     """ return a set of all of the currently installed packages """
-    import apt
+    from softwarecenter.db.pkginfo import get_pkg_info
     installed_pkgs = set()
-    cache=apt.Cache()
+    cache=get_pkg_info()
     for pkg in cache:
         if pkg.is_installed:
             installed_pkgs.add(pkg.name)
