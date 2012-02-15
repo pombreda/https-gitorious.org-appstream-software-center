@@ -47,6 +47,8 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
       service 
   * lp:~gary-lasker/software-center/import-latest-sreclient:
     - import latest recommender client 
+  * lp:~gary-lasker/software-center/recommendation:
+    - add recommendations UI and opt-in/opt-out support
   
   [ Juhana Jauhiainen ]
   * softwarecenter/backend/launchpad.py:
