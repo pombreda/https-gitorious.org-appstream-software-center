@@ -38,6 +38,9 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
     - add support for multiple versions into software-center
   * lp:~mvo/software-center/fix-recommenations-details-clicks:
     - fix clickthru of details view recommendations after refactor
+  * lp:~mvo/software-center/rfc3166-use-common-name:
+    - ensure that "common_name" in rfc3166 is used when available
+      to avoid political issues around the name of the region
 
   [ Kiwinote ]
   * data/ui/gtk3/css/*.css:
@@ -62,7 +65,7 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * softwarecenter/backend/launchpad.py:
     - replaced EDGE_SERVICE_ROOT with LPNET_SERVICE_ROOT. (LP: #737697)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Feb 2012 12:11:56 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Feb 2012 12:37:53 -0500
 
 software-center (5.1.8) precise; urgency=low
 
