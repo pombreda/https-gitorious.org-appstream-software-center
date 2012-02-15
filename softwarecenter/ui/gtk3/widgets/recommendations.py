@@ -41,7 +41,18 @@ class RecommendationsPanel(FramedHeaderBox):
     def __init__(self, catview):
         FramedHeaderBox.__init__(self)
         self.catview = catview
+        self.recommender_uuid = ""
         self.recommender_agent = RecommenderAgent()
+        
+    def get_recommender_uuid(self):
+        # FIXME: probs should just pass this on in instead of reading config
+        recommender_uuid = ""
+        config = get_config()
+        if config.has_option("general", "recommender_uuid"):
+            recommender_uuid = config.get("general",
+                                           "recommender_uuid")
+        return recommender_uuid
+        
         
 
 class RecommendationsPanelLobby(RecommendationsPanel):
@@ -66,13 +77,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         RecommendationsPanel.__init__(self, catview)
         self.set_header_label(_(u"Recommended for You"))
         
-        self.recommender_uuid = ""
-        # FIXME: probs should just pass this on in instead of reading config
-        config = get_config()
-        if config.has_option("general", "recommender_uuid"):
-            self.recommender_uuid = config.get("general",
-                                               "recommender_uuid")
-        
+        self.recommender_uuid = self.get_recommender_uuid()
         if not self.recommender_uuid:
             self._show_opt_in_view()
         else:
