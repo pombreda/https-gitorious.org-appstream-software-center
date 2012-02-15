@@ -50,6 +50,10 @@ from softwarecenter.distro import get_distro
 from softwarecenter.backend.weblive import get_weblive_backend
 from softwarecenter.ui.gtk3.dialogs import error
 
+# FIXME: this is needed for the recommendations but really should become
+#        a widget or something generic instead
+from softwarecenter.ui.gtk3.views.catview_gtk import CategoriesViewGtk
+
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.drawing import color_to_hex
 from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
@@ -64,6 +68,8 @@ from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotGallery
 from softwarecenter.ui.gtk3.widgets.videoplayer import VideoPlayer
 from softwarecenter.ui.gtk3.widgets.weblivedialog import (
                                     ShowWebLiveServerChooserDialog)
+from softwarecenter.ui.gtk3.widgets.recommendations import (
+                                            RecommendationsPanelDetails)
 from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 
 import softwarecenter.ui.gtk3.dialogs as dialogs
@@ -740,7 +746,7 @@ class AppDetailsView(Viewport):
                     }
 
 
-    def __init__(self, db, distro, icons, cache, datadir, pane):
+    def __init__(self, db, distro, icons, cache, datadir):
         Viewport.__init__(self)
         # basic stuff
         self.db = db
@@ -762,7 +768,6 @@ class AppDetailsView(Viewport):
         self.set_shadow_type(Gtk.ShadowType.NONE)
         self.set_name("view")
 
-        self._pane = pane
         self.section = None
         # app specific data
         self.app = None
@@ -841,6 +846,9 @@ class AppDetailsView(Viewport):
         self.addons_statusbar.button_apply.set_sensitive(sensitive)
         self.addons_statusbar.button_cancel.set_sensitive(sensitive)
         return
+        
+    def _update_recommendations(self, pkgname):
+        self.recommended_for_app_panel.set_pkgname(pkgname)
 
     # FIXME: should we just this with _check_for_reviews?
     def _update_reviews(self, app_details):
@@ -1196,6 +1204,13 @@ class AppDetailsView(Viewport):
         self.addons_hbar = self._hbars[1]
         info_vb.pack_start(self.addons_hbar, False, False, StockEms.SMALL)
 
+        # recommendations
+        catview = CategoriesViewGtk(
+            self.datadir, None, self.cache, self.db, self.icons, None)
+        self.recommended_for_app_panel = RecommendationsPanelDetails(catview)
+        self.recommended_for_app_panel.show_all()
+        self.info_vb.pack_start(self.recommended_for_app_panel, False, False, 0)
+        
         # package info
         self.info_keys = []
 
@@ -1470,6 +1485,7 @@ class AppDetailsView(Viewport):
             self.totalsize_info.set_value(_("Calculating..."))
             GObject.idle_add(self.update_totalsize,
                              priority=GObject.PRIORITY_LOW)
+        self._update_recommendations(app_details.pkgname)
         self._update_reviews(app_details)
 
         # show where it is
@@ -1994,11 +2010,11 @@ def get_test_window_appdetails():
 
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
-
+    
     # gui
     win = Gtk.Window()
     scroll = Gtk.ScrolledWindow()
-    view = AppDetailsView(db, distro, icons, cache, datadir, win)
+    view = AppDetailsView(db, distro, icons, cache, datadir)
 
     import sys
     if len(sys.argv) > 1:

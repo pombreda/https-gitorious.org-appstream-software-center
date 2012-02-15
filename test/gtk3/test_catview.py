@@ -8,7 +8,7 @@ setup_test_env()
 
 from softwarecenter.enums import SortMethods
 from softwarecenter.testutils import (get_test_db,
-                                      make_recommender_agent_recommend_top_dict)
+                                      make_recommender_agent_recommend_me_dict)
 
 class TestCatView(unittest.TestCase):
 
@@ -19,10 +19,7 @@ class TestCatView(unittest.TestCase):
         #print "**************", subcatview, category
         self._cat = category
     
-    # patch out the agent query method to avoid making the actual server call
-    @patch('softwarecenter.backend.recommends.RecommenderAgent'
-           '.query_recommend_top')
-    def test_subcatview_top_rated(self, mock_query_recommend_top):
+    def test_subcatview_top_rated(self):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
@@ -36,10 +33,7 @@ class TestCatView(unittest.TestCase):
         self.assertEqual(self._cat.sortmode, SortMethods.BY_TOP_RATED)
         win.destroy()
 
-    # patch out the agent query method to avoid making the actual server call
-    @patch('softwarecenter.backend.recommends.RecommenderAgent'
-           '.query_recommend_top')
-    def test_subcatview_new(self, mock_query_recommend_top):
+    def test_subcatview_new(self):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
@@ -54,10 +48,7 @@ class TestCatView(unittest.TestCase):
         self.assertEqual(self._cat.sortmode, SortMethods.BY_CATALOGED_TIME)
         win.destroy()
 
-    # patch out the agent query method to avoid making the actual server call
-    @patch('softwarecenter.backend.recommends.RecommenderAgent'
-           '.query_recommend_top')
-    def test_subcatview_new_no_sort_info_yet(self, mock_query_recommend_top):
+    def test_subcatview_new_no_sort_info_yet(self):
         # ensure that we don't show a empty "whats new" category
         # see LP: #865985
         from softwarecenter.testutils import get_test_db
@@ -95,24 +86,64 @@ class TestCatView(unittest.TestCase):
         self._p()
         win.destroy()
         
-    # patch out the agent query method to avoid making the actual server call
-    @patch('softwarecenter.backend.recommends.RecommenderAgent'
-           '.query_recommend_top')
-    def test_subcatview_recommended_for_me(self, mock_query_recommend_top):
+    def test_subcatview_recommended_for_you_opt_in_display(self):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
         lobby = win.get_data("lobby")
+        rec_panel = lobby.recommended_for_you_panel
+        self._p()
+        from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
+        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
+        self.assertTrue(rec_panel.opt_in_vbox.get_property("visible"))
+        win.destroy()
+        
+    # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recagent.RecommenderAgent'
+           '.query_submit_profile')
+    def test_subcatview_recommended_for_you_spinner_display(self, mock_query):
+        from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
+        # get the widgets we need
+        win = get_test_window_catview()
+        lobby = win.get_data("lobby")
+        rec_panel = lobby.recommended_for_you_panel
+        self._p()
+        # click the opt-in button to initiate the process, this will show the spinner
+        rec_panel.opt_in_button.emit('clicked')
+        self._p()
+        from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
+        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.SPINNER)
+        self.assertTrue(rec_panel.opt_in_vbox.get_property("visible"))
+        self.assertTrue(rec_panel.spinner.spinner_label)
+        win.destroy()
+        
+    # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recagent.RecommenderAgent'
+           '.query_submit_profile')
+    def test_subcatview_recommended_for_you_display_recommendations(self, mock_query):
+        from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
+        # get the widgets we need
+        win = get_test_window_catview()
+        lobby = win.get_data("lobby")
+        rec_panel = lobby.recommended_for_you_panel
+        self._p()
+        # click the opt-in button to initiate the process, this will show the spinner
+        rec_panel.opt_in_button.emit('clicked')
+        self._p()
+        rec_panel._update_recommended_for_you_content()
+        self._p()
         # we fake the callback from the agent here
-        lobby.recommended_for_you_cat._recommend_top_result(
+        lobby.recommended_for_you_panel.recommended_for_you_cat._recommend_me_result(
                                 None,
-                                make_recommender_agent_recommend_top_dict())
+                                make_recommender_agent_recommend_me_dict())
         self.assertNotEqual(
-                lobby.recommended_for_you_cat.get_documents(self.db), [])
+                lobby.recommended_for_you_panel.recommended_for_you_cat.get_documents(self.db), [])
+        from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
+        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
         self._p()
         # test clicking recommended_for_you More button
         lobby.connect("category-selected", self._on_category_selected)
-        lobby.recommended_for_you_frame.more.clicked()
+        lobby.recommended_for_you_panel.more.clicked()
         self._p()
         self.assertNotEqual(self._cat, None)
         self.assertEqual(self._cat.name, "Recommended for You")

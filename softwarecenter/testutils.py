@@ -191,7 +191,7 @@ def make_software_center_agent_subscription_dict(app_dict):
         }
     return subscription_dict
 
-def make_recommender_agent_recommend_top_dict():
+def make_recommender_agent_recommend_me_dict():
     # best to have a list of likely not-installed items
     app_dict = {
         u'recommendations': [
@@ -228,4 +228,41 @@ def make_recommender_agent_recommend_top_dict():
     ]
 }
     return app_dict
+    
+def make_recommender_profile_upload_data(): 
+    from softwarecenter.utils import get_uuid
+    recommender_uuid = get_uuid()
+    profile_upload_data = [
+        {
+            'uuid': recommender_uuid, 
+            'package_list': [
+                u'clementine',
+                u'hedgewars',
+                u'gelemental',
+                u'nexuiz',
+                u'fgo',
+                u'musique',
+                u'pybik',
+                u'radiotray',
+                u'cherrytree',
+                u'phlipple'
+            ]
+        }
+    ]
+    return profile_upload_data
+    
+def make_recommend_app_data():
+    recommend_app_data = {u'rid': u'265c0bb1dece93a96c5a528e7ea5dd75',
+             u'data': [{u'rating': 4.0, u'package_name': u'kftpgrabber'},
+                      {u'rating': 4.0, u'package_name': u'sugar-emulator-0.90'}, 
+                      {u'rating': 3.0, u'package_name': u'wakeup'}, 
+                      {u'rating': 3.0, u'package_name': u'xvidcap'}, 
+                      {u'rating': 2.0, u'package_name': u'airstrike'}, 
+                      {u'rating': 2.0, u'package_name': u'pixbros'}, 
+                      {u'rating': 2.0, u'package_name': u'bomber'}, 
+                      {u'rating': 2.0, u'package_name': u'ktron'}, 
+                      {u'rating': 2.0, u'package_name': u'gnome-mousetrap'}, 
+                      {u'rating': 1.5, u'package_name': u'tucan'}],
+              u'app': u'pitivi'}
+    return recommend_app_data
     

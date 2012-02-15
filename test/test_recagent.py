@@ -7,7 +7,9 @@ import os
 from testutils import setup_test_env
 setup_test_env()
 
-from softwarecenter.backend.recommends import RecommenderAgent
+from softwarecenter.backend.recagent import RecommenderAgent
+
+from softwarecenter.testutils import make_recommender_profile_upload_data
 
 class TestRecommenderAgent(unittest.TestCase):
     """ tests the recommender agent """
@@ -15,49 +17,110 @@ class TestRecommenderAgent(unittest.TestCase):
     def setUp(self):
         self.loop = GObject.MainLoop(GObject.main_context_default())
         self.error = False
+        self.orig_host = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST")
+        if not "SOFTWARE_CENTER_RECOMMENDER_HOST" in os.environ:
+            os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
+
+    def tearDown(self):
+        if self.orig_host is None:
+            del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
+        else:
+            os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = self.orig_host
 
     def on_query_done(self, recagent, data):
         print "query done, data: '%s'" % data
         self.loop.quit()
         
     def on_query_error(self, recagent, error):
+        print "query error received: ", error
         self.loop.quit()
         self.error = True
         
-    # disabled as the server returns 503 currently
-    def disabled_test_recagent_query_recommend_top(self):
+    def test_recagent_query_server_status(self):
         # NOTE: This requires a working recommender host that is reachable
-        os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com/"
+        recommender_agent = RecommenderAgent()
+        recommender_agent.connect("server-status", self.on_query_done)
+        recommender_agent.connect("error", self.on_query_error)
+        recommender_agent.query_server_status()
+        self.loop.run()
+        self.assertFalse(self.error)
+        
+    def test_recagent_query_submit_profile(self):
+        # NOTE: This requires a working recommender host that is reachable
+        recommender_agent = RecommenderAgent()
+        recommender_agent.connect("submit-profile", self.on_query_done)
+        recommender_agent.connect("error", self.on_query_error)
+        recommender_agent.query_submit_profile(data=make_recommender_profile_upload_data())
+        self.loop.run()
+        self.assertFalse(self.error)
+        
+#    def disabled_test_recagent_query_submit_anon_profile(self):
+#        # NOTE: This requires a working recommender host that is reachable
+#        recommender_agent = RecommenderAgent()
+#        recommender_agent.connect("submit-anon-profile", self.on_query_done)
+#        recommender_agent.connect("error", self.on_query_error)
+#        recommender_agent.query_submit_anon_profile(
+#                uuid=recommender_uuid,
+#                installed_packages=["pitivi", "fretsonfire"],
+#                extra="")
+#        self.loop.run()
+#        self.assertFalse(self.error)
+        
+    def disabled_test_recagent_query_profile(self):
+        # NOTE: This requires a working recommender host that is reachable
+        recommender_agent = RecommenderAgent()
+        recommender_agent.connect("profile", self.on_query_done)
+        recommender_agent.connect("error", self.on_query_error)
+        recommender_agent.query_profile(pkgnames=["pitivi", "fretsonfire"])
+        self.loop.run()
+        self.assertFalse(self.error)
+
+    def test_recagent_query_recommend_me(self):
+        # NOTE: This requires a working recommender host that is reachable
+        recommender_agent = RecommenderAgent()
+        recommender_agent.connect("recommend-me", self.on_query_done)
+        recommender_agent.connect("error", self.on_query_error)
+        recommender_agent.query_recommend_me()
+        self.loop.run()
+        self.assertFalse(self.error)
+
+    def test_recagent_query_recommend_app(self):
+        # NOTE: This requires a working recommender host that is reachable
+        recommender_agent = RecommenderAgent()
+        recommender_agent.connect("recommend-app", self.on_query_done)
+        recommender_agent.connect("error", self.on_query_error)
+        recommender_agent.query_recommend_app("pitivi")
+        self.loop.run()
+        self.assertFalse(self.error)
+        
+    def test_recagent_query_recommend_all_apps(self):
+        # NOTE: This requires a working recommender host that is reachable
+        recommender_agent = RecommenderAgent()
+        recommender_agent.connect("recommend-all-apps", self.on_query_done)
+        recommender_agent.connect("error", self.on_query_error)
+        recommender_agent.query_recommend_all_apps()
+        self.loop.run()
+        self.assertFalse(self.error)
+        
+    def test_recagent_query_recommend_top(self):
+        # NOTE: This requires a working recommender host that is reachable
         recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-top", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_top()
         self.loop.run()
         self.assertFalse(self.error)
-        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
-        
-#    def test_recagent_query_recommend_me(self):
-#        os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com/"
-#        recommender_agent = RecommenderAgent()
-#        recommender_agent.connect("recommend-me", self.on_query_done)
-#        recommender_agent.connect("error", self.on_query_error)
-#        recommender_agent.query_recommend_me()
-#        self.loop.run()
-#        self.assertFalse(self.error)
-#        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
         
     def test_recagent_query_error(self):
-        # there definitely ain't no server here
-        os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://orange.staging.ubuntu.com/"
+        # NOTE: This tests the error condition itself! it simply forces an error
+        #       'cuz there definitely isn't a server here  :)
+        os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://orange.staging.ubuntu.com"
         recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-top", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_top()
         self.loop.run()
         self.assertTrue(self.error)
-        
-        del os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"]
-
 
 if __name__ == "__main__":
     import logging

@@ -31,7 +31,7 @@ from xml.sax.saxutils import unescape as xml_unescape
 
 from softwarecenter.enums import (
     SortMethods, NonAppVisibility)
-from softwarecenter.backend.recommends import RecommenderAgent
+from softwarecenter.backend.recagent import RecommenderAgent
 from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.utils import get_query_for_pkgnames
@@ -146,14 +146,51 @@ class RecommendedForYouCategory(Category):
             item_limit=60)
         self.recommender_agent = RecommenderAgent()
         self.recommender_agent.connect(
-            "recommend-top", self._recommend_top_result)
+            "recommend-me", self._recommend_me_result)
         self.recommender_agent.connect(
             "error", self._recommender_agent_error)
-        self.recommender_agent.query_recommend_top()
+        self.recommender_agent.query_recommend_me()
 
-    def _recommend_top_result(self, recommender_agent, result_list):
+    def _recommend_me_result(self, recommender_agent, result_list):
         pkgs = []
         for item in result_list['recommendations']:
+            pkgs.append(item['package_name'])
+        self.query = get_query_for_pkgnames(pkgs)
+        self.emit("needs-refresh")
+
+    def _recommender_agent_error(self, recommender_agent, msg):
+        LOG.warn("Error while accessing the recommender service: %s" 
+                                                            % msg)
+        self.emit("recommender-agent-error", msg)
+        
+class AppRecommendationsCategory(Category):
+
+    __gsignals__ = {
+        "needs-refresh" : (GObject.SIGNAL_RUN_LAST,
+                           GObject.TYPE_NONE, 
+                           (),
+                          ),
+        "recommender-agent-error" : (GObject.SIGNAL_RUN_LAST,
+                                     GObject.TYPE_NONE, 
+                                     (GObject.TYPE_STRING,),
+                                    ),
+        }
+
+    def __init__(self, pkgname):
+        super(AppRecommendationsCategory, self).__init__(
+            u"People Also Installed", _("People Also Installed"), None, 
+            xapian.Query(),flags=['available-only', 'not-installed-only'], 
+            item_limit=4)
+        self.recommender_agent = RecommenderAgent()
+        self.recommender_agent.connect(
+            "recommend-app", self._recommend_app_result)
+        self.recommender_agent.connect(
+            "error", self._recommender_agent_error)
+        self.recommender_agent.query_recommend_app(pkgname)
+
+    def _recommend_app_result(self, recommender_agent, result_list):
+        pkgs = []
+        for item in result_list['data']:
             pkgs.append(item['package_name'])
         self.query = get_query_for_pkgnames(pkgs)
         self.emit("needs-refresh")

@@ -9,6 +9,7 @@ from gi.repository import Gtk, Gdk
 from buttons import MoreLink
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.drawing import rounded_rect
+from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
 
 
 class FlowableGrid(Gtk.Fixed):
@@ -512,13 +513,10 @@ class FramedHeaderBox(FramedBox):
         self.box.pack_start(self.header_alignment, False, False, 0)
         # make the content box
         self.content_box = Gtk.Box.new(orientation, spacing)
-        # and a spinner (to be used only if needed)
+        # and a spinner with optional label (to be used only if needed)
         # TODO: cosmetic tweak needed - draw a line at the top of the spinner
         #       area so that the header has a proper border
-        self.spinner = Gtk.Spinner()
-        self.spinner.set_size_request(32, 32)
-        self.spinner.set_valign(Gtk.Align.CENTER)
-        self.spinner.set_halign(Gtk.Align.CENTER)
+        self.spinner = SpinnerView()
         # finally, a notebook for the spinner and the content box to share
         self.spinner_notebook = Gtk.Notebook()
         self.spinner_notebook.set_show_tabs(False)
@@ -551,7 +549,7 @@ class FramedHeaderBox(FramedBox):
         self.spinner.show()
         self.spinner_notebook.set_current_page(self.SPINNER)
             
-    def hide_spinner(self):
+    def show_content(self):
         self.spinner.stop()
         self.spinner.hide()
         self.spinner_notebook.set_current_page(self.CONTENT)

@@ -11,7 +11,7 @@ setup_test_env()
 from mock import Mock, patch
 
 from softwarecenter.db.application import Application
-from softwarecenter.testutils import get_mock_app_from_real_app, do_events
+from softwarecenter.testutils import get_mock_app_from_real_app, do_events, make_recommend_app_data
 from softwarecenter.ui.gtk3.widgets.labels import HardwareRequirementsBox
 from softwarecenter.ui.gtk3.views.appdetailsview import get_test_window_appdetails
 from softwarecenter.enums import PkgStates
@@ -434,6 +434,51 @@ class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
             self.assertEqual(
                 [method_name],
                 all_method_calls)
+                
+class AppRecommendationsTestCase(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        # Set these as class attributes as we don't modify either
+        # during the tests.
+        cls.win = get_test_window_appdetails()
+        cls.view = cls.win.get_data("view")
+        from softwarecenter.testutils import get_test_db
+        cls.db = get_test_db()
+
+    @classmethod
+    def tearDownClass(cls):
+        GObject.timeout_add(TIMEOUT, lambda: cls.win.destroy())
+        Gtk.main()
+
+    def setUp(self):
+        app = Application("", "pitivi")
+        self.app_mock = get_mock_app_from_real_app(app)
+        self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
+        
+    def on_query_done(self, recagent, data):
+        print "query done, data: '%s'" % data
+        self.loop.quit()
+        
+    def on_query_error(self, recagent, error):
+        print "query error received: ", error
+        self.loop.quit()
+        self.error = True
+
+    # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recagent.RecommenderAgent'
+           '.query_recommend_app')
+    def test_show_recommendations_for_app(self, mock_query):
+        self.view.show_app(self.app_mock)
+        do_events()
+        self.view.recommended_for_app_panel._update_app_recommendations_content()
+        do_events()
+        # we fake the callback from the agent here
+        self.view.recommended_for_app_panel.app_recommendations_cat._recommend_app_result(
+                                None,
+                                make_recommend_app_data())
+        self.assertNotEqual(
+                self.view.recommended_for_app_panel.app_recommendations_cat.get_documents(self.db), [])
 
 
 if __name__ == "__main__":

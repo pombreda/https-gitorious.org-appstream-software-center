@@ -29,3 +29,13 @@ def get_query_for_pkgnames(pkgnames):
                              query,
                              xapian.Query("AP"+pkgname))
     return query
+    
+def get_installed_package_list():
+    """ return a set of all of the currently installed packages """
+    from softwarecenter.db.pkginfo import get_pkg_info
+    installed_pkgs = set()
+    cache=get_pkg_info()
+    for pkg in cache:
+        if pkg.is_installed:
+            installed_pkgs.add(pkg.name)
+    return installed_pkgs

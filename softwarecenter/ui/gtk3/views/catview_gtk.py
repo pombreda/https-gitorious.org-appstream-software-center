@@ -19,8 +19,7 @@
 
 import cairo
 import gettext
-from gi.repository import Gtk
-from gi.repository import GObject
+from gi.repository import Gtk, GObject
 import logging
 import os
 import xapian
@@ -37,8 +36,10 @@ from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.viewport import Viewport
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, FramedBox, FlowableGrid)
+from softwarecenter.ui.gtk3.widgets.recommendations import (
+                                        RecommendationsPanelLobby)
 from softwarecenter.ui.gtk3.widgets.exhibits import (
-    ExhibitBanner, FeaturedExhibit)
+                                        ExhibitBanner, FeaturedExhibit)
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
@@ -47,7 +48,6 @@ from softwarecenter.db.appfilter import AppFilter, get_global_filter
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.categories import (Category,
                                           CategoriesParser,
-                                          RecommendedForYouCategory,
                                           get_category_by_name,
                                           categories_sorted_by_name)
 from softwarecenter.db.utils import get_query_for_pkgnames
@@ -93,7 +93,7 @@ class CategoriesViewGtk(Viewport, CategoriesParser):
                  cache,
                  db,
                  icons,
-                 apps_filter,
+                 apps_filter=None, # FIXME: kill this, its not needed anymore?
                  apps_limit=0):
 
         """ init the widget, takes
@@ -237,7 +237,6 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _build_homepage_view(self):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
-        #~ self._append_recommendations()
         self._append_banner_ads()
 
         self.top_hbox = Gtk.HBox(spacing=StockEms.SMALL)
@@ -365,7 +364,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             cat_vbox.pack_start(label, False, False, 0)
         return
 
-    # FIXME: _update_{top_rated,whats_new,recommended_for_you}_conent()
+    # FIXME: _update_{top_rated,whats_new,recommended_for_you}_content()
     #        duplicates a lot of code
     def _update_top_rated_content(self):
         # remove any existing children from the grid widget
@@ -421,42 +420,15 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.whats_new_frame.more.connect(
                 'clicked', self.on_category_clicked, whats_new_cat) 
         return
-
-    def _on_recommended_for_you_refresh(self, cat):
-        docs = cat.get_documents(self.db)
-        # display the recommendedations
-        if len(docs) > 0:
-            self._add_tiles_to_flowgrid(docs, self.recommended_for_you, 8)
-            self.recommended_for_you.show_all()
-            self.recommended_for_you_frame.hide_spinner()
-            self.recommended_for_you_frame.more.connect(
-                                                'clicked',
-                                                self.on_category_clicked,
-                                                cat)
-        else:
-            # TODO: this test for zero docs is temporary and will not be
-            # needed once the recommendation agent is up and running
-            self._hide_recommended_for_you()
-        return
         
-    def _on_recommender_agent_error(self, agent, msg):
-        LOG.warn("Error while accessing the recommender agent: %s" 
-                                                            % msg)
-        # TODO: temporary, instead we will display cached recommendations here
-        self._hide_recommended_for_you()
-
     def _update_recommended_for_you_content(self):
-        # remove any existing children from the grid widget
-        self.recommended_for_you.remove_all()
-        self.recommended_for_you_frame.show_spinner()
-        # get the recommendations from the recommender agent
-        self.recommended_for_you_cat = RecommendedForYouCategory()
-        self.recommended_for_you_cat.connect(
-                                        'needs-refresh',
-                                        self._on_recommended_for_you_refresh)
-        self.recommended_for_you_cat.connect('recommender-agent-error',
-                                             self._on_recommender_agent_error)
-
+        if (self.recommended_for_you_panel and
+            self.recommended_for_you_panel.get_parent()):
+            self.bottom_hbox.remove(self.recommended_for_you_panel)
+        self.recommended_for_you_panel = RecommendationsPanelLobby(self)
+        self.bottom_hbox.pack_start(self.recommended_for_you_panel, 
+                                    True, True, 0)
+                                    
     def _append_recommended_for_you(self):
         # TODO: This space will initially contain an opt-in screen, and this
         #       will update to the tile view of recommended apps when ready
@@ -471,21 +443,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         #       at the bottom, but swap this with the Top Rated panel once
         #       the recommended for you pieces are done and deployed
         #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
-        self.recommended_for_you = FlowableGrid()
-        self.recommended_for_you_frame = FramedHeaderBox()
-        self.recommended_for_you_frame.set_header_label(
-                                                _(u"Recommended for You"))
-        self.recommended_for_you_frame.add(self.recommended_for_you)
-        self.recommended_for_you_frame.header_implements_more_button()
-        self.bottom_hbox.pack_start(self.recommended_for_you_frame, 
+        self.recommended_for_you_panel = RecommendationsPanelLobby(self)
+        self.bottom_hbox.pack_start(self.recommended_for_you_panel, 
                                     True, True, 0)
-        
-        # get the recommendations from the recommender agent
-        self._update_recommended_for_you_content()
-        
-    def _hide_recommended_for_you(self):
-        # and hide the pane
-        self.recommended_for_you_frame.hide()
 
     def _update_appcount(self):
         enq = AppEnquire(self.cache, self.db)
@@ -774,6 +734,37 @@ def get_test_window_catview():
     win.show_all()
     win.connect('destroy', Gtk.main_quit)
     return win
+    
+def get_test_catview():
+
+    def on_category_selected(view, cat):
+        print("on_category_selected %s %s" % view, cat)
+
+    from softwarecenter.db.pkginfo import get_pkg_info
+    cache = get_pkg_info()
+    cache.open()
+
+    from softwarecenter.db.database import StoreDatabase
+    xapian_base_path = "/var/cache/software-center"
+    pathname = os.path.join(xapian_base_path, "xapian")
+    db = StoreDatabase(pathname, cache)
+    db.open()
+
+    import softwarecenter.paths
+    datadir = softwarecenter.paths.datadir
+
+    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
+    icons = get_sc_icon_theme(datadir)
+
+    import softwarecenter.distro
+    distro = softwarecenter.distro.get_distro()
+
+    apps_filter = AppFilter(db, cache)
+
+    from softwarecenter.paths import APP_INSTALL_PATH
+    cat_view = LobbyViewGtk(datadir, APP_INSTALL_PATH,
+                        cache, db, icons, distro, apps_filter)
+    return cat_view
 
 if __name__ == "__main__":
     import os
