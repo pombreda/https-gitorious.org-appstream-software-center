@@ -153,6 +153,15 @@ class TestCatView(unittest.TestCase):
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.query_recommend_me')
     def test_subcatview_recommended_for_you_display_recommendations(self, mock_query):
+    
+        # patch the recommender uuid getter to return a value so that the
+        # recommendations widget will show
+        get_recommender_uuid_fn = 'softwarecenter.ui.gtk3.widgets.recommendations.RecommendationsPanelCategory.get_recommender_uuid'
+        get_recommender_uuid_patcher = patch(get_recommender_uuid_fn)
+        self.addCleanup(get_recommender_uuid_patcher.stop)
+        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
+        mock_get_recommender_uuid.return_value = "scintillantorange"
+        
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()

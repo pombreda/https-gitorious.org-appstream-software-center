@@ -204,7 +204,8 @@ class RecommendationsPanelCategory(RecommendationsPanel):
     """
     def __init__(self, catview, category):
         RecommendationsPanel.__init__(self, catview)
-        self.set_header_label(_(u"Recommended for You in %s") % category)
+        self.category = category
+        self.set_header_label(_(u"Recommended for You in %s") % category.name)
         
         self.recommender_uuid = self.get_recommender_uuid()
         if self.recommender_uuid:
@@ -218,7 +219,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         self.spinner.set_text(_("Receiving recommendations…"))
         self.show_spinner()
         # get the recommendations from the recommender agent
-        self.recommended_for_you_cat = RecommendedForYouCategory()
+        self.recommended_for_you_cat = RecommendedForYouInCatCategory()
         self.recommended_for_you_cat.connect(
                             'needs-refresh',
                             self._on_recommended_for_you_in_cat_agent_refresh)
