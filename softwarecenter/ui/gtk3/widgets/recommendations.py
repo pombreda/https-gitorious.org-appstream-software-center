@@ -26,6 +26,7 @@ from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.containers import (FramedHeaderBox,
                                                        FlowableGrid)
 from softwarecenter.db.categories import (RecommendedForYouCategory,
+                                          RecommendedForYouInCatCategory,
                                           AppRecommendationsCategory)
 from softwarecenter.backend.recagent import RecommenderAgent
 from softwarecenter.db.utils import get_installed_package_list
@@ -219,7 +220,8 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         self.spinner.set_text(_("Receiving recommendations…"))
         self.show_spinner()
         # get the recommendations from the recommender agent
-        self.recommended_for_you_cat = RecommendedForYouInCatCategory()
+        self.recommended_for_you_cat = RecommendedForYouInCatCategory(
+                                                            self.category)
         self.recommended_for_you_cat.connect(
                             'needs-refresh',
                             self._on_recommended_for_you_in_cat_agent_refresh)
