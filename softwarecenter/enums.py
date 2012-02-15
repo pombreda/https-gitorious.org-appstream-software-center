@@ -177,13 +177,14 @@ class PkgStates:
     NEEDS_PURCHASE,
     PURCHASED_BUT_REPO_MUST_BE_ENABLED,
     ERROR,
+    FORCE_VERSION,
     # the package is not found in the DB or cache
     NOT_FOUND,
     # this *needs* to be last (for test_appdetails.py) and means
     # something went wrong and we don't have a state for this PKG
     UNKNOWN,
     PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES,
-    ) = range(16)
+    ) = range(17)
 
 # visibility of non applications in the search results
 class NonAppVisibility:

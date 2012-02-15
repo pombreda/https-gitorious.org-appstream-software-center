@@ -39,6 +39,7 @@ from aptdaemon import policykit1
 
 from defer import inline_callbacks, return_value
 
+from softwarecenter.db.application import Application
 from softwarecenter.backend.transactionswatcher import (
     BaseTransactionsWatcher, 
     BaseTransaction,
@@ -240,8 +241,10 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
 
     # FIXME: upgrade add-ons here
     @inline_callbacks
-    def upgrade(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
+    def upgrade(self, app, iconname, addons_install=[], addons_remove=[], metadata=None):
         """ upgrade a single package """
+        pkgname = app.pkgname
+        appname = app.appname
         try:
             trans = yield self.aptd_client.upgrade_packages([pkgname],
                                                             defer=True)
@@ -277,8 +280,10 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
 
     
     @inline_callbacks
-    def remove(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
+    def remove(self, app, iconname, addons_install=[], addons_remove=[], metadata=None):
         """ remove a single package """
+        pkgname = app.pkgname
+        appname = app.appname
         try:
             trans = yield self.aptd_client.remove_packages([pkgname],
                                                            defer=True)
@@ -288,20 +293,25 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def remove_multiple(self, pkgnames, appnames, iconnames, addons_install=[], addons_remove=[], metadatas=None):
+    def remove_multiple(self, apps, iconnames, addons_install=[], addons_remove=[], metadatas=None):
         """ queue a list of packages for removal  """
         if metadatas == None:
             metadatas = []
-            for item in pkgnames:
+            for item in apps:
                 metadatas.append(None)
-        for pkgname, appname, iconname, metadata in zip(pkgnames, appnames, iconnames, metadatas):
-            yield self.remove(pkgname, appname, iconname, metadata)
+        for app, iconname, metadata in zip(apps, iconnames, metadatas):
+            yield self.remove(app, iconname, metadata)
 
     @inline_callbacks
-    def install(self, pkgname, appname, iconname, filename=None, addons_install=[], addons_remove=[], metadata=None, force=False):
+    def install(self, app, iconname, filename=None, addons_install=[], addons_remove=[], metadata=None, force=False):
         """Install a single package from the archive
            If filename is given a local deb package is installed instead.
         """
+        pkgname = app.pkgname
+        appname = app.appname
+        # this will force aptdaemon to use the right archive suite on install
+        if app.archive_suite:
+            pkgname = "%s/%s" % (pkgname, app.archive_suite)
         try:
             if filename:
                 # force means on lintian failure
@@ -323,18 +333,20 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
-    def install_multiple(self, pkgnames, appnames, iconnames, addons_install=[], addons_remove=[], metadatas=None):
+    def install_multiple(self, apps, iconnames, addons_install=[], addons_remove=[], metadatas=None):
         """ queue a list of packages for install  """
         if metadatas == None:
             metadatas = []
-            for item in pkgnames:
+            for item in apps:
                 metadatas.append(None)
-        for pkgname, appname, iconname, metadata in zip(pkgnames, appnames, iconnames, metadatas):
-            yield self.install(pkgname, appname, iconname, metadata=metadata)
+        for app, iconname, metadata in zip(apps, iconnames, metadatas):
+            yield self.install(app, iconname, metadata=metadata)
             
     @inline_callbacks
-    def apply_changes(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
+    def apply_changes(self, app, iconname, addons_install=[], addons_remove=[], metadata=None):
         """ install and remove add-ons """
+        pkgname = app.pkgname
+        appname = app.appname
         try:
             install = addons_install
             remove = addons_remove
@@ -619,7 +631,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
 
             # we use aptd_client.install_packages() here instead
             # of just 
-            #  self.install(app.pkgname, app.appname, "", metadata=metadata)
+            #  self.install(app, "", metadata=metadata)
             # go get less authentication prompts (because of the 03_auth_me_less
             # patch in aptdaemon)
             try:
@@ -769,11 +781,11 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 if res == "yes":
                     # Reinject the transaction
                     meta_copy = trans.meta_data.copy()
-                    pkgname = meta_copy.pop("sc_pkgname")
-                    appname = meta_copy.pop("sc_appname", None)
+                    app = Application(meta_copy.pop("sc_appname", None),
+                                      meta_copy.pop("sc_pkgname"))
                     iconname = meta_copy.pop("sc_iconname", None)
                     filename = meta_copy.pop("sc_filename")
-                    self.install(pkgname, appname, iconname, filename, [], [],
+                    self.install(app, iconname, filename, [], [],
                                  metadata=meta_copy, force=True)
                     return
             elif not "sc_add_repo_and_install_ignore_errors" in trans.meta_data:
@@ -833,7 +845,9 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 yield trans.set_meta_data(sc_iconname=iconname, defer=True)
             # we do not always have a pkgname, e.g. "cache_update" does not
             if pkgname:
-                yield trans.set_meta_data(sc_pkgname=pkgname, defer=True)
+                # ensure the metadata is just the pkgname
+                sc_pkgname = pkgname.split("/")[0].split("=")[0]
+                yield trans.set_meta_data(sc_pkgname=sc_pkgname, defer=True)
                 # setup debconf only if we have a pkg
                 yield trans.set_debconf_frontend("gnome", defer=True)
                 trans.set_remove_obsoleted_depends(True, defer=True)

@@ -43,6 +43,7 @@ from softwarecenter.enums import (AppActions,
                                   Icons, 
                                   SOFTWARE_CENTER_PKGNAME)
 from softwarecenter.utils import (is_unity_running, 
+                                  upstream_version,
                                   get_exec_line_from_desktop,
                                   SimpleFileDownloader,
                                   utf8)
@@ -164,6 +165,11 @@ class PackageStatusBar(StatusBar):
         self.label = Gtk.Label()
         self.label.set_line_wrap(True)
         self.button = Gtk.Button()
+        self.combo_multiple_versions = Gtk.ComboBoxText.new()
+        model = Gtk.ListStore(str, str)
+        self.combo_multiple_versions.set_model(model)
+        self.combo_multiple_versions.connect(
+            "changed", self._on_combo_multiple_versions_changed)
         self.progress = Gtk.ProgressBar()
 
         # theme engine hint for bug #606942
@@ -174,6 +180,7 @@ class PackageStatusBar(StatusBar):
         self.hbox.pack_start(self.installed_icon, False, False, 0)
         self.hbox.pack_start(self.label, False, False, 0)
         self.hbox.pack_end(self.button, False, False, 0)
+        self.hbox.pack_end(self.combo_multiple_versions, False, False, 0)
         self.hbox.pack_end(self.progress, False, False, 0)
         self.show_all()
 
@@ -187,6 +194,28 @@ class PackageStatusBar(StatusBar):
             self.progress.get_fraction() == 0.0):
             self.progress.pulse()
         return True
+
+    def _on_combo_multiple_versions_changed(self, combo):
+        # disconnect to ensure no updates are happening in here
+        model = combo.get_model()
+        it = combo.get_active_iter()
+        if it is None:
+            return
+        archive_suite = model[it][1]
+        # ignore if there is nothing set here
+        if archive_suite is None:
+            return
+        combo.disconnect_by_func(self._on_combo_multiple_versions_changed)
+        # reset "default" to "" as this is what it takes to reset the
+        # thing
+        if archive_suite != self.view.app.archive_suite:
+            # force not-automatic version
+            self.view.app_details.force_not_automatic_archive_suite(
+                archive_suite)
+            # update it
+            self.view._update_all(self.view.app_details)
+        # reconnect again
+        combo.connect("changed", self._on_combo_multiple_versions_changed)
 
     def _on_button_clicked(self, button):
         button.set_sensitive(False)
@@ -202,7 +231,7 @@ class PackageStatusBar(StatusBar):
             app_manager.reinstall_purchased(app)
         elif state == PkgStates.NEEDS_PURCHASE:
             app_manager.buy_app(app)
-        elif state == PkgStates.UNINSTALLED:
+        elif state in (PkgStates.UNINSTALLED, PkgStates.FORCE_VERSION):
             app_manager.install(
                 app, addons_to_install, addons_to_remove)
         elif state == PkgStates.REINSTALLABLE:
@@ -230,11 +259,46 @@ class PackageStatusBar(StatusBar):
     def get_button_label(self):
         return self.button.get_label()
 
+    def _build_combo_multiple_versions(self):
+        # the currently forced archive_suite for the given app
+        app_version = self.app_details.version
+        # all available not-automatic (version, archive_suits)
+        not_automatic_suites = self.app_details.get_not_automatic_archive_versions()
+        # populat the combobox if 
+        if not_automatic_suites:
+            combo = self.combo_multiple_versions
+            combo.disconnect_by_func(self._on_combo_multiple_versions_changed)
+            model = self.combo_multiple_versions.get_model()
+            model.clear()
+            for i, archive_suite in enumerate(not_automatic_suites):
+                # get the version, archive_suite
+                ver, archive_suite = archive_suite
+                # the string to display is something like:
+                #  "v1.0 (precise-backports)"
+                displayed_archive_suite = archive_suite
+                if i == 0:
+                    displayed_archive_suite = _("default")
+                s = "v%s (%s)" % (upstream_version(ver), 
+                                  displayed_archive_suite)
+                model.append( (s, archive_suite) )
+                if app_version == ver:
+                    self.combo_multiple_versions.set_active(i)
+            # if nothing is found, set to default
+            if self.combo_multiple_versions.get_active_iter() is None:
+                self.combo_multiple_versions.set_active(0)
+            self.combo_multiple_versions.show()
+            combo.connect("changed", self._on_combo_multiple_versions_changed)
+        else:
+            self.combo_multiple_versions.hide()
+
     def configure(self, app_details, state):
         LOG.debug("configure %s state=%s pkgstate=%s" % (
                 app_details.pkgname, state, app_details.pkg_state))
         self.pkg_state = state
         self.app_details = app_details
+
+        # configure the not-automatic stuff
+        self._build_combo_multiple_versions()
 
         if state in (PkgStates.INSTALLING,
                      PkgStates.INSTALLING_PURCHASED,
@@ -321,6 +385,8 @@ class PackageStatusBar(StatusBar):
                 self.set_button_label(_(u'Buy\u2026'))
             else:
                 self.set_button_label(_(u'Buy Anyway\u2026'))
+        elif state == PkgStates.FORCE_VERSION:
+            self.set_button_label(_('Change'))
         elif state in (
             PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
             PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES):
@@ -1804,7 +1870,8 @@ class AppDetailsView(Viewport):
         if state == PkgStates.NEEDS_PURCHASE:
             self.pkg_statusbar.configure(self.app_details, 
                                          PkgStates.INSTALLING_PURCHASED)
-        elif state == PkgStates.UNINSTALLED:
+        elif (state == PkgStates.UNINSTALLED or
+              state == PkgStates.FORCE_VERSION):
             self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING)
         elif state == PkgStates.INSTALLED:
             self.pkg_statusbar.configure(self.app_details, PkgStates.REMOVING)
@@ -1834,6 +1901,7 @@ class AppDetailsView(Viewport):
             self.app_details.pkgname == pkgname):
             if not self.pkg_statusbar.progress.get_property('visible'):
                 self.pkg_statusbar.button.hide()
+                self.pkg_statusbar.combo_multiple_versions.hide()
                 self.pkg_statusbar.progress.show()
             if pkgname in backend.pending_transactions:
                 self.pkg_statusbar.progress.set_fraction(progress/100.0)
@@ -1928,10 +1996,11 @@ class AppDetailsView(Viewport):
 
         label_string = ""
 
-        res = self.cache.get_total_size_on_install(self.app_details.pkgname,
-                self.addons_manager.addons_to_install,
-                self.addons_manager.addons_to_remove
-        )
+        res = self.cache.get_total_size_on_install(
+            self.app_details.pkgname,
+            self.addons_manager.addons_to_install,
+            self.addons_manager.addons_to_remove,
+            self.app.archive_suite)
         total_download_size, total_install_size = res
         if res==(0,0) and type(self.app)==DebFileApplication:
             total_install_size = self.app_details.installed_size

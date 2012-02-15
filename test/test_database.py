@@ -213,7 +213,8 @@ class TestDatabase(unittest.TestCase):
         self.assertNotEqual(appdetails.pkg, None)
         # from the fake test/data/appdetails/var/lib/dpkg/status
         self.assertEqual(appdetails.pkg.is_installed, True)
-        self.assertEqual(appdetails.pkg_state, PkgStates.INSTALLED)
+        self.assertTrue(appdetails.pkg_state in (PkgStates.INSTALLED,
+                                                 PkgStates.UPGRADABLE))
         # FIXME: test description for unavailable pkg
         self.assertTrue(
             appdetails.description.startswith("Ubuntu Software Center lets you"))
@@ -268,7 +269,8 @@ class TestDatabase(unittest.TestCase):
         # FIXME: this will only work if software-center is installed
         app = Application("Ubuntu Software Center Test", "software-center")
         appdetails = app.get_details(db)
-        self.assertEqual(appdetails.pkg_state, PkgStates.INSTALLED)
+        self.assertTrue(appdetails.pkg_state in (PkgStates.INSTALLED,
+                                                  PkgStates.UPGRADABLE))
         # test PkgStates.UNINSTALLED
         # test PkgStates.UPGRADABLE
         # test PkgStates.REINSTALLABLE
@@ -608,9 +610,79 @@ class AppDetailsPkgStateTestCase(unittest.TestCase):
             PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
             state)
 
+class MultipleVersionsSupportTestCase(unittest.TestCase):
+
+    def _make_version(self, not_automatic):
+        from softwarecenter.db.pkginfo import _Version
+        ver = Mock(_Version)
+        ver.description ="not_automatic: %s" % not_automatic
+        ver.summary ="summary not_automatic: %s" % not_automatic
+        ver.version = "version not_automatic: %s" % not_automatic
+        mock_origin = Mock()
+        if not_automatic:
+            mock_origin.archive = "precise-backports"
+        else:
+            mock_origin.archive = "precise"
+        ver.origins = [ mock_origin ]
+        ver.not_automatic = not_automatic
+        return ver
+
+    def test_not_automatic_channel_support(self):
+        db = get_test_db()
+        app = Application("", "software-center")
+        details = app.get_details(db)
+        versions = [ 
+            self._make_version(not_automatic=True),
+            self._make_version(not_automatic=False) ]
+        details._pkg.versions = versions
+        details._pkg.candidate = versions[1]
+        self.assertEqual(
+            details.get_not_automatic_archive_versions(), 
+            [  (versions[1].version, "precise"),
+               (versions[0].version, "precise-backports") ])
+
+    def test_multiple_version_pkg_states(self):
+        db = get_test_db()
+        app = Application("", "software-center")
+        details = app.get_details(db)
+        normal_version = self._make_version(not_automatic=False)
+        not_automatic_version = self._make_version(not_automatic=True)
+        details._pkg.versions = [normal_version, not_automatic_version]
+        details._pkg.installed = normal_version
+        details._pkg.is_installed = True
+        details._pkg.is_upgradable = True
+        self.assertEqual(details.pkg_state, PkgStates.UPGRADABLE)
+        app.archive_suite = not_automatic_version
+        self.assertEqual(details.pkg_state, PkgStates.FORCE_VERSION)
+
+    def test_not_automatic_version(self):
+        db = get_test_db()
+        app = Application("", "software-center")
+        details = app.get_details(db)
+        normal_version = self._make_version(not_automatic=False)
+        not_automatic_version = self._make_version(not_automatic=True)
+        details._pkg.versions = [normal_version, not_automatic_version]
+        # force not-automatic with invalid data
+        self.assertRaises(
+            ValueError, details.force_not_automatic_archive_suite, "random-string")
+        # force not-automatic with valid data
+        self.assertTrue(details.force_not_automatic_archive_suite(
+                not_automatic_version.origins[0].archive))
+        # ensure we get the description of the not-automatic version
+        self.assertEqual(details.description,
+                         not_automatic_version.description)
+        self.assertEqual(details.summary,
+                         not_automatic_version.summary)
+        self.assertEqual(details.version,
+                         not_automatic_version.version)
+        self.assertEqual(app.archive_suite,
+                         not_automatic_version.origins[0].archive)
+        # clearing works
+        details.force_not_automatic_archive_suite("")
+        self.assertEqual(app.archive_suite, "")
 
 
 if __name__ == "__main__":
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
+    #import logging
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()

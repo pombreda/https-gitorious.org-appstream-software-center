@@ -30,6 +30,8 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * lp:~mvo/software-center/video-ui-reshuffle:
     - shuffle the video location around a bit in the view to
       ensure the user finds it more easily
+  * increase dependency on python-apt for the required
+    apt_pkg.DepCache.policy_priority() support
   * lp:~mvo/software-center/sca-debtags:
     - fix the debtags parsing from the software-center-agent
 
