@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gi.repository import PackageKitGlib as packagekit
+from gi.repository import GObject
 import logging
 import locale
 
@@ -273,7 +274,11 @@ class PackagekitInfo(PackageInfo):
         if (packageid in self._cache.keys()) and cache:
             return self._cache[packageid]
 
-        result = self.client.get_details((packageid,), None, self._on_progress_changed, None)
+        try:
+            result = self.client.get_details((packageid,), None, self._on_progress_changed, None)
+        except GObject.GError as e:
+            return None
+
         pkgs = result.get_details_array()
         if not pkgs:
             return None
@@ -298,11 +303,15 @@ class PackagekitInfo(PackageInfo):
     def _get_packages(self, pkgname, pfilter=packagekit.FilterEnum.NONE):
         """ resolve a package name into a PkPackage object or return None """
         pfilter = 1 << pfilter
-        result = self.client.resolve(pfilter,
-                                     (pkgname,),
-                                     None,
-                                     self._on_progress_changed, None
-        )
+        try:
+            result = self.client.resolve(pfilter,
+                                         (pkgname,),
+                                         None,
+                                         self._on_progress_changed, None
+            )
+        except GObject.GError as e:
+            return []
+
         pkgs = result.get_package_array()
         return pkgs
 
