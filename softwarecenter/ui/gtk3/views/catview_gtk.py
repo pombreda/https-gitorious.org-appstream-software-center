@@ -421,7 +421,15 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.whats_new_frame.more.connect(
                 'clicked', self.on_category_clicked, whats_new_cat) 
         return
-
+        
+    def _update_recommended_for_you_content(self):
+        if (self.recommended_for_you_panel and
+            self.recommended_for_you_panel.get_parent()):
+            self.bottom_hbox.remove(self.recommended_for_you_panel)
+        self.recommended_for_you_panel = RecommendationsPanelLobby(self)
+        self.bottom_hbox.pack_start(self.recommended_for_you_panel, 
+                                    True, True, 0)
+                                    
     def _append_recommended_for_you(self):
         # TODO: This space will initially contain an opt-in screen, and this
         #       will update to the tile view of recommended apps when ready

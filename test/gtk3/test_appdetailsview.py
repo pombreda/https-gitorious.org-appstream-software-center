@@ -443,6 +443,8 @@ class AppRecommendationsTestCase(unittest.TestCase):
         # during the tests.
         cls.win = get_test_window_appdetails()
         cls.view = cls.win.get_data("view")
+        from softwarecenter.testutils import get_test_db
+        cls.db = get_test_db()
 
     @classmethod
     def tearDownClass(cls):
@@ -475,9 +477,8 @@ class AppRecommendationsTestCase(unittest.TestCase):
         self.view.recommended_for_app_panel.app_recommendations_cat._recommend_app_result(
                                 None,
                                 make_recommend_app_data())
-#        from softwarecenter.testutils import make_recommend_app_data
-#        self.view.recommended_for_app_panel._on_app_recommendations(make_recommend_app_data())
-
+        self.assertNotEqual(
+                self.view.recommended_for_app_panel.app_recommendations_cat.get_documents(self.db), [])
 
 
 if __name__ == "__main__":
