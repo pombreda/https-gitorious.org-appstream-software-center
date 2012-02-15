@@ -36,6 +36,8 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
     - fix the debtags parsing from the software-center-agent
   * lp:~mvo/software-center/multiple-versions:
     - add support for multiple versions into software-center
+  * lp:~mvo/software-center/fix-recommenations-details-clicks:
+    - fix clickthru of details view recommendations after refactor
 
   [ Kiwinote ]
   * data/ui/gtk3/css/*.css:
@@ -52,13 +54,15 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/import-latest-sreclient:
     - import latest recommender client 
   * lp:~gary-lasker/software-center/recommendation:
-    - add recommendations UI and opt-in/opt-out support
+    - implement the recommendations opt-in UI and flow, upload
+      of the user profile data after opt-in, and display of
+      per-application recommendations in the details view
   
   [ Juhana Jauhiainen ]
   * softwarecenter/backend/launchpad.py:
     - replaced EDGE_SERVICE_ROOT with LPNET_SERVICE_ROOT. (LP: #737697)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Feb 2012 11:55:47 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Feb 2012 12:11:56 -0500
 
 software-center (5.1.8) precise; urgency=low
 
