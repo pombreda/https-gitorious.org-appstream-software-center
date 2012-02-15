@@ -161,7 +161,7 @@ class TestCatView(unittest.TestCase):
         notebook.next_page()
         
         subcat_view = win.get_data("subcat")
-        rec_panel = subcat_view.recommended_for_you_in_category_panel
+        rec_cat_panel = subcat_view.recommended_for_you_in_cat
 #        rec_panel = lobby.recommended_for_you_panel
 #        self._p()
 #        # click the opt-in button to initiate the process, this will show the spinner
