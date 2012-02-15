@@ -234,8 +234,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                                self.distro,
                                                self.icons, 
                                                self.cache, 
-                                               self.datadir,
-                                               self)
+                                               self.datadir)
         self.scroll_details.add(self.app_details_view)
         # when the cache changes, refresh the app list
         self.cache.connect("cache-ready", self.on_cache_ready)
