@@ -159,7 +159,7 @@ class SCAApplicationParser(AppInfoParserBase):
                 'Comment' : 'Comment',
                 'Version' : 'version',
                 'Supported-Distros': 'series',
-                'Tags'   : 'tags',
+                # tags are special, see _apply_exception
               }
 
     # map from requested key to a static data element
@@ -183,6 +183,9 @@ class SCAApplicationParser(AppInfoParserBase):
             self.sca_application.Comment = self.sca_application.description.split("\n")[0].strip()
             self.sca_application.Description = "\n".join(
                 self.sca_application.description.split("\n")[1:]).strip()
+
+        # debtags is send as a list, but we need it as a comma seperated string
+        self.sca_application.Tags = ",".join(getattr(self.sca_application, "debtags", []))
 
         # we only support a single video currently :/
         if hasattr(self.sca_application, "video_embedded_html_urls"):
