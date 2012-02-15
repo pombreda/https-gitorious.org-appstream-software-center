@@ -189,7 +189,8 @@ class SCAApplicationParser(AppInfoParserBase):
 
         # we only support a single video currently :/
         if hasattr(self.sca_application, "video_embedded_html_urls"):
-            self.sca_application.video_embedded_html_url = self.sca_application.video_embedded_html_urls[0]
+            if self.sca_application.video_embedded_html_urls:
+                self.sca_application.video_embedded_html_url = self.sca_application.video_embedded_html_urls[0]
 
         # XXX 2012-01-16 bug=917109
         # We can remove these work-arounds once the above bug is fixed on
