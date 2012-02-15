@@ -129,7 +129,10 @@ if __name__ == "__main__":
     # enable certificates validation in webkit views unless specified otherwise
     if not "SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK" in os.environ:
         session = webkit.get_default_session()
-        session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
+        if os.path.exists("/etc/ssl/certs/ca-certificates.crt"):
+            session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
+        else:
+            session.set_property("ssl-ca-file", "/etc/ssl/ca-bundle.pem")
     else:
         # WARN the user!! Do not remove this
         LOG.warning("SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK " +
