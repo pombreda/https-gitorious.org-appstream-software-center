@@ -207,6 +207,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         RecommendationsPanel.__init__(self, catview)
         self.category = category
         self.set_header_label(_(u"Recommended for You in %s") % category.name)
+        self.header_implements_more_button()
         
         self.recommender_uuid = self.get_recommender_uuid()
         if self.recommender_uuid:
@@ -230,6 +231,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         
     def _on_recommended_for_you_in_cat_agent_refresh(self, cat):
         docs = cat.get_documents(self.catview.db)
+        print ">>> docs: ", docs
         # display the recommendedations
         if len(docs) > 0:
             self.catview._add_tiles_to_flowgrid(
@@ -241,8 +243,6 @@ class RecommendationsPanelCategory(RecommendationsPanel):
                               self.catview.on_category_clicked,
                               cat)
         else:
-            # TODO: this test for zero docs is temporary and will not be
-            # needed once the recommendation agent is up and running
             self._hide_recommended_for_you_in_cat_panel()
         return
         

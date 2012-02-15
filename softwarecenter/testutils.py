@@ -238,14 +238,17 @@ def make_recommender_profile_upload_data():
             'package_list': [
                 u'clementine',
                 u'hedgewars',
-                u'gelemental',
+                u'mangler',
                 u'nexuiz',
                 u'fgo',
                 u'musique',
                 u'pybik',
                 u'radiotray',
                 u'cherrytree',
-                u'phlipple'
+                u'phlipple',
+                u'psi',
+                u'midori'
+                
             ]
         }
     ]

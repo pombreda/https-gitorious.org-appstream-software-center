@@ -178,9 +178,10 @@ class RecommendedForYouInCatCategory(Category):
 
     def __init__(self, category):
         super(RecommendedForYouInCatCategory, self).__init__(
-            u"Recommended for You", _("Recommended for You"), None, 
+            u"Recommended for You in %s" % category.name, _(u"Recommended for You in %s") % category.name, None, 
             xapian.Query(),flags=['available-only', 'not-installed-only'], 
             item_limit=60)
+        self.category = category
         self.recommender_agent = RecommenderAgent()
         self.recommender_agent.connect(
             "recommend-me", self._recommend_me_result)
@@ -192,6 +193,8 @@ class RecommendedForYouInCatCategory(Category):
         pkgs = []
         for item in result_list['recommendations']:
             pkgs.append(item['package_name'])
+            
+        # TODO: make a new get_query that includes the category
         self.query = get_query_for_pkgnames(pkgs)
         self.emit("needs-refresh")
 

@@ -171,21 +171,17 @@ class TestCatView(unittest.TestCase):
         
         subcat_view = win.get_data("subcat")
         rec_cat_panel = subcat_view.recommended_for_you_in_cat
-#        rec_panel = lobby.recommended_for_you_panel
-#        self._p()
-#        # click the opt-in button to initiate the process, this will show the spinner
-#        rec_panel.opt_in_button.emit('clicked')
-#        self._p()
-#        rec_panel._update_recommended_for_you_content()
-#        self._p()
-#        # we fake the callback from the agent here
-#        lobby.recommended_for_you_panel.recommended_for_you_cat._recommend_me_result(
-#                                None,
-#                                make_recommender_agent_recommend_me_dict())
-#        self.assertNotEqual(
-#                lobby.recommended_for_you_panel.recommended_for_you_cat.get_documents(self.db), [])
+        self._p()
+        rec_cat_panel._update_recommended_for_you_in_cat_content()
+        self._p()
+        # we fake the callback from the agent here
+        rec_cat_panel.recommended_for_you_cat._recommend_me_result(
+                                None,
+                                make_recommender_agent_recommend_me_dict())
+        self.assertNotEqual(
+                rec_cat_panel.recommended_for_you_cat.get_documents(self.db), [])
 #        from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
-#        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
+#        self.assertTrue(rec_cat_panel.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
 #        self._p()
 #        # test clicking recommended_for_you More button
 #        lobby.connect("category-selected", self._on_category_selected)
