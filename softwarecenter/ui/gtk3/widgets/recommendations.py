@@ -122,7 +122,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self.spinner.set_text(_("Submitting inventory…"))
         self.show_spinner()
         self.recommender_uuid = get_uuid()
-        installed_pkglist = get_installed_package_list()
+        installed_pkglist = list(get_installed_package_list())
         self.recommender_agent.connect("submit-profile",
                                   self._on_profile_submitted)
         self.recommender_agent.connect("error",
