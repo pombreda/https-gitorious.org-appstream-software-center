@@ -27,6 +27,9 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * lp:~mvo/software-center/sca-video-updates:
     - update the client to follow the server side changes for
       videos from software-center-agent
+  * lp:~mvo/software-center/video-ui-reshuffle:
+    - shuffle the video location around a bit in the view to
+      ensure the user finds it more easily
 
   [ Kiwinote ]
   * data/ui/gtk3/css/*.css:
@@ -47,7 +50,7 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * softwarecenter/backend/launchpad.py:
     - replaced EDGE_SERVICE_ROOT with LPNET_SERVICE_ROOT. (LP: #737697)
 
- -- Kiwinote <kiwinote@gmail.com>  Mon, 13 Feb 2012 16:31:36 +0000
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Feb 2012 01:14:07 -0500
 
 software-center (5.1.8) precise; urgency=low
 
