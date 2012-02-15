@@ -197,16 +197,18 @@ class RecommendationsPanelDetails(RecommendationsPanel):
     Panel for use in the details view to display recommendations for a given
     application
     """
-    def __init__(self, catview, pkgname):
+    def __init__(self, catview):
         RecommendationsPanel.__init__(self, catview)
-        self.pkgname = pkgname
         self.set_header_label(_(u"People Also Installed"))
-        
-        self._update_app_recommendations_content()
+        self.app_recommendations_content = FlowableGrid()
         self.add(self.app_recommendations_content)
         
+    def set_pkgname(self, pkgname):
+        self.pkgname = pkgname
+        self._update_app_recommendations_content()
+
     def _update_app_recommendations_content(self):
-        self.app_recommendations_content = FlowableGrid()
+        self.app_recommendations_content.remove_all()
         self.spinner.set_text(_("Receiving recommendations…"))
         self.show_spinner()
         # get the recommendations from the recommender agent
