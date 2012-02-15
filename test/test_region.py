@@ -17,7 +17,7 @@ class TestRegion(unittest.TestCase):
         self.region = RegionDiscover()
 
     def test_get_region_dump(self):
-        os.environ["LANG"] = "en_ZM.utf8"
+        os.environ["LC_ALL"] = "en_ZM.utf8"
         init_locale()
         res = self.region._get_region_dumb()
         self.assertEqual(res["countrycode"], "ZM")
