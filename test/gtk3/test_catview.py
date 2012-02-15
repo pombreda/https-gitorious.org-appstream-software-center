@@ -153,10 +153,14 @@ class TestCatView(unittest.TestCase):
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.query_recommend_me')
     def test_subcatview_recommended_for_you_display_recommendations(self, mock_query):
-        from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_subcatview
+        from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
-        win = get_test_window_subcatview()
-        category_view = win.get_data("category_view")
+        win = get_test_window_catview()
+        # we want to work in the "subcat" view
+        notebook = win.get_child()
+        notebook.next_page()
+        
+        subcat_view = win.get_data("subcat")
 #        rec_panel = lobby.recommended_for_you_panel
 #        self._p()
 #        # click the opt-in button to initiate the process, this will show the spinner
@@ -179,7 +183,7 @@ class TestCatView(unittest.TestCase):
 #        self._p()
 #        self.assertNotEqual(self._cat, None)
 #        self.assertEqual(self._cat.name, "Recommended for You")
-        win.destroy()
+#        win.destroy()
 
     def _p(self):
         for i in range(5):
@@ -191,5 +195,5 @@ class TestCatView(unittest.TestCase):
 
 if __name__ == "__main__":
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+####################    logging.basicConfig(level=logging.DEBUG)
     unittest.main()

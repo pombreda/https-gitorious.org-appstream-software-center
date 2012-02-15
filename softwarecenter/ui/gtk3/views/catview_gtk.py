@@ -693,7 +693,7 @@ def get_test_window_catview():
 
     # gui
     win = Gtk.Window()
-    n = Gtk.Notebook()
+    notebook = Gtk.Notebook()
 
     from softwarecenter.paths import APP_INSTALL_PATH
     view = LobbyViewGtk(datadir, APP_INSTALL_PATH,
@@ -702,7 +702,7 @@ def get_test_window_catview():
 
     scroll = Gtk.ScrolledWindow()
     scroll.add(view)
-    n.append_page(scroll, Gtk.Label(label="Lobby"))
+    notebook.append_page(scroll, Gtk.Label(label="Lobby"))
 
     # find a cat in the LobbyView that has subcategories
     subcat_cat = None
@@ -719,9 +719,9 @@ def get_test_window_catview():
 
     scroll = Gtk.ScrolledWindow()
     scroll.add(view)
-    n.append_page(scroll, Gtk.Label(label="Subcats"))
+    notebook.append_page(scroll, Gtk.Label(label="Subcats"))
 
-    win.add(n)
+    win.add(notebook)
     win.set_size_request(800,800)
     win.show_all()
     win.connect('destroy', Gtk.main_quit)
