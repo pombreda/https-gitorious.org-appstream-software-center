@@ -168,7 +168,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         else:
             # TODO: this test for zero docs is temporary and will not be
             # needed once the recommendation agent is up and running
-            self._hide_recommended_for_you()
+            self._hide_recommended_for_you_panel()
         return
         
     def _on_recommender_agent_error(self, agent, msg):
