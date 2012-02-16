@@ -178,8 +178,11 @@ class RecommendedForYouInCatCategory(Category):
 
     def __init__(self, category):
         super(RecommendedForYouInCatCategory, self).__init__(
-            u"Recommended for You in %s" % category.name, _(u"Recommended for You in %s") % category.name, None, 
-            xapian.Query(),flags=['available-only', 'not-installed-only'], 
+            u"Recommended for You in %s" % category.name,
+            _(u"Recommended for You in %s") % category.name,
+            None, 
+            xapian.Query(),
+            flags=['available-only', 'not-installed-only'],
             item_limit=60)
         self.category = category
         self.recommender_agent = RecommenderAgent()
@@ -195,8 +198,8 @@ class RecommendedForYouInCatCategory(Category):
             pkgs.append(item['package_name'])
             
         self.query = xapian.Query(xapian.Query.OP_AND,
-                                     get_query_for_pkgnames(pkgs),
-                                     self.category.query)
+                                  get_query_for_pkgnames(pkgs),
+                                  self.category.query)
         self.emit("needs-refresh")
 
     def _recommender_agent_error(self, recommender_agent, msg):
