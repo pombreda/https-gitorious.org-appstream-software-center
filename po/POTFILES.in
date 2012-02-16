@@ -35,7 +35,7 @@ softwarecenter/utils.py
 [type: gettext/glade]data/ui/gtk3/submit_review.ui
 [type: gettext/glade]data/ui/gtk3/submit_usefulness.ui
 softwarecenter/db/debfile.py
-softwarecenter/distro/SUSELINUX.py
+softwarecenter/distro/openSUSE.py
 softwarecenter/ui/gtk3/app.py
 softwarecenter/ui/gtk3/review_gui_helper.py
 softwarecenter/ui/gtk3/dialogs/__init__.py
