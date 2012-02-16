@@ -458,6 +458,8 @@ app-popcon	4	# app-install .desktop popcon rank
         self.assertTrue(len(enquirer.get_docids()) > 0)
         # FIXME: test more of the interface
         
+class UtilsTestCase(unittest.TestCase):
+
     def test_utils_get_installed_package_list(self):
         from softwarecenter.db.utils import get_installed_package_list
         installed_pkgs = get_installed_package_list()
@@ -466,9 +468,10 @@ app-popcon	4	# app-install .desktop popcon rank
     def test_utils_get_installed_apps_list(self):
         from softwarecenter.db.utils import (
             get_installed_package_list,get_installed_apps_list)
+        db = get_test_db()
+        # installed pkgs
         installed_pkgs = get_installed_package_list()
         # the installed apps
-        db = get_test_db()
         installed_apps = get_installed_apps_list(db)
         self.assertTrue(len(installed_apps) > 0)
         self.assertTrue(len(installed_pkgs) > len(installed_apps))
