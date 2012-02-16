@@ -39,10 +39,23 @@ class RecommendationsPanel(FramedHeaderBox):
     """
     Base class for widgets that display recommendations
     """
+
+    __gsignals__ = {
+        "application-activated" : (GObject.SIGNAL_RUN_LAST,
+                                    GObject.TYPE_NONE, 
+                                    (GObject.TYPE_PYOBJECT,),
+                                   ),
+        }
+
     def __init__(self, catview):
         FramedHeaderBox.__init__(self)
+        # FIXME: we only need the catview for "add_titles_to_flowgrid"
+        #        and "on_category_clicked" so we should be able to
+        #        extract this to a "leaner" widget
         self.catview = catview
         self.recommender_uuid = ""
+        self.catview.connect(
+                    "application-activated", self._on_application_activated)
         self.recommender_agent = RecommenderAgent()
         
     def get_recommender_uuid(self):
@@ -53,8 +66,9 @@ class RecommendationsPanel(FramedHeaderBox):
             recommender_uuid = config.get("general",
                                            "recommender_uuid")
         return recommender_uuid
-        
-        
+
+    def _on_application_activated(self, catview, app):
+        self.emit("application-activated", app)
 
 class RecommendationsPanelLobby(RecommendationsPanel):
     """
@@ -125,7 +139,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self.spinner.set_text(_("Submitting inventory…"))
         self.show_spinner()
         self.recommender_uuid = get_uuid()
-        installed_pkglist = get_installed_package_list()
+        installed_pkglist = list(get_installed_package_list())
         self.recommender_agent.connect("submit-profile",
                                   self._on_profile_submitted)
         self.recommender_agent.connect("error",
@@ -262,16 +276,18 @@ class RecommendationsPanelDetails(RecommendationsPanel):
     Panel for use in the details view to display recommendations for a given
     application
     """
-    def __init__(self, catview, pkgname):
+    def __init__(self, catview):
         RecommendationsPanel.__init__(self, catview)
-        self.pkgname = pkgname
         self.set_header_label(_(u"People Also Installed"))
-        
-        self._update_app_recommendations_content()
+        self.app_recommendations_content = FlowableGrid()
         self.add(self.app_recommendations_content)
         
+    def set_pkgname(self, pkgname):
+        self.pkgname = pkgname
+        self._update_app_recommendations_content()
+
     def _update_app_recommendations_content(self):
-        self.app_recommendations_content = FlowableGrid()
+        self.app_recommendations_content.remove_all()
         self.spinner.set_text(_("Receiving recommendations…"))
         self.show_spinner()
         # get the recommendations from the recommender agent

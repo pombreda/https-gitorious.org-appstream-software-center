@@ -207,14 +207,17 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
     def upgrade(self, pkgname, appname, iconname, addons_install=[],
                 addons_remove=[], metadata=None):
         pass # FIXME implement it
-    def remove(self, pkgname, appname, iconname, addons_install=[],
+    def remove(self, app, iconname, addons_install=[],
                 addons_remove=[], metadata=None):
-        self.remove_multiple((pkgname,), (appname,), (iconname,),
+        self.remove_multiple((app,), (iconname,),
                 addons_install, addons_remove, metadata
         )
 
-    def remove_multiple(self, pkgnames, appnames, iconnames,
+    def remove_multiple(self, apps, iconnames,
                 addons_install=[], addons_remove=[], metadatas=None):
+
+        pkgnames = [app.pkgname for app in apps]
+        appnames = [app.appname for app in apps]
 
         # keep track of pkg, app and icon for setting them as meta
         self.new_pkgname, self.new_appname, self.new_iconname = pkgnames[0], appnames[0], iconnames[0]
@@ -233,17 +236,20 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         )
         self.emit("transaction-started", pkgnames[0], appnames[0], 0, TransactionTypes.REMOVE)
 
-    def install(self, pkgname, appname, iconname, filename=None,
+    def install(self, app, iconname, filename=None,
                 addons_install=[], addons_remove=[], metadata=None):
         if filename is not None:
             LOG.error("Filename not implemented") # FIXME
         else:
-            self.install_multiple((pkgname,), (appname,), (iconname,),
+            self.install_multiple((app,), (iconname,),
                  addons_install, addons_remove, metadata
             )
 
-    def install_multiple(self, pkgnames, appnames, iconnames,
+    def install_multiple(self, apps, iconnames,
         addons_install=[], addons_remove=[], metadatas=None):
+
+        pkgnames = [app.pkgname for app in apps]
+        appnames = [app.appname for app in apps]
 
         # keep track of pkg, app and icon for setting them as meta
         self.new_pkgname, self.new_appname, self.new_iconname = pkgnames[0], appnames[0], iconnames[0]

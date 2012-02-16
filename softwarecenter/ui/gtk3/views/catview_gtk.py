@@ -94,7 +94,7 @@ class CategoriesViewGtk(Viewport, CategoriesParser):
                  cache,
                  db,
                  icons,
-                 apps_filter,
+                 apps_filter=None, # FIXME: kill this, its not needed anymore?
                  apps_limit=0):
 
         """ init the widget, takes
@@ -253,7 +253,8 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         self._append_whats_new()
         self._append_top_rated()
-        self._append_recommended_for_you()
+        # FIXME: Temporarily hide this as server support is not yet in place!!
+#        self._append_recommended_for_you()
         self._append_appcount()
 
         #self._append_video_clips()
@@ -486,7 +487,8 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         self._update_top_rated_content()
         self._update_whats_new_content()
-        self._update_recommended_for_you_content()
+        # FIXME: Temporarily remove this as server support is not yet in place!!
+#        self._update_recommended_for_you_content()
         self._update_appcount()
         return
 

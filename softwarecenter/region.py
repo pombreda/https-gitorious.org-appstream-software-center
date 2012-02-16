@@ -48,7 +48,10 @@ def get_region_name(countrycode):
                 xpath = ".//%s_entry[@alpha_2_code='%s']" % (iso, countrycode)
                 match = root.find(xpath)
                 if match is not None:
-                    return dgettext(iso, match.attrib["name"])
+                    name = match.attrib.get("common_name")
+                    if not name:
+                        name = match.attrib["name"]
+                    return dgettext(iso, name)
     return ""
 
 # the first parameter of SetRequirements

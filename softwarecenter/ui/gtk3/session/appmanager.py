@@ -110,10 +110,10 @@ class ApplicationManager(GObject.GObject):
             else:
                 debfile_name = None
 
-            action_func(app.pkgname, app.appname, appdetails.icon,
+            action_func(app, appdetails.icon,
                         debfile_name, addons_install, addons_remove)
         elif callable(action_func):
-            action_func(app.pkgname, app.appname, appdetails.icon,
+            action_func(app, appdetails.icon,
                         addons_install=addons_install,
                         addons_remove=addons_remove)
         #~ else:

@@ -43,12 +43,17 @@ from softwarecenter.enums import (AppActions,
                                   Icons, 
                                   SOFTWARE_CENTER_PKGNAME)
 from softwarecenter.utils import (is_unity_running, 
+                                  upstream_version,
                                   get_exec_line_from_desktop,
                                   SimpleFileDownloader,
                                   utf8)
 from softwarecenter.distro import get_distro
 from softwarecenter.backend.weblive import get_weblive_backend
 from softwarecenter.ui.gtk3.dialogs import error
+
+# FIXME: this is needed for the recommendations but really should become
+#        a widget or something generic instead
+from softwarecenter.ui.gtk3.views.catview_gtk import CategoriesViewGtk
 
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.drawing import color_to_hex
@@ -61,6 +66,7 @@ from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
 from softwarecenter.ui.gtk3.widgets.stars import Star, StarRatingsWidget
 from softwarecenter.ui.gtk3.widgets.description import AppDescription
 from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotGallery
+from softwarecenter.ui.gtk3.widgets.videoplayer import VideoPlayer
 from softwarecenter.ui.gtk3.widgets.weblivedialog import (
                                     ShowWebLiveServerChooserDialog)
 from softwarecenter.ui.gtk3.widgets.recommendations import (
@@ -159,6 +165,11 @@ class PackageStatusBar(StatusBar):
         self.label = Gtk.Label()
         self.label.set_line_wrap(True)
         self.button = Gtk.Button()
+        self.combo_multiple_versions = Gtk.ComboBoxText.new()
+        model = Gtk.ListStore(str, str)
+        self.combo_multiple_versions.set_model(model)
+        self.combo_multiple_versions.connect(
+            "changed", self._on_combo_multiple_versions_changed)
         self.progress = Gtk.ProgressBar()
 
         # theme engine hint for bug #606942
@@ -169,6 +180,7 @@ class PackageStatusBar(StatusBar):
         self.hbox.pack_start(self.installed_icon, False, False, 0)
         self.hbox.pack_start(self.label, False, False, 0)
         self.hbox.pack_end(self.button, False, False, 0)
+        self.hbox.pack_end(self.combo_multiple_versions, False, False, 0)
         self.hbox.pack_end(self.progress, False, False, 0)
         self.show_all()
 
@@ -182,6 +194,28 @@ class PackageStatusBar(StatusBar):
             self.progress.get_fraction() == 0.0):
             self.progress.pulse()
         return True
+
+    def _on_combo_multiple_versions_changed(self, combo):
+        # disconnect to ensure no updates are happening in here
+        model = combo.get_model()
+        it = combo.get_active_iter()
+        if it is None:
+            return
+        archive_suite = model[it][1]
+        # ignore if there is nothing set here
+        if archive_suite is None:
+            return
+        combo.disconnect_by_func(self._on_combo_multiple_versions_changed)
+        # reset "default" to "" as this is what it takes to reset the
+        # thing
+        if archive_suite != self.view.app.archive_suite:
+            # force not-automatic version
+            self.view.app_details.force_not_automatic_archive_suite(
+                archive_suite)
+            # update it
+            self.view._update_all(self.view.app_details)
+        # reconnect again
+        combo.connect("changed", self._on_combo_multiple_versions_changed)
 
     def _on_button_clicked(self, button):
         button.set_sensitive(False)
@@ -197,7 +231,7 @@ class PackageStatusBar(StatusBar):
             app_manager.reinstall_purchased(app)
         elif state == PkgStates.NEEDS_PURCHASE:
             app_manager.buy_app(app)
-        elif state == PkgStates.UNINSTALLED:
+        elif state in (PkgStates.UNINSTALLED, PkgStates.FORCE_VERSION):
             app_manager.install(
                 app, addons_to_install, addons_to_remove)
         elif state == PkgStates.REINSTALLABLE:
@@ -225,11 +259,46 @@ class PackageStatusBar(StatusBar):
     def get_button_label(self):
         return self.button.get_label()
 
+    def _build_combo_multiple_versions(self):
+        # the currently forced archive_suite for the given app
+        app_version = self.app_details.version
+        # all available not-automatic (version, archive_suits)
+        not_automatic_suites = self.app_details.get_not_automatic_archive_versions()
+        # populat the combobox if 
+        if not_automatic_suites:
+            combo = self.combo_multiple_versions
+            combo.disconnect_by_func(self._on_combo_multiple_versions_changed)
+            model = self.combo_multiple_versions.get_model()
+            model.clear()
+            for i, archive_suite in enumerate(not_automatic_suites):
+                # get the version, archive_suite
+                ver, archive_suite = archive_suite
+                # the string to display is something like:
+                #  "v1.0 (precise-backports)"
+                displayed_archive_suite = archive_suite
+                if i == 0:
+                    displayed_archive_suite = _("default")
+                s = "v%s (%s)" % (upstream_version(ver), 
+                                  displayed_archive_suite)
+                model.append( (s, archive_suite) )
+                if app_version == ver:
+                    self.combo_multiple_versions.set_active(i)
+            # if nothing is found, set to default
+            if self.combo_multiple_versions.get_active_iter() is None:
+                self.combo_multiple_versions.set_active(0)
+            self.combo_multiple_versions.show()
+            combo.connect("changed", self._on_combo_multiple_versions_changed)
+        else:
+            self.combo_multiple_versions.hide()
+
     def configure(self, app_details, state):
         LOG.debug("configure %s state=%s pkgstate=%s" % (
                 app_details.pkgname, state, app_details.pkg_state))
         self.pkg_state = state
         self.app_details = app_details
+
+        # configure the not-automatic stuff
+        self._build_combo_multiple_versions()
 
         if state in (PkgStates.INSTALLING,
                      PkgStates.INSTALLING_PURCHASED,
@@ -316,6 +385,8 @@ class PackageStatusBar(StatusBar):
                 self.set_button_label(_(u'Buy\u2026'))
             else:
                 self.set_button_label(_(u'Buy Anyway\u2026'))
+        elif state == PkgStates.FORCE_VERSION:
+            self.set_button_label(_('Change'))
         elif state in (
             PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
             PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES):
@@ -735,13 +806,13 @@ class AppDetailsView(Viewport):
     __gsignals__ = {'selected':(GObject.SignalFlags.RUN_FIRST,
                                 None,
                                 (GObject.TYPE_PYOBJECT,)),
-                    "application-selected" : (GObject.SignalFlags.RUN_LAST,
-                                   None,
-                                   (GObject.TYPE_PYOBJECT, )),
+                    "different-application-selected" : (GObject.SignalFlags.RUN_LAST,
+                                                        None,
+                                                        (GObject.TYPE_PYOBJECT, )),
                     }
 
 
-    def __init__(self, db, distro, icons, cache, datadir, pane):
+    def __init__(self, db, distro, icons, cache, datadir):
         Viewport.__init__(self)
         # basic stuff
         self.db = db
@@ -752,7 +823,6 @@ class AppDetailsView(Viewport):
         self.cache.connect("cache-ready", self._on_cache_ready)
         self.connect("destroy", self._on_destroy)
         self.datadir = datadir
-        self.pane = pane
         self.app = None
         self.appdetails = None
         self.addons_to_install = []
@@ -844,15 +914,7 @@ class AppDetailsView(Viewport):
         return
         
     def _update_recommendations(self, pkgname):
-        if (self.recommended_for_app_panel and
-            self.recommended_for_app_panel.get_parent()):
-            self.info_vb.remove(self.recommended_for_app_panel)
-        self.recommended_for_app_panel = RecommendationsPanelDetails(
-                                                    self.pane.cat_view,
-                                                    pkgname)
-        self.recommended_for_app_panel.show_all()
-        self.info_vb.pack_start(self.recommended_for_app_panel, False, False, 0)
-        self.info_vb.reorder_child(self.recommended_for_app_panel, 1)
+        self.recommended_for_app_panel.set_pkgname(pkgname)
 
     # FIXME: should we just this with _check_for_reviews?
     def _update_reviews(self, app_details):
@@ -1151,6 +1213,14 @@ class AppDetailsView(Viewport):
         frame.add(self.screenshot)
         right_vb.pack_start(frame, False, False, 0)
 
+        # video
+        mini_hb = Gtk.HBox()
+        self.videoplayer = VideoPlayer()
+        mini_hb.pack_start(self.videoplayer, False, False, 0)
+        # add a empty label here to ensure bg is set properly
+        mini_hb.pack_start(Gtk.Label(), True, True, 0)
+        right_vb.pack_start(mini_hb, False, False, 0)
+
         # the weblive test-drive stuff
         self.weblive = get_weblive_backend()
         if self.weblive.client is not None:
@@ -1176,15 +1246,6 @@ class AppDetailsView(Viewport):
         self.support_btn.set_name("subtle-label")
         self.support_btn.connect('activate-link', self._on_homepage_clicked)
 
-        # video
-        from softwarecenter.ui.gtk3.widgets.videoplayer import VideoPlayer
-        mini_hb = Gtk.HBox()
-        self.videoplayer = VideoPlayer()
-        mini_hb.pack_start(self.videoplayer, False, False, 0)
-        # add a empty label here to ensure bg is set properly
-        mini_hb.pack_start(Gtk.Label(), True, True, 0)
-        vb.pack_start(mini_hb, False, False, 0)
-
         # add the links footer to the description widget
         footer_hb = Gtk.HBox(spacing=6)
         footer_hb.pack_start(self.homepage_btn, False, False, 0)
@@ -1208,9 +1269,16 @@ class AppDetailsView(Viewport):
 
         self.addons_hbar = self._hbars[1]
         info_vb.pack_start(self.addons_hbar, False, False, StockEms.SMALL)
-        
-        self.recommended_for_app_panel = None
 
+        # recommendations
+        catview = CategoriesViewGtk(
+            self.datadir, None, self.cache, self.db, self.icons, None)
+        self.recommended_for_app_panel = RecommendationsPanelDetails(catview)
+        self.recommended_for_app_panel.connect(
+            "application-activated", self._on_recommended_application_activated)
+        self.recommended_for_app_panel.show_all()
+        self.info_vb.pack_start(self.recommended_for_app_panel, False, False, 0)
+        
         # package info
         self.info_keys = []
 
@@ -1259,6 +1327,9 @@ class AppDetailsView(Viewport):
         # signals!
         self.connect('size-allocate', lambda w,a: w.queue_draw())
         return
+
+    def _on_recommended_application_activated(self, recwidget, app):
+        self.emit("different-application-selected", app)
 
     def _on_review_new(self, button):
         self._review_write_new()
@@ -1804,7 +1875,8 @@ class AppDetailsView(Viewport):
         if state == PkgStates.NEEDS_PURCHASE:
             self.pkg_statusbar.configure(self.app_details, 
                                          PkgStates.INSTALLING_PURCHASED)
-        elif state == PkgStates.UNINSTALLED:
+        elif (state == PkgStates.UNINSTALLED or
+              state == PkgStates.FORCE_VERSION):
             self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING)
         elif state == PkgStates.INSTALLED:
             self.pkg_statusbar.configure(self.app_details, PkgStates.REMOVING)
@@ -1834,6 +1906,7 @@ class AppDetailsView(Viewport):
             self.app_details.pkgname == pkgname):
             if not self.pkg_statusbar.progress.get_property('visible'):
                 self.pkg_statusbar.button.hide()
+                self.pkg_statusbar.combo_multiple_versions.hide()
                 self.pkg_statusbar.progress.show()
             if pkgname in backend.pending_transactions:
                 self.pkg_statusbar.progress.set_fraction(progress/100.0)
@@ -1928,10 +2001,11 @@ class AppDetailsView(Viewport):
 
         label_string = ""
 
-        res = self.cache.get_total_size_on_install(self.app_details.pkgname,
-                self.addons_manager.addons_to_install,
-                self.addons_manager.addons_to_remove
-        )
+        res = self.cache.get_total_size_on_install(
+            self.app_details.pkgname,
+            self.addons_manager.addons_to_install,
+            self.addons_manager.addons_to_remove,
+            self.app.archive_suite)
         total_download_size, total_install_size = res
         if res==(0,0) and type(self.app)==DebFileApplication:
             total_install_size = self.app_details.installed_size
@@ -2011,17 +2085,10 @@ def get_test_window_appdetails():
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
     
-    from mock import Mock
-    pane = Mock()
-    # need a catview to test the recommendations panel
-    from softwarecenter.ui.gtk3.views.catview_gtk import get_test_catview
-    catview = get_test_catview()
-    pane.catview = catview
-
     # gui
     win = Gtk.Window()
     scroll = Gtk.ScrolledWindow()
-    view = AppDetailsView(db, distro, icons, cache, datadir, pane)
+    view = AppDetailsView(db, distro, icons, cache, datadir)
 
     import sys
     if len(sys.argv) > 1:

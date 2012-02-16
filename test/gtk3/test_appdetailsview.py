@@ -231,6 +231,88 @@ class TestAppdetailsView(unittest.TestCase):
         self.assertTrue(button.is_sensitive())
         
 
+class MultipleVersionsTestCase(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        # Set these as class attributes as we don't modify either
+        # during the tests.
+        from softwarecenter.testutils import get_test_db
+        cls.db = get_test_db()
+        cls.win = get_test_window_appdetails()
+        cls.view = cls.win.get_data("view")
+
+    @classmethod
+    def tearDownClass(cls):
+        GObject.timeout_add(TIMEOUT, lambda: cls.win.destroy())
+        Gtk.main()
+
+    def setUp(self):
+        app = Application("", "software-center")
+        self.app_mock = get_mock_app_from_real_app(app)
+        self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
+
+    def test_multiple_versions_automatic_button(self):
+        # normal app
+        self.view.show_app(self.app_mock)
+        self.assertFalse(self.view.pkg_statusbar.combo_multiple_versions.get_visible())
+        # switch to not-automatic app with different description
+        self.app_mock.details.get_not_automatic_archive_versions = lambda: [ 
+            ("5.0", "precise"),
+            ("12.0", "precise-backports"),
+            ]
+        self.view.show_app(self.app_mock)
+        self.assertTrue(self.view.pkg_statusbar.combo_multiple_versions.get_visible())
+        text = self.view.pkg_statusbar.combo_multiple_versions.get_active_text()
+        self.assertEqual(text, "v5.0 (default)")
+
+    def test_combo_multiple_versions(self):
+        self.app_mock.details.get_not_automatic_archive_versions = lambda: [
+            ("5.0",  "precise"),
+            ("12.0", "precise-backports") 
+            ]
+        # ensure that the right method is called
+        self.app_mock.details.force_not_automatic_archive_suite = Mock()
+        self.view.show_app(self.app_mock)
+        # test combo box switch
+        self.view.pkg_statusbar.combo_multiple_versions.set_active(1)
+        self.assertTrue(
+            self.app_mock.details.force_not_automatic_archive_suite.called)
+        call_args = self.app_mock.details.force_not_automatic_archive_suite.call_args
+        self.assertEqual(call_args, (("precise-backports",), {}))
+
+    def test_installed_multiple_version_default(self):
+        self.app_mock.details.get_not_automatic_archive_versions = lambda: [
+            ("5.0",  "precise"),
+            ("12.0", "precise-backports") 
+            ]
+        self.app_mock.details.pkg_state = PkgStates.INSTALLED
+        self.app_mock.details.version = "12.0"
+        # FIXME: do we really need this or should the backend derive this
+        #        automatically?
+        self.app_mock.archive_suite = "precise-backports"
+
+        self.app_mock.details.force_not_automatic_archive_suite = Mock()
+        self.view.show_app(self.app_mock)
+        active = self.view.pkg_statusbar.combo_multiple_versions.get_active_text()
+        # ensure that the combo points to "precise-backports"
+        self.assertEqual(active, "v12.0 (precise-backports)")
+        # now change the installed version from 12.0 to 5.0
+        self.app_mock.details.force_not_automatic_archive_suite.reset_mock()
+        def _side_effect(*args):
+            self.app_mock.archive_suite="precise"
+            self.app_mock.details.pkg_state = PkgStates.FORCE_VERSION
+        self.app_mock.details.force_not_automatic_archive_suite.side_effect = _side_effect
+        self.view.pkg_statusbar.combo_multiple_versions.set_active(0)
+        # ensure that now the default version is forced
+        self.assertTrue(
+            self.app_mock.details.force_not_automatic_archive_suite.called)
+        #call_args = self.app_mock.details.force_not_automatic_archive_suite.call_args
+        #self.assertEqual(call_args, (("precise",), {}))
+        # ensure the button changes
+        self.assertEqual(self.view.pkg_statusbar.button.get_label(), "Change")
+        
+
 class HardwareRequirementsTestCase(unittest.TestCase):
     
     @classmethod
@@ -483,5 +565,5 @@ class AppRecommendationsTestCase(unittest.TestCase):
 
 if __name__ == "__main__":
     import logging
-#    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     unittest.main()

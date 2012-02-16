@@ -58,6 +58,10 @@ class Application(object):
         # the request can take additional "request" data like apturl
         # strings or the path of a local deb package
         self.request = request
+        # a archive_suite can be used to force a specific version that
+        # would not be installed automatically (like ubuntu-backports)
+        self.archive_suite = ""
+        # popcon
         self._popcon = popcon
         # a "?" in the name means its a apturl request
         if "?" in pkgname:
@@ -223,6 +227,19 @@ class AppDetails(GObject.GObject):
                 LOG.warn("document no longer valid after db reopen")
                 self._doc = None
 
+    def _get_version_for_archive_suite(self, pkg, archive_suite):
+        """ helper for the multiple versions support """
+        if not archive_suite:
+            return pkg.candidate
+        else:
+            for ver in pkg.versions:
+                archive_suites = [origin.archive for origin in ver.origins]
+                if archive_suite in archive_suites:
+                    return ver
+        raise ValueError("pkg '%s' has not archive_suite '%s'" % (
+                pkg, archive_suite))
+
+
     @property
     def channelname(self):
         if self._doc:
@@ -286,11 +303,12 @@ class AppDetails(GObject.GObject):
     def desktop_file(self):
         if self._doc:
             return self._doc.get_value(XapianValues.DESKTOP_FILE)
-
     @property
     def description(self):
         if self._pkg:
-            return self._pkg.candidate.description
+            ver = self._get_version_for_archive_suite(
+                self._pkg, self._app.archive_suite)
+            return ver.description
         elif self._doc:
             if self._doc.get_value(XapianValues.SC_DESCRIPTION):
                 return self._doc.get_value(XapianValues.SC_DESCRIPTION)
@@ -432,10 +450,16 @@ class AppDetails(GObject.GObject):
         # - available for download (via sources.list)
         # - locally installed
         # - intalled and available for download
+        # - installed but the user wants to switch versions between
+        #   not-automatic channels (like experimental/backports)
         if self._pkg:
-            # Don't handle upgrades yet
-            #if self._pkg.installed and self._pkg._isUpgradable:
-            #    return PkgStates.UPGRADABLE
+            if self._pkg.installed and self._app.archive_suite:
+                archive_suites = [origin.archive 
+                                  for origin in self._pkg.installed.origins]
+                if not self._app.archive_suite in archive_suites:
+                    return PkgStates.FORCE_VERSION
+            if self._pkg.installed and self._pkg.is_upgradable:
+                return PkgStates.UPGRADABLE
             if self._pkg.is_installed:
                 return PkgStates.INSTALLED
             else:
@@ -626,6 +650,12 @@ class AppDetails(GObject.GObject):
 
     @property
     def summary(self):
+        # not-automatic
+        if self._pkg and self._app.archive_suite:
+            ver = self._get_version_for_archive_suite(
+                self._pkg, self._app.archive_suite)
+            return ver.summary
+        # normal case
         if self._doc:
             return self._db.get_summary(self._doc)
         elif self._pkg:
@@ -655,12 +685,57 @@ class AppDetails(GObject.GObject):
     @property
     def version(self):
         if self._pkg:
-            if self._pkg.installed:
+            if self._pkg.installed and not self._app.archive_suite:
                 return self._pkg.installed.version
             else:
-                return self._pkg.candidate.version
+                ver = self._get_version_for_archive_suite(
+                    self._pkg, self._app.archive_suite)
+                return ver.version
         elif self._doc:
             return self._doc.get_value(XapianValues.VERSION_INFO)
+
+    def get_not_automatic_archive_versions(self):
+        """ this will return list of tuples (version, archive_suites)
+            with additional versions of the given package that can
+            be forced with force_not_automatic_archive_suite
+        """
+        archive_suites = []
+        if self._pkg:
+            for v in self._pkg.versions:
+                if v.not_automatic:
+                    archive_suites.append((v.version, v.origins[0].archive))
+        # if we have a not automatic version, ensure that the user can
+        # always pick the default too
+        if archive_suites:
+            # get candidate
+            ver = self._pkg.candidate
+            # if the candidate is the not-automatic version, find the first
+            # non-not-automatic one
+            if ver.not_automatic:
+                for ver in sorted(self._pkg.versions, reverse=True):
+                    if ver.downloadable and not ver.not_automatic:
+                        break
+            archive_suites.insert(0, (ver.version, ver.origins[0].archive))
+        return archive_suites
+
+    def force_not_automatic_archive_suite(self, archive_suite):
+        """ this will force to use the given "archive_suite" version
+            of the app (or clears it if archive_suite is empty)
+        """
+        # set or reset value
+        if archive_suite:
+            # add not-automatic suite to app
+            for ver in self._pkg.versions:
+                if archive_suite in [origin.archive for origin in ver.origins]:
+                    self._app.archive_suite = archive_suite
+                    return True
+            # no suitable archive found
+            raise ValueError("Pkg '%s' has no archive_suite '%s'" % (
+                    self._pkg, archive_suite))
+        else:
+            # clear version
+            self._app.archive_suite = ""
+            return True
 
     @property
     def warning(self):
@@ -711,6 +786,7 @@ class AppDetails(GObject.GObject):
     def license_key(self):
         if self._doc:
             return self._doc.get_value(XapianValues.LICENSE_KEY)
+        return ""
 
     @property
     def license_key_path(self):
