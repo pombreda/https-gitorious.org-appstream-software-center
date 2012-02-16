@@ -194,8 +194,9 @@ class RecommendedForYouInCatCategory(Category):
         for item in result_list['recommendations']:
             pkgs.append(item['package_name'])
             
-        # TODO: make a new get_query that includes the category
-        self.query = get_query_for_pkgnames(pkgs)
+        self.query = xapian.Query(xapian.Query.OP_AND,
+                                     get_query_for_pkgnames(pkgs),
+                                     self.category.query)
         self.emit("needs-refresh")
 
     def _recommender_agent_error(self, recommender_agent, msg):

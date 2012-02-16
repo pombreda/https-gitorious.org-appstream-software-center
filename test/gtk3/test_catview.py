@@ -206,8 +206,10 @@ class TestCatView(unittest.TestCase):
                                 make_recommender_agent_recommend_me_dict())
         result_docs = rec_cat_panel.recommended_for_you_cat.get_documents(self.db)
         self.assertNotEqual(result_docs, [])
-        print "len(result_docs): ", len(result_docs)
-        self.assertTrue(len(result_docs) == 3)
+        # check that we are getting the correct number of results, corresponding
+        # to the following Internet items:
+        #   Mangler, Midori, Midori Private Browsing, Psi
+        self.assertTrue(len(result_docs) == 4)
         from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
         self.assertTrue(rec_cat_panel.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
         self._p()
