@@ -279,7 +279,7 @@ class FeaturedTile(TileButton):
         self.connect("button-press-event", self.on_press)
         self.connect("button-release-event", self.on_release)
         
-        print ">>> created FeaturedTile for: ", self.title.get_text
+        print ">>> created FeaturedTile for: ", self.title.get_text()
         return
 
     def _on_needs_refresh(self, helper, pkgname, doc, icon_size):
