@@ -309,9 +309,7 @@ class PackageStatusBar(StatusBar):
         elif state == PkgStates.NOT_FOUND:
             self.hide()
         elif state == PkgStates.ERROR:
-            self.progress.hide()
-            self.button.set_sensitive(False)
-            self.button.show()
+            # error details are set below
             self.show()
         else:
             # mvo: why do we override state here again?
@@ -432,8 +430,10 @@ class PackageStatusBar(StatusBar):
         elif state == PkgStates.ERROR:
             # this is used when the pkg can not be installed
             # we display the error in the description field
-            self.set_button_label(_("Install"))
-            self.set_label("")
+            self.installed_icon.hide()
+            self.progress.hide()
+            self.button.hide()
+            self.set_label(_("Error"))
         elif state == PkgStates.NOT_FOUND:
             # this is used when the pkg is not in the cache and there is no
             # request we display the error in the summary field and hide the 
@@ -1394,10 +1394,7 @@ class AppDetailsView(Viewport):
 
     def _update_app_description(self, app_details, appname):
         # format new app description
-        if app_details.pkg_state == PkgStates.ERROR:
-            description = app_details.error
-        else:
-            description = app_details.description
+        description = app_details.description
         if not description:
             description = " "
         self.desc.set_description(description, appname)
@@ -1452,6 +1449,11 @@ class AppDetailsView(Viewport):
         return
 
     def _update_warning_bar(self, app_details):
+        # generic error wins over HW issue
+        if app_details.pkg_state == PkgStates.ERROR:
+            self.pkg_warningbar.show()
+            self.pkg_warningbar.label.set_text(app_details.error)
+            return
         if (app_details.hardware_requirements_satisfied and
             app_details.region_requirements_satisfied):
             self.pkg_warningbar.hide()

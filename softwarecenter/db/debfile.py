@@ -28,14 +28,16 @@ from softwarecenter.enums import PkgStates
 from softwarecenter.utils import ExecutionTime, utf8
 
 class DebFileApplication(Application):
+
     def __init__(self, debfile):
-        # deb overrides this
-#        if not debfile.endswith(".deb") and not debfile.count('/') >= 2:
- #           raise ValueError("Need a deb file, got '%s'" % debfile)
+        # sanity check
+        if not debfile.endswith(".deb"):
+            raise ValueError("Need a deb file, got '%s'" % debfile)
+        # work out debname/appname
         debname = os.path.splitext(os.path.basename(debfile))[0]
-        self.appname = ""
-        self.pkgname = debname.split('_')[0].lower()
-        self.request = debfile
+        pkgname = debname.split('_')[0].lower()
+        # call the constructor
+        Application.__init__(self, pkgname=pkgname, request=debfile)
     def get_details(self, db):
         with ExecutionTime("get_details for DebFileApplication"):
             details = AppDetailsDebFile(db, application=self)
@@ -49,10 +51,10 @@ class AppDetailsDebFile(AppDetails):
             raise ValueError("doc must be None for deb files")
 
         try:
-            # for some reason Cache() is much faster than "self._cache._cache"
-            # on startup
             with ExecutionTime("create DebPackage"):
-                self._deb = DebPackage(self._app.request, Cache())
+                # Cache() used to be faster here than self._cache._cache
+                # but that is no longer the case with the latest apt
+                self._deb = DebPackage(self._app.request, self._cache._cache)
         except:
             self._deb = None
             self._pkg = None
@@ -90,7 +92,7 @@ class AppDetailsDebFile(AppDetails):
         # check deb and set failure state on error
         with ExecutionTime("AppDetailsDebFile._deb.check()"):
             if not self._deb.check():
-                self._error = self._deb._failure_string
+                self._error = self._deb._failure_string.strip()
 
     @property
     def description(self):

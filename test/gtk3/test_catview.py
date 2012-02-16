@@ -85,7 +85,7 @@ class TestCatView(unittest.TestCase):
         self.assertFalse(view.whats_new_frame.get_property("visible"))
         self._p()
         win.destroy()
-       
+
     def test_subcatview_recommended_for_you_opt_in_display(self):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need

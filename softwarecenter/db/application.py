@@ -32,7 +32,7 @@ from softwarecenter.enums import PkgStates, XapianValues, Icons
 from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
-from softwarecenter.utils import utf8, split_icon_ext, version_compare
+from softwarecenter.utils import utf8, split_icon_ext
 from softwarecenter.region import get_region_cached, REGIONTAG
 
 LOG = logging.getLogger(__name__)
@@ -613,6 +613,7 @@ class AppDetails(GObject.GObject):
         """ take a screenshot result dict from screenshots.debian.org 
             and sort it
         """
+        from softwarecenter.utils import version_compare
         my_version = self.version
         # discard screenshots which are more recent than the available version
         for item in screenshot_list[:]:
