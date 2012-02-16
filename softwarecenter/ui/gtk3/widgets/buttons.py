@@ -278,6 +278,8 @@ class FeaturedTile(TileButton):
         self.connect("leave-notify-event", self.on_leave)
         self.connect("button-press-event", self.on_press)
         self.connect("button-release-event", self.on_release)
+        
+        print ">>> created FeaturedTile for: ", self.title.get_text
         return
 
     def _on_needs_refresh(self, helper, pkgname, doc, icon_size):
@@ -290,6 +292,7 @@ class FeaturedTile(TileButton):
         return w, w
 
     def do_draw(self, cr):
+        print ">>> called do_draw on FeaturedTile for: ", self.title.get_text()
         cr.save()
         A = self.get_allocation()
         if self._pressed:
