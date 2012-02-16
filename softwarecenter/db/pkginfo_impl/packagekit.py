@@ -304,6 +304,8 @@ class PackagekitInfo(PackageInfo):
     def _get_packages(self, pkgname, pfilter=packagekit.FilterEnum.NONE):
         """ resolve a package name into a PkPackage object or return None """
         pfilter = 1 << pfilter
+        # we never want source packages
+        pfilter |= 1 << packagekit.FilterEnum.NOT_SOURCE
 
         try:
             result = self.client.resolve(pfilter,
