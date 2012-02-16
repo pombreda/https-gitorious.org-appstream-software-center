@@ -1,5 +1,13 @@
 software-center (5.1.10) precise; urgency=low
 
+  [ Michael Vogt ]
+  * revert again:
+    lp:~gary-lasker/software-center/temp-disable-lobby-recommendations-view
+  * softwarecenter/region.py:
+    - trivial change to make region tag prefix "iso3166::" to align
+      with the latest debtags upstream plans
+
+  [ Kiwinote ]
   * softwarecenter/ui/gtk3/app.py:
     - disable navigating back by pressing the backspace key because it has
       started showing dodgy side effects - use ctrl+[ or alt+LEFT instead
