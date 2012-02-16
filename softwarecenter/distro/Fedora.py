@@ -50,6 +50,8 @@ class Fedora(Distro):
 
     REVIEW_STATS_URL = REVIEWS_SERVER+"/review-stats"
 
+    USE_AXI = False
+
     def get_distro_channel_name(self):
         """ The name of the primary repository """
         return "fedora"

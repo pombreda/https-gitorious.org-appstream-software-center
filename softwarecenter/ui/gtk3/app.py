@@ -211,7 +211,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         with ExecutionTime("opening the xapiandb"):
             pathname = os.path.join(xapian_base_path, "xapian")
-            self._use_axi = not options.disable_apt_xapian_index
+            self._use_axi = self.distro.USE_AXI and not options.disable_apt_xapian_index
             try:
                 self.db = StoreDatabase(pathname, self.cache)
                 self.db.open(use_axi = self._use_axi)

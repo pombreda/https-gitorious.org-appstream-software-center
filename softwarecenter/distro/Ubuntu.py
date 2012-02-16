@@ -63,6 +63,8 @@ class Ubuntu(Debian):
     # Starting point for Ubuntu app developers
     DEVELOPER_URL = "http://developer.ubuntu.com/"
 
+    USE_AXI = True
+
     def get_app_name(self):
         return _("Ubuntu Software Center")
 

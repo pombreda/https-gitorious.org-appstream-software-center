@@ -39,6 +39,8 @@ class openSUSE(Distro):
 
     REVIEW_STATS_URL = REVIEWS_SERVER+"/review-stats"
 
+    USE_AXI = False
+
     def get_app_name(self):
         return _("Software Center")
 
