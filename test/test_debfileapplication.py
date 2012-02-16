@@ -17,10 +17,10 @@ DEBFILE_SUMMARY = 'testpackage for gdebi - provides/conflicts against real pkg'
 DEBFILE_VERSION = '1.0'
 DEBFILE_WARNING = 'Only install this file if you trust the origin.'
 
-DEBFILE_REINSTALLABLE = './data/test_debs/gdebi-test1.deb'
 DEBFILE_PATH_NOTFOUND = './data/test_debs/notfound.deb'
 DEBFILE_PATH_NOTADEB = './data/notadeb.txt'
 DEBFILE_PATH_CORRUPT = './data/test_debs/corrupt.deb'
+DEBFILE_NOT_INSTALLABLE = './data/test_debs/gdebi-test1.deb'
 
 class TestDebFileApplication(unittest.TestCase):
     """ Test the class DebFileApplication """
@@ -46,13 +46,19 @@ class TestDebFileApplication(unittest.TestCase):
 
         self.assertEquals(debfiledetails.pkg_state, PkgStates.UNINSTALLED)
 
-    # disabled until the fixme gets fixed
+    def test_get_pkg_state_not_installable(self):
+        debfileapplication = DebFileApplication(DEBFILE_NOT_INSTALLABLE)
+        debfiledetails = debfileapplication.get_details(self.db)
+
+        self.assertEquals(debfiledetails.pkg_state, PkgStates.ERROR)
+
     def disabled_for_now_test_get_pkg_state_reinstallable(self):
         # FIMXE: add hand crafted dpkg status file into the testdir so
         #        that gdebi-test1 is marked install for the MockAptCache
-        debfileapplication = DebFileApplication(DEBFILE_REINSTALLABLE)
-        debfiledetails = debfileapplication.get_details(self.db)
-        self.assertEquals(debfiledetails.pkg_state, PkgStates.REINSTALLABLE)
+        #debfileapplication = DebFileApplication(DEBFILE_REINSTALLABLE)
+        #debfiledetails = debfileapplication.get_details(self.db)
+        #self.assertEquals(debfiledetails.pkg_state, PkgStates.REINSTALLABLE)
+        pass
 
     def test_get_pkg_state_not_found(self):
         debfileapplication = DebFileApplication(DEBFILE_PATH_NOTFOUND)

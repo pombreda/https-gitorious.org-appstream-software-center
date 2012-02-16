@@ -51,10 +51,10 @@ class AppDetailsDebFile(AppDetails):
             raise ValueError("doc must be None for deb files")
 
         try:
-            # for some reason Cache() is much faster than "self._cache._cache"
-            # on startup
             with ExecutionTime("create DebPackage"):
-                self._deb = DebPackage(self._app.request, Cache())
+                # Cache() used to be faster here than self._cache._cache
+                # but that is no longer the case with the latest apt
+                self._deb = DebPackage(self._app.request, self._cache._cache)
         except:
             self._deb = None
             self._pkg = None
