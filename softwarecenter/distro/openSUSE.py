@@ -29,15 +29,14 @@ class openSUSE(Distro):
                    ]
 
     # screenshot handling
+    ### FIXME: we should have our own proxy for openSUSE
     SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-with-version/%(pkgname)s/%(version)s"
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-with-version/%(pkgname)s/%(version)s"
     SCREENSHOT_JSON_URL = "http://screenshots.ubuntu.com/json/package/%s"
     
     # reviews
-    REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://reviews.ubuntu.com/reviews/api/1.0"
-    REVIEWS_URL = REVIEWS_SERVER + "/reviews/filter/%(language)s/%(origin)s/%(distroseries)s/%(version)s/%(pkgname)s%(appname)s/"
-
-    REVIEW_STATS_URL = REVIEWS_SERVER+"/review-stats"
+    ### FIXME: we'll want this at some point
+    REVIEWS_SERVER = ""
 
     USE_AXI = False
 
