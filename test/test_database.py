@@ -463,6 +463,16 @@ app-popcon	4	# app-install .desktop popcon rank
         installed_pkgs = get_installed_package_list()
         self.assertTrue(len(installed_pkgs) > 0)
 
+    def test_utils_get_installed_apps_list(self):
+        from softwarecenter.db.utils import (
+            get_installed_package_list,get_installed_apps_list)
+        installed_pkgs = get_installed_package_list()
+        # the installed apps
+        db = get_test_db()
+        installed_apps = get_installed_apps_list(db)
+        self.assertTrue(len(installed_apps) > 0)
+        self.assertTrue(len(installed_pkgs) > len(installed_apps))
+
 
 def make_purchased_app_details(db=None, supported_series=None):
     """Return an AppDetail instance with the required attributes."""
