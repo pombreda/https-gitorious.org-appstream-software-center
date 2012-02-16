@@ -1,6 +1,8 @@
+import logging
 try:
     from debfile import DebFileApplication
     DebFileApplication # pyflakes
-except ImportError:
+except:
+    logging.exception("DebFileApplication import")
     class DebFileApplication(): 
         pass

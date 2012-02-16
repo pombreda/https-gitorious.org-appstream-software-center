@@ -28,14 +28,16 @@ from softwarecenter.enums import PkgStates
 from softwarecenter.utils import ExecutionTime, utf8
 
 class DebFileApplication(Application):
+
     def __init__(self, debfile):
-        # deb overrides this
-#        if not debfile.endswith(".deb") and not debfile.count('/') >= 2:
- #           raise ValueError("Need a deb file, got '%s'" % debfile)
+        # sanity check
+        if not debfile.endswith(".deb"):
+            raise ValueError("Need a deb file, got '%s'" % debfile)
+        # work out debname/appname
         debname = os.path.splitext(os.path.basename(debfile))[0]
-        self.appname = ""
-        self.pkgname = debname.split('_')[0].lower()
-        self.request = debfile
+        pkgname = debname.split('_')[0].lower()
+        # call the constructor
+        Application.__init__(self, pkgname=pkgname, request=debfile)
     def get_details(self, db):
         with ExecutionTime("get_details for DebFileApplication"):
             details = AppDetailsDebFile(db, application=self)
