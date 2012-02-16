@@ -92,6 +92,7 @@ class AppView(Gtk.VBox):
         self.tree_view_scroll.add(self.tree_view)
 
         self.appcount = None
+        self.vadj = 0.0
 
         self.user_defined_sort_method = False
         self._handler = self.sort_methods_combobox.connect(
@@ -131,6 +132,7 @@ class AppView(Gtk.VBox):
 
     def on_sort_method_changed(self, *args):
         self.user_defined_sort_method = True
+        self.vadj = 0.0
         self.emit("sort-method-changed", self.sort_methods_combobox)
         return
 
@@ -206,6 +208,9 @@ class AppView(Gtk.VBox):
         if model:
             model.set_from_matches(matches)
         self.user_defined_sort_method = False
+
+        self.tree_view_scroll.get_vadjustment().set_lower(self.vadj)
+        self.tree_view_scroll.get_vadjustment().set_value(self.vadj)
         return
 
     def clear_model(self):

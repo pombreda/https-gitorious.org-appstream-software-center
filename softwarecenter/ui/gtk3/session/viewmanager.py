@@ -165,6 +165,13 @@ class ViewManager(GObject.GObject):
         return self.navhistory.stack[-1]
 
     def display_page(self, pane, page, view_state, callback=None):
+        # if previous page is a list view, then store the scroll positions
+        if self.navhistory.stack:
+            ni = self.navhistory.stack[self.navhistory.stack.cursor]
+            if ni.pane.is_applist_view_showing():
+                v = ni.pane.app_view.tree_view_scroll.get_vadjustment()
+                ni.view_state.vadjustment = v.get_value()
+
         if callback is None:
             callback = pane.get_callback_for_page(page, view_state)
 
