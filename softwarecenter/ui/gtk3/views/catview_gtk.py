@@ -563,7 +563,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.recommended_for_you_in_cat = RecommendationsPanelCategory(self,
                                                                        category)
         self.vbox.pack_start(self.recommended_for_you_in_cat, 
-                                    True, True, 0)
+                                    False, False, 0)
 
     def _update_subcat_departments(self, category, num_items):
         self.departments.remove_all()
