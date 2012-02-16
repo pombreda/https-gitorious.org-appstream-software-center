@@ -221,7 +221,6 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         RecommendationsPanel.__init__(self, catview)
         self.category = category
         self.set_header_label(_(u"Recommended for You in %s") % category.name)
-        self.header_implements_more_button()
         
         self.recommender_uuid = self.get_recommender_uuid()
         if self.recommender_uuid:
@@ -248,6 +247,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         print ">>> docs: ", docs
         # display the recommendedations
         if len(docs) > 0:
+            self.header_implements_more_button()
             self.catview._add_tiles_to_flowgrid(
                                     docs,
                                     self.recommended_for_you_in_cat_content, 8)
