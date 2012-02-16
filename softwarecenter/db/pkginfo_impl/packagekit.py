@@ -108,14 +108,15 @@ class PackagekitInfo(PackageInfo):
         super(PackagekitInfo, self).__init__()
         self.client = packagekit.Client()
         self.client.set_locale(make_locale_string())
-        self._cache = {} # temporary hack for decent testing
-        self._notfound_cache = []
+        self._cache_pkg = {} # temporary hack for decent testing
+        self._cache_details = {} # temporary hack for decent testing
+        self._notfound_cache_pkg = []
         self._repocache = {}
         self.distro = get_distro()
 
     def __contains__(self, pkgname):
         # setting it like this for now
-        return pkgname not in self._notfound_cache
+        return pkgname not in self._notfound_cache_pkg
 
     def is_installed(self, pkgname):
         p = self._get_one_package(pkgname)
@@ -271,8 +272,8 @@ class PackagekitInfo(PackageInfo):
     """ private methods """
     def _get_package_details(self, packageid, cache=USE_CACHE):
         LOG.debug("package_details %s", packageid) #, self._cache.keys()
-        if (packageid in self._cache.keys()) and cache:
-            return self._cache[packageid]
+        if (packageid in self._cache_details.keys()) and cache:
+            return self._cache_details[packageid]
 
         try:
             result = self.client.get_details((packageid,), None, self._on_progress_changed, None)
@@ -283,26 +284,27 @@ class PackagekitInfo(PackageInfo):
         if not pkgs:
             return None
         packageid = pkgs[0].get_property('package-id')
-        self._cache[packageid] = pkgs[0]
+        self._cache_details[packageid] = pkgs[0]
         return pkgs[0]
  
     def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
         LOG.debug("package_one %s", pkgname) #, self._cache.keys()
-        if (pkgname in self._cache.keys()) and cache:
-            return self._cache[pkgname]
+        if (pkgname in self._cache_pkg.keys()) and cache:
+            return self._cache_pkg[pkgname]
         ps = self._get_packages(pkgname, pfilter)
         if not ps:
             # also keep it in not found, to prevent further calls of resolve
-            if pkgname not in self._notfound_cache:
+            if pkgname not in self._notfound_cache_pkg:
                 LOG.debug("blacklisted %s", pkgname)
-                self._notfound_cache.append(pkgname)
+                self._notfound_cache_pkg.append(pkgname)
             return None
-        self._cache[pkgname] = ps[0]
+        self._cache_pkg[pkgname] = ps[0]
         return ps[0]
 
     def _get_packages(self, pkgname, pfilter=packagekit.FilterEnum.NONE):
         """ resolve a package name into a PkPackage object or return None """
         pfilter = 1 << pfilter
+
         try:
             result = self.client.resolve(pfilter,
                                          (pkgname,),
@@ -332,12 +334,15 @@ class PackagekitInfo(PackageInfo):
         # Clean resolved packages cache
         # This is used after finishing a transaction, so that we always
         # have the latest package information
-        LOG.debug("[reset_cache] here: %s name: %s", self._cache.keys(), name)
-        if name and (name in self._cache.keys()):
-            del self._cache[name]
+        LOG.debug("[reset_cache] name: %s", name)
+        if name and (name in self._cache_pkg.keys()):
+            del self._cache_pkg[name]
+        elif name and (name in self._cache_details.keys()):
+            del self._cache_details[name]
         else:
             # delete all
-            self._cache = {}
+            self._cache_pkg = {}
+            self._cache_details = {}
         # appdetails gets refreshed:
         self.emit('cache-ready')
 
