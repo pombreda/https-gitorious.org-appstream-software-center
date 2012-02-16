@@ -59,8 +59,13 @@ class AvailablePane(SoftwarePane):
     """
 
     class Pages():
-        # page names, useful for debuggin
-        NAMES = ('lobby', 'subcategory', 'list', 'details', 'purchase')
+        # page names, useful for debugging
+        NAMES = ('lobby', 
+                 'subcategory',
+                 'list',
+                 'details', 
+                 'purchase',
+                )
         # actual page id's
         (LOBBY,
          SUBCATEGORY,
