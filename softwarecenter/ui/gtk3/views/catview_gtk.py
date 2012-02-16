@@ -253,8 +253,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         self._append_whats_new()
         self._append_top_rated()
-        # FIXME: Temporarily hide this as server support is not yet in place!!
-#        self._append_recommended_for_you()
+        self._append_recommended_for_you()
         self._append_appcount()
 
         #self._append_video_clips()
@@ -487,8 +486,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         self._update_top_rated_content()
         self._update_whats_new_content()
-        # FIXME: Temporarily remove this as server support is not yet in place!!
-#        self._update_recommended_for_you_content()
+        self._update_recommended_for_you_content()
         self._update_appcount()
         return
 
