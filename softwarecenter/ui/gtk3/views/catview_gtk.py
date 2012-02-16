@@ -562,8 +562,13 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             self.bottom_hbox.remove(self.recommended_for_you_in_cat)
         self.recommended_for_you_in_cat = RecommendationsPanelCategory(self,
                                                                        category)
-        self.vbox.pack_start(self.recommended_for_you_in_cat, 
-                                    False, False, 0)
+        # only show the panel in the categories view when the user
+        # is opted in to the recommender service
+        # FIXME: this is needed vs. a simple hide() on the widget because
+        #        we do a show_all on the view
+        if self.recommended_for_you_in_cat.opted_in:
+            self.vbox.pack_start(self.recommended_for_you_in_cat, 
+                                        False, False, 0)
 
     def _update_subcat_departments(self, category, num_items):
         self.departments.remove_all()

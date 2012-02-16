@@ -222,12 +222,13 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         self.category = category
         self.set_header_label(_(u"Recommended for You in %s") % category.name)
         
+        self.opted_in = True
         self.recommender_uuid = self.get_recommender_uuid()
         if self.recommender_uuid:
             self._update_recommended_for_you_in_cat_content()
             self.add(self.recommended_for_you_in_cat_content)
         else:
-            self._hide_recommended_for_you_in_cat_panel()
+            self.opted_in = False
 
     def _update_recommended_for_you_in_cat_content(self):
         self.recommended_for_you_in_cat_content = FlowableGrid()
