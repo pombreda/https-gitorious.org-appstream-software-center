@@ -202,7 +202,7 @@ def make_recommender_agent_recommend_me_dict():
                 u'package_name': u'hedgewars'
             },
             {
-                u'package_name': u'gelemental'
+                u'package_name': u'mangler'
             }, 
             {
                 u'package_name': u'nexuiz'
@@ -224,6 +224,12 @@ def make_recommender_agent_recommend_me_dict():
             }, 
             {
                 u'package_name': u'phlipple'
+            },
+            {
+                u'package_name': u'psi'
+            }, 
+            {
+                u'package_name': u'midori'
             }
     ]
 }
