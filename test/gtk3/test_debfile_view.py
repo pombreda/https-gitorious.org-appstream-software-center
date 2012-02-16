@@ -17,7 +17,7 @@ from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 
 class DebFileOpenTestCase(unittest.TestCase):
 
-    def test_deb_file_view(self):
+    def test_deb_file_view_error(self):
         mock_options = Mock()
         mock_options.display_navlog = False
         mock_options.disable_apt_xapian_index = False
@@ -37,6 +37,9 @@ class DebFileOpenTestCase(unittest.TestCase):
         # check that we are on the right page
         self.assertEqual(
             app.available_pane.get_current_page(), AvailablePane.Pages.DETAILS)
+        # this is deb that is not installable
+        action_button = app.available_pane.app_details_view.pkg_statusbar.button
+        self.assertFalse(action_button.get_property("visible"))
         
 
 
