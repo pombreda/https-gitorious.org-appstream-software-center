@@ -99,7 +99,6 @@ class RecommendationsPanelLobby(RecommendationsPanel):
             self._update_recommended_for_you_content()
             
         self.add(self.recommended_for_you_content)
-        self.header_implements_more_button()
 
     def _show_opt_in_view(self):
         self.opt_in_vbox = Gtk.VBox(spacing=12)
@@ -178,6 +177,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         docs = cat.get_documents(self.catview.db)
         # display the recommendedations
         if len(docs) > 0:
+            self.header_implements_more_button()
             self.catview._add_tiles_to_flowgrid(docs,
                                         self.recommended_for_you_content, 8)
             self.recommended_for_you_content.show_all()
