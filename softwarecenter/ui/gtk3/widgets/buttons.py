@@ -451,6 +451,15 @@ class ChannelSelector(Gtk.Button):
         self.popup = Gtk.Menu()
         self.build_func(self.popup)
         self.popup.attach_to_widget(self, None)
+        # draw themed bg for the popup menu
+        context = self.get_ancestor('GtkToolbar').get_style_context()
+        color = context.get_border_color(Gtk.StateFlags.ACTIVE)
+        def draw(widget, cr):
+            a = widget.get_allocation()
+            cr.set_source_rgba(color.red, color.green, color.blue, color.alpha)
+            cr.rectangle(0, 0, a.width, a.height)
+            cr.fill()
+        self.popup.connect('draw', draw)
         return
 
 
