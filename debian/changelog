@@ -1,5 +1,6 @@
 software-center (5.1.10) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * revert again:
     lp:~gary-lasker/software-center/temp-disable-lobby-recommendations-view
   * lp:~mvo/software-center/lp917096:
@@ -9,7 +10,11 @@ software-center (5.1.10) UNRELEASED; urgency=low
     - trivial change to make region tag prefix "iso3166::" to align
       with the latest debtags upstream plans
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 16 Feb 2012 11:19:02 -0500
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - draw the backgrounds of the channel selector menus (LP: #921477)
+
+ -- Kiwinote <kiwinote@gmail.com>  Thu, 16 Feb 2012 17:57:11 +0000
 
 software-center (5.1.9) precise; urgency=low
 
