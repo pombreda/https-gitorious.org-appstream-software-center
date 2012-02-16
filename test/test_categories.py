@@ -8,7 +8,9 @@ from testutils import setup_test_env
 setup_test_env()
 
 from softwarecenter.db.categories import (
-    CategoriesParser, RecommendedForYouCategory,
+    CategoriesParser,
+    RecommendedForYouCategory,
+    RecommendedForYouInCatCategory,
     get_category_by_name, get_query_for_category)
 from softwarecenter.testutils import (get_test_db,
                                       make_recommender_agent_recommend_me_dict)
@@ -31,7 +33,23 @@ class TestCategories(unittest.TestCase):
                                 None, 
                                 make_recommender_agent_recommend_me_dict())
         self.assertNotEqual(recommends_cat.get_documents(self.db), [])
-   
+
+    @patch('softwarecenter.db.categories.RecommenderAgent')
+    def test_recommends_in_category_category(self, AgentMockCls):
+        # ensure we use the same instance in test and code
+        parser = CategoriesParser(self.db)
+        cats = parser.parse_applications_menu("./data")
+        # "2" is a multimedia query
+        #     see ./test/data/desktop/software-center.menu
+        recommends_cat = RecommendedForYouInCatCategory(self.db, cats[2])
+        # ensure we get a query when the callback is called
+        recommends_cat._recommend_me_result(
+                                None, 
+                                make_recommender_agent_recommend_me_dict())
+        recommendations_in_cat = recommends_cat.get_documents(self.db)
+        print recommendations_in_cat
+        self.assertNotEqual(recommendations_in_cat, [])
+
     def test_get_query(self):
         query = get_query_for_category(self.db, "Education")
         self.assertNotEqual(query, None)
@@ -89,6 +107,6 @@ class TestCategoryTemplates(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
+    #import logging
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()

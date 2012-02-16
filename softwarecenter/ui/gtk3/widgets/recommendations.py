@@ -228,7 +228,6 @@ class RecommendationsPanelCategory(RecommendationsPanel):
             self._update_recommended_for_you_in_cat_content()
             self.add(self.recommended_for_you_in_cat_content)
         else:
-            # FIXME: better to just call hide_recommended_for_you_in_cat_panel
             self.opted_in = False
 
     def _update_recommended_for_you_in_cat_content(self):
@@ -237,6 +236,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         self.show_spinner()
         # get the recommendations from the recommender agent
         self.recommended_for_you_cat = RecommendedForYouInCatCategory(
+                                                            self.catview.db,
                                                             self.category)
         self.recommended_for_you_cat.connect(
                             'needs-refresh',
