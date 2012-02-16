@@ -363,6 +363,8 @@ class ChannelSelector(Gtk.Button):
         self.arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.IN)
         alignment.add(self.arrow)
 
+        # vars
+        self.parent_style_type = Gtk.Toolbar
         self.section_button = section_button
         self.popup = None
         self.connect("button-press-event", self.on_button_press)
@@ -371,8 +373,8 @@ class ChannelSelector(Gtk.Button):
     def do_draw(self, cr):
         cr.save()
 
-        toolbar = self.get_ancestor('GtkToolbar')
-        context = toolbar.get_style_context()
+        parent_style = self.get_ancestor(self.parent_style_type)
+        context = parent_style.get_style_context()
 
         color = darken(context.get_border_color(Gtk.StateFlags.ACTIVE), 0.2)
 
@@ -642,6 +644,15 @@ class MoreLink(Gtk.Button):
         window.set_cursor(None)
         return
 
+def _build_channels_list(popup):
+    for i in range(3):
+        item = Gtk.MenuItem.new()
+        label = Gtk.Label.new("channel_name %s" % i)
+        box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.MEDIUM)
+        box.pack_start(label, False, False, 0)
+        item.add(box)
+        item.show_all()
+        popup.attach(item, 0, 1, i, i+1)
 
 def get_test_buttons_window():
     win = Gtk.Window()
@@ -651,7 +662,17 @@ def get_test_buttons_window():
     win.add(vb)
 
     link = Link("<small>test link</small>", uri="www.google.co.nz")
-    vb.add(link)
+    vb.pack_start(link, False, False, 0)
+
+    button = Gtk.Button()
+    button.set_label("channels")
+    channels_button = ChannelSelector(button)
+    channels_button.parent_style_type = Gtk.Window
+    channels_button.set_build_func(_build_channels_list)
+    hb = Gtk.HBox()
+    hb.pack_start(button, False, False, 0)
+    hb.pack_start(channels_button, False, False, 0)
+    vb.pack_start(hb, False, False, 0)
 
     win.show_all()
     win.connect("destroy", Gtk.main_quit)
