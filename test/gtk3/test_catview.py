@@ -178,7 +178,7 @@ class TestCatView(unittest.TestCase):
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.query_recommend_me')
-    def test_subcatview_recommended_for_you_display_recommendations(self, mock_query):
+    def test_subcatview_recommended_for_you_display_recommendations_opted_in(self, mock_query):
     
         # patch the recommender uuid getter to return a value so that the
         # recommendations widget will show
@@ -204,18 +204,20 @@ class TestCatView(unittest.TestCase):
         rec_cat_panel.recommended_for_you_cat._recommend_me_result(
                                 None,
                                 make_recommender_agent_recommend_me_dict())
-        self.assertNotEqual(
-                rec_cat_panel.recommended_for_you_cat.get_documents(self.db), [])
-#        from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
-#        self.assertTrue(rec_cat_panel.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
-#        self._p()
-#        # test clicking recommended_for_you More button
-#        lobby.connect("category-selected", self._on_category_selected)
-#        lobby.recommended_for_you_panel.more.clicked()
-#        self._p()
-#        self.assertNotEqual(self._cat, None)
-#        self.assertEqual(self._cat.name, "Recommended for You")
-#        win.destroy()
+        result_docs = rec_cat_panel.recommended_for_you_cat.get_documents(self.db)
+        self.assertNotEqual(result_docs, [])
+        print "len(result_docs): ", len(result_docs)
+        self.assertTrue(len(result_docs) == 3)
+        from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
+        self.assertTrue(rec_cat_panel.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
+        self._p()
+        # test clicking recommended_for_you More button
+        subcat_view.connect("category-selected", self._on_category_selected)
+        rec_cat_panel.more.clicked()
+        self._p()
+        self.assertNotEqual(self._cat, None)
+        self.assertEqual(self._cat.name, "Recommended for You in Internet")
+        win.destroy()
 
     def _p(self):
         for i in range(5):

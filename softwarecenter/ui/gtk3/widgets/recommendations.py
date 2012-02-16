@@ -228,6 +228,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
             self._update_recommended_for_you_in_cat_content()
             self.add(self.recommended_for_you_in_cat_content)
         else:
+            # FIXME: better to just call hide_recommended_for_you_in_cat_panel
             self.opted_in = False
 
     def _update_recommended_for_you_in_cat_content(self):

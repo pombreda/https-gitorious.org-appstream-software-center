@@ -695,7 +695,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 def get_test_window_catview():
 
     def on_category_selected(view, cat):
-        print("on_category_selected %s %s" % view, cat)
+        print "on_category_selected view: ", view
+        print "on_category_selected cat: ", cat
 
     from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
