@@ -559,8 +559,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
              event.state == Gdk.ModifierType.CONTROL_MASK) or
             ((event.keyval == Gdk.keyval_from_name("Left") or
               event.keyval == Gdk.keyval_from_name("KP_Left")) and
-             event.state == Gdk.ModifierType.MOD1_MASK) or
-            event.keyval == Gdk.keyval_from_name("BackSpace")):
+             event.state == Gdk.ModifierType.MOD1_MASK)):
+            # using the backspace key to navigate back has been disabled as it
+            # has started to show dodgy side effects which I can't figure how
+            # to deal with
             self.menuitem_view.activate()
             if self.menuitem_go_back.get_sensitive():
                 self.menuitem_go_back.activate()

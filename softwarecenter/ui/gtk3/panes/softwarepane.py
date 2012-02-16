@@ -64,7 +64,8 @@ class DisplayState(object):
               'application': (type(None), Application),
               'limit': (int,),
               'filter': (type(None), AppFilter),
-              'previous_purchases_query': (type(None), xapian.Query)
+              'previous_purchases_query': (type(None), xapian.Query),
+              'vadjustment': (float, ),
             }
 
     def __init__(self):
@@ -76,6 +77,7 @@ class DisplayState(object):
         self.limit = 0
         self.filter = None
         self.previous_purchases_query = None
+        self.vadjustment = 0.0
         return
 
     def __setattr__(self, name, val):
@@ -110,6 +112,7 @@ class DisplayState(object):
             state.filter = self.filter.copy()
         else:
             state.filter = None
+        state.vadjustment = self.vadjustment
         return state
 
     def reset(self):
@@ -120,6 +123,7 @@ class DisplayState(object):
         self.application = None
         self.limit = 0
         #~ self.filter = None
+        self.vadjustment = 0.0
         return
 
 class SoftwarePane(Gtk.VBox, BasePane):
