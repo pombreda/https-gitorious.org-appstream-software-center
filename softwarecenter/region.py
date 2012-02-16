@@ -33,8 +33,8 @@ LOG=logging.getLogger(__name__)
 # warning displayed if region does not match
 REGION_WARNING_STRING = _("Sorry, this software is not available in your "
                           "region.")
-# the prefix tag to to use enforce a region
-REGIONTAG = "enforceregion::"
+# the prefix tag for regions that the software is most useful in
+REGIONTAG = "iso3166::"
 
 
 def get_region_name(countrycode):
