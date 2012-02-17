@@ -84,6 +84,12 @@ class AptCacheVersion(_Version):
     @property
     def downloadable(self):
         return self.ver.downloadable
+    @property
+    def not_automatic(self):
+        priority = self.ver.policy_priority
+        if priority <= 100 and self.ver.downloadable:
+            return True
+        return False
 
 class AptCache(PackageInfo):
     """ 
@@ -132,6 +138,11 @@ class AptCache(PackageInfo):
         lowlevel_cache = self._cache._cache
         return (pkgname in lowlevel_cache and
                 lowlevel_cache[pkgname].current_ver is not None)
+    def is_upgradable(self, pkgname):
+        # use the lowlevel cache here, twice as fast
+        if not pkgname in self._cache:
+            return False
+        return self._cache[pkgname].is_upgradable
     def is_available(self, pkgname):
         return (pkgname in self._cache and
                 self._cache[pkgname].candidate)
@@ -352,7 +363,7 @@ class AptCache(PackageInfo):
     def _get_depends_by_type(self, pkg, types):
         version = pkg.installed
         if version == None:
-            version = max(pkg.versions)
+            version = pkg.candidate
         return version.get_dependencies(*types)
     def _get_depends_by_type_str(self, pkg, *types):
         def not_in_list(list, item):
@@ -497,9 +508,20 @@ class AptCache(PackageInfo):
             if change != pkg.name and changes[change] == PkgStates.REMOVING:
                 removing_deps.append(change)
         return removing_deps
-
-    def get_total_size_on_install(self, pkgname, addons_install=None,
-                                addons_remove=None):
+    def _set_candidate_release(self, pkg, archive_suite):
+        # Check if the package is provided in the release
+        for version in pkg.versions:
+            if [origin for origin in version.origins
+                if origin.archive == archive_suite]:
+                break
+        else:
+            return False
+        res = pkg._pcache._depcache.set_candidate_release(
+            pkg._pkg, version._cand, archive_suite)
+        return res
+    def get_total_size_on_install(self, pkgname, 
+                                  addons_install=None, addons_remove=None,
+                                  archive_suite=None):
         pkgs_to_install = []
         pkgs_to_remove = []
         total_download_size = 0 # in kB 
@@ -516,15 +538,24 @@ class AptCache(PackageInfo):
             all_install += addons_install
         
         if version == None:
+            # its important that its the first pkg as the depcache will
+            # get cleared for each pkg and that will means that the
+            # set_candidate_release is lost again
             all_install.append(pkgname)
 
         for p in all_install:
-            version = max(self._cache[p].versions)
+            # ensure that the archive_suite is set if needed, this needs to
+            # be in the loop as the cache is cleared in each loop iteration
+            if archive_suite:
+                self._set_candidate_release(pkg, archive_suite)
+            # now get the right version
+            version = self._cache[p].candidate
             pkgs_to_install.append(version)
+            # now do it
             deps_inst = self._try_install_and_get_all_deps_installed(self._cache[p])
             for dep in deps_inst:
                 if self._cache[dep].installed == None:
-                    dep_version = max(self._cache[dep].versions)
+                    dep_version = self._cache[dep].candidate
                     pkgs_to_install.append(dep_version)
             deps_remove = self._try_install_and_get_all_deps_removed(self._cache[p])
             for dep in deps_remove:
@@ -539,7 +570,7 @@ class AptCache(PackageInfo):
             deps_inst = self._try_install_and_get_all_deps_installed(self._cache[p])
             for dep in deps_inst:
                 if self._cache[dep].installed == None:
-                    version = max(self._cache[dep].versions)
+                    version = self._cache[dep].candidate
                     pkgs_to_install.append(version)
             deps_remove = self._try_install_and_get_all_deps_removed(self._cache[p])
             for dep in deps_remove:

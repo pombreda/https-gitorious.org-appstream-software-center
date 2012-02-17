@@ -59,8 +59,13 @@ class AvailablePane(SoftwarePane):
     """
 
     class Pages():
-        # page names, useful for debuggin
-        NAMES = ('lobby', 'subcategory', 'list', 'details', 'purchase')
+        # page names, useful for debugging
+        NAMES = ('lobby', 
+                 'subcategory',
+                 'list',
+                 'details', 
+                 'purchase',
+                )
         # actual page id's
         (LOBBY,
          SUBCATEGORY,
@@ -500,6 +505,7 @@ class AvailablePane(SoftwarePane):
             self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
 
         vm = get_viewmanager()
+        self.app_view.tree_view_scroll.get_vadjustment().set_value(0.0)
 
         # yeah for special cases - as discussed on irc, mpt
         # wants this to return to the category screen *if*
@@ -572,6 +578,8 @@ class AvailablePane(SoftwarePane):
         header_strings = self._get_header_for_view_state(view_state)
         self.app_view.set_header_labels(*header_strings)
 
+        self.app_view.vadj = view_state.vadjustment
+
         self.refresh_apps()
         self.cat_view.stop_carousels()
         return True
@@ -604,6 +612,8 @@ class AvailablePane(SoftwarePane):
 
         if view_state.search_term:
             self._clear_search()
+
+        self.app_view.vadj = view_state.vadjustment
 
         self.refresh_apps()
         self.cat_view.stop_carousels()

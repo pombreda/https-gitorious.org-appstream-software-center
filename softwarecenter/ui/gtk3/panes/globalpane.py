@@ -37,6 +37,7 @@ class GlobalPane(Gtk.Toolbar):
                                 right=StockEms.MEDIUM, left=StockEms.MEDIUM+2)
         self._insert_as_tool_item(self.back_forward, 0)
 
+        # this is what actually draws the All Software, Installed etc buttons
         self.view_switcher = ViewSwitcher(view_manager, datadir, db, cache, icons)
         self._insert_as_tool_item(self.view_switcher, 1)
 
@@ -83,6 +84,7 @@ def get_test_window():
     p = GlobalPane(vm, datadir, db, cache, icons)
 
     win = Gtk.Window()
+    win.set_size_request(400,200)
     win.set_data("pane", p)
     win.connect("destroy", Gtk.main_quit)
     win.add(p)
