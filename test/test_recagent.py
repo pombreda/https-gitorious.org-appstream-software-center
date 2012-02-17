@@ -4,12 +4,17 @@ from gi.repository import GObject
 import unittest
 import os
 
+from mock import patch
+
 from testutils import setup_test_env
 setup_test_env()
 
 from softwarecenter.backend.recagent import RecommenderAgent
 
-from softwarecenter.testutils import make_recommender_profile_upload_data
+from softwarecenter.testutils import (
+    make_recommender_profile_upload_data, 
+    get_test_db,
+)
 
 class TestRecommenderAgent(unittest.TestCase):
     """ tests the recommender agent """
@@ -45,15 +50,18 @@ class TestRecommenderAgent(unittest.TestCase):
         self.loop.run()
         self.assertFalse(self.error)
         
-    # FIXME: disabled for now as the server is not quite working
-    def disabled_test_recagent_query_submit_profile(self):
+    @patch('httplib2.Http.request')
+    def test_recagent_post_submit_profile(self, mock_request):
+        mock_request.return_value = { 'status' : '200' }, '[]'
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent()
-        recommender_agent.connect("submit-profile", self.on_query_done)
+        db = get_test_db()
+        recommender_agent = RecommenderAgent(db)
+        recommender_agent.connect("submit-profile-finished", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
-        recommender_agent.query_submit_profile(data=make_recommender_profile_upload_data())
+        recommender_agent.post_submit_profile()
         self.loop.run()
         self.assertFalse(self.error)
+        #print mock_request._post
         
 #    def disabled_test_recagent_query_submit_anon_profile(self):
 #        # NOTE: This requires a working recommender host that is reachable
