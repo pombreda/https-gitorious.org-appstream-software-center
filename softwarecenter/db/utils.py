@@ -39,7 +39,7 @@ def get_installed_apps_list(db):
             if (pkgname in db._aptcache and
                 db._aptcache[pkgname].is_installed):
                 apps.add(db.get_application(doc))
-    return list(apps)
+    return apps
 
 def get_installed_package_list():
     """ return a set of all of the currently installed packages """
