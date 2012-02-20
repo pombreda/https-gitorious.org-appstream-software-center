@@ -237,7 +237,7 @@ class ViewSwitcher(Gtk.Box):
             label = Gtk.Label.new(channel.display_name)
             image = Gtk.Image.new_from_icon_name(channel.icon, Gtk.IconSize.MENU)
 
-            box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.MEDIUM)
+            box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.SMALL)
             box.pack_start(image, False, False, 0)
             box.pack_start(label, False, False, 0)
 
