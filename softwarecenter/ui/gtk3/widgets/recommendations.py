@@ -101,11 +101,10 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self.add(self.recommended_for_you_content)
 
     def _show_opt_in_view(self):
-        self.opt_in_vbox = Gtk.VBox(spacing=12)
+        self.opt_in_vbox = Gtk.VBox(spacing=8)
         self.opt_in_button = Gtk.Button()
         opt_in_button_label = Gtk.Label()
         opt_in_button_label.set_markup('<big>%s</big>' % _("Turn On Recommendations"))
-        opt_in_button_label.set_padding(StockEms.SMALL, StockEms.SMALL)
         self.opt_in_button.add(opt_in_button_label)
         self.opt_in_button.connect("clicked", self._on_opt_in_button_clicked)
         opt_in_button_hbox = Gtk.HBox()
@@ -119,7 +118,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self.opt_in_vbox.pack_start(opt_in_button_hbox, False, False, 0)
         self.opt_in_vbox.pack_start(opt_in_label, False, False, 10)
         self.recommended_for_you_content = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
-        self.recommended_for_you_content.set_padding(50, 50, 50, 50)
+        self.recommended_for_you_content.set_padding(20, 20, 40, 40)
         self.recommended_for_you_content.add(self.opt_in_vbox)
         
     def _on_opt_in_button_clicked(self, button):
