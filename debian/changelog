@@ -1,4 +1,27 @@
-software-center (5.1.8.1) UNRELEASED; urgency=low
+software-center (5.1.10) precise; urgency=low
+
+  [ Michael Vogt ]
+  * revert again:
+    lp:~gary-lasker/software-center/temp-disable-lobby-recommendations-view
+  * lp:~mvo/software-center/lp917096:
+    - fix crash when opening a debfile and add regression test
+      (LP: #917096)
+  * softwarecenter/region.py:
+    - trivial change to make region tag prefix "iso3166::" to align
+      with the latest debtags upstream plans
+
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - draw the backgrounds of the channel selector menus (LP: #921477)
+  * softwarecenter/ui/gtk3/app.py:
+    - disable navigating back by pressing the backspace key because it has
+      started showing dodgy side effects - use ctrl+[ or alt+LEFT instead
+  * remember the scroll position when navigating back to a list view,
+    this only works in the available pane (LP: #852763)
+
+ -- Kiwinote <kiwinote@gmail.com>  Thu, 16 Feb 2012 14:08:17 +0000
+
+software-center (5.1.9) precise; urgency=low
 
   [ Gabor Kelemen ]  
   * lp:~kelemeng/software-center/bug926743:
@@ -30,8 +53,17 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * lp:~mvo/software-center/video-ui-reshuffle:
     - shuffle the video location around a bit in the view to
       ensure the user finds it more easily
+  * increase dependency on python-apt for the required
+    apt_pkg.DepCache.policy_priority() support
   * lp:~mvo/software-center/sca-debtags:
     - fix the debtags parsing from the software-center-agent
+  * lp:~mvo/software-center/multiple-versions:
+    - add support for multiple versions into software-center
+  * lp:~mvo/software-center/fix-recommenations-details-clicks:
+    - fix clickthru of details view recommendations after refactor
+  * lp:~mvo/software-center/rfc3166-use-common-name:
+    - ensure that "common_name" in rfc3166 is used when available
+      to avoid political issues around the name of the region
 
   [ Kiwinote ]
   * data/ui/gtk3/css/*.css:
@@ -48,13 +80,19 @@ software-center (5.1.8.1) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/import-latest-sreclient:
     - import latest recommender client 
   * lp:~gary-lasker/software-center/recommendation:
-    - add recommendations UI and opt-in/opt-out support
+    - implement the recommendations opt-in UI and flow, upload
+      of the user profile data after opt-in, and display of
+      per-application recommendations in the details view
+  * lp:~gary-lasker/software-center/temp-disable-lobby-recommendations-view:
+    - temporarily hide the lobby recommendations opt-in and display
+      view pending rollout of the corresponding support on the
+      production server
   
   [ Juhana Jauhiainen ]
   * softwarecenter/backend/launchpad.py:
     - replaced EDGE_SERVICE_ROOT with LPNET_SERVICE_ROOT. (LP: #737697)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Feb 2012 01:20:43 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 15 Feb 2012 19:19:32 +0100
 
 software-center (5.1.8) precise; urgency=low
 

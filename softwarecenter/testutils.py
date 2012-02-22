@@ -129,7 +129,7 @@ def get_mock_app_from_real_app(real_app):
     app = copy.copy(real_app)
     db = get_test_db()
     details = app.get_details(db)
-    details_mock = Mock()
+    details_mock = Mock(details)
     for a in dir(details):
         if a.startswith("_"): continue
         setattr(details_mock, a, getattr(details, a))

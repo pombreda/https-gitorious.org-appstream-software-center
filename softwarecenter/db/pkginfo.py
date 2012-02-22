@@ -40,6 +40,12 @@ class _Version:
     @property
     def origins(self):
         return []
+    @property
+    def not_automatic(self):
+        """ should not be installed/upgraded automatically, the user needs
+            to opt-in once (used for e.g. ubuntu-backports)
+        """
+        return False
 
 class _Package:
     def __init__(self, name, pkginfo):
@@ -65,6 +71,9 @@ class _Package:
     @property
     def is_installed(self):
         return self.pkginfo.is_installed(self.name)
+    @property
+    def is_upgradable(self):
+        return self.pkginfo.is_upgradable(self.name)
     @property
     def section(self):
         return self.pkginfo.get_section(self.name)
@@ -158,11 +167,13 @@ class PackageInfo(GObject.GObject):
         which will be removed if the package is installed."""
         return []
 
-    def get_total_size_on_install(self, pkgname, addons_install=None,
-                                addons_remove=None):
+    def get_total_size_on_install(self, pkgname, 
+                                  addons_install=None, addons_remove=None,
+                                  archive_suite=None):
         """ Returns a tuple (download_size, installed_size)
         with disk size in KB calculated for pkgname installation
-        plus addons change.
+        plus addons change and a (optional) archive_suite that the 
+        package comes from
         """
         return (0, 0)
 

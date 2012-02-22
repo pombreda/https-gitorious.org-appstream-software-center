@@ -1204,8 +1204,8 @@ class AppDescription(Gtk.VBox):
             encoded_desc = unicode(raw_desc, 'utf8').encode('utf8')
         else:
             encoded_desc = raw_desc.encode('utf8')
-        desc = GObject.markup_escape_text(encoded_desc)
-        self._parse_desc(desc, pkgname)
+        self._text = GObject.markup_escape_text(encoded_desc)
+        self._parse_desc(self._text, pkgname)
         self.show_all()
         return
 

@@ -7,13 +7,15 @@ import logging
 import time
 import unittest
 
+from mock import patch
+
 from testutils import setup_test_env
 setup_test_env()
 
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.utils import ExecutionTime
 
-class testAptCache(unittest.TestCase):
+class TestAptCache(unittest.TestCase):
 
     def test_open_aptcache(self):
         # mvo: for the performance, its critical to have a 
@@ -33,6 +35,23 @@ class testAptCache(unittest.TestCase):
         with ExecutionTime("plain apt: apt.Cache(memonly=True)"):
             self.cache = apt.Cache(memonly=True)
 
+    def test_get_total_size(self):
+        # get a cache 
+        cache = get_pkg_info()
+        cache.open()
+        # pick first uninstalled pkg
+        for pkg in cache:
+            if not pkg.is_installed:
+                break
+        # prepare args
+        addons_to_install = addons_to_remove = []
+        archive_suite = "foo"
+        with patch.object(cache, "_set_candidate_release") as f_mock:
+            cache.get_total_size_on_install(
+                pkg.name, addons_to_install, addons_to_remove, archive_suite)
+            # ensure it got called with the right arguments
+            f_mock.assert_called_with(pkg, archive_suite)
+        
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

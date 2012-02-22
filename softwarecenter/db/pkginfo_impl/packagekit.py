@@ -124,6 +124,10 @@ class PackagekitInfo(PackageInfo):
             return False
         return p.get_info() == packagekit.InfoEnum.INSTALLED
 
+    def is_upgradable(self, pkgname):
+        # FIXME: how is this done via PK ?
+        return False
+
     def is_available(self, pkgname):
         # FIXME: i don't think this is being used
         return True
@@ -243,12 +247,15 @@ class PackagekitInfo(PackageInfo):
             return []
         return [p.get_name() for p in res.get_package_array() if (p.get_name() != pkg.name) and p.get_info() == packagekit.InfoEnum.INSTALLED]
 
-    def get_total_size_on_install(self, pkgname, addons_install=None,
-                                addons_remove=None):
+    def get_total_size_on_install(self, pkgname, 
+                                  addons_install=None, addons_remove=None,
+                                  archive_suite=None):
         """ Returns a tuple (download_size, installed_size)
         with disk size in KB calculated for pkgname installation
         plus addons change.
         """
+        # FIXME: support archive_suite here too
+        
         # FIXME: PackageKit reports only one size at a time
         if self.is_installed(pkgname):
             return (0, self.get_size(pkgname))

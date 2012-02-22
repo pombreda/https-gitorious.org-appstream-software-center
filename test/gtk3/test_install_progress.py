@@ -28,7 +28,7 @@ class TestViews(unittest.TestCase):
         view.show_app(Application("", "2vcard"))
         self._p()
         app = view.app
-        view.backend.install(app.pkgname, app.appname, "")
+        view.backend.install(app, "")
         self._p()
         self.assertTrue(view.pkg_statusbar.progress.get_property("visible"))
 

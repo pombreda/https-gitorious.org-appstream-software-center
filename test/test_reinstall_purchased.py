@@ -162,8 +162,7 @@ class SCAApplicationParserTestCase(unittest.TestCase):
             (val, key) for key, val in SCAApplicationParser.MAPPING.items())
 
         # Delete the keys which are not yet provided via the API:
-        del(inverse_map['video_url'])
-        del(inverse_map['tags'])
+        del(inverse_map['video_embedded_html_url'])
 
         for key in inverse_map:
             self.assertTrue(parser.has_option_desktop(inverse_map[key]),
