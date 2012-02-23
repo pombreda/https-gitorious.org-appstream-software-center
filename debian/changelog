@@ -1,4 +1,4 @@
-software-center (5.1.10) precise; urgency=low
+software-center (5.1.10) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * revert again:
@@ -18,8 +18,13 @@ software-center (5.1.10) precise; urgency=low
       started showing dodgy side effects - use ctrl+[ or alt+LEFT instead
   * remember the scroll position when navigating back to a list view,
     this only works in the available pane (LP: #852763)
+  * trigger pot file rebuild
 
- -- Kiwinote <kiwinote@gmail.com>  Thu, 16 Feb 2012 14:08:17 +0000
+  [ Barneedhar (jokerdino) ]
+  * softwarecenter/hw.py:
+    - fix broken string (LP: #936403)
+
+ -- Kiwinote <kiwinote@gmail.com>  Wed, 22 Feb 2012 15:28:11 +0000
 
 software-center (5.1.9) precise; urgency=low
 
