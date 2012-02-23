@@ -1,4 +1,4 @@
-software-center (5.1.10) UNRELEASED; urgency=low
+software-center (5.1.10) precise; urgency=low
 
   [ Michael Vogt ]
   * revert again:
@@ -27,7 +27,7 @@ software-center (5.1.10) UNRELEASED; urgency=low
   * utils/piston-helpers/x2go_helper.py: Fix weblive helper to work with
     Precise's python-x2go.
 
- -- Stéphane Graber <stgraber@ubuntu.com>  Wed, 22 Feb 2012 15:42:10 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 23 Feb 2012 16:58:30 +0100
 
 software-center (5.1.9) precise; urgency=low
 
