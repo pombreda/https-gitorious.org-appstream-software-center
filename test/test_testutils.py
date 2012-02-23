@@ -10,6 +10,7 @@ from gi.repository import GObject
 from testutils import setup_test_env
 setup_test_env()
 
+from softwarecenter.db.application import Application
 from softwarecenter.testutils import start_dummy_backend, stop_dummy_backend
 from softwarecenter.backend.installbackend_impl.aptd import get_dbus_bus
 
@@ -40,7 +41,7 @@ class TestTestUtils(unittest.TestCase):
     def test_fake_aptd(self):
         from softwarecenter.backend import get_install_backend
         backend = get_install_backend()
-        backend.install("2vcard", "", "")
+        backend.install(Application("2vcard", ""), iconname="")
         self._p()
         
     def _p(self):

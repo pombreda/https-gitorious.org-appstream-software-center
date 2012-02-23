@@ -66,9 +66,7 @@ class TestDebFileApplication(unittest.TestCase):
         self.assertEquals(debfiledetails.pkg_state, PkgStates.NOT_FOUND)
         
     def test_get_pkg_state_not_a_deb(self):
-        debfileapplication = DebFileApplication(DEBFILE_PATH_NOTADEB)
-        debfiledetails = debfileapplication.get_details(self.db)
-        self.assertEquals(debfiledetails.pkg_state, PkgStates.NOT_FOUND)
+        self.assertRaises(ValueError, DebFileApplication, DEBFILE_PATH_NOTADEB)
 
     def test_get_pkg_state_corrupt(self):
         debfileapplication = DebFileApplication(DEBFILE_PATH_CORRUPT)
