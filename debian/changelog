@@ -24,7 +24,11 @@ software-center (5.1.10) UNRELEASED; urgency=low
   * softwarecenter/hw.py:
     - fix broken string (LP: #936403)
 
- -- Kiwinote <kiwinote@gmail.com>  Wed, 22 Feb 2012 15:28:11 +0000
+  [ Stéphane Graber ]
+  * utils/piston-helpers/x2go_helper.py: Fix weblive helper to work with
+    Precise's python-x2go.
+
+ -- Stéphane Graber <stgraber@ubuntu.com>  Wed, 22 Feb 2012 15:42:10 -0500
 
 software-center (5.1.9) precise; urgency=low
 
