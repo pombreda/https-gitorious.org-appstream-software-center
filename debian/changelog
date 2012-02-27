@@ -3,6 +3,10 @@ software-center (5.1.11) UNRELEASED; urgency=low
   * softwarecenter/db/update.py:
     - index 'Keywords' entries from desktop files in addition to the
       already supported 'X-AppInstall-Keywords' entries
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - increase delay between the 'load-finished' signal from webkit and us
+      actually trying to get a pixbuf of the surface - this means that the
+      initial banner is actually rendered properly rather than plain white
   * softwarecenter/ui/gtk3/widgets/recommendations.py:
     refactor _show_opt_in_view:
     - use normal sized text rather than big text
@@ -10,7 +14,7 @@ software-center (5.1.11) UNRELEASED; urgency=low
     - resolve unescaped markup issues
     - line wrap text so we don't get horizontal scrollbar (LP: #933497)
 
- -- Kiwinote <kiwinote@gmail.com>  Fri, 24 Feb 2012 17:31:49 +0000
+ -- Kiwinote <kiwinote@gmail.com>  Mon, 27 Feb 2012 16:49:48 +0000
 
 software-center (5.1.10) precise; urgency=low
 
