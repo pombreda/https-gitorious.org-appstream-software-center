@@ -1,3 +1,12 @@
+software-center (5.1.11) UNRELEASED; urgency=low
+
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - increase delay between the 'load-finished' signal from webkit and us
+      actually trying to get a pixbuf of the surface - this means that the
+      initial banner is actually rendered properly rather than plain white
+
+ -- Kiwinote <kiwinote@gmail.com>  Mon, 27 Feb 2012 16:49:48 +0000
+
 software-center (5.1.10) precise; urgency=low
 
   [ Michael Vogt ]
