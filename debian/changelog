@@ -1,3 +1,10 @@
+software-center (5.1.11) UNRELEASED; urgency=low
+
+  * softwarecenter/ui/gtk3/views/appdetailsview.py:
+    - only set vadj/hadj if we have the objects for it (LP: #941384)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 27 Feb 2012 17:05:15 +0100
+
 software-center (5.1.10) precise; urgency=low
 
   [ Michael Vogt ]
