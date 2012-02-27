@@ -25,6 +25,10 @@ import logging
 import softwarecenter.paths
 from spawn_helper import SpawnHelper
 
+from softwarecenter.config import get_config
+from softwarecenter.db.utils import get_installed_apps_list
+from softwarecenter.utils import get_uuid
+
 LOG = logging.getLogger(__name__)
 
 class RecommenderAgent(GObject.GObject):
@@ -38,11 +42,11 @@ class RecommenderAgent(GObject.GObject):
                      GObject.TYPE_NONE, 
                      (GObject.TYPE_PYOBJECT,),
                     ),
-        "submit-profile" : (GObject.SIGNAL_RUN_LAST,
+        "submit-profile-finished" : (GObject.SIGNAL_RUN_LAST,
                             GObject.TYPE_NONE, 
-                            (GObject.TYPE_PYOBJECT,),
+                            (GObject.TYPE_PYOBJECT, str),
                            ),
-        "submit-anon-profile" : (GObject.SIGNAL_RUN_LAST,
+        "submit-anon-profile-finished" : (GObject.SIGNAL_RUN_LAST,
                                  GObject.TYPE_NONE, 
                                  (GObject.TYPE_PYOBJECT,),
                                 ),
@@ -68,9 +72,30 @@ class RecommenderAgent(GObject.GObject):
                   ),
         }
     
-    def __init__(self, xid=None):
+    def __init__(self, db, xid=None):
         GObject.GObject.__init__(self)
         self.xid = xid
+        self.db = db
+        self.recommender_uuid = ""
+
+    def _get_recommender_uuid(self):
+        # FIXME: probs should just pass this on in instead of reading config
+        config = get_config()
+        if config.has_option("general", "recommender_uuid"):
+            self.recommender_uuid = config.get("general",
+                                               "recommender_uuid")
+        else:
+            self.recommender_uuid = get_uuid()
+        return self.recommender_uuid
+
+    def _generate_submit_profile_data(self, recommender_uuid, package_list):
+        submit_profile_data = [
+            {
+                'uuid': recommender_uuid, 
+                'package_list': package_list
+            }
+        ]
+        return submit_profile_data
         
     def query_server_status(self):
         # build the command
@@ -82,7 +107,17 @@ class RecommenderAgent(GObject.GObject):
         spawner.run_generic_piston_helper(
             "SoftwareCenterRecommenderAPI", "server_status")
             
-    def query_submit_profile(self, data):
+    def post_submit_profile(self):
+        """ This will post the users profile to the recommender server
+            and also generate the UUID for the user if that is not 
+            there yet
+        """
+        # garther the data
+        recommender_uuid = self._get_recommender_uuid()
+        installed_pkglist = [app.pkgname 
+                             for app in get_installed_apps_list(self.db)]
+        data = self._generate_submit_profile_data(
+            recommender_uuid, installed_pkglist)
         # build the command
         spawner = SpawnHelper()
         spawner.parent_xid = self.xid
@@ -94,7 +129,7 @@ class RecommenderAgent(GObject.GObject):
             "submit_profile",
             data=data)
             
-    def query_submit_anon_profile(self, uuid, installed_packages, extra):
+    def post_submit_anon_profile(self, uuid, installed_packages, extra):
         # build the command
         spawner = SpawnHelper()
         spawner.parent_xid = self.xid
@@ -166,7 +201,11 @@ class RecommenderAgent(GObject.GObject):
         self.emit("profile", piston_profile)
         
     def _on_submit_profile_data(self, spawner, piston_submit_profile):
-        self.emit("submit-profile", piston_submit_profile)
+        self.emit("submit-profile-finished", 
+                  piston_submit_profile, 
+                  # FIXME: do we need this or is this part of the 
+                  #        piston_submit_profile response?
+                  self.recommender_uuid)
         
     def _on_submit_anon_profile_data(self, spawner, piston_submit_anon_profile):
         self.emit("submit-anon_profile", piston_submit_anon_profile)

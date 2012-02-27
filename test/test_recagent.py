@@ -3,13 +3,19 @@
 from gi.repository import GObject
 import unittest
 import os
+import uuid
+
+from mock import patch
 
 from testutils import setup_test_env
 setup_test_env()
 
 from softwarecenter.backend.recagent import RecommenderAgent
 
-from softwarecenter.testutils import make_recommender_profile_upload_data
+from softwarecenter.testutils import (
+    make_recommender_profile_upload_data, 
+    get_test_db,
+)
 
 class TestRecommenderAgent(unittest.TestCase):
     """ tests the recommender agent """
@@ -27,7 +33,26 @@ class TestRecommenderAgent(unittest.TestCase):
         else:
             os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = self.orig_host
 
-    def on_query_done(self, recagent, data):
+    @patch('softwarecenter.backend.recagent.SpawnHelper'
+           '.run_generic_piston_helper')
+    def test_mocked_recagent_post_submit_profile(self, mock_spawn_helper_run):
+        def _patched_on_submit_profile_data(*args, **kwargs):
+            piston_submit_profile = {}
+            recommender_agent.emit("submit-profile-finished", 
+                                   piston_submit_profile, 
+                                   uuid.uuid1())
+        mock_spawn_helper_run.side_effect = _patched_on_submit_profile_data
+        db = get_test_db()
+        recommender_agent = RecommenderAgent(db)
+        recommender_agent.connect("submit-profile-finished", self.on_query_done)
+        recommender_agent.connect("error", self.on_query_error)
+        recommender_agent.post_submit_profile()
+        self.assertFalse(self.error)
+        args, kwargs =  mock_spawn_helper_run.call_args
+        self.assertNotEqual(kwargs['data'][0]['uuid'], None)
+        self.assertNotEqual(kwargs['data'][0]['package_list'], [])
+
+    def on_query_done(self, recagent, data, uuid=""):
         print "query done, data: '%s'" % data
         self.loop.quit()
         
@@ -45,15 +70,16 @@ class TestRecommenderAgent(unittest.TestCase):
         self.loop.run()
         self.assertFalse(self.error)
         
-    # FIXME: disabled for now as the server is not quite working
-    def disabled_test_recagent_query_submit_profile(self):
+    def disabled_test_recagent_post_submit_profile(self, mock_request):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent()
-        recommender_agent.connect("submit-profile", self.on_query_done)
+        db = get_test_db()
+        recommender_agent = RecommenderAgent(db)
+        recommender_agent.connect("submit-profile-finished", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
-        recommender_agent.query_submit_profile(data=make_recommender_profile_upload_data())
+        recommender_agent.post_submit_profile()
         self.loop.run()
         self.assertFalse(self.error)
+        #print mock_request._post
         
 #    def disabled_test_recagent_query_submit_anon_profile(self):
 #        # NOTE: This requires a working recommender host that is reachable
