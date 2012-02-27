@@ -542,6 +542,20 @@ class AppDetailsSCAApplicationParser(unittest.TestCase):
         # ensure that archive.canonical.com archive roots are detected
         # as the partner channel
         self.assertEqual(app_details.date_published, "2012-01-21 02:15:10")
+
+    @patch("softwarecenter.db.update.get_region_cached")
+    def test_region_blacklist(self, get_region_cached_mock):
+        from softwarecenter.region import REGION_BLACKLIST_TAG
+        get_region_cached_mock.return_value = { "countrycode" : "es",
+                                              }
+        app_dict = make_software_center_agent_app_dict()
+        app_dict["debtags"] = ["%s%s" % (REGION_BLACKLIST_TAG, "es"),
+                              ]
+        # see _get_app_details_from_app_dict
+        item = PistonResponseObject.from_dict(app_dict)
+        parser = SCAApplicationParser(item)
+        doc = make_doc_from_parser(parser, self.db._aptcache)
+        self.assertEqual(doc, None)
         
 
 class AppDetailsPkgStateTestCase(unittest.TestCase):
