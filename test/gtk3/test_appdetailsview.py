@@ -68,6 +68,7 @@ class TestAppdetailsView(unittest.TestCase):
         mock_details._error_not_found = "error not found"
         mock_details.price = "1.00"
         mock_details.pkgname = "abiword"
+        mock_details.error = ""
         self.view.app_details = mock_details
 
         # the states and what labels we expect in the pkgstatusbar

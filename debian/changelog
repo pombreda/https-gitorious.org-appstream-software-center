@@ -1,4 +1,27 @@
-software-center (5.1.10) UNRELEASED; urgency=low
+software-center (5.1.11) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/views/appdetailsview.py:
+    - only set vadj/hadj if we have the objects for it (LP: #941384)
+      already supported 'X-AppInstall-Keywords' entries
+  
+  [ Kiwinote ]
+  * softwarecenter/db/update.py:
+    - index 'Keywords' entries from desktop files in addition to the
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - increase delay between the 'load-finished' signal from webkit and us
+      actually trying to get a pixbuf of the surface - this means that the
+      initial banner is actually rendered properly rather than plain white
+  * softwarecenter/ui/gtk3/widgets/recommendations.py:
+    refactor _show_opt_in_view:
+    - use normal sized text rather than big text
+    - use saner padding values
+    - resolve unescaped markup issues
+    - line wrap text so we don't get horizontal scrollbar (LP: #933497)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 27 Feb 2012 17:05:15 +0100
+
+software-center (5.1.10) precise; urgency=low
 
   [ Michael Vogt ]
   * revert again:
@@ -11,20 +34,23 @@ software-center (5.1.10) UNRELEASED; urgency=low
       with the latest debtags upstream plans
 
   [ Kiwinote ]
-  * softwarecenter/ui/gtk3/widgets/buttons.py:
-    - draw the backgrounds of the channel selector menus (LP: #921477)
   * softwarecenter/ui/gtk3/app.py:
     - disable navigating back by pressing the backspace key because it has
       started showing dodgy side effects - use ctrl+[ or alt+LEFT instead
   * remember the scroll position when navigating back to a list view,
     this only works in the available pane (LP: #852763)
+  * correctly theme the channel selector menus (LP: #921477)
   * trigger pot file rebuild
 
   [ Barneedhar (jokerdino) ]
   * softwarecenter/hw.py:
     - fix broken string (LP: #936403)
 
- -- Kiwinote <kiwinote@gmail.com>  Wed, 22 Feb 2012 15:28:11 +0000
+  [ Stéphane Graber ]
+  * utils/piston-helpers/x2go_helper.py: Fix weblive helper to work with
+    Precise's python-x2go.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 23 Feb 2012 16:58:30 +0100
 
 software-center (5.1.9) precise; urgency=low
 
