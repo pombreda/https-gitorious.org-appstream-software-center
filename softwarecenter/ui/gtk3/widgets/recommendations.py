@@ -79,9 +79,12 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         RecommendationsPanel.__init__(self, catview)
         self.set_header_label(_(u"Recommended for You"))
         
+        self.recommender_uuid = ""
         config = get_config()
         if config.has_option("general", "recommender_uuid"):
             self.recommender_uuid = config.get("general", "recommender_uuid")
+            
+        if self.recommender_uuid:
             self._update_recommended_for_you_content()
         else:
             self._show_opt_in_view()
