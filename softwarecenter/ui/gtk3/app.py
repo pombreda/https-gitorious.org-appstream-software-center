@@ -466,7 +466,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     #~ def on_installed_pane_created(self, widget):
         #~ pass
         
-    def _on_recommendations_opt_in(self, recommender_uuid):
+    def _on_recommendations_opt_in(self, agent, recommender_uuid):
         self.recommender_uuid = recommender_uuid
     
     def _on_recommendations_opt_out(self):
