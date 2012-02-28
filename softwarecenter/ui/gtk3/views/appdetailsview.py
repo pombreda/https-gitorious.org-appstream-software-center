@@ -1515,8 +1515,12 @@ class AppDetailsView(Viewport):
 
     def _update_all(self, app_details, skip_update_addons=False):
         # reset view to top left
-        self.get_vadjustment().set_value(0)
-        self.get_hadjustment().set_value(0)
+        vadj = self.get_vadjustment()
+        hadj = self.get_hadjustment()
+        if vadj:
+            vadj.set_value(0)
+        if hadj:
+            hadj.set_value(0)
 
         # set button sensitive again
         self.pkg_statusbar.button.set_sensitive(True)
