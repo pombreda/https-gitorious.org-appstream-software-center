@@ -90,7 +90,6 @@ class RecommendationsPanelLobby(RecommendationsPanel):
             self._show_opt_in_view()
             
         self.add(self.recommended_for_you_content)
-        self.header_implements_more_button()
 
     def _show_opt_in_view(self):
         self.opt_in_vbox = Gtk.VBox(spacing=12)
@@ -142,6 +141,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
                   "submitted to the recommender agent")
         self.emit("recommendations-opt-in", recommender_uuid)
         self._update_recommended_for_you_content()
+        self.header_implements_more_button()
         
     def _on_profile_submitted_error(self, agent, msg):
         LOG.warn("Error while submitting the recommendations profile to the "
