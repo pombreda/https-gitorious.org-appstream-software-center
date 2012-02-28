@@ -28,7 +28,6 @@ from softwarecenter.ui.gtk3.widgets.containers import (FramedHeaderBox,
 from softwarecenter.db.categories import (RecommendedForYouCategory,
                                           AppRecommendationsCategory)
 from softwarecenter.backend.recagent import RecommenderAgent
-from softwarecenter.config import get_config
 
 
 LOG = logging.getLogger(__name__)
