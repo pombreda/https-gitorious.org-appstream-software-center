@@ -461,6 +461,7 @@ class AppTreeView(Gtk.TreeView):
 
         path = model.get_path(it)
 
+        # FIXME: what is this used for?
         if model[path][0] is None:
             indices = path.get_indices()
             model.load_range(indices, 5)
@@ -606,9 +607,10 @@ def get_test_window():
 
     # populate from data
     cats = get_test_categories(db)
-    for cat in cats:
-        docs = db.get_docs_from_query(cat.query)
-        store.set_category_documents(cat, docs)
+    for cat in cats[:3]:
+        with ExecutionTime("query cat '%s'" % cat.name):
+            docs = db.get_docs_from_query(cat.query)
+            store.set_category_documents(cat, docs)
     
     # ok, this is confusing - the AppView contains the AppTreeView that
     #                         is a tree or list depending on the model
