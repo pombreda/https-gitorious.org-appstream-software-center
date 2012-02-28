@@ -75,27 +75,8 @@ class RecommenderAgent(GObject.GObject):
     def __init__(self, xid=None):
         GObject.GObject.__init__(self)
         self.xid = xid
-        self.recommender_uuid = ""
+        self.recommender_uuid = self._get_recommender_uuid()
 
-    def _get_recommender_uuid(self):
-        # FIXME: probs should just pass this on in instead of reading config
-        config = get_config()
-        if config.has_option("general", "recommender_uuid"):
-            self.recommender_uuid = config.get("general",
-                                               "recommender_uuid")
-        else:
-            self.recommender_uuid = get_uuid()
-        return self.recommender_uuid
-
-    def _generate_submit_profile_data(self, recommender_uuid, package_list):
-        submit_profile_data = [
-            {
-                'uuid': recommender_uuid, 
-                'package_list': package_list
-            }
-        ]
-        return submit_profile_data
-        
     def query_server_status(self):
         # build the command
         spawner = SpawnHelper()
@@ -111,12 +92,14 @@ class RecommenderAgent(GObject.GObject):
             and also generate the UUID for the user if that is not 
             there yet
         """
-        # garther the data
-        recommender_uuid = self._get_recommender_uuid()
+        # if we have not already set a recommender UUID, now is the time
+        # to do it
+        if not self.recommender_uuid:
+            self.recommender_uuid = get_uuid()
         installed_pkglist = [app.pkgname 
                              for app in get_installed_apps_list(db)]
-        data = self._generate_submit_profile_data(
-            recommender_uuid, installed_pkglist)
+        data = self._generate_submit_profile_data(self.recommender_uuid,
+                                                  installed_pkglist)
         # build the command
         spawner = SpawnHelper()
         spawner.parent_xid = self.xid
@@ -202,8 +185,6 @@ class RecommenderAgent(GObject.GObject):
     def _on_submit_profile_data(self, spawner, piston_submit_profile):
         self.emit("submit-profile-finished", 
                   piston_submit_profile, 
-                  # FIXME: do we need this or is this part of the 
-                  #        piston_submit_profile response?
                   self.recommender_uuid)
         
     def _on_submit_anon_profile_data(self, spawner, piston_submit_anon_profile):
@@ -220,6 +201,27 @@ class RecommenderAgent(GObject.GObject):
         
     def _on_recommend_top_data(self, spawner, piston_top_apps):
         self.emit("recommend-top", piston_top_apps)
+        
+    def _get_recommender_uuid(self):
+        """ returns the recommender UUID value, which can be empty if it
+            has not yet been set (indicating that the user has not yet
+            opted-in to the recommender service)
+        """
+        config = get_config()
+        if config.has_option("general", "recommender_uuid"):
+            recommender_uuid = config.get("general", "recommender_uuid")
+            if recommender_uuid:
+                return recommender_uuid
+        return ""
+        
+    def _generate_submit_profile_data(self, recommender_uuid, package_list):
+        submit_profile_data = [
+            {
+                'uuid': recommender_uuid, 
+                'package_list': package_list
+            }
+        ]
+        return submit_profile_data
 
    
 if __name__ == "__main__":

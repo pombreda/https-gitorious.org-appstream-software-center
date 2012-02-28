@@ -79,12 +79,9 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         RecommendationsPanel.__init__(self, catview)
         self.set_header_label(_(u"Recommended for You"))
         
-        self.recommender_uuid = ""
-        config = get_config()
-        if config.has_option("general", "recommender_uuid"):
-            self.recommender_uuid = config.get("general", "recommender_uuid")
-            
-        if self.recommender_uuid:
+        # if we already have a recommender UUID, then the user is already
+        # opted-in to the recommender service
+        if self.recommender_agent.recommender_uuid:
             self._update_recommended_for_you_content()
         else:
             self._show_opt_in_view()
@@ -141,7 +138,6 @@ class RecommendationsPanelLobby(RecommendationsPanel):
                   "submitted to the recommender agent")
         self.emit("recommendations-opt-in", recommender_uuid)
         self._update_recommended_for_you_content()
-        self.header_implements_more_button()
         
     def _on_profile_submitted_error(self, agent, msg):
         LOG.warn("Error while submitting the recommendations profile to the "
@@ -165,6 +161,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         docs = cat.get_documents(self.catview.db)
         # display the recommendedations
         if len(docs) > 0:
+            self.header_implements_more_button()
             self.catview._add_tiles_to_flowgrid(docs,
                                         self.recommended_for_you_content, 8)
             self.recommended_for_you_content.show_all()
