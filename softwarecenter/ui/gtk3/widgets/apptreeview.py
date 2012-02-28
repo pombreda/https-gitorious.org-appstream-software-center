@@ -578,41 +578,6 @@ class AppTreeView(Gtk.TreeView):
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
 
 
-def get_query_from_search_entry(search_term):
-    if not search_term:
-        return xapian.Query("")
-    parser = xapian.QueryParser()
-    user_query = parser.parse_query(search_term)
-    return user_query
-
-def on_entry_changed(widget, data):
-
-    def _work():
-        new_text = widget.get_text()
-        (view, enquirer) = data
-
-        with ExecutionTime("total time"):
-            with ExecutionTime("enquire.set_query()"):
-                enquirer.set_query(get_query_from_search_entry(new_text),
-                                  limit=100*1000,
-                                  nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE)
-
-            store = view.tree_view.get_model()
-            with ExecutionTime("store.clear()"):
-                store.clear()
-
-            with ExecutionTime("store.set_documents()"):
-                store.set_from_matches(enquirer.matches)
-
-            with ExecutionTime("model settle (size=%s)" % len(store)):
-                while Gtk.events_pending():
-                    Gtk.main_iteration()
-        return
-
-    if widget.stamp: GObject.source_remove(widget.stamp)
-    widget.stamp = GObject.timeout_add(250, _work)
-
-
 
 def get_test_window():
     import softwarecenter.log
@@ -621,24 +586,13 @@ def get_test_window():
     fmt = logging.Formatter("%(name)s - %(message)s", None)
     softwarecenter.log.handler.setFormatter(fmt)
 
-    from softwarecenter.paths import XAPIAN_BASE_PATH
-    xapian_base_path = XAPIAN_BASE_PATH
-    pathname = os.path.join(xapian_base_path, "xapian")
+    from softwarecenter.testutils import (
+        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache,
+        get_test_enquirer_matches, get_test_categories)
 
-    # the store
-    from softwarecenter.db.pkginfo import get_pkg_info
-    cache = get_pkg_info()
-    cache.open()
-
-    # the db
-    from softwarecenter.db.database import StoreDatabase
-    db = StoreDatabase(pathname, cache)
-    db.open()
-
-    # additional icons come from app-install-data
-    icons = Gtk.IconTheme.get_default()
-    icons.prepend_search_path("/usr/share/app-install/icons/")
-    icons.prepend_search_path("/usr/share/software-center/icons/")
+    cache = get_test_pkg_info()
+    db = get_test_db()
+    icons = get_test_gtk3_icon_cache()
 
     # create a filter
     from softwarecenter.db.appfilter import AppFilter
@@ -646,30 +600,31 @@ def get_test_window():
     filter.set_supported_only(False)
     filter.set_installed_only(True)
 
-    # appview
-    from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
-    from softwarecenter.db.enquire import AppEnquire
-    enquirer = AppEnquire(cache, db)
-    store = AppListStore(db, cache, icons)
+    # get the TREEstore
+    from softwarecenter.ui.gtk3.models.appstore2 import AppTreeStore
+    store = AppTreeStore(db, cache, icons)
 
+    # populate from data
+    cats = get_test_categories(db)
+    for cat in cats:
+        docs = db.get_docs_from_query(cat.query)
+        store.set_category_documents(cat, docs)
+    
+    # ok, this is confusing - the AppView contains the AppTreeView that
+    #                         is a tree or list depending on the model
     from softwarecenter.ui.gtk3.views.appview import AppView
-    view = AppView(db, cache, icons, show_ratings=True)
-    view.set_model(store)
-
-    entry = Gtk.Entry()
-    entry.stamp = 0
-    entry.connect("changed", on_entry_changed, (view, enquirer))
-    entry.set_text("gtk3")
+    app_view = AppView(db, cache, icons, show_ratings=True)
+    app_view.set_model(store)
 
     scroll = Gtk.ScrolledWindow()
+    scroll.add(app_view)
+
     box = Gtk.VBox()
-    box.pack_start(entry, False, True, 0)
     box.pack_start(scroll, True, True, 0)
 
     win = Gtk.Window()
-    win.connect("destroy", lambda x: Gtk.main_quit())
-    scroll.add(view)
     win.add(box)
+    win.connect("destroy", lambda x: Gtk.main_quit())
     win.set_size_request(600, 400)
     win.show_all()
 

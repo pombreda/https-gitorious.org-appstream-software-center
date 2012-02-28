@@ -102,6 +102,13 @@ def get_test_datadir():
     import softwarecenter.paths
     return softwarecenter.paths.datadir
 
+def get_test_categories(db):
+    import softwarecenter.paths
+    from softwarecenter.db.categories import CategoriesParser
+    parser = CategoriesParser(db)
+    cats = parser.parse_applications_menu(softwarecenter.paths.APP_INSTALL_PATH)
+    return cats
+
 def get_test_enquirer_matches(db, query=None, limit=20, sortmode=0):
     from softwarecenter.db.enquire import AppEnquire
     import xapian

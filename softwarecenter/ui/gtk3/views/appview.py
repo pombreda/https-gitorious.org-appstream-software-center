@@ -247,7 +247,7 @@ def on_entry_changed(widget, data):
             with ExecutionTime("store.clear()"):
                 store.clear()
 
-            with ExecutionTime("store.set_documents()"):
+            with ExecutionTime("store.set_from_matches()"):
                 store.set_from_matches(enquirer.matches)
 
             with ExecutionTime("model settle (size=%s)" % len(store)):
