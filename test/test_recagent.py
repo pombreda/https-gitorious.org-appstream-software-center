@@ -14,14 +14,13 @@ from softwarecenter.backend.recagent import RecommenderAgent
 
 from softwarecenter.testutils import (
     make_recommender_profile_upload_data, 
-    get_test_db,
+    get_test_db
 )
 
 class TestRecommenderAgent(unittest.TestCase):
     """ tests the recommender agent """
 
     def setUp(self):
-        self.db = get_test_db()
         self.loop = GObject.MainLoop(GObject.main_context_default())
         self.error = False
         self.orig_host = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST")
@@ -43,10 +42,11 @@ class TestRecommenderAgent(unittest.TestCase):
                                    piston_submit_profile, 
                                    uuid.uuid1())
         mock_spawn_helper_run.side_effect = _patched_on_submit_profile_data
-        recommender_agent = RecommenderAgent(self.db)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("submit-profile-finished", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
-        recommender_agent.post_submit_profile()
+        db = get_test_db()
+        recommender_agent.post_submit_profile(db)
         self.assertFalse(self.error)
         args, kwargs =  mock_spawn_helper_run.call_args
         self.assertNotEqual(kwargs['data'][0]['uuid'], None)
@@ -64,7 +64,7 @@ class TestRecommenderAgent(unittest.TestCase):
     # FIXME: disabled for now as the server is not quite working
     def disabled_test_recagent_query_server_status(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(self.db)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("server-status", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_server_status()
@@ -74,10 +74,11 @@ class TestRecommenderAgent(unittest.TestCase):
     # FIXME: disabled for now as the server is not quite working  
     def disabled_test_recagent_post_submit_profile(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(self.db)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("submit-profile-finished", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
-        recommender_agent.post_submit_profile()
+        db = get_test_db()
+        recommender_agent.post_submit_profile(db)
         self.loop.run()
         self.assertFalse(self.error)
         #print mock_request._post
@@ -85,7 +86,7 @@ class TestRecommenderAgent(unittest.TestCase):
      # NOTE: this server call is currently not needed and not used
 #    def disabled_test_recagent_query_submit_anon_profile(self):
 #        # NOTE: This requires a working recommender host that is reachable
-#        recommender_agent = RecommenderAgent(self.db
+#        recommender_agent = RecommenderAgent()
 #        recommender_agent.connect("submit-anon-profile", self.on_query_done)
 #        recommender_agent.connect("error", self.on_query_error)
 #        recommender_agent.query_submit_anon_profile(
@@ -98,7 +99,7 @@ class TestRecommenderAgent(unittest.TestCase):
     # FIXME: disabled for now as the server is not quite working
     def disabled_test_recagent_query_profile(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(self.db)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("profile", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_profile(pkgnames=["pitivi", "fretsonfire"])
@@ -108,7 +109,7 @@ class TestRecommenderAgent(unittest.TestCase):
     # FIXME: disabled for now as the server is not quite working
     def disabled_test_recagent_query_recommend_me(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(self.db)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-me", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_me()
@@ -117,7 +118,7 @@ class TestRecommenderAgent(unittest.TestCase):
 
     def test_recagent_query_recommend_app(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(self.db)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-app", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_app("pitivi")
@@ -126,7 +127,7 @@ class TestRecommenderAgent(unittest.TestCase):
         
     def test_recagent_query_recommend_all_apps(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(self.db)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-all-apps", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_all_apps()
@@ -135,7 +136,7 @@ class TestRecommenderAgent(unittest.TestCase):
         
     def test_recagent_query_recommend_top(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(self.db)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-top", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_top()
@@ -146,7 +147,7 @@ class TestRecommenderAgent(unittest.TestCase):
         # NOTE: This tests the error condition itself! it simply forces an error
         #       'cuz there definitely isn't a server here  :)
         os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://orange.staging.ubuntu.com"
-        recommender_agent = RecommenderAgent(self.db)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-top", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_top()

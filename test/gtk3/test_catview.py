@@ -100,7 +100,7 @@ class TestCatView(unittest.TestCase):
         
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
-           '.query_submit_profile')
+           '.post_submit_profile')
     def test_subcatview_recommended_for_you_spinner_display(self, mock_query):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
@@ -119,7 +119,7 @@ class TestCatView(unittest.TestCase):
         
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
-           '.query_submit_profile')
+           '.post_submit_profile')
     def test_subcatview_recommended_for_you_display_recommendations(self, mock_query):
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need

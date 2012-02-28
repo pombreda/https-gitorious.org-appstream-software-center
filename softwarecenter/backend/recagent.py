@@ -72,10 +72,9 @@ class RecommenderAgent(GObject.GObject):
                   ),
         }
     
-    def __init__(self, db, xid=None):
+    def __init__(self, xid=None):
         GObject.GObject.__init__(self)
         self.xid = xid
-        self.db = db
         self.recommender_uuid = ""
 
     def _get_recommender_uuid(self):
@@ -107,7 +106,7 @@ class RecommenderAgent(GObject.GObject):
         spawner.run_generic_piston_helper(
             "SoftwareCenterRecommenderAPI", "server_status")
             
-    def post_submit_profile(self):
+    def post_submit_profile(self, db):
         """ This will post the users profile to the recommender server
             and also generate the UUID for the user if that is not 
             there yet
@@ -115,7 +114,7 @@ class RecommenderAgent(GObject.GObject):
         # garther the data
         recommender_uuid = self._get_recommender_uuid()
         installed_pkglist = [app.pkgname 
-                             for app in get_installed_apps_list(self.db)]
+                             for app in get_installed_apps_list(db)]
         data = self._generate_submit_profile_data(
             recommender_uuid, installed_pkglist)
         # build the command
