@@ -26,7 +26,7 @@ import datetime
 
 from gettext import gettext as _
 
-from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
+from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
 from basepane import BasePane
 from softwarecenter.enums import Icons
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
@@ -121,17 +121,8 @@ class HistoryPane(Gtk.VBox, BasePane):
         self.history_view.add(self.view)
         
         # make a spinner to display while history is loading
-        self.spinner_view = SpinnerView(_('Loading history'))
-        # its critical to show() the spinner early as otherwise
-        # gtk_notebook_set_active_page() will not switch to it
-        self.spinner_view.show() 
-        # add stuff
-        self.spinner_notebook = Gtk.Notebook()
-        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
-            self.spinner_notebook.set_show_tabs(False)
-        self.spinner_notebook.set_show_border(False)
-        self.spinner_notebook.append_page(self.history_view, None)
-        self.spinner_notebook.append_page(self.spinner_view, None)
+        self.spinner_notebook = SpinnerNotebook(
+            self.history_view, _('Loading history'))
         
         self.pack_start(self.spinner_notebook, True, True, 0)
 
@@ -166,11 +157,9 @@ class HistoryPane(Gtk.VBox, BasePane):
             self.realize()
             window = self.get_window()
             window.set_cursor(self.busy_cursor)
-            self.spinner_view.start()
-            self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
+            self.spinner_notebook.show_spinner()
             self.load_and_parse_history()
-            self.spinner_notebook.set_current_page(self.PAGE_HISTORY_VIEW)
-            self.spinner_view.stop()
+            self.spinner_notebook.hide_spinner()
             self._set_actions_sensitive(True)
             window.set_cursor(None)
             self.emit("history-pane-created")

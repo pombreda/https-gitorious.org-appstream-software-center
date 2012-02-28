@@ -16,9 +16,10 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-
 import gi
 gi.require_version("Gtk", "3.0")
+import os
+
 from gi.repository import Gtk, GObject
 
 from softwarecenter.paths import IMAGE_LOADING_INSTALLED
@@ -93,6 +94,39 @@ class SpinnerView(Gtk.Viewport):
         """
         self.spinner_label.set_markup('<big>%s</big>' % spinner_text)
 
+class SpinnerNotebook(Gtk.Notebook):
+
+    (CONTENT_PAGE, 
+     SPINNER_PAGE) = range(2)
+
+    def __init__(self, content, msg=""):
+        Gtk.Notebook.__init__(self)
+        self.spinner_view = SpinnerView(msg)
+        # its critical to show() the spinner early as otherwise
+        # gtk_notebook_set_active_page() will not switch to it
+        self.spinner_view.show() 
+        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+            self.set_show_tabs(False)
+        self.set_show_border(False)
+        self.append_page(content, Gtk.Label("content"))
+        self.append_page(self.spinner_view, Gtk.Label("spinner"))
+
+    def _unmask_installed_view_spinner(self):
+        self.spinner_view.start()
+        return False
+
+    def show_spinner(self, msg=""):
+        if msg:
+            self.spinner_view.set_text(msg)
+        # "mask" the spinner view momentarily to prevent it from flashing into
+        # view in the case of short delays where it isn't actually needed
+        GObject.timeout_add(100, self._unmask_installed_view_spinner)
+        self.set_current_page(self.SPINNER_PAGE)
+        self.spinner_view.start()
+
+    def hide_spinner(self):
+        self.spinner_view.stop()
+        self.set_current_page(self.CONTENT_PAGE)
 
 def get_test_spinner_window():        
     spinner_view = SpinnerView()
