@@ -181,6 +181,10 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.notebook.set_show_border(False)
         # make a spinner view to display while the applist is loading
         self.spinner_view = SpinnerView()
+        # its critical to show() the spinner early as otherwise
+        # gtk_notebook_set_active_page() will not switch to it
+        self.spinner_view.show() 
+        # add stuff to the notebook
         self.spinner_notebook = Gtk.Notebook()
         if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
             self.spinner_notebook.set_show_tabs(False)
@@ -316,6 +320,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
         LOG.debug("show_appview_spinner")
+        # FIXME: totally the wrong place!
         if not self.state.search_term:
             self.action_bar.clear()
         self.spinner_view.stop()

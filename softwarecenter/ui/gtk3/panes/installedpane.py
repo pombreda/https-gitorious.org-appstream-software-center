@@ -115,7 +115,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.visible_cats = {}
 
     def init_view(self):
-        if self.view_initialized: return
+        if self.view_initialized: 
+            return
 
         SoftwarePane.init_view(self)
         
@@ -190,8 +191,12 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         # create a local spinner notebook for the installed view
         self.installed_spinner_view = SpinnerView()
+        # its critical to show() the spinner early as otherwise
+        # gtk_notebook_set_active_page() will not switch to it
+        self.installed_spinner_view.show() 
         self.installed_spinner_notebook = Gtk.Notebook()
-        self.installed_spinner_notebook.set_show_tabs(False)
+        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+            self.installed_spinner_notebook.set_show_tabs(False)
         self.installed_spinner_notebook.set_show_border(False)
         self.installed_spinner_notebook.append_page(self.installed_spinner_view, None)
         self.box_app_list.remove(self.app_view)

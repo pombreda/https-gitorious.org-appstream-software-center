@@ -19,6 +19,8 @@
 
 from gi.repository import GObject
 from gi.repository import Gtk, Gdk
+
+import os
 import logging
 import datetime
 
@@ -120,8 +122,13 @@ class HistoryPane(Gtk.VBox, BasePane):
         
         # make a spinner to display while history is loading
         self.spinner_view = SpinnerView(_('Loading history'))
+        # its critical to show() the spinner early as otherwise
+        # gtk_notebook_set_active_page() will not switch to it
+        self.spinner_view.show() 
+        # add stuff
         self.spinner_notebook = Gtk.Notebook()
-        self.spinner_notebook.set_show_tabs(False)
+        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+            self.spinner_notebook.set_show_tabs(False)
         self.spinner_notebook.set_show_border(False)
         self.spinner_notebook.append_page(self.history_view, None)
         self.spinner_notebook.append_page(self.spinner_view, None)

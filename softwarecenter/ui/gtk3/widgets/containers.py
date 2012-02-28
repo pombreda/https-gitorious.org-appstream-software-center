@@ -513,13 +513,18 @@ class FramedHeaderBox(FramedBox):
         self.box.pack_start(self.header_alignment, False, False, 0)
         # make the content box
         self.content_box = Gtk.Box.new(orientation, spacing)
+        self.content_box.show()
         # and a spinner with optional label (to be used only if needed)
         # TODO: cosmetic tweak needed - draw a line at the top of the spinner
         #       area so that the header has a proper border
         self.spinner = SpinnerView()
+        # its critical to show() the spinner early as otherwise
+        # gtk_notebook_set_active_page() will not switch to it
+        self.spinner.show() 
         # finally, a notebook for the spinner and the content box to share
         self.spinner_notebook = Gtk.Notebook()
-        self.spinner_notebook.set_show_tabs(False)
+        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+            self.spinner_notebook.set_show_tabs(False)
         self.spinner_notebook.set_show_border(False)
         self.spinner_notebook.append_page(self.content_box, None)
         self.spinner_notebook.append_page(self.spinner, None)
