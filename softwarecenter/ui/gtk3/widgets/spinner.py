@@ -112,6 +112,8 @@ class SpinnerNotebook(Gtk.Notebook):
         self.append_page(self.spinner_view, Gtk.Label("spinner"))
 
     def _unmask_view_spinner(self):
+        # FIXME: if we want to "mask" the spinner, shouldn't we use 
+        #        show/hide for this as well?
         self.spinner_view.start()
         return False
 
