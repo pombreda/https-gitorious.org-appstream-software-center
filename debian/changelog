@@ -4,6 +4,9 @@ software-center (5.1.11) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/appdetailsview.py:
     - only set vadj/hadj if we have the objects for it (LP: #941384)
       already supported 'X-AppInstall-Keywords' entries
+  * lp:~mvo/software-center/get-installed-apps-instead-of-pkgs:
+    - refactor to move the recommender UUID code into the back end,
+      add a mock test for the submit_profile call to the server
   
   [ Kiwinote ]
   * softwarecenter/db/update.py:
@@ -19,7 +22,12 @@ software-center (5.1.11) UNRELEASED; urgency=low
     - resolve unescaped markup issues
     - line wrap text so we don't get horizontal scrollbar (LP: #933497)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 27 Feb 2012 17:05:15 +0100
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/get-installed-apps-instead-of-pkgs-tweaks:
+    - unit test and other small needed fixes, further simplification of
+      the recommender UUID code 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 28 Feb 2012 17:16:45 -0500
 
 software-center (5.1.10) precise; urgency=low
 
