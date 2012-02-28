@@ -179,17 +179,16 @@ class SoftwarePane(Gtk.VBox, BasePane):
         if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
             self.notebook.set_show_tabs(False)
         self.notebook.set_show_border(False)
-        # an empty notebook, where the details view will eventually go
-        self.details_notebook = Gtk.Notebook()
-        self.details_notebook.set_show_border(False)
         # make a spinner view to display while the applist is loading
         self.spinner_view = SpinnerView()
         self.spinner_notebook = Gtk.Notebook()
-        self.spinner_notebook.set_show_tabs(False)
+        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+            self.spinner_notebook.set_show_tabs(False)
         self.spinner_notebook.set_show_border(False)
-        self.spinner_notebook.append_page(self.notebook, None)
-        self.spinner_notebook.append_page(self.details_notebook, None)
-        self.spinner_notebook.append_page(self.spinner_view, None)
+        self.spinner_notebook.append_page(self.notebook, 
+                                          Gtk.Label("view"))
+        self.spinner_notebook.append_page(self.spinner_view, 
+                                          Gtk.Label("spinner"))
         
         self.pack_start(self.spinner_notebook, True, True, 0)
 
