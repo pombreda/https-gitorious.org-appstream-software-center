@@ -57,7 +57,7 @@ TAG_MISSING_DESCRIPTION = {
     'hardware::storage:cd-writer' : _('This software requires a CD burner, '
                                       'but none are currently connected.'),
     'hardware::storage:dvd' : _('This software requires a DVD drive, but none '
-                                'are currently connected.DVD drive'),
+                                'are currently connected.'),
     'hardware::storage:dvd-writer' : _('This software requires a DVD burner, '
                                        'but none are currently connected.'),
     'hardware::storage:floppy' : _('This software requires a floppy disk '

@@ -18,7 +18,6 @@
 
 import os
 
-from apt import Cache
 from apt.debfile import DebPackage
 from gettext import gettext as _
 from mimetypes import guess_type

@@ -101,25 +101,28 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self.add(self.recommended_for_you_content)
 
     def _show_opt_in_view(self):
-        self.opt_in_vbox = Gtk.VBox(spacing=8)
-        self.opt_in_button = Gtk.Button()
-        opt_in_button_label = Gtk.Label()
-        opt_in_button_label.set_markup('<big>%s</big>' % _("Turn On Recommendations"))
-        self.opt_in_button.add(opt_in_button_label)
-        self.opt_in_button.connect("clicked", self._on_opt_in_button_clicked)
-        opt_in_button_hbox = Gtk.HBox()
-        opt_in_button_hbox.pack_start(self.opt_in_button, False, False, 0)
-        opt_in_text = _("To make recommendations, Ubuntu Software Center "
-                        "will occasionally send to Canonical an anonymous list "
-                        "of software currently installed.")
-        opt_in_label = Gtk.Label()
-        opt_in_label.set_markup('<big>%s</big>' % opt_in_text)
-        opt_in_label.set_use_markup(True)
-        self.opt_in_vbox.pack_start(opt_in_button_hbox, False, False, 0)
-        self.opt_in_vbox.pack_start(opt_in_label, False, False, 10)
-        self.recommended_for_you_content = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
-        self.recommended_for_you_content.set_padding(20, 20, 40, 40)
-        self.recommended_for_you_content.add(self.opt_in_vbox)
+        # opt in box
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
+        vbox.set_border_width(StockEms.LARGE)
+        self.opt_in_vbox = vbox  # for tests
+        self.recommended_for_you_content = vbox  # hook it up to the rest
+
+        # opt in button
+        button = Gtk.Button(_("Turn On Recommendations"))
+        button.connect("clicked", self._on_opt_in_button_clicked)
+        hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL)
+        hbox.pack_start(button, False, False, 0)
+        vbox.pack_start(hbox, False, False, 0)
+        self.opt_in_button = button  # for tests
+
+        # opt in text
+        text = _("To make recommendations, Ubuntu Software Center "
+                 "will occasionally send to Canonical an anonymous list "
+                 "of software currently installed.")
+        label = Gtk.Label(text)
+        label.set_alignment(0, 0.5)
+        label.set_line_wrap(True)
+        vbox.pack_start(label, False, False, 0)
         
     def _on_opt_in_button_clicked(self, button):
         # we upload the user profile here, and only after this is finished

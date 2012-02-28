@@ -956,8 +956,12 @@ def index_app_info_from_parser(parser, db, cache):
                 doc.add_term("XOS"+origin.site)
 
         # add our keywords (with high priority)
-        if parser.has_option_desktop("X-AppInstall-Keywords"):
+        keywords = None
+        if parser.has_option_desktop("Keywords"):
+            keywords = parser.get_desktop("Keywords")
+        elif parser.has_option_desktop("X-AppInstall-Keywords"):
             keywords = parser.get_desktop("X-AppInstall-Keywords")
+        if keywords:
             for s in keywords.split(";"):
                 if s:
                     term_generator.index_text_without_positions(s, WEIGHT_DESKTOP_KEYWORD)

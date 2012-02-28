@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-02-13 16:37+0000\n"
+"POT-Creation-Date: 2012-02-22 15:23+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,7 +23,7 @@ msgstr ""
 #. aquired for purchase in utils/submit_review.py
 #. the other one in softwarecenter/app.py
 #: ../data/ubuntu-software-center.desktop.in.h:1
-#: ../softwarecenter/distro/Ubuntu.py:67 ../softwarecenter/ui/gtk3/app.py:732
+#: ../softwarecenter/distro/Ubuntu.py:67 ../softwarecenter/ui/gtk3/app.py:751
 msgid "Ubuntu Software Center"
 msgstr ""
 
@@ -48,7 +48,7 @@ msgid "Featured"
 msgstr ""
 
 #: ../data/whats_new.menu.in.h:1
-#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:413
+#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:412
 msgid "What’s New"
 msgstr ""
 
@@ -294,9 +294,9 @@ msgstr ""
 #. default to a license type of "Unknown"
 #: ../softwarecenter/backend/channel.py:223
 #: ../softwarecenter/distro/Ubuntu.py:116
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1389
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1393
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1936
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1481
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1485
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2032
 msgid "Unknown"
 msgstr ""
 
@@ -318,7 +318,7 @@ msgid "Other"
 msgstr ""
 
 #: ../softwarecenter/backend/channel.py:308
-#: ../softwarecenter/ui/gtk3/panes/availablepane.py:298
+#: ../softwarecenter/ui/gtk3/panes/availablepane.py:303
 #: ../softwarecenter/ui/gtk3/panes/viewswitcher.py:79
 msgid "All Software"
 msgstr ""
@@ -351,38 +351,39 @@ msgid ""
 "No-one else will be able to see what you have installed."
 msgstr ""
 
-#: ../softwarecenter/backend/installbackend_impl/aptd.py:734
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:358
+#: ../softwarecenter/backend/installbackend_impl/aptd.py:746
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:429
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:436
 msgid "Error"
 msgstr ""
 
-#: ../softwarecenter/backend/installbackend_impl/aptd.py:767
+#: ../softwarecenter/backend/installbackend_impl/aptd.py:779
 msgid "_Ignore and install"
 msgstr ""
 
-#: ../softwarecenter/db/application.py:210
-#: ../softwarecenter/db/application.py:311
-#: ../softwarecenter/db/application.py:454
-#: ../softwarecenter/db/application.py:484 ../softwarecenter/db/debfile.py:60
-#: ../softwarecenter/db/debfile.py:65
+#: ../softwarecenter/db/application.py:214
+#: ../softwarecenter/db/application.py:329
+#: ../softwarecenter/db/application.py:478
+#: ../softwarecenter/db/application.py:508 ../softwarecenter/db/debfile.py:62
+#: ../softwarecenter/db/debfile.py:67
 msgid "Not found"
 msgstr ""
 
-#: ../softwarecenter/db/application.py:211
-#: ../softwarecenter/db/application.py:312
-#: ../softwarecenter/db/application.py:455
-#: ../softwarecenter/db/application.py:485
+#: ../softwarecenter/db/application.py:215
+#: ../softwarecenter/db/application.py:330
+#: ../softwarecenter/db/application.py:479
+#: ../softwarecenter/db/application.py:509
 #, python-format
 msgid ""
 "There isn’t a software package called “%s” in your current software sources."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:673
+#: ../softwarecenter/db/application.py:751
 #, python-format
 msgid "Version %s or later not available."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:686
+#: ../softwarecenter/db/application.py:764
 #, python-format
 msgid "Available from the \"%s\" source."
 msgstr ""
@@ -390,23 +391,28 @@ msgstr ""
 #. Translators: the visible string is constructed concatenating
 #. the following 3 strings like this:
 #. Available from the following sources: %s, ... %s, %s.
-#: ../softwarecenter/db/application.py:691
+#: ../softwarecenter/db/application.py:769
 msgid "Available from the following sources: "
 msgstr ""
 
-#: ../softwarecenter/db/application.py:694
+#: ../softwarecenter/db/application.py:772
 #, python-format
 msgid "\"%s\", "
 msgstr ""
 
-#: ../softwarecenter/db/application.py:695
+#: ../softwarecenter/db/application.py:773
 #, python-format
 msgid "\"%s\"."
 msgstr ""
 
 #: ../softwarecenter/db/categories.py:144
-#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:477
+#: ../softwarecenter/ui/gtk3/widgets/recommendations.py:81
 msgid "Recommended for You"
+msgstr ""
+
+#: ../softwarecenter/db/categories.py:181
+#: ../softwarecenter/ui/gtk3/widgets/recommendations.py:216
+msgid "People Also Installed"
 msgstr ""
 
 #. TRANSLATORS: List of "grey-listed" words sperated with ";"
@@ -421,12 +427,12 @@ msgstr ""
 #. WARNING: item.name needs to be different than
 #. the item.name in the DB otherwise the DB
 #. gets confused about (appname, pkgname) duplication
-#: ../softwarecenter/db/update.py:303
+#: ../softwarecenter/db/update.py:307
 #, python-format
 msgid "%s (already purchased)"
 msgstr ""
 
-#: ../softwarecenter/db/update.py:589
+#: ../softwarecenter/db/update.py:593
 #, python-format
 msgid ""
 "The file: '%s' could not be read correctly. The application associated with "
@@ -560,7 +566,7 @@ msgstr ""
 #: ../softwarecenter/distro/__init__.py:109
 #: ../softwarecenter/distro/__init__.py:117
 #: ../softwarecenter/distro/__init__.py:127
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:349
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:420
 msgid "Install Anyway"
 msgstr ""
 
@@ -676,7 +682,7 @@ msgid ""
 "the Ubuntu community."
 msgstr ""
 
-#: ../softwarecenter/enums.py:28 ../softwarecenter/ui/gtk3/app.py:680
+#: ../softwarecenter/enums.py:28 ../softwarecenter/ui/gtk3/app.py:699
 msgid ""
 "To reinstall previous purchases, sign in to the Ubuntu Single Sign-On "
 "account you used to pay for them."
@@ -788,9 +794,7 @@ msgid "This software requires a CD burner, but none are currently connected."
 msgstr ""
 
 #: ../softwarecenter/hw.py:59
-msgid ""
-"This software requires a DVD drive, but none are currently connected.DVD "
-"drive"
+msgid "This software requires a DVD drive, but none are currently connected."
 msgstr ""
 
 #: ../softwarecenter/hw.py:61
@@ -922,7 +926,7 @@ msgid "Updating software catalog…"
 msgstr ""
 
 #: ../data/ui/gtk3/dialogs.ui.h:1
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:633
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:706
 msgid "Cancel"
 msgstr ""
 
@@ -948,7 +952,7 @@ msgid " "
 msgstr ""
 
 #: ../data/ui/gtk3/dialogs.ui.h:7
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:302
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:371
 #: ../softwarecenter/ui/gtk3/widgets/apptreeview.py:83
 msgid "Remove"
 msgstr ""
@@ -1068,12 +1072,12 @@ msgstr ""
 msgid "Submit"
 msgstr ""
 
-#: ../softwarecenter/db/debfile.py:61
+#: ../softwarecenter/db/debfile.py:63
 #, python-format
 msgid "The file “%s” does not exist."
 msgstr ""
 
-#: ../softwarecenter/db/debfile.py:66
+#: ../softwarecenter/db/debfile.py:68
 #, python-format
 msgid "The file “%s” is not a software package."
 msgstr ""
@@ -1081,28 +1085,28 @@ msgstr ""
 #. deb files which are corrupt
 #. or unknown error, but we are in string freeze,
 #. should never happen anyway
-#: ../softwarecenter/db/debfile.py:69
+#: ../softwarecenter/db/debfile.py:71
 #: ../softwarecenter/ui/gtk3/widgets/reviews.py:559
 msgid "Internal Error"
 msgstr ""
 
-#: ../softwarecenter/db/debfile.py:70
+#: ../softwarecenter/db/debfile.py:72
 #, python-format
 msgid "The file “%s” could not be opened."
 msgstr ""
 
-#: ../softwarecenter/db/debfile.py:174
+#: ../softwarecenter/db/debfile.py:176
 msgid "Only install this file if you trust the origin."
 msgstr ""
 
-#: ../softwarecenter/db/debfile.py:179 ../softwarecenter/db/debfile.py:181
+#: ../softwarecenter/db/debfile.py:181 ../softwarecenter/db/debfile.py:183
 #, python-format
 msgid ""
 "Please install \"%s\" via your normal software channels. Only install this "
 "file if you trust the origin."
 msgstr ""
 
-#: ../softwarecenter/db/debfile.py:183
+#: ../softwarecenter/db/debfile.py:185
 #, python-format
 msgid ""
 "An older version of \"%s\" is available in your normal software channels. "
@@ -1130,12 +1134,12 @@ msgid "Please re-install the 'software-center' package."
 msgstr ""
 
 #. TRANSLATORS: this is the help menuitem label, e.g. Ubuntu Software Center _Help
-#: ../softwarecenter/ui/gtk3/app.py:318
+#: ../softwarecenter/ui/gtk3/app.py:319
 #, python-format
 msgid "%s _Help"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/app.py:733
+#: ../softwarecenter/ui/gtk3/app.py:752
 msgid "Ubuntu Software Center Store"
 msgstr ""
 
@@ -1364,7 +1368,7 @@ msgid "Uncategorized"
 msgstr ""
 
 #: ../softwarecenter/ui/gtk3/models/pendingstore.py:85
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:264
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:333
 msgid "Installing purchase…"
 msgstr ""
 
@@ -1374,7 +1378,7 @@ msgid "Downloaded %s of %s"
 msgstr ""
 
 #: ../softwarecenter/ui/gtk3/models/viewstore.py:77
-#: ../softwarecenter/ui/gtk3/panes/availablepane.py:97
+#: ../softwarecenter/ui/gtk3/panes/availablepane.py:102
 msgid "Get Software"
 msgstr ""
 
@@ -1394,22 +1398,22 @@ msgstr ""
 msgid "In Progress..."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/panes/availablepane.py:240
+#: ../softwarecenter/ui/gtk3/panes/availablepane.py:245
 msgid "Failure in the purchase process."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/panes/availablepane.py:241
+#: ../softwarecenter/ui/gtk3/panes/availablepane.py:246
 msgid "Sorry, something went wrong. Your payment has been cancelled."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/panes/availablepane.py:434
+#: ../softwarecenter/ui/gtk3/panes/availablepane.py:439
 #, python-format
 msgid "Install %(amount)s Item"
 msgid_plural "Install %(amount)s Items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk3/panes/availablepane.py:631
+#: ../softwarecenter/ui/gtk3/panes/availablepane.py:641
 msgid "Previous Purchases"
 msgstr ""
 
@@ -1422,7 +1426,7 @@ msgid "Installations"
 msgstr ""
 
 #: ../softwarecenter/ui/gtk3/panes/historypane.py:97
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1218
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1305
 msgid "Updates"
 msgstr ""
 
@@ -1509,14 +1513,14 @@ msgstr ""
 
 #. TRANSLATORS: the text inbetween the underscores acts as a link
 #. In most/all languages you will want the whole string as a link
-#: ../softwarecenter/ui/gtk3/panes/softwarepane.py:386
+#: ../softwarecenter/ui/gtk3/panes/softwarepane.py:391
 #, python-format
 msgid "_Hide %(amount)i technical item_"
 msgid_plural "_Hide %(amount)i technical items_"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk3/panes/softwarepane.py:392
+#: ../softwarecenter/ui/gtk3/panes/softwarepane.py:397
 #, python-format
 msgid "_Show %(amount)i technical item_"
 msgid_plural "_Show %(amount)i technical items_"
@@ -1538,7 +1542,7 @@ msgstr ""
 #. we want to re-enable the buy button if this is an app for purchase
 #. FIXME:  hacky, find a better approach
 #: ../softwarecenter/ui/gtk3/panes/unused__channelpane.py:179
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:314
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:383
 #: ../softwarecenter/ui/gtk3/widgets/apptreeview.py:84
 msgid "Buy…"
 msgstr ""
@@ -1559,7 +1563,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: ../softwarecenter/ui/gtk3/panes/unused__channelpane.py:233
-#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:653
+#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:613
 #, python-format
 msgid "%(amount)s item available"
 msgid_plural "%(amount)s items available"
@@ -1567,7 +1571,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: ../softwarecenter/ui/gtk3/panes/viewswitcher.py:87
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:298
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:367
 msgid "Installed"
 msgstr ""
 
@@ -1575,19 +1579,23 @@ msgstr ""
 msgid "Software sources"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:261
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:280
+msgid "default"
+msgstr ""
+
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:330
 msgid "Installing…"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:268
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:337
 msgid "Removing…"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:271
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:340
 msgid "Upgrading…"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:277
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:346
 msgid "Installed (you’re using it right now)"
 msgstr ""
 
@@ -1598,8 +1606,8 @@ msgstr ""
 #. TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please
 #. specify a format per your locale (if you prefer, %x can be used
 #. to provide a default locale-specific date representation)
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:288
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:327
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:357
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:398
 msgid "Purchased on %Y-%m-%d"
 msgstr ""
 
@@ -1607,61 +1615,62 @@ msgstr ""
 #. please specify a format per your locale (if you prefer,
 #. %x can be used to provide a default locale-specific date
 #. representation)
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:294
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:363
 msgid "Installed on %Y-%m-%d"
 msgstr ""
 
 #. only deb files atm
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:300
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:369
 msgid "Reinstall"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:316
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:385
 msgid "Buy Anyway…"
 msgstr ""
 
-#. this is used when the pkg can not be installed
-#. we display the error in the description field
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:328
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:347
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:362
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:387
+msgid "Change"
+msgstr ""
+
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:399
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:418
 #: ../softwarecenter/ui/gtk3/widgets/apptreeview.py:82
 msgid "Install"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:331
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:402
 msgid ""
 "Purchased on %Y-%m-%d but not available for your current Ubuntu version. "
 "Please contact the vendor for an update."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:341
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:412
 msgid "Removed (close it and it’ll be gone)"
 msgstr ""
 
 #. TRANSLATORS: Free here means Gratis
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:344
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:626
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:415
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:699
 #: ../softwarecenter/ui/gtk3/widgets/buttons.py:253
 #: ../softwarecenter/ui/gtk3/widgets/buttons.py:256
 #: ../softwarecenter/ui/gtk3/widgets/buttons.py:258
 msgid "Free"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:351
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:422
 msgid "Upgrade Available"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:352
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:423
 msgid "Upgrade"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:354
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:425
 msgid "Changing Add-ons…"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:373
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:376
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:446
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:449
 msgid "Use This Source"
 msgstr ""
 
@@ -1669,38 +1678,38 @@ msgstr ""
 #. because we don't differenciate between
 #. components that are not enabled or that just
 #. lack the "Packages" files (but are in sources.list)
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:382
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:455
 msgid "Update Now"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:565
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:638
 msgid "Add-ons"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:631
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:704
 msgid "Apply Changes"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:880
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:955
 msgid "Checking for reviews..."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:980
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1055
 #, python-format
 msgid "Connection ... (%s%%)"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:985
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1060
 msgid "Disconnect"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:988
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1063
 msgid "Connected"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:992
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:998
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1144
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1067
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1073
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1227
 msgid "Test drive"
 msgstr ""
 
@@ -1711,133 +1720,133 @@ msgstr ""
 #. ~ self.info_header.set_padding(0, 6)
 #. ~ self.info_header.set_use_markup(True)
 #. ~ info_vb.pack_start(self.info_header, False, False, 0)
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1206
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1293
 msgid "Version"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1209
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1296
 msgid "Also requires"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1212
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1299
 msgid "Total size"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1215
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1302
 msgid "License"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1324
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1411
 msgid "Developer Web Site"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1332
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1419
 msgid "Support Web Site"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1384
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1476
 #, python-format
 msgid "%s (unknown version)"
 msgstr ""
 
 #. Update total size label
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1417
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1466
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1509
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1558
 msgid "Calculating..."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1500
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1593
 msgid "This program is run from a terminal: "
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1501
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1594
 msgid "These programs are run from a terminal: "
 msgstr ""
 
 #. display launcher location
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1526
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1619
 msgid "Find it in the menu: "
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1672
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1765
 msgid "Version unknown"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1673
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1766
 msgid ""
 "The version of the application can not be detected. Entering a review is not "
 "possible."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1685
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1778
 msgid "Origin unknown"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1686
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1779
 msgid ""
 "The origin of the application can not be detected. Entering a review is not "
 "possible."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1920
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2016
 #, python-format
 msgid "%s to download, "
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1923
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2019
 #, python-format
 msgid "%s when installed"
 msgstr ""
 
 #. FIXME: this is not really a good indication of the size on disk
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1931
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2027
 #, python-format
 msgid "%s on disk"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1934
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2030
 #, python-format
 msgid "%s to be freed"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1956
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2052
 #, python-format
 msgid "Used: one time"
 msgid_plural "Used: %(amount)s times"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1960
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2056
 msgid "Used: over 100 times"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appview.py:139
+#: ../softwarecenter/ui/gtk3/views/appview.py:141
 msgid "By Name"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appview.py:140
+#: ../softwarecenter/ui/gtk3/views/appview.py:142
 msgid "By Top Rated"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appview.py:141
+#: ../softwarecenter/ui/gtk3/views/appview.py:143
 msgid "By Newest First"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appview.py:142
-#: ../softwarecenter/ui/gtk3/views/appview.py:152
+#: ../softwarecenter/ui/gtk3/views/appview.py:144
+#: ../softwarecenter/ui/gtk3/views/appview.py:154
 msgid "By Relevance"
 msgstr ""
 
 #: ../softwarecenter/ui/gtk3/views/catview_gtk.py:130
-#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:515
+#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:475
 msgid "Departments"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:387
+#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:386
 msgid "Top Rated"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:500
+#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:460
 #, python-format
 msgid "%(amount)s item"
 msgid_plural "%(amount)s items"
@@ -1846,14 +1855,14 @@ msgstr[1] ""
 
 #. FIXME: should this be m = "%s %s" % (_(gettext text), header text) ??
 #. TRANSLATORS: %s is a category name, like Internet or Development Tools
-#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:582
+#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:542
 #, python-format
 msgid "Top Rated %(category)s"
 msgstr ""
 
 #. append an additional button to show all of the items in the category
-#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:628
-#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:629
+#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:588
+#: ../softwarecenter/ui/gtk3/views/catview_gtk.py:589
 msgid "All"
 msgstr ""
 
@@ -1900,7 +1909,7 @@ msgstr ""
 msgid "%(stars)d stars - %(reviews)d reviews"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/widgets/buttons.py:594
+#: ../softwarecenter/ui/gtk3/widgets/buttons.py:606
 msgid "More"
 msgstr ""
 
@@ -2254,6 +2263,25 @@ msgstr ""
 
 #: ../softwarecenter/ui/gtk3/widgets/weblivedialog.py:97
 msgid "Choose your distribution"
+msgstr ""
+
+#: ../softwarecenter/ui/gtk3/widgets/recommendations.py:102
+msgid "Turn On Recommendations"
+msgstr ""
+
+#: ../softwarecenter/ui/gtk3/widgets/recommendations.py:108
+msgid ""
+"To make recommendations, Ubuntu Software Center will occasionally send to "
+"Canonical an anonymous list of software currently installed."
+msgstr ""
+
+#: ../softwarecenter/ui/gtk3/widgets/recommendations.py:133
+msgid "Submitting inventory…"
+msgstr ""
+
+#: ../softwarecenter/ui/gtk3/widgets/recommendations.py:161
+#: ../softwarecenter/ui/gtk3/widgets/recommendations.py:226
+msgid "Receiving recommendations…"
 msgstr ""
 
 #: ../utils/delete_review_gtk3.py:105 ../utils/modify_review_gtk3.py:105
