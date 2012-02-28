@@ -132,7 +132,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
                                   self._on_profile_submitted)
         self.recommender_agent.connect("error",
                                   self._on_profile_submitted_error)
-        self.recommender_agent.do_submit_profile()
+        self.recommender_agent.post_submit_profile(self.catview.db)
                                                 
     def _on_profile_submitted(self, agent, profile, recommender_uuid):
         # after the user profile data has been uploaded, make the request
