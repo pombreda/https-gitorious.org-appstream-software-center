@@ -16,21 +16,17 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-#~ from __future__ import with_statement
-
-
+import logging
 
 from gi.repository import Gtk, GObject
 from gettext import gettext as _
-#~ import gettext
 
 from softwarecenter.enums import SortMethods
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.models.appstore2 import AppTreeStore
 from softwarecenter.ui.gtk3.widgets.apptreeview import AppTreeView
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
-#~ from softwarecenter.ui.gtk3.widgets.containers import FlowableGrid
-
+from softwarecenter.utils import ExecutionTime
 
 class AppView(Gtk.VBox):
 
@@ -221,30 +217,92 @@ class AppView(Gtk.VBox):
         return self._SORT_METHOD_INDEX[active_index]
 
 
+
+
+
+# ----------------------------------------------- testcode
+from softwarecenter.enums import NonAppVisibility
+
+def get_query_from_search_entry(search_term):
+    import xapian
+    if not search_term:
+        return xapian.Query("")
+    parser = xapian.QueryParser()
+    user_query = parser.parse_query(search_term)
+    return user_query
+
+def on_entry_changed(widget, data):
+
+    def _work():
+        new_text = widget.get_text()
+        (view, enquirer) = data
+
+        with ExecutionTime("total time"):
+            with ExecutionTime("enquire.set_query()"):
+                enquirer.set_query(get_query_from_search_entry(new_text),
+                                  limit=100*1000,
+                                  nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE)
+
+            store = view.tree_view.get_model()
+            with ExecutionTime("store.clear()"):
+                store.clear()
+
+            with ExecutionTime("store.set_documents()"):
+                store.set_from_matches(enquirer.matches)
+
+            with ExecutionTime("model settle (size=%s)" % len(store)):
+                while Gtk.events_pending():
+                    Gtk.main_iteration()
+        return
+
+    if widget.stamp: 
+        GObject.source_remove(widget.stamp)
+    widget.stamp = GObject.timeout_add(250, _work)
+
 def get_test_window():
+    import softwarecenter.log
+    softwarecenter.log.root.setLevel(level=logging.DEBUG)
+    softwarecenter.log.add_filters_from_string("performance")
+    fmt = logging.Formatter("%(name)s - %(message)s", None)
+    softwarecenter.log.handler.setFormatter(fmt)
+
     from softwarecenter.testutils import (
-        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache,
-        get_test_enquirer_matches)
+        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache)
     from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
 
     db = get_test_db()
     cache = get_test_pkg_info()
     icons = get_test_gtk3_icon_cache()
 
-    # create the view
-    appview = AppView(db, cache, icons, show_ratings=True)
-    liststore = AppListStore(db, cache, icons)
-    appview.set_model(liststore)
+    # create a filter
+    from softwarecenter.db.appfilter import AppFilter
+    filter = AppFilter(db, cache)
+    filter.set_supported_only(False)
+    filter.set_installed_only(True)
 
-    # do a simple query and display that
-    appview.display_matches(get_test_enquirer_matches(db))
+    # appview
+    from softwarecenter.db.enquire import AppEnquire
+    enquirer = AppEnquire(cache, db)
+    store = AppListStore(db, cache, icons)
 
-    # and put it in the window
+    from softwarecenter.ui.gtk3.views.appview import AppView
+    view = AppView(db, cache, icons, show_ratings=True)
+    view.set_model(store)
+
+    entry = Gtk.Entry()
+    entry.stamp = 0
+    entry.connect("changed", on_entry_changed, (view, enquirer))
+    entry.set_text("gtk3")
+
+    scroll = Gtk.ScrolledWindow()
+    box = Gtk.VBox()
+    box.pack_start(entry, False, True, 0)
+    box.pack_start(scroll, True, True, 0)
+
     win = Gtk.Window()
-    win.add(appview)
-    win.set_data("appview", appview)
-
     win.connect("destroy", lambda x: Gtk.main_quit())
+    scroll.add(view)
+    win.add(box)
     win.set_size_request(600, 400)
     win.show_all()
 
