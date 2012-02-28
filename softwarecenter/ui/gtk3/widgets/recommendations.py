@@ -29,9 +29,7 @@ from softwarecenter.db.categories import (RecommendedForYouCategory,
                                           RecommendedForYouInCatCategory,
                                           AppRecommendationsCategory)
 from softwarecenter.backend.recagent import RecommenderAgent
-from softwarecenter.db.utils import get_installed_package_list
-from softwarecenter.utils import get_uuid
-from softwarecenter.config import get_config
+
 
 LOG = logging.getLogger(__name__)
 
@@ -92,11 +90,12 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         RecommendationsPanel.__init__(self, catview)
         self.set_header_label(_(u"Recommended for You"))
         
-        self.recommender_uuid = self.get_recommender_uuid()
-        if not self.recommender_uuid:
-            self._show_opt_in_view()
-        else:
+        # if we already have a recommender UUID, then the user is already
+        # opted-in to the recommender service
+        if self.recommender_agent.recommender_uuid:
             self._update_recommended_for_you_content()
+        else:
+            self._show_opt_in_view()
             
         self.add(self.recommended_for_you_content)
 
@@ -139,22 +138,18 @@ class RecommendationsPanelLobby(RecommendationsPanel):
     def _upload_user_profile(self):
         self.spinner.set_text(_("Submitting inventory…"))
         self.show_spinner()
-        self.recommender_uuid = get_uuid()
-        installed_pkglist = list(get_installed_package_list())
-        self.recommender_agent.connect("submit-profile",
+        self.recommender_agent.connect("submit-profile-finished",
                                   self._on_profile_submitted)
         self.recommender_agent.connect("error",
                                   self._on_profile_submitted_error)
-        self.recommender_agent.query_submit_profile(
-                self._generate_submit_profile_data(self.recommender_uuid, 
-                                                   installed_pkglist))
+        self.recommender_agent.post_submit_profile(self.catview.db)
                                                 
-    def _on_profile_submitted(self):
+    def _on_profile_submitted(self, agent, profile, recommender_uuid):
         # after the user profile data has been uploaded, make the request
         # and load the the recommended_for_you content
         LOG.debug("The recommendations profile has been successfully "
                   "submitted to the recommender agent")
-        self.emit("recommendations-opt-in", self.recommender_uuid)
+        self.emit("recommendations-opt-in", recommender_uuid)
         self._update_recommended_for_you_content()
         
     def _on_profile_submitted_error(self, agent, msg):
@@ -203,16 +198,6 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         # and hide the pane
         self.hide()
         
-    def _generate_submit_profile_data(self,
-                                      recommender_uuid,
-                                      package_list):
-        submit_profile_data = [
-            {
-                'uuid': recommender_uuid, 
-                'package_list': package_list
-            }
-        ]
-        return submit_profile_data
         
 class RecommendationsPanelCategory(RecommendationsPanel):
     """

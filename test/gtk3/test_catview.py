@@ -87,6 +87,13 @@ class TestCatView(unittest.TestCase):
         win.destroy()
 
     def test_subcatview_recommended_for_you_opt_in_display(self):
+    
+        # patch the recommender UUID value to insure that we are not opted-in for this test
+        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
+        self.addCleanup(get_recommender_uuid_patcher.stop)
+        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
+        mock_get_recommender_uuid.return_value = ""
+        
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
@@ -100,8 +107,15 @@ class TestCatView(unittest.TestCase):
         
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
-           '.query_submit_profile')
+           '.post_submit_profile')
     def test_subcatview_recommended_for_you_spinner_display(self, mock_query):
+    
+        # patch the recommender UUID value to insure that we are not opted-in for this test
+        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
+        self.addCleanup(get_recommender_uuid_patcher.stop)
+        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
+        mock_get_recommender_uuid.return_value = ""
+        
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
@@ -119,8 +133,15 @@ class TestCatView(unittest.TestCase):
         
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
-           '.query_submit_profile')
+           '.post_submit_profile')
     def test_subcatview_recommended_for_you_display_recommendations(self, mock_query):
+    
+        # patch the recommender UUID value to insure that we are not opted-in for this test
+        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
+        self.addCleanup(get_recommender_uuid_patcher.stop)
+        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
+        mock_get_recommender_uuid.return_value = ""
+        
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
