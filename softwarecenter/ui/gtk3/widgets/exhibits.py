@@ -126,7 +126,7 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
         if view.get_property("load-status") ==  WebKit.LoadStatus.FINISHED:
             # this needs to run with a timeout because otherwise the 
             # status is emited before the offscreen image is finihsed
-            GObject.timeout_add(1, lambda: self.emit("render-finished"))
+            GObject.timeout_add(100, lambda: self.emit("render-finished"))
 
     def on_download_error(self, loader, exception, error):
         LOG.warn("download failed: '%s', '%s'" % (exception, error))

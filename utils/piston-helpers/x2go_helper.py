@@ -9,10 +9,10 @@ def connect(server, port, login, password, session):
         port=int(port),
         username=login,
         add_to_known_hosts=True,
-        cmd="WEBLIVE",
-        geometry="1024x600"
+        cmd="weblive-session %s" % session,
+        geometry="1024x600",
+        session_type="desktop"
     )
-    x2go.defaults.X2GO_DESKTOPSESSIONS['WEBLIVE']="/usr/local/bin/weblive-session %s" % session
 
     print "PROGRESS: connecting"
     try:

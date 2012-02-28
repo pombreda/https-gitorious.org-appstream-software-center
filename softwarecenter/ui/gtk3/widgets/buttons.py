@@ -436,7 +436,7 @@ class ChannelSelector(Gtk.Button):
             else:
                 tmpx = a.x + a.width - self.popup.get_allocation().width
             x, y = window.get_root_coords(tmpx,
-                                          a.y + a.height + 1)
+                                          a.y + a.height)
             return (x, y, False)
 
         a = self.section_button.get_allocation()
@@ -451,18 +451,9 @@ class ChannelSelector(Gtk.Button):
 
     def build_channel_selector(self):
         self.popup = Gtk.Menu()
+        self.popup.set_name('toolbar-popup')  # to set 'padding: 0;'
+        self.popup.get_style_context().add_class('primary-toolbar')
         self.build_func(self.popup)
-        self.popup.attach_to_widget(self, None)
-        # draw themed bg for the popup menu to workaround bug
-        #  #921477 - that looks like its actually a theme bug
-        context = self.get_ancestor('GtkToolbar').get_style_context()
-        color = context.get_border_color(Gtk.StateFlags.ACTIVE)
-        def draw(widget, cr):
-            a = widget.get_allocation()
-            cr.set_source_rgba(color.red, color.green, color.blue, color.alpha)
-            cr.rectangle(0, 0, a.width, a.height)
-            cr.fill()
-        self.popup.connect('draw', draw)
         return
 
 
