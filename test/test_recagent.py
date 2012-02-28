@@ -13,7 +13,6 @@ setup_test_env()
 from softwarecenter.backend.recagent import RecommenderAgent
 
 from softwarecenter.testutils import (
-    make_recommender_profile_upload_data, 
     get_test_db
 )
 
