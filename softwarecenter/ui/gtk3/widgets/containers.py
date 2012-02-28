@@ -537,12 +537,6 @@ class FramedHeaderBox(FramedBox):
     def pack_end(self, *args, **kwargs):
         return self.content_box.pack_end(*args, **kwargs)
         
-    def show_spinner(self, msg=""):
-        self.spinner_notebook.show_spinner(msg)
-            
-    def hide_spinner(self):
-        self.spinner_notebook.hide_spinner()
-
     # XXX: non-functional with current code...
     #~ def set_header_expand(self, expand):
         #~ alignment = self.header_alignment
