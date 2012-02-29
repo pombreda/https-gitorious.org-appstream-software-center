@@ -136,8 +136,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self._upload_user_profile()
         
     def _upload_user_profile(self):
-        self.spinner.set_text(_("Submitting inventory…"))
-        self.show_spinner()
+        self.spinner_notebook.show_spinner(_("Submitting inventory…"))
         self.recommender_agent.connect("submit-profile-finished",
                                   self._on_profile_submitted)
         self.recommender_agent.connect("error",
@@ -160,8 +159,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         
     def _update_recommended_for_you_content(self):
         self.recommended_for_you_content = FlowableGrid()
-        self.spinner.set_text(_("Receiving recommendations…"))
-        self.show_spinner()
+        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.recommended_for_you_cat = RecommendedForYouCategory()
         self.recommended_for_you_cat.connect(
@@ -178,7 +176,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
             self.catview._add_tiles_to_flowgrid(docs,
                                         self.recommended_for_you_content, 8)
             self.recommended_for_you_content.show_all()
-            self.show_content()
+            self.spinner_notebook.hide_spinner()
             self.more.connect('clicked',
                               self.catview.on_category_clicked,
                               cat)
@@ -275,8 +273,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
 
     def _update_app_recommendations_content(self):
         self.app_recommendations_content.remove_all()
-        self.spinner.set_text(_("Receiving recommendations…"))
-        self.show_spinner()
+        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.app_recommendations_cat = AppRecommendationsCategory(self.pkgname)
         self.app_recommendations_cat.connect(
@@ -292,7 +289,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
             self.catview._add_tiles_to_flowgrid(docs,
                                         self.app_recommendations_content, 8)
             self.app_recommendations_content.show_all()
-            self.show_content()
+            self.spinner_notebook.hide_spinner()
         else:
             self._hide_app_recommendations_panel()
         return

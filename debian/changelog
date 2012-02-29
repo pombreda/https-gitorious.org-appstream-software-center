@@ -3,14 +3,23 @@ software-center (5.1.11) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * softwarecenter/ui/gtk3/views/appdetailsview.py:
     - only set vadj/hadj if we have the objects for it (LP: #941384)
-      already supported 'X-AppInstall-Keywords' entries
   * lp:~mvo/software-center/get-installed-apps-instead-of-pkgs:
     - refactor to move the recommender UUID code into the back end,
       add a mock test for the submit_profile call to the server
+  * lp:~mvo/software-center/region-blacklist:
+    - add support for filtering out apps that are blacklisted for certain
+      regions such that they will not appear in any searches anymore
+  * lp:~mvo/software-center/installed-view-speedup:
+    - remove an unused notebook in the installed view to speed up
+      opening software center with an already installed package
+  * lp:~mvo/software-center/spinner-fixes:
+    - consolidate various instances of the spinner notebook and instead
+      use a single SpinnerNotebook class everywhere
   
   [ Kiwinote ]
   * softwarecenter/db/update.py:
     - index 'Keywords' entries from desktop files in addition to the
+      already supported 'X-AppInstall-Keywords' entries
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - increase delay between the 'load-finished' signal from webkit and us
       actually trying to get a pixbuf of the surface - this means that the
@@ -27,7 +36,7 @@ software-center (5.1.11) UNRELEASED; urgency=low
     - unit test and other small needed fixes, further simplification of
       the recommender UUID code 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 28 Feb 2012 17:16:45 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Feb 2012 11:55:07 -0500
 
 software-center (5.1.10) precise; urgency=low
 
