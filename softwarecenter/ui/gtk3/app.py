@@ -466,7 +466,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     #~ def on_installed_pane_created(self, widget):
         #~ pass
         
-    def _on_recommendations_opt_in(self, recommender_uuid):
+    def _on_recommendations_opt_in(self, agent, recommender_uuid):
         self.recommender_uuid = recommender_uuid
     
     def _on_recommendations_opt_out(self):
@@ -1175,8 +1175,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 # if the pkg is installed, show it in the installed pane
                 if (app.pkgname in self.cache and 
                     self.cache[app.pkgname].installed):
-                    self.installed_pane.init_view()
-                    self.installed_pane.show_app(app)
+                    with ExecutionTime("installed_pane.init_view()"):
+                        self.installed_pane.init_view()
+                    with ExecutionTime("installed_pane.show_app()"):
+                        self.installed_pane.show_app(app)
                 else:
                     self.available_pane.init_view()
                     self.available_pane.show_app(app)

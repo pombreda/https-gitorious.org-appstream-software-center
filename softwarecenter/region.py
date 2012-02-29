@@ -36,6 +36,8 @@ REGION_WARNING_STRING = _("Sorry, this software is not available in your "
 # the prefix tag for regions that the software is most useful in
 REGIONTAG = "iso3166::"
 
+# blacklist this region
+REGION_BLACKLIST_TAG = "blacklist-iso3166::"
 
 def get_region_name(countrycode):
     """ return translated region name from countrycode using iso3166 """
