@@ -153,7 +153,7 @@ class RecommendedForYouCategory(Category):
 
     def _recommend_me_result(self, recommender_agent, result_list):
         pkgs = []
-        for item in result_list['recommendations']:
+        for item in result_list['data']:
             pkgs.append(item['package_name'])
         self.query = get_query_for_pkgnames(pkgs)
         self.emit("needs-refresh")
