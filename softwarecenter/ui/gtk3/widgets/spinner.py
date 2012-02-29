@@ -16,9 +16,10 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-
 import gi
 gi.require_version("Gtk", "3.0")
+import os
+
 from gi.repository import Gtk, GObject
 
 from softwarecenter.paths import IMAGE_LOADING_INSTALLED
@@ -93,18 +94,60 @@ class SpinnerView(Gtk.Viewport):
         """
         self.spinner_label.set_markup('<big>%s</big>' % spinner_text)
 
+class SpinnerNotebook(Gtk.Notebook):
+    """ this provides a Gtk.Notebook that contains a content page
+        and a spinner page.
+    """
 
-def get_test_spinner_window():        
-    spinner_view = SpinnerView()
-    spinner_view.start()
+
+    (CONTENT_PAGE, 
+     SPINNER_PAGE) = range(2)
+
+    def __init__(self, content, msg=""):
+        Gtk.Notebook.__init__(self)
+        self.spinner_view = SpinnerView(msg)
+        # its critical to show() the spinner early as otherwise
+        # gtk_notebook_set_active_page() will not switch to it
+        self.spinner_view.show() 
+        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+            self.set_show_tabs(False)
+        self.set_show_border(False)
+        self.append_page(content, Gtk.Label("content"))
+        self.append_page(self.spinner_view, Gtk.Label("spinner"))
+
+    def _unmask_view_spinner(self):
+        # FIXME: if we want to "mask" the spinner, shouldn't we use 
+        #        show/hide for this as well?
+        self.spinner_view.start()
+        return False
+
+    def show_spinner(self, msg=""):
+        """ show the spinner page with a alternative message """
+        if msg:
+            self.spinner_view.set_text(msg)
+        # "mask" the spinner view momentarily to prevent it from flashing into
+        # view in the case of short delays where it isn't actually needed
+        GObject.timeout_add(100, self._unmask_view_spinner)
+        self.set_current_page(self.SPINNER_PAGE)
+        self.spinner_view.start()
+
+    def hide_spinner(self):
+        """ hide the spinner page again and show the content page """
+        self.spinner_view.stop()
+        self.set_current_page(self.CONTENT_PAGE)
+
+def get_test_spinner_window():  
+    label = Gtk.Label("foo")
+    spinner_notebook = SpinnerNotebook(label, "random msg")
     
     window = Gtk.Window()
-    window.add(spinner_view)
+    window.add(spinner_notebook)
     window.set_size_request(600, 500)
     window.set_position(Gtk.WindowPosition.CENTER)
     window.show_all()    
     window.connect('destroy', Gtk.main_quit)
-    spinner_view.set_text("Loading...")
+    spinner_notebook.show_spinner("Loading for 1s ...")
+    GObject.timeout_add_seconds(1, lambda: spinner_notebook.hide_spinner())
     return window
 
 if __name__ == "__main__":
