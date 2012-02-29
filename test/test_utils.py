@@ -124,6 +124,42 @@ class TestSCUtils(unittest.TestCase):
         uuid = get_uuid()
         self.assertTrue(uuid and len(uuid) > 0)
 
+class TestExpungeCache(unittest.TestCase):
+
+    def test_expunge_cache(self):
+        import subprocess
+        import tempfile
+        dirname = tempfile.mkdtemp('s-c-testsuite')
+        for name, content in [ ("foo-301", "status: 301"),
+                               ("foo-200", "status: 200"),
+                               ("foo-random", "random"),
+                             ]:
+            fullpath = os.path.join(dirname, name)
+            open(fullpath, "w").write(content)
+            # set to 1970+1s time to ensure the cleaner finds it
+            os.utime(fullpath, (1,1))
+        res = subprocess.call(["../utils/expunge-cache.py", dirname])
+        # no arguments
+        self.assertEqual(res, 1)
+        # by status
+        res = subprocess.call(["../utils/expunge-cache.py",
+                               "--debug",
+                               "--by-unsuccessful-http-states",
+                               dirname])
+        self.assertFalse(os.path.exists(os.path.join(dirname, "foo-301")))
+        self.assertTrue(os.path.exists(os.path.join(dirname, "foo-200")))
+        self.assertTrue(os.path.exists(os.path.join(dirname, "foo-random")))
+
+        # by time 
+        res = subprocess.call(["../utils/expunge-cache.py",
+                               "--debug",
+                               "--by-days", "1",
+                               dirname])
+        # now we expect the old file to be gone but the unknown one not to
+        # be touched
+        self.assertFalse(os.path.exists(os.path.join(dirname, "foo-200")))
+        self.assertTrue(os.path.exists(os.path.join(dirname, "foo-random")))
+
 
 if __name__ == "__main__":
     import logging
