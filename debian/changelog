@@ -17,6 +17,9 @@ software-center (5.1.11) UNRELEASED; urgency=low
   * lp:~mvo/software-center/spinner-fixes:
     - consolidate various instances of the spinner notebook and instead
       use a single SpinnerNotebook class everywhere
+  * lp:~mvo/software-center/recommender-fixes:
+    - tiny fixes to make the recommendations-for-you actually work
+      with the rec.ubuntu.com server
   
   [ Kiwinote ]
   * softwarecenter/db/update.py:
@@ -38,7 +41,7 @@ software-center (5.1.11) UNRELEASED; urgency=low
     - unit test and other small needed fixes, further simplification of
       the recommender UUID code 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Feb 2012 11:55:07 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Feb 2012 16:30:08 -0500
 
 software-center (5.1.10) precise; urgency=low
 
