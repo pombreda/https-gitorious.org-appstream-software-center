@@ -10,6 +10,9 @@ software-center (5.1.11) UNRELEASED; urgency=low
   * lp:~mvo/software-center/region-blacklist:
     - add support for filtering out apps that are blacklisted for certain
       regions such that they will not appear in any searches anymore
+  * lp:~mvo/software-center/installed-view-speedup:
+    - remove an unused notebook in the installed view to speed up
+      opening software center with an already installed package
   
   [ Kiwinote ]
   * softwarecenter/db/update.py:
@@ -30,7 +33,7 @@ software-center (5.1.11) UNRELEASED; urgency=low
     - unit test and other small needed fixes, further simplification of
       the recommender UUID code 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 28 Feb 2012 17:35:25 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Feb 2012 02:15:57 -0500
 
 software-center (5.1.10) precise; urgency=low
 
