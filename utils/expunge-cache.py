@@ -10,6 +10,41 @@ import os
 import time
 import sys
 
+class ExpungeCache(object):
+    def __init__(self, dirs, args):
+        self.dirs = dirs
+        # days to keep data in the cache (0 == disabled)
+        self.keep_time = 60*60*24* args.by_days
+        self.keep_only_http200 = args.by_unsuccessful_http_states
+        self.dry_run = args.dry_run
+
+    def _rm(self, f):
+        if self.dry_run:
+            print "Would delete: %s" % f
+        else:
+            logging.debug("Deleting: %s" % f)
+            os.unlink(f)
+
+    def clean(self):
+        # go over the directories
+        now = time.time()
+        for d in self.dirs:
+            for root, dirs, files in os.walk(d):
+                for f in files:
+                    fullpath = os.path.join(root, f)
+                    header = open(fullpath).readline().strip()
+                    if not header.startswith("status:"):
+                        logging.debug(
+                            "Skipping files with unknown header: '%s'" % f)
+                        continue
+                    if self.keep_only_http200 and header != "status: 200":
+                        self._rm(fullpath)
+                    if self.keep_time:
+                        mtime = os.path.getmtime(fullpath)
+                        logging.debug("mtime of '%s': '%s" % (f, mtime))
+                        if (mtime + self.keep_time) < now:
+                            self._rm(fullpath)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='clean software-center httplib2 cache')
@@ -35,33 +70,11 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(level=logging.INFO)
 
-    # the time to keep stuff in the cache
-    KEEP_TIME = 60*60*24* args.by_days
-
-    if KEEP_TIME == 0 and not args.by_unsuccessful_http_states:
+    # sanity checking
+    if args.by_days == 0 and not args.by_unsuccessful_http_states:
         print "Need either --by-days or --by-unsuccessful-http-states argument"
         sys.exit(1)
 
-    # go over the directories
-    now = time.time()
-    for d in args.directories:
-        for root, dirs, files in os.walk(d):
-            for f in files:
-                needs_rm = False
-                header = open(os.path.join(root, f)).readline().strip()
-                if not header.startswith("status:"):
-                    logging.debug(
-                        "Skipping files with unknown header: '%s'" % f)
-                    continue
-                if (args.by_unsuccessful_http_states and
-                    header != "status: 200"):
-                    needs_rm = True
-                if (KEEP_TIME and
-                    os.path.getmtime(os.path.join(root, f)) + KEEP_TIME < now):
-                    needs_rm = true
-                if needs_rm:
-                    if args.dry_run:
-                        print "Would delete: %s" % f
-                    else:
-                        logging.debug("Deleting: %s" % f)
-                        os.unlink(os.path.join(root,f))
+    # do it
+    cleaner = ExpungeCache(args.directories, args)
+    cleaner.clean()

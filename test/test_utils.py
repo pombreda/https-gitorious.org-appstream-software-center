@@ -134,7 +134,10 @@ class TestExpungeCache(unittest.TestCase):
                                ("foo-200", "status: 200"),
                                ("foo-random", "random"),
                              ]:
-            open(os.path.join(dirname, name), "w").write(content)
+            fullpath = os.path.join(dirname, name)
+            open(fullpath, "w").write(content)
+            # set to 1970+1s time to ensure the cleaner finds it
+            os.utime(fullpath, (1,1))
         res = subprocess.call(["../utils/expunge-cache.py", dirname])
         # no arguments
         self.assertEqual(res, 1)
@@ -145,6 +148,16 @@ class TestExpungeCache(unittest.TestCase):
                                dirname])
         self.assertFalse(os.path.exists(os.path.join(dirname, "foo-301")))
         self.assertTrue(os.path.exists(os.path.join(dirname, "foo-200")))
+        self.assertTrue(os.path.exists(os.path.join(dirname, "foo-random")))
+
+        # by time 
+        res = subprocess.call(["../utils/expunge-cache.py",
+                               "--debug",
+                               "--by-days", "1",
+                               dirname])
+        # now we expect the old file to be gone but the unknown one not to
+        # be touched
+        self.assertFalse(os.path.exists(os.path.join(dirname, "foo-200")))
         self.assertTrue(os.path.exists(os.path.join(dirname, "foo-random")))
 
 
