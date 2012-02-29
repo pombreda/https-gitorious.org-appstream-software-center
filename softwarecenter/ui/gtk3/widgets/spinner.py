@@ -116,8 +116,7 @@ class SpinnerNotebook(Gtk.Notebook):
         self.append_page(self.spinner_view, Gtk.Label("spinner"))
 
     def _unmask_view_spinner(self):
-        # FIXME: if we want to "mask" the spinner, shouldn't we use 
-        #        show/hide for this as well?
+        # start is actually start_and_show()
         self.spinner_view.start()
         return False
 
@@ -127,9 +126,9 @@ class SpinnerNotebook(Gtk.Notebook):
             self.spinner_view.set_text(msg)
         # "mask" the spinner view momentarily to prevent it from flashing into
         # view in the case of short delays where it isn't actually needed
+        self.spinner_view.stop()
         GObject.timeout_add(100, self._unmask_view_spinner)
         self.set_current_page(self.SPINNER_PAGE)
-        self.spinner_view.start()
 
     def hide_spinner(self):
         """ hide the spinner page again and show the content page """
