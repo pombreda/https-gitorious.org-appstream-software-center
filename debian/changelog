@@ -3,7 +3,6 @@ software-center (5.1.11) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * softwarecenter/ui/gtk3/views/appdetailsview.py:
     - only set vadj/hadj if we have the objects for it (LP: #941384)
-      already supported 'X-AppInstall-Keywords' entries
   * lp:~mvo/software-center/get-installed-apps-instead-of-pkgs:
     - refactor to move the recommender UUID code into the back end,
       add a mock test for the submit_profile call to the server
@@ -17,6 +16,7 @@ software-center (5.1.11) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/db/update.py:
     - index 'Keywords' entries from desktop files in addition to the
+      already supported 'X-AppInstall-Keywords' entries
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - increase delay between the 'load-finished' signal from webkit and us
       actually trying to get a pixbuf of the surface - this means that the
