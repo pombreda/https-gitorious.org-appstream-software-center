@@ -374,6 +374,13 @@ class StoreDatabase(GObject.GObject):
                 pass
         return summary
 
+    def get_application(self, doc):
+        """ Return a application from a xapian document """
+        appname = self.get_appname(doc)
+        pkgname = self.get_pkgname(doc)
+        iconname = self.get_iconname(doc)
+        return Application(appname, pkgname, iconname)
+
     def get_pkgname(self, doc):
         """ Return a packagename from a xapian document """
         pkgname = doc.get_value(XapianValues.PKGNAME)
