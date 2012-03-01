@@ -1,4 +1,4 @@
-software-center (5.1.11) UNRELEASED; urgency=low
+software-center (5.1.11) precise; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/ui/gtk3/views/appdetailsview.py:
@@ -49,7 +49,7 @@ software-center (5.1.11) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/lobby-recommends-fixes: 
     - fix recommender opt-in
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Feb 2012 17:50:20 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 01 Mar 2012 20:11:27 +0100
 
 software-center (5.1.10) precise; urgency=low
 
