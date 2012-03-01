@@ -24,6 +24,8 @@ software-center (5.1.11) UNRELEASED; urgency=low
     - add a helper that keeps the cache clean from cached 301/404 etc
       responses, it also offers cleanup by mtime but that is currently
       not used (only tested)
+  * lp:~mvo/software-center/lobby-recommends-fixes:
+    - add test for recommender-opt-in behavior
   
   [ Kiwinote ]
   * softwarecenter/db/update.py:
@@ -44,6 +46,8 @@ software-center (5.1.11) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/get-installed-apps-instead-of-pkgs-tweaks:
     - unit test and other small needed fixes, further simplification of
       the recommender UUID code 
+  * lp:~gary-lasker/software-center/lobby-recommends-fixes: 
+    - fix recommender opt-in
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Feb 2012 17:50:20 -0500
 
