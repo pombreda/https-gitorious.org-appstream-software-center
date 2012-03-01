@@ -1,4 +1,4 @@
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 import time
 import unittest
 from mock import patch
@@ -128,9 +128,19 @@ class TestCatView(unittest.TestCase):
         from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
         self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.SPINNER)
         self.assertTrue(rec_panel.opt_in_vbox.get_property("visible"))
-        self.assertTrue(rec_panel.spinner.spinner_label)
-        win.destroy()
-        
+        # now pretent that we got data and ensure its displayed
+        rec_panel._update_recommended_for_you_content()
+        rec_panel.recommended_for_you_cat._recommend_me_result(
+            None, make_recommender_agent_recommend_me_dict())
+        self._p()
+        self.assertTrue(rec_panel.recommended_for_you_content.get_property("visible"))
+        self.assertFalse(rec_panel.opt_in_vbox.get_property("visible"))
+
+        # exit after brief timeout
+        TIMEOUT=100
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
+
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.post_submit_profile')
@@ -180,5 +190,5 @@ class TestCatView(unittest.TestCase):
 
 if __name__ == "__main__":
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()

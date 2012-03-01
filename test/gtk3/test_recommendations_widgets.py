@@ -18,6 +18,9 @@ from softwarecenter.ui.gtk3.widgets.labels import (
 # window destory timeout
 TIMEOUT=100
 
+# FIXME: the code from test_catview that tests the lobby widget should
+#        move here as it should be fine to test it in isolation
+
 class TestRecommendationsWidgets(unittest.TestCase):
 
     def test_recommendations_widgets(self):
