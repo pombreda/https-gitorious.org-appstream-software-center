@@ -86,14 +86,14 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         else:
             self._show_opt_in_view()
             
-        self.add(self.recommended_for_you_content)
-
     def _show_opt_in_view(self):
         # opt in box
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
         vbox.set_border_width(StockEms.LARGE)
         self.opt_in_vbox = vbox  # for tests
         self.recommended_for_you_content = vbox  # hook it up to the rest
+        
+        self.add(self.recommended_for_you_content)
 
         # opt in button
         button = Gtk.Button(_("Turn On Recommendations"))
@@ -149,6 +149,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
     def _update_recommended_for_you_content(self):
         if self.opt_in_vbox:
             self.opt_in_vbox.hide()
+        self.header_implements_more_button()
         self.recommended_for_you_content = FlowableGrid()
         self.add(self.recommended_for_you_content)
         self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
@@ -164,7 +165,6 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         docs = cat.get_documents(self.catview.db)
         # display the recommendedations
         if len(docs) > 0:
-            self.header_implements_more_button()
             self.catview._add_tiles_to_flowgrid(docs,
                                         self.recommended_for_you_content, 8)
             self.recommended_for_you_content.show_all()
