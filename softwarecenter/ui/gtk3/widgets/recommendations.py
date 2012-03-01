@@ -80,7 +80,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         
         # if we already have a recommender UUID, then the user is already
         # opted-in to the recommender service
-        self.opt_in_vbox = None
+        self.recommended_for_you_content = None
         if self.recommender_agent.recommender_uuid:
             self._update_recommended_for_you_content()
         else:
@@ -147,8 +147,11 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self._hide_recommended_for_you_panel()
         
     def _update_recommended_for_you_content(self):
-        if self.opt_in_vbox:
-            self.opt_in_vbox.hide()
+        # destroy the old content to ensure we don't see it twice
+        # (also removes the opt-in panel if it was there)
+        if self.recommended_for_you_content:
+            self.recommended_for_you_content.destroy()
+        # add the new stuff
         self.header_implements_more_button()
         self.recommended_for_you_content = FlowableGrid()
         self.add(self.recommended_for_you_content)

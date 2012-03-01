@@ -135,7 +135,6 @@ class TestCatView(unittest.TestCase):
         self._p()
         self.assertTrue(rec_panel.recommended_for_you_content.get_property("visible"))
         self.assertFalse(rec_panel.opt_in_vbox.get_property("visible"))
-
         # exit after brief timeout
         TIMEOUT=100
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
