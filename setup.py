@@ -94,6 +94,8 @@ setup(name="software-center", version=VERSION,
                "utils/update-software-center",
                "utils/update-software-center-channels",
                "utils/update-software-center-agent",
+               # generic helpers
+               "utils/expunge-cache.py",
                ] + glob.glob("utils/piston-helpers/*.py"),
       packages=['softwarecenter',
                 'softwarecenter.backend',

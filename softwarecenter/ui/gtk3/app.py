@@ -390,6 +390,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             # running the agent will trigger a db reload so we do it later
             GObject.timeout_add_seconds(30, self._run_software_center_agent)
 
+
+        # keep the cache clean
+        GObject.timeout_add_seconds(15, self._run_expunge_cache_helper)
+
         # TODO: Remove the following two lines once we have remove repository
         #       support in aptdaemon (see LP: #723911)
         file_menu = self.builder.get_object("menu1")
@@ -418,6 +422,16 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
         GObject.child_watch_add(
             pid, self._on_update_software_center_agent_finished)
+
+    def _run_expunge_cache_helper(self):
+        """ helper that expires the piston-mini-client cache """
+        sc_expunge_cache = os.path.join(
+            self.datadir, "expunge-cache.py")
+        (pid, stdin, stdout, stderr) = GObject.spawn_async(
+            [sc_expunge_cache, 
+             "--by-unsuccessful-http-states",
+             softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR,
+             ])
 
     def _rebuild_and_reopen_local_db(self, pathname):
         """ helper that rebuilds a db and reopens it """

@@ -118,6 +118,7 @@ class AvailablePane(SoftwarePane):
             return
 
         self.show_appview_spinner()
+
         window = self.get_window()
         if window is not None:
             window.set_cursor(self.busy_cursor)

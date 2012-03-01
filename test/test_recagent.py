@@ -60,8 +60,7 @@ class TestRecommenderAgent(unittest.TestCase):
         self.loop.quit()
         self.error = True
         
-    # FIXME: disabled for now as the server is not quite working
-    def disabled_test_recagent_query_server_status(self):
+    def test_recagent_query_server_status(self):
         # NOTE: This requires a working recommender host that is reachable
         recommender_agent = RecommenderAgent()
         recommender_agent.connect("server-status", self.on_query_done)
