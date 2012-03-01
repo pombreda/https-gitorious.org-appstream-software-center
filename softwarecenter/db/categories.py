@@ -194,9 +194,8 @@ class RecommendedForYouInCatCategory(Category):
 
     def _recommend_me_result(self, recommender_agent, result_list):
         pkgs = []
-        for item in result_list['recommendations']:
+        for item in result_list['data']:
             pkgs.append(item['package_name'])
-            
         self.query = xapian.Query(xapian.Query.OP_AND,
                                   get_query_for_pkgnames(pkgs),
                                   self.category.query)

@@ -29,7 +29,7 @@ from softwarecenter.db.categories import (RecommendedForYouCategory,
                                           RecommendedForYouInCatCategory,
                                           AppRecommendationsCategory)
 from softwarecenter.backend.recagent import RecommenderAgent
-
+from softwarecenter.config import get_config
 
 LOG = logging.getLogger(__name__)
 
@@ -217,8 +217,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
 
     def _update_recommended_for_you_in_cat_content(self):
         self.recommended_for_you_in_cat_content = FlowableGrid()
-        self.spinner.set_text(_("Receiving recommendations…"))
-        self.show_spinner()
+        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.recommended_for_you_cat = RecommendedForYouInCatCategory(
                                                             self.category)

@@ -559,7 +559,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
     def _update_recommended_for_you_in_cat_content(self, category):
         if (self.recommended_for_you_in_cat and
             self.recommended_for_you_in_cat.get_parent()):
-            self.bottom_hbox.remove(self.recommended_for_you_in_cat)
+            self.vbox.remove(self.recommended_for_you_in_cat)
         self.recommended_for_you_in_cat = RecommendationsPanelCategory(self,
                                                                        category)
         # only show the panel in the categories view when the user
