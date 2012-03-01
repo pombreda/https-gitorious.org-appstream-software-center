@@ -85,7 +85,7 @@ class TestSCUtils(unittest.TestCase):
 
     def test_no_display_desktop_file(self):
         from softwarecenter.utils import is_no_display_desktop_file
-        d = "/usr/share/app-install/desktop/wine1.3:wine.desktop"
+        d = "/usr/share/app-install/desktop/wine1.4:wine.desktop"
         self.assertTrue(is_no_display_desktop_file(d))
         d = "/usr/share/app-install/desktop/software-center:ubuntu-software-center.desktop"
         self.assertFalse(is_no_display_desktop_file(d))

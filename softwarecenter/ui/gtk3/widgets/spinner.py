@@ -22,8 +22,6 @@ import os
 
 from gi.repository import Gtk, GObject
 
-from softwarecenter.paths import IMAGE_LOADING_INSTALLED
-
 class SpinnerView(Gtk.Viewport):
     """
     a panel that contains a spinner preset to a standard size and centered

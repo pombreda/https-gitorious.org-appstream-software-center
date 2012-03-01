@@ -20,7 +20,6 @@
 from gi.repository import GObject
 from gi.repository import Gtk, Gdk
 
-import os
 import logging
 import datetime
 
