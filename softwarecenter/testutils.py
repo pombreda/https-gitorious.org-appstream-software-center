@@ -194,7 +194,7 @@ def make_software_center_agent_subscription_dict(app_dict):
 def make_recommender_agent_recommend_me_dict():
     # best to have a list of likely not-installed items
     app_dict = {
-        u'recommendations': [
+        u'data': [
             {
                 u'package_name': u'clementine'
             }, 

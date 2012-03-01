@@ -80,7 +80,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         
         # if we already have a recommender UUID, then the user is already
         # opted-in to the recommender service
-        self.opt_in_vbox = None
+        self.recommended_for_you_content = None
         if self.recommender_agent.recommender_uuid:
             self._update_recommended_for_you_content()
         else:
@@ -147,8 +147,11 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self._hide_recommended_for_you_panel()
         
     def _update_recommended_for_you_content(self):
-        if self.opt_in_vbox:
-            self.opt_in_vbox.hide()
+        # destroy the old content to ensure we don't see it twice
+        # (also removes the opt-in panel if it was there)
+        if self.recommended_for_you_content:
+            self.recommended_for_you_content.destroy()
+        # add the new stuff
         self.header_implements_more_button()
         self.recommended_for_you_content = FlowableGrid()
         self.add(self.recommended_for_you_content)
@@ -238,14 +241,29 @@ class RecommendationsPanelDetails(RecommendationsPanel):
         self.hide()
     
 
-
-def get_test_window_recommendations_panel_lobby():
+# test helpers
+def get_test_window():
     import softwarecenter.log
     softwarecenter.log.root.setLevel(level=logging.DEBUG)
     fmt = logging.Formatter("%(name)s - %(message)s", None)
     softwarecenter.log.handler.setFormatter(fmt)
     
-    view = RecommendationsPanelLobby()
+
+    # this is *way* to complicated we should *not* need a CatView
+    # here! see FIXME in RecommendationsPanel.__init__()
+    from softwarecenter.ui.gtk3.views.catview_gtk import CategoriesViewGtk
+    from softwarecenter.testutils import (
+        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache)
+    cache = get_test_pkg_info()
+    db = get_test_db()
+    icons = get_test_gtk3_icon_cache()
+    catview = CategoriesViewGtk(softwarecenter.paths.datadir,
+                                softwarecenter.paths.APP_INSTALL_PATH,
+                                cache, 
+                                db,
+                                icons)
+
+    view = RecommendationsPanelLobby(catview)
 
     win = Gtk.Window()
     win.connect("destroy", lambda x: Gtk.main_quit())
@@ -258,5 +276,5 @@ def get_test_window_recommendations_panel_lobby():
     
 
 if __name__ == "__main__":
-    win = get_test_window_recommendations_panel_lobby()
+    win = get_test_window()
     Gtk.main()
