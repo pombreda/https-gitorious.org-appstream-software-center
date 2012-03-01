@@ -188,6 +188,6 @@ class TestCatView(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    import logging
+    #import logging
     #logging.basicConfig(level=logging.DEBUG)
     unittest.main()
