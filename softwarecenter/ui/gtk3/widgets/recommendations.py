@@ -80,6 +80,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         
         # if we already have a recommender UUID, then the user is already
         # opted-in to the recommender service
+        self.opt_in_vbox = None
         if self.recommender_agent.recommender_uuid:
             self._update_recommended_for_you_content()
         else:
@@ -146,7 +147,10 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self._hide_recommended_for_you_panel()
         
     def _update_recommended_for_you_content(self):
+        if self.opt_in_vbox:
+            self.opt_in_vbox.hide()
         self.recommended_for_you_content = FlowableGrid()
+        self.add(self.recommended_for_you_content)
         self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.recommended_for_you_cat = RecommendedForYouCategory()
