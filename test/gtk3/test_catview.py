@@ -1,4 +1,4 @@
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 import time
 import unittest
 from mock import patch
@@ -129,7 +129,7 @@ class TestCatView(unittest.TestCase):
         self.assertTrue(rec_panel.spinner_notebook.get_current_page() == SpinnerNotebook.SPINNER_PAGE)
         self.assertTrue(rec_panel.opt_in_vbox.get_property("visible"))
         win.destroy()
-        
+
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.post_submit_profile')
@@ -254,6 +254,6 @@ class TestCatView(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
+    #import logging
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()

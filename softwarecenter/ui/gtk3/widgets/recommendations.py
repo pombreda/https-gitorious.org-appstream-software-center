@@ -92,19 +92,20 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         
         # if we already have a recommender UUID, then the user is already
         # opted-in to the recommender service
+        self.recommended_for_you_content = None
         if self.recommender_agent.recommender_uuid:
             self._update_recommended_for_you_content()
         else:
             self._show_opt_in_view()
             
-        self.add(self.recommended_for_you_content)
-
     def _show_opt_in_view(self):
         # opt in box
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
         vbox.set_border_width(StockEms.LARGE)
         self.opt_in_vbox = vbox  # for tests
         self.recommended_for_you_content = vbox  # hook it up to the rest
+        
+        self.add(self.recommended_for_you_content)
 
         # opt in button
         button = Gtk.Button(_("Turn On Recommendations"))
@@ -158,7 +159,14 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self._hide_recommended_for_you_panel()
         
     def _update_recommended_for_you_content(self):
+        # destroy the old content to ensure we don't see it twice
+        # (also removes the opt-in panel if it was there)
+        if self.recommended_for_you_content:
+            self.recommended_for_you_content.destroy()
+        # add the new stuff
+        self.header_implements_more_button()
         self.recommended_for_you_content = FlowableGrid()
+        self.add(self.recommended_for_you_content)
         self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.recommended_for_you_cat = RecommendedForYouCategory()
@@ -172,7 +180,6 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         docs = cat.get_documents(self.catview.db)
         # display the recommendedations
         if len(docs) > 0:
-            self.header_implements_more_button()
             self.catview._add_tiles_to_flowgrid(docs,
                                         self.recommended_for_you_content, 8)
             self.recommended_for_you_content.show_all()
@@ -304,14 +311,29 @@ class RecommendationsPanelDetails(RecommendationsPanel):
         self.hide()
     
 
-
-def get_test_window_recommendations_panel_lobby():
+# test helpers
+def get_test_window():
     import softwarecenter.log
     softwarecenter.log.root.setLevel(level=logging.DEBUG)
     fmt = logging.Formatter("%(name)s - %(message)s", None)
     softwarecenter.log.handler.setFormatter(fmt)
     
-    view = RecommendationsPanelLobby()
+
+    # this is *way* to complicated we should *not* need a CatView
+    # here! see FIXME in RecommendationsPanel.__init__()
+    from softwarecenter.ui.gtk3.views.catview_gtk import CategoriesViewGtk
+    from softwarecenter.testutils import (
+        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache)
+    cache = get_test_pkg_info()
+    db = get_test_db()
+    icons = get_test_gtk3_icon_cache()
+    catview = CategoriesViewGtk(softwarecenter.paths.datadir,
+                                softwarecenter.paths.APP_INSTALL_PATH,
+                                cache, 
+                                db,
+                                icons)
+
+    view = RecommendationsPanelLobby(catview)
 
     win = Gtk.Window()
     win.connect("destroy", lambda x: Gtk.main_quit())
@@ -324,5 +346,5 @@ def get_test_window_recommendations_panel_lobby():
     
 
 if __name__ == "__main__":
-    win = get_test_window_recommendations_panel_lobby()
+    win = get_test_window()
     Gtk.main()
