@@ -236,7 +236,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
                                     docs,
                                     self.recommended_for_you_in_cat_content, 8)
             self.recommended_for_you_in_cat_content.show_all()
-            self.show_content()
+            self.spinner_notebook.hide_spinner()
             self.more.connect('clicked',
                               self.catview.on_category_clicked,
                               cat)
