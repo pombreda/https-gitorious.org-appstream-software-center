@@ -125,10 +125,9 @@ class TestCatView(unittest.TestCase):
         # click the opt-in button to initiate the process, this will show the spinner
         rec_panel.opt_in_button.emit('clicked')
         self._p()
-        from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
-        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.SPINNER)
+        from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
+        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == SpinnerNotebook.SPINNER_PAGE)
         self.assertTrue(rec_panel.opt_in_vbox.get_property("visible"))
-        self.assertTrue(rec_panel.spinner.spinner_label)
         win.destroy()
         
     # patch out the agent query method to avoid making the actual server call
@@ -159,8 +158,8 @@ class TestCatView(unittest.TestCase):
                                 make_recommender_agent_recommend_me_dict())
         self.assertNotEqual(
                 lobby.recommended_for_you_panel.recommended_for_you_cat.get_documents(self.db), [])
-        from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
-        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
+        from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
+        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == SpinnerNotebook.CONTENT_PAGE)
         self._p()
         # test clicking recommended_for_you More button
         lobby.connect("category-selected", self._on_category_selected)
@@ -231,8 +230,8 @@ class TestCatView(unittest.TestCase):
         # to the following Internet items:
         #   Mangler, Midori, Midori Private Browsing, Psi
         self.assertTrue(len(result_docs) == 4)
-        from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
-        self.assertTrue(rec_cat_panel.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
+        from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
+        self.assertTrue(rec_cat_panel.spinner_notebook.get_current_page() == SpinnerNotebook.CONTENT_PAGE)
         # check that the tiles themselves are visible
         self._p()
         self.assertTrue(rec_cat_panel.recommended_for_you_in_cat_content.get_property("visible"))
