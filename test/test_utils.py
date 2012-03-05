@@ -124,6 +124,31 @@ class TestSCUtils(unittest.TestCase):
         uuid = get_uuid()
         self.assertTrue(uuid and len(uuid) > 0)
 
+    def test_make_string_from_list(self):
+        from softwarecenter.utils import make_string_from_list
+        base = "There was a problem posting this review to %s (omg!)"
+        # test the various forms
+        l = ["twister"]
+        self.assertEqual(
+            make_string_from_list(base, l),
+            "There was a problem posting this review to twister (omg!)")
+        # two
+        l = ["twister", "factbook"]
+        self.assertEqual(
+            make_string_from_list(base, l),
+            "There was a problem posting this review to twister and factbook (omg!)")
+        # three
+        l = ["twister", "factbook", "identi.catz"]
+        self.assertEqual(
+            make_string_from_list(base, l),
+            "There was a problem posting this review to twister, factbook and identi.catz (omg!)")
+        # four
+        l = ["twister", "factbook", "identi.catz", "baz"]
+        self.assertEqual(
+            make_string_from_list(base, l),
+            "There was a problem posting this review to twister, factbook, identi.catz and baz (omg!)")
+        
+
 class TestExpungeCache(unittest.TestCase):
 
     def test_expunge_cache(self):
@@ -159,6 +184,7 @@ class TestExpungeCache(unittest.TestCase):
         # be touched
         self.assertFalse(os.path.exists(os.path.join(dirname, "foo-200")))
         self.assertTrue(os.path.exists(os.path.join(dirname, "foo-random")))
+
 
 
 if __name__ == "__main__":
