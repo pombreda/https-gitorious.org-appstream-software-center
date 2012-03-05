@@ -19,7 +19,8 @@
 from gettext import gettext as _
 
 TAG_DESCRIPTION = {
-    'hardware::camera' : _('camera'),
+    'hardware::webcam' : _('webcam'),
+    'hardware::digicam' : _('digicam'),
     'hardware::input:mouse' : _('mouse'),
     'hardware::input:joystick' : _('joystick'),
     'hardware::input:touchscreen' : _('touchscreen'),
@@ -37,7 +38,9 @@ TAG_DESCRIPTION = {
 }
 
 TAG_MISSING_DESCRIPTION = {
-    'hardware::camera' : _('This software requires a camera, but none '
+    'hardware::digicam' : _('This software requires a digital camera, but none '
+                           'are currently connected'),
+    'hardware::webcam' : _('This software requires a video camera, but none '
                            'are currently connected'),
     'hardware::input:mouse' : _('This software requires a mouse, '
                                 'but none is currently setup.'),

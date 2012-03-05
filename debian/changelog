@@ -1,3 +1,20 @@
+software-center (5.1.12) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/webcam-string-fix:
+  - small fix to support the debtagshw updated tags for hardware::camera
+    (split into webcam,digicam now)
+  * lp:~mvo/software-center/trivial-nm-state-override:
+    - support the SOFTWARE_CENTER_NET_CONNECTED environment value to
+      force the connected state as a stopgap workaround for bug 911706
+  * lp:~mvo/software-center/lp941361:
+    - adds a general make_string_from_list() helper to build (somewhat)
+      i18n friendly human readable strings easily (LP: #941361)
+  * lp:~mvo/software-center/expunge-cache:
+    - merge os.nice() addition
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Mar 2012 16:02:33 -0500
+
 software-center (5.1.11) precise; urgency=low
 
   [ Michael Vogt ]
