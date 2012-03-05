@@ -62,7 +62,7 @@ from softwarecenter.i18n import get_language
 from softwarecenter.ui.gtk3.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.ui.gtk3.dialogs import SimpleGtkbuilderDialog
 from softwarecenter.ui.gtk3.widgets.stars import ReactiveStar
-
+from softwarecenter.utils import make_string_from_list
 
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.piston.rnrclient_pristine import ReviewRequest
@@ -1051,27 +1051,19 @@ class SubmitReviewsApp(BaseApp):
         for account in failed_accounts:
             failed_services.append("%s (@%s)" % (account['service'].capitalize(), account['username']))
         
-        failed = len(failed_services)
-        
-        #sets first part of failed services string to first account in list
-        failed_services_string = failed_services[0]
-        
-        #if more than 1 failed account in list, continues to add service strings to the failed_service_string
-        if failed > 1:
-            #comma separates services for all accounts in list up to the last one, if there is 3 or more
-            if failed > 2:
-                for i in range(1,failed-1):
-                    # Translators: this is the second part of "There was a problem posting this review to %s, %s and %s"
-                    failed_services_string = failed_services_string + (_(", %s") % failed_services[i])
-            #final account in list is added to end of string with 'and'
-            # Translators: this is the last part of "There was a problem posting this review to %s, %s and %s"
-            failed_services_string = failed_services_string + (_(" and %s") % failed_services[failed-1])
-            
         glade_dialog = SimpleGtkbuilderDialog(self.datadir, domain="software-center")
         dialog = glade_dialog.dialog_gwibber_error
         dialog.set_transient_for(self.submit_window)
-        # Translators: this is the first part of "There was a problem posting this review to %s, %s and %s"
-        dialog.set_markup(_("There was a problem posting this review to %s.") % failed_services_string)
+        # build the failure string
+        # TRANSLATORS: the part in %s can either be a single entry
+        #              like "facebook" or a string like 
+        #              "factbook and twister"
+        error_str = gettext.ngettext(
+            "There was a problem posting this review to %s.",
+            "There was a problem posting this review to %s.",
+            len(failed))
+        error_str = make_string_from_list(error_str, failed_services)
+        dialog.set_markup(error_str)
         dialog.format_secondary_text(error)
         result = dialog.run()
         dialog.destroy()
