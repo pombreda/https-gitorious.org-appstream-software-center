@@ -6,9 +6,12 @@ software-center (5.1.12) UNRELEASED; urgency=low
     (split into webcam,digicam now)
   * lp:~mvo/software-center/trivial-nm-state-override:
     - support the SOFTWARE_CENTER_NET_CONNECTED environment value to
-      force a connection as a stopgap workaround for bug 911706
+      force the connected state as a stopgap workaround for bug 911706
+  * lp:~mvo/software-center/lp941361:
+    - adds a general make_string_from_list() helper to build (somewhat)
+      i18n friendly human readable strings easily (LP: #941361)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Mar 2012 15:00:42 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Mar 2012 15:17:40 -0500
 
 software-center (5.1.11) precise; urgency=low
 
