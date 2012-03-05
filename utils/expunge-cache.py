@@ -75,6 +75,9 @@ if __name__ == "__main__":
         print "Need either --by-days or --by-unsuccessful-http-states argument"
         sys.exit(1)
 
+    # be nice
+    os.nice(19)
+
     # do it
     cleaner = ExpungeCache(args.directories, args)
     cleaner.clean()
