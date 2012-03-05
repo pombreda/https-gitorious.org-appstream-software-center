@@ -2,10 +2,13 @@ software-center (5.1.12) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/webcam-string-fix:
-  - Small fix to support the debtagshw updated tags for hardware::camera
+  - small fix to support the debtagshw updated tags for hardware::camera
     (split into webcam,digicam now)
+  * lp:~mvo/software-center/trivial-nm-state-override:
+    - support the SOFTWARE_CENTER_NET_CONNECTED environment value to
+      force a connection as a stopgap workaround for bug 911706
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Mar 2012 14:47:52 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Mar 2012 15:00:42 -0500
 
 software-center (5.1.11) precise; urgency=low
 
