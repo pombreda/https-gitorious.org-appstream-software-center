@@ -1061,7 +1061,7 @@ class SubmitReviewsApp(BaseApp):
         error_str = gettext.ngettext(
             "There was a problem posting this review to %s.",
             "There was a problem posting this review to %s.",
-            len(failed))
+            len(failed_services))
         error_str = make_string_from_list(error_str, failed_services)
         dialog.set_markup(error_str)
         dialog.format_secondary_text(error)
