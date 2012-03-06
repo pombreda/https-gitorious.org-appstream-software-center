@@ -12,8 +12,11 @@ software-center (5.1.12) UNRELEASED; urgency=low
       i18n friendly human readable strings easily (LP: #941361)
   * lp:~mvo/software-center/expunge-cache:
     - merge os.nice() addition
+  * lp:~mvo/software-center/lp789596:
+    - better (less scary) string for updates from third-party
+      venders (LP: #789596)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Mar 2012 16:02:33 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 06 Mar 2012 13:32:18 -0500
 
 software-center (5.1.11) precise; urgency=low
 
