@@ -45,6 +45,9 @@ class AppTreeView(Gtk.TreeView):
         self._action_block_list = []
         self._needs_collapse = []
         self.expanded_path = None
+        
+        # pixbuf for the icon that is displayed in the selected row
+        self.selected_row_icon = None
 
         #~ # if this hacked mode is available everything will be fast
         #~ # and we can set fixed_height mode and still have growing rows
@@ -267,6 +270,7 @@ class AppTreeView(Gtk.TreeView):
         return
 
     def _update_selected_row(self, view, tr, path=None):
+        self.selected_row_icon = tr.icon
         sel = view.get_selection()
         if not sel:
             return False

@@ -56,6 +56,9 @@ class CellRendererAppView(Gtk.CellRendererText):
 
     def __init__(self, icons, layout, show_ratings, overlay_icon_name):
         GObject.GObject.__init__(self)
+        
+        # the icon pixbuf to be displayed in the row
+        self.icon = None
 
         # geometry-state values
         self.pixbuf_width = 0
@@ -126,9 +129,9 @@ class CellRendererAppView(Gtk.CellRendererText):
 
     def _render_icon(self, cr, app, cell_area, xpad, ypad, is_rtl):
         # calc offsets so icon is nicely centered
-        icon = self.model.get_icon(app)
-        xo = (self.pixbuf_width - icon.get_width())/2
-
+        self.icon = self.model.get_icon(app)
+        xo = (self.pixbuf_width - self.icon.get_width())/2
+        
         if not is_rtl:
             x = cell_area.x + xo + xpad
         else:
@@ -136,9 +139,9 @@ class CellRendererAppView(Gtk.CellRendererText):
         y = cell_area.y + ypad
 
         # draw appicon pixbuf
-        Gdk.cairo_set_source_pixbuf(cr, icon, x, y)
+        Gdk.cairo_set_source_pixbuf(cr, self.icon, x, y)
         cr.paint()
-
+        
         # draw overlay if application is installed
         if self.model.is_installed(app):
             if not is_rtl:

@@ -18,7 +18,7 @@
 
 #~ from __future__ import with_statement
 
-
+import logging
 
 from gi.repository import Gtk, GObject
 from gettext import gettext as _
@@ -31,6 +31,7 @@ from softwarecenter.ui.gtk3.widgets.apptreeview import AppTreeView
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 #~ from softwarecenter.ui.gtk3.widgets.containers import FlowableGrid
 
+LOG=logging.getLogger(__name__)
 
 class AppView(Gtk.VBox):
 
@@ -224,18 +225,17 @@ class AppView(Gtk.VBox):
         """ helper for unity dbus support to provide details about the
             application icon as it is displayed on-screen
         """
-#        icon_size = self._get_app_icon_size_on_screen()
-#        (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
-#        return (icon_size, icon_x, icon_y)
-        return (20, 20, 20)
+        icon_size = self._get_app_icon_size_on_screen()
+        (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
+        return (icon_size, icon_x, icon_y)
 
     def _get_app_icon_size_on_screen(self):
         """ helper for unity dbus support to get the size of the maximum side
             for the application icon as it is displayed on-screen
         """
-        icon_size = self.APP_ICON_SIZE
-        if self.icon.get_storage_type() == Gtk.ImageType.PIXBUF:
-            pb = self.icon.get_pixbuf()
+        icon_size = 32
+        if self.tree_view.selected_row_icon:
+            pb = self.tree_view.selected_row_icon
             if pb.get_width() > pb.get_height():
                 icon_size = pb.get_width()
             else:
@@ -254,7 +254,8 @@ class AppView(Gtk.VBox):
             parent = parent.get_parent()
         # get x, y relative to toplevel
         try:
-            (x,y) = self.icon.translate_coordinates(parent, 0, 0)
+            (x,y) = self.tree_view.selected_row_icon.translate_coordinates(
+                                                                parent, 0, 0)
         except Exception as e:
             LOG.warning("couldn't translate icon coordinates on-screen "
                         "for unity dbus message: %s" % e)
