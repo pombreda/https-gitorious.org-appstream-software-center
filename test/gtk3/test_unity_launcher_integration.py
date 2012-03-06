@@ -29,6 +29,66 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         # monkey patch is_unity_running
         softwarecenter.utils.is_unity_running = lambda: True
         
+    def _zzz(self):
+        for i in range(10):
+            time.sleep(0.1)
+            self._p()
+
+    def _p(self):
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+
+    def _install_from_list_view(self, pkgname):
+        from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
+        available_pane.notebook.set_current_page(AvailablePane.Pages.LIST)
+        
+        self._p()
+        available_pane.on_search_terms_changed(None, "ark,artha,software-center")
+        self._p()
+        
+        # select the first item in the list
+        available_pane.app_view.tree_view.set_cursor(Gtk.TreePath(0),
+                                                            None, False)
+        # ok to just use the test app here                                            
+        app = Application("", pkgname)
+        self._p()
+        
+        # pretend we started an install
+        available_pane.backend.emit("transaction-started",
+                                    app.pkgname, app.appname,
+                                    "testid101",
+                                    TransactionTypes.INSTALL)
+        # wait a wee bit
+        self._zzz()
+
+    def _navigate_to_appdetails_and_install(self, pkgname):
+        app = Application("", pkgname)
+        available_pane.app_view.emit("application-activated",
+                                     app)
+        self._p()
+        
+        # pretend we started an install
+        available_pane.backend.emit("transaction-started",
+                                    app.pkgname, app.appname,
+                                    "testid101",
+                                    TransactionTypes.INSTALL)
+        # wait a wee bit
+        self._zzz()
+        
+    def _fake_send_application_to_launcher_and_check(self,
+                                                     pkgname, launcher_info):
+        self.assertEqual(pkgname, self.expected_pkgname)
+        self.assertEqual(launcher_info.name, self.expected_launcher_info.name)
+        self.assertEqual(launcher_info.icon_name,
+                         self.expected_launcher_info.icon_name)
+        self.assertTrue(launcher_info.icon_x > 5)
+        self.assertTrue(launcher_info.icon_y > 5)
+        self.assertEqual(launcher_info.icon_size, 96)
+        self.assertEqual(launcher_info.app_install_desktop_file_path,
+                self.expected_launcher_info.app_install_desktop_file_path)
+        self.assertEqual(launcher_info.trans_id,
+                self.expected_launcher_info.trans_id)
+        
     def test_unity_launcher_integration_list_view(self):
         # test the automatic add to launcher enabled functionality when
         # installing an app form the list view
@@ -120,59 +180,6 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self.assertEqual(installed_desktop_path,
                          "/usr/share/applications/update-manager.desktop")
     
-    def _zzz(self):
-        for i in range(10):
-            time.sleep(0.1)
-            self._p()
-
-    def _p(self):
-        while Gtk.events_pending():
-            Gtk.main_iteration()
-
-    def _install_from_list_view(self, pkgname):
-        from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
-        available_pane.notebook.set_current_page(AvailablePane.Pages.LIST)
-        app = Application("", pkgname)
-        available_pane.app_view.emit("application-selected",
-                                     app)
-        self._p()
-        
-        # pretend we started an install
-        available_pane.backend.emit("transaction-started",
-                                    app.pkgname, app.appname,
-                                    "testid101",
-                                    TransactionTypes.INSTALL)
-        # wait a wee bit
-        self._zzz()
-
-    def _navigate_to_appdetails_and_install(self, pkgname):
-        app = Application("", pkgname)
-        available_pane.app_view.emit("application-activated",
-                                     app)
-        self._p()
-        
-        # pretend we started an install
-        available_pane.backend.emit("transaction-started",
-                                    app.pkgname, app.appname,
-                                    "testid101",
-                                    TransactionTypes.INSTALL)
-        # wait a wee bit
-        self._zzz()
-        
-    def _fake_send_application_to_launcher_and_check(self,
-                                                     pkgname, launcher_info):
-        self.assertEqual(pkgname, self.expected_pkgname)
-        self.assertEqual(launcher_info.name, self.expected_launcher_info.name)
-        self.assertEqual(launcher_info.icon_name,
-                         self.expected_launcher_info.icon_name)
-        self.assertTrue(launcher_info.icon_x > 5)
-        self.assertTrue(launcher_info.icon_y > 5)
-        self.assertEqual(launcher_info.icon_size, 96)
-        self.assertEqual(launcher_info.app_install_desktop_file_path,
-                self.expected_launcher_info.app_install_desktop_file_path)
-        self.assertEqual(launcher_info.trans_id,
-                self.expected_launcher_info.trans_id)
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -219,6 +219,49 @@ class AppView(Gtk.VBox):
     def get_sort_mode(self):
         active_index = self.sort_methods_combobox.get_active()
         return self._SORT_METHOD_INDEX[active_index]
+        
+    def get_app_icon_details(self):
+        """ helper for unity dbus support to provide details about the
+            application icon as it is displayed on-screen
+        """
+#        icon_size = self._get_app_icon_size_on_screen()
+#        (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
+#        return (icon_size, icon_x, icon_y)
+        return (20, 20, 20)
+
+    def _get_app_icon_size_on_screen(self):
+        """ helper for unity dbus support to get the size of the maximum side
+            for the application icon as it is displayed on-screen
+        """
+        icon_size = self.APP_ICON_SIZE
+        if self.icon.get_storage_type() == Gtk.ImageType.PIXBUF:
+            pb = self.icon.get_pixbuf()
+            if pb.get_width() > pb.get_height():
+                icon_size = pb.get_width()
+            else:
+                icon_size = pb.get_height()
+        return icon_size
+                
+    def _get_app_icon_xy_position_on_screen(self):
+        """ helper for unity dbus support to get the x,y position of
+            the application icon as it is displayed on-screen. if the icon's
+            position cannot be determined for any reason, then the value (0,0)
+            is returned
+        """
+        # find toplevel parent
+        parent = self
+        while parent.get_parent():
+            parent = parent.get_parent()
+        # get x, y relative to toplevel
+        try:
+            (x,y) = self.icon.translate_coordinates(parent, 0, 0)
+        except Exception as e:
+            LOG.warning("couldn't translate icon coordinates on-screen "
+                        "for unity dbus message: %s" % e)
+            return (0,0)
+        # get toplevel window position
+        (px, py) = parent.get_position()
+        return (px+x, py+y)
 
 
 def get_test_window():
