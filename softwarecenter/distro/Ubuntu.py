@@ -213,9 +213,7 @@ class Ubuntu(Debian):
         # string without the date
         if (channelname or
             component in ("partner", "independent", "commercial")):
-            return _("Canonical does not provide updates for %s. "
-                     "Some updates may be provided by the third party "
-                     "vendor.") % appname
+            return _("Provided by the vendor.")
         elif component == "main":
             return _("Canonical provides critical updates for %s.") % appname
         elif component == "restricted":
