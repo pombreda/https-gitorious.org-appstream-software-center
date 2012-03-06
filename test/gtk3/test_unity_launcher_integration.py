@@ -36,6 +36,20 @@ class TestUnityLauncherIntegration(unittest.TestCase):
     def setUp(self):
         # monkey patch is_unity_running
         softwarecenter.utils.is_unity_running = lambda: True
+        
+    def _install_from_list_view(self, pkgname):
+        app = Application("", pkgname)
+        available_pane.app_view.emit("application-selected",
+                                     app)
+        self._p()
+        
+        # pretend we started an install
+        available_pane.backend.emit("transaction-started",
+                                    app.pkgname, app.appname,
+                                    "testid101",
+                                    TransactionTypes.INSTALL)
+        # wait a wee bit
+        self._zzz()
 
     def _navigate_to_appdetails_and_install(self, pkgname):
         app = Application("", pkgname)
@@ -64,9 +78,10 @@ class TestUnityLauncherIntegration(unittest.TestCase):
                 self.expected_launcher_info.app_install_desktop_file_path)
         self.assertEqual(launcher_info.trans_id,
                 self.expected_launcher_info.trans_id)
-
-    def test_unity_launcher_integration(self):
-        # test the automatic add to launcher enabled functionality
+                
+    def test_unity_launcher_integration_list_view(self):
+        # test the automatic add to launcher enabled functionality when
+        # installing an app form the list view
         available_pane.add_to_launcher_enabled = True
         test_pkgname = "lincity-ng"
         # now pretend
@@ -82,26 +97,46 @@ class TestUnityLauncherIntegration(unittest.TestCase):
                  "testid101")
         available_pane.unity_launcher.send_application_to_launcher = (
                 self._fake_send_application_to_launcher_and_check)
-        self._navigate_to_appdetails_and_install(test_pkgname)
-        
-    def test_unity_launcher_integration_disabled(self):
-        # test the case where automatic add to launcher is disabled
-        available_pane.add_to_launcher_enabled = False
-        test_pkgname = "lincity-ng"
-        # now pretend
-        # for testing, we substitute a fake version of UnityLauncher's
-        # send_application_to_launcher method that lets us check for the
-        # correct values and also avoids firing the actual dbus signal
-        # to the unity launcher service
-        # in the disabled add to launcher case, we just want to insure
-        # that we never call send_application_to_launcher, so we can just
-        # plug in bogus values and we will catch a call if it occurs
-        self.expected_pkgname = ""
-        self.expected_launcher_info = UnityLauncherInfo("", "",
-                 0, 0, 0, 0, "", "")
-        available_pane.unity_launcher.send_application_to_launcher = (
-                self._fake_send_application_to_launcher_and_check)
-        self._navigate_to_appdetails_and_install(test_pkgname)
+        self._install_from_list_view(test_pkgname)
+
+#    def test_unity_launcher_integration_details_view(self):
+#        # test the automatic add to launcher enabled functionality when
+#        # installing an app from the details view
+#        available_pane.add_to_launcher_enabled = True
+#        test_pkgname = "lincity-ng"
+#        # now pretend
+#        # for testing, we substitute a fake version of UnityLauncher's
+#        # send_application_to_launcher method that lets us check for the
+#        # correct values and also avoids firing the actual dbus signal
+#        # to the unity launcher service
+#        self.expected_pkgname = test_pkgname
+#        self.expected_launcher_info = UnityLauncherInfo("lincity-ng",
+#                 "lincity-ng",
+#                 0, 0, 0, 0, # these values are set in availablepane
+#                 "/usr/share/app-install/desktop/lincity-ng:lincity-ng.desktop",
+#                 "testid101")
+#        available_pane.unity_launcher.send_application_to_launcher = (
+#                self._fake_send_application_to_launcher_and_check)
+#        self._navigate_to_appdetails_and_install(test_pkgname)
+#        
+#    def test_unity_launcher_integration_disabled(self):
+#        # test the case where automatic add to launcher is disabled
+#        available_pane.add_to_launcher_enabled = False
+#        test_pkgname = "lincity-ng"
+#        # now pretend
+#        # for testing, we substitute a fake version of UnityLauncher's
+#        # send_application_to_launcher method that lets us check for the
+#        # correct values and also avoids firing the actual dbus signal
+#        # to the unity launcher service
+#        # in the disabled add to launcher case, we just want to insure
+#        # that we never call send_application_to_launcher, so we can just
+#        # plug in bogus values and we will catch a call if it occurs
+#        self.expected_pkgname = ""
+#        self.expected_launcher_info = UnityLauncherInfo("", "",
+#                 0, 0, 0, 0, "", "")
+#        available_pane.unity_launcher.send_application_to_launcher = (
+#                self._fake_send_application_to_launcher_and_check)
+#        self._navigate_to_appdetails_and_install(test_pkgname)
 
     def test_desktop_file_path_conversion(self):
         # test 'normal' case
