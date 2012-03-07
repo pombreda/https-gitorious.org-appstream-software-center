@@ -708,8 +708,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def _create_dbus_sso(self):
         # see bug #773214 for the rationale
-        #appname = _("Ubuntu Software Center Store")
-        appname = "Ubuntu Software Center Store"
+        #appname = _("Ubuntu Software Center")
+        appname = "Ubuntu Software Center"
         help_text = _("To reinstall previous purchases, sign in to the "
                       "Ubuntu Single Sign-On account you used to pay for them.")
         #window = self.window_main.get_window()
@@ -759,11 +759,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                                               installed_purchased_packages)
         if deauthorize:
             # clear the ubuntu SSO token for this account
-            # FIXME: this needs to be consolidated - one token is 
-            #        aquired for purchase in utils/submit_review.py
-            #        the other one in softwarecenter/app.py
             clear_token_from_ubuntu_sso(_("Ubuntu Software Center"))
-            clear_token_from_ubuntu_sso(_("Ubuntu Software Center Store"))
             
             # uninstall the list of purchased packages
             # TODO: do we need to check for dependencies and show a removal
