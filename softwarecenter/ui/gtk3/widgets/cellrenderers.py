@@ -130,6 +130,8 @@ class CellRendererAppView(Gtk.CellRendererText):
     def _render_icon(self, cr, app, cell_area, xpad, ypad, is_rtl):
         # calc offsets so icon is nicely centered
         self.icon = self.model.get_icon(app)
+        self.icon_x_offset = xpad + cell_area.x
+        self.icon_y_offset = ypad + cell_area.y
         xo = (self.pixbuf_width - self.icon.get_width())/2
         
         if not is_rtl:

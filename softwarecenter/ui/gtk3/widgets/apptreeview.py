@@ -270,7 +270,11 @@ class AppTreeView(Gtk.TreeView):
         return
 
     def _update_selected_row(self, view, tr, path=None):
-        self.selected_row_icon = tr.icon
+        # keep track of the currently selected row renderer for use when
+        # calculating icon size and coordinate values for the Unity
+        # launcher integration feature
+        self.selected_row_renderer = tr
+        ##
         sel = view.get_selection()
         if not sel:
             return False

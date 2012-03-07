@@ -234,8 +234,8 @@ class AppView(Gtk.VBox):
             for the application icon as it is displayed on-screen
         """
         icon_size = 32
-        if self.tree_view.selected_row_icon:
-            pb = self.tree_view.selected_row_icon
+        if self.tree_view.selected_row_renderer.icon:
+            pb = self.tree_view.selected_row_renderer.icon
             if pb.get_width() > pb.get_height():
                 icon_size = pb.get_width()
             else:
@@ -244,25 +244,17 @@ class AppView(Gtk.VBox):
                 
     def _get_app_icon_xy_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
-            the application icon as it is displayed on-screen. if the icon's
-            position cannot be determined for any reason, then the value (0,0)
-            is returned
+            the application icon as it is displayed on-screen
         """
         # find toplevel parent
         parent = self
         while parent.get_parent():
             parent = parent.get_parent()
-        # get x, y relative to toplevel
-        try:
-            (x,y) = self.tree_view.selected_row_icon.translate_coordinates(
-                                                                parent, 0, 0)
-        except Exception as e:
-            LOG.warning("couldn't translate icon coordinates on-screen "
-                        "for unity dbus message: %s" % e)
-            return (0,0)
         # get toplevel window position
         (px, py) = parent.get_position()
-        return (px+x, py+y)
+        # and return the coordinate values
+        return (px+self.tree_view.selected_row_renderer.icon_x_offset,
+                py+self.tree_view.selected_row_renderer.icon_y_offset)
 
 
 def get_test_window():
