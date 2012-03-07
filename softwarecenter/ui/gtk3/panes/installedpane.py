@@ -113,6 +113,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         self.visible_docids = None
         self.visible_cats = {}
+        
+        self.installed_spinner_notebook = None
 
     def init_view(self):
         if self.view_initialized: 
@@ -215,11 +217,13 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
     def show_installed_view_spinner(self):
         """ display the local spinner for the installed view panel """
-        self.installed_spinner_notebook.show_spinner()
+        if self.installed_spinner_notebook:
+            self.installed_spinner_notebook.show_spinner()
         
     def hide_installed_view_spinner(self):
         """ hide the local spinner for the installed view panel """
-        self.installed_spinner_notebook.hide_spinner()
+        if self.installed_spinner_notebook:
+            self.installed_spinner_notebook.hide_spinner()
 
     def _selected_computer_changed(self, oneconf_pickler, hostid, hostname):
         if self.current_hostid == hostid:

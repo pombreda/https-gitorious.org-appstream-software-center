@@ -407,8 +407,10 @@ class AvailablePane(SoftwarePane):
     def _get_onscreen_icon_details_for_launcher_service(self, app):
         if self.is_app_details_view_showing():
             return self.app_details_view.get_app_icon_details()
+        elif self.is_applist_view_showing():
+            return self.app_view.get_app_icon_details()
         else:
-            # TODO: implement the app list view case once it has been specified
+            # set a default, even though we cannot install from the other panes
             return (0, 0, 0)
 
     def on_app_list_changed(self, pane, length):
