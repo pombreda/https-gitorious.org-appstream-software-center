@@ -36,7 +36,12 @@ software-center (5.1.12) UNRELEASED; urgency=low
     - unit test change only, enable the published-date unit test that was
       disabled pending deployment of support on the staging server
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Mar 2012 17:27:31 -0500
+  [ Natalia Bidart ]
+  * lp:~nataliabidart/software-center/one-auth:
+    - use consistently the same app name for every Ubuntu SSO call to
+      ensure SSO tokens are handled properly
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Mar 2012 18:45:47 -0500
 
 software-center (5.1.11) precise; urgency=low
 
