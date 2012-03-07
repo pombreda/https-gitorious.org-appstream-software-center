@@ -19,7 +19,7 @@
 
 import os
 
-# this is a bit silly, but *something* imports gtk2 symbols, so if we 
+# this is a bit silly, but *something* imports gtk2 symbols, so if we
 # force gtk3 here it crashes - the only reason we need this at all is to
 # get the icon path
 import gi
@@ -35,13 +35,14 @@ from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.paths import XAPIAN_BASE_PATH
 import softwarecenter.paths
 
+
 class CategoriesModel(QAbstractListModel):
 
     # should match the softwarecenter.backend.reviews.Review attributes
     COLUMNS = ('_name',
                '_iconname',
                )
- 
+
     def __init__(self, parent=None):
         super(CategoriesModel, self).__init__()
         self._categories = []
@@ -76,10 +77,10 @@ class CategoriesModel(QAbstractListModel):
             if info:
                 return info.get_filename()
             return ""
-        
+
 if __name__ == "__main__":
     from PyQt4.QtGui import QApplication
-    from PyQt4.QtDeclarative import QDeclarativeView 
+    from PyQt4.QtDeclarative import QDeclarativeView
     import sys
 
     app = QApplication(sys.argv)
@@ -97,4 +98,3 @@ if __name__ == "__main__":
     # show it
     view.show()
     sys.exit(app.exec_())
-
