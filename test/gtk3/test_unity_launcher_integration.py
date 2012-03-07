@@ -16,14 +16,19 @@ from softwarecenter.db.application import Application
 from softwarecenter.ui.gtk3.panes.availablepane import get_test_window
 from softwarecenter.backend.unitylauncher import UnityLauncherInfo
 
+# Tests for Ubuntu Software Center's integration with the Unity launcher,
+# see https://wiki.ubuntu.com/SoftwareCenter#Learning%20how%20to%20launch%20an%20application
+
 # we can only have one instance of availablepane, so create it here
 win = get_test_window()
 available_pane = win.get_data("pane")
 
-# see https://wiki.ubuntu.com/SoftwareCenter#Learning%20how%20to%20launch%20an%20application
-
 class TestUnityLauncherIntegration(unittest.TestCase):
-    
+
+    def setUp(self):
+        # monkey patch is_unity_running
+        softwarecenter.utils.is_unity_running = lambda: True
+        
     def _zzz(self):
         for i in range(10):
             time.sleep(0.1)
@@ -33,9 +38,28 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         while Gtk.events_pending():
             Gtk.main_iteration()
 
-    def setUp(self):
-        # monkey patch is_unity_running
-        softwarecenter.utils.is_unity_running = lambda: True
+    def _install_from_list_view(self, pkgname):
+        from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
+        available_pane.notebook.set_current_page(AvailablePane.Pages.LIST)
+        
+        self._p()
+        available_pane.on_search_terms_changed(None, "ark,artha,software-center")
+        self._p()
+        
+        # select the first item in the list
+        available_pane.app_view.tree_view.set_cursor(Gtk.TreePath(0),
+                                                            None, False)
+        # ok to just use the test app here                                            
+        app = Application("", pkgname)
+        self._p()
+        
+        # pretend we started an install
+        available_pane.backend.emit("transaction-started",
+                                    app.pkgname, app.appname,
+                                    "testid101",
+                                    TransactionTypes.INSTALL)
+        # wait a wee bit
+        self._zzz()
 
     def _navigate_to_appdetails_and_install(self, pkgname):
         app = Application("", pkgname)
@@ -59,14 +83,38 @@ class TestUnityLauncherIntegration(unittest.TestCase):
                          self.expected_launcher_info.icon_name)
         self.assertTrue(launcher_info.icon_x > 5)
         self.assertTrue(launcher_info.icon_y > 5)
-        self.assertEqual(launcher_info.icon_size, 96)
+        # check that the icon size is one of either 32 pixels (for the
+        # list view case) or 96 pixels (for the details view case)
+        self.assertTrue(launcher_info.icon_size == 32 or
+                        launcher_info.icon_size == 96)
         self.assertEqual(launcher_info.app_install_desktop_file_path,
                 self.expected_launcher_info.app_install_desktop_file_path)
         self.assertEqual(launcher_info.trans_id,
                 self.expected_launcher_info.trans_id)
+        
+    def test_unity_launcher_integration_list_view(self):
+        # test the automatic add to launcher enabled functionality when
+        # installing an app form the list view
+        available_pane.add_to_launcher_enabled = True
+        test_pkgname = "lincity-ng"
+        # now pretend
+        # for testing, we substitute a fake version of UnityLauncher's
+        # send_application_to_launcher method that lets us check for the
+        # correct values and also avoids firing the actual dbus signal
+        # to the unity launcher service
+        self.expected_pkgname = test_pkgname
+        self.expected_launcher_info = UnityLauncherInfo("lincity-ng",
+                 "lincity-ng",
+                 0, 0, 0, 0, # these values are set in availablepane
+                 "/usr/share/app-install/desktop/lincity-ng:lincity-ng.desktop",
+                 "testid101")
+        available_pane.unity_launcher.send_application_to_launcher = (
+                self._fake_send_application_to_launcher_and_check)
+        self._install_from_list_view(test_pkgname)
 
-    def test_unity_launcher_integration(self):
-        # test the automatic add to launcher enabled functionality
+    def test_unity_launcher_integration_details_view(self):
+        # test the automatic add to launcher enabled functionality when
+        # installing an app from the details view
         available_pane.add_to_launcher_enabled = True
         test_pkgname = "lincity-ng"
         # now pretend
@@ -134,7 +182,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         # FIXME: this will only work if update-manager is installed
         self.assertEqual(installed_desktop_path,
                          "/usr/share/applications/update-manager.desktop")
-        
+    
 
 if __name__ == "__main__":
     unittest.main()
