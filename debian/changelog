@@ -32,8 +32,11 @@ software-center (5.1.12) UNRELEASED; urgency=low
       on-screen coordinates values in the Unity launcher integration dbus 
       call when an installation is initiated via the list view. 
       LP: #947624
+  * lp:~gary-lasker/software-center/enable-published-date-unit-test:
+    - unit test change only, enable the published-date unit test that was
+      disabled pending deployment of support on the staging server
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Mar 2012 01:28:21 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Mar 2012 17:27:31 -0500
 
 software-center (5.1.11) precise; urgency=low
 
