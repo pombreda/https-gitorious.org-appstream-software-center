@@ -21,6 +21,12 @@ software-center (5.1.12) UNRELEASED; urgency=low
     - consolidate Ubunty SSO logins to use "Ubuntu Software Center", fixes
       inconsistent UI and storing of two keys in they keyring, as well as
       being prompted to log in twice the first time that you review an app
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/fix-crash-lp944875:
+    - Fix an intermittent crash that can happen if the installed view pane
+      has not been built yet when a call to show the spinner is made as a
+      result of a refresh (LP: #944875)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Mar 2012 01:28:21 -0500
 
