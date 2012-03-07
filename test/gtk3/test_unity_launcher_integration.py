@@ -83,7 +83,10 @@ class TestUnityLauncherIntegration(unittest.TestCase):
                          self.expected_launcher_info.icon_name)
         self.assertTrue(launcher_info.icon_x > 5)
         self.assertTrue(launcher_info.icon_y > 5)
-        self.assertEqual(launcher_info.icon_size, 96)
+        # check that the icon size is one of either 32 pixels (for the
+        # list view case) or 96 pixels (for the details view case)
+        self.assertTrue(launcher_info.icon_size == 32 or
+                        launcher_info.icon_size == 96)
         self.assertEqual(launcher_info.app_install_desktop_file_path,
                 self.expected_launcher_info.app_install_desktop_file_path)
         self.assertEqual(launcher_info.trans_id,
