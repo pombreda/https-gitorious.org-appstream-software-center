@@ -6,6 +6,11 @@ else
     NETDEV="$1"
 fi
 
+if [ "$(id -u)" != "0" ]; then
+    echo "You need to be root to run this script"
+    exit 1
+fi
+
 if [ -z "$NETDEV" ]; then
     echo "Can not find a default netdev, please specifcy one"
     exit 1
