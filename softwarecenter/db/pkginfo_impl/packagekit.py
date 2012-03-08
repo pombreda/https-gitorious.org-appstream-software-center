@@ -118,6 +118,48 @@ class PackagekitInfo(PackageInfo):
         # setting it like this for now
         return pkgname not in self._notfound_cache_pkg
 
+    def _prefill_descriptions_helper(self, batch):
+        if not batch:
+            return
+
+        ids = [p.get_id() for p in batch]
+
+        try:
+            result = self.client.get_details(ids, None, self._on_progress_changed, None)
+            details = result.get_details_array()
+        except GObject.GError as e:
+            LOG.info('Cannot get details when prefilling cache cache: %s' % e)
+            return
+
+        for detail in details:
+            packageid = detail.get_property('package-id')
+            self._cache_details[packageid] = detail
+
+    def prefill_cache(self, wanted_pkgs = None):
+        pfilter = 1 << packagekit.FilterEnum.NEWEST
+        try:
+            result = self.client.get_packages(pfilter, None, self._on_progress_changed, None)
+            pkgs = result.get_package_array()
+        except GObject.GError as e:
+            LOG.info('Cannot prefill cache: %s' % e)
+            return
+
+        batch = []
+
+        for pkg in pkgs:
+            name = pkg.get_name()
+            if name not in wanted_pkgs:
+                continue
+            if self._cache_pkg.has_key(name):
+                continue
+            self._cache_pkg[name] = pkg
+
+            batch.append(pkg)
+            if len(batch) == 1000:
+                self._prefill_descriptions_helper(batch)
+                batch = []
+        self._prefill_descriptions_helper(batch)
+
     def is_installed(self, pkgname):
         p = self._get_one_package(pkgname)
         if not p:
@@ -185,9 +227,13 @@ class PackagekitInfo(PackageInfo):
     def get_installed_size(self, pkgname):
         return self.get_size(pkgname)
 
-    def get_origins(self, pkgname):
+    def get_origins(self, pkgname, cache=USE_CACHE):
         self._get_repolist()
-        pkgs = self._get_packages(pkgname, pfilter=packagekit.FilterEnum.NOT_INSTALLED)
+        if (pkgname in self._cache_pkg.keys()) and cache:
+            pkgs = [ self._cache_pkg[pkgname] ]
+        else:
+            pkgs = self._get_packages(pkgname, pfilter=packagekit.FilterEnum.NOT_INSTALLED)
+
         out = set()
 
         for p in pkgs:
