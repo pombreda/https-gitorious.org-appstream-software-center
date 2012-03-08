@@ -52,7 +52,7 @@ class TestSCAddons(unittest.TestCase):
         # this package too
         # FIXME: why only for "lonley" dependencies and not all?
         res = self.cache.get_addons("arduino-core")
-        self.assertEqual(res, ([], ["avrdude-doc"]))
+        self.assertEqual(res, ([], ["avrdude-doc", "arduino-mk"]))
 
     def test_addons_removal_included_depends(self):
         res = self.cache.get_addons("amule-gnome-support")

@@ -444,7 +444,7 @@ class ReviewLoaderFake(ReviewLoader):
     IPSUM = "no ipsum\n\nstill no ipsum"
 
     def __init__(self, cache, db):
-        ReviewLoader.ReviewLoader.__init__(self)
+        ReviewLoader.__init__(self, cache, db)
         self._review_stats_cache = {}
         self._reviews_cache = {}
     def _random_person(self):
@@ -623,7 +623,7 @@ class ReviewLoaderNull(ReviewLoader):
     """A dummy review loader which just returns empty results."""
 
     def __init__(self, cache, db):
-        ReviewLoader.ReviewLoader.__init__(self)
+        ReviewLoader.__init__(self, cache, db)
         self._review_stats_cache = {}
         self._reviews_cache = {}
 
