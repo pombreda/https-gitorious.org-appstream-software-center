@@ -169,6 +169,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             review_stats[s.app] = s
         self.REVIEW_STATS_CACHE = review_stats
         callback(review_stats)
+        self.emit("refresh-review-stats-finished", review_stats)
         self.save_review_stats_cache_file()
 
     def _server_has_histogram(self, piston_review_stats):
