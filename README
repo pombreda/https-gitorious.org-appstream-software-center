@@ -11,7 +11,7 @@ To setup your development environment, you'll need to ensure the following
 extra packages are installed:
 
 sudo apt-get install xvfb python-coverage python-mock python-aptdaemon.test \
-     python-qt4 python-unittest2 python-lxml
+     python-qt4 python-unittest2 python-lxml pep8
 sudo apt-get build-dep software-center
 
 You can then run tests with:

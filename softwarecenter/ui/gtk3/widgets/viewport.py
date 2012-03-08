@@ -5,7 +5,6 @@ _uppers = (Gdk.KEY_KP_Up, Gdk.KEY_Up)
 _downers = (Gdk.KEY_KP_Down, Gdk.KEY_Down)
 
 
-
 class Viewport(Gtk.Viewport):
 
     def __init__(self):
@@ -19,11 +18,13 @@ class Viewport(Gtk.Viewport):
 
         if kv in _uppers or kv in _downers:
             # get the ScrolledWindow adjustments and tweak them appropriately
-            if not self.get_parent(): return False
+            if not self.get_parent():
+                return False
 
             # the ScrolledWindow vertical-adjustment
             scroll = self.get_ancestor('GtkScrolledWindow')
-            if not scroll: return False
+            if not scroll:
+                return False
 
             v_adj = scroll.get_vadjustment()
 
@@ -32,7 +33,7 @@ class Viewport(Gtk.Viewport):
                 v = max(v_adj.get_value() - v_adj.get_step_increment(),
                         v_adj.get_lower())
 
-            # scroll down 
+            # scroll down
             elif kv in _downers:
                 v = min(v_adj.get_value() + v_adj.get_step_increment(),
                         v_adj.get_upper() - v_adj.get_page_size())
