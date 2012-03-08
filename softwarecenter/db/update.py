@@ -552,6 +552,15 @@ def update_from_single_appstream_file(db, cache, filename):
     if not root.tag == "applications":
         LOG.error("failed to read '%s' expected Applications root tag" % filename)
         return
+
+    if hasattr(cache, 'prefill_cache'):
+        needed = []
+        for appinfo in root.iter("application"):
+            pkgname_node = appinfo.find('pkgname')
+            if pkgname_node is not None:
+                needed.append(pkgname_node.text)
+        cache.prefill_cache(wanted_pkgs=needed)
+
     for appinfo in root.iter("application"):
         parser = AppStreamXMLParser(appinfo, filename)
         index_app_info_from_parser(parser, db, cache)
@@ -697,6 +706,9 @@ def make_doc_from_parser(parser, cache):
     else:
         name = parser.get_desktop("Name")
         untranslated_name = parser.get_desktop("Name", translated=False)
+
+    if not name:
+        return
 
     doc.set_data(name)
     doc.add_value(XapianValues.APPNAME_UNTRANSLATED, untranslated_name)
