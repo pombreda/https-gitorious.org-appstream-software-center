@@ -470,6 +470,10 @@ class AppTreeView(Gtk.TreeView):
 
         path = model.get_path(it)
 
+        # this will give us the right underlying model regardless if its
+        # a TreeModelFilter, a AppTreeStore or a AppListStore
+        model = self.appmodel
+
         # this will pre-load data *only* on a AppListStore, it has
         # no effect with a AppTreeStore
         if model[path][0] is None:
