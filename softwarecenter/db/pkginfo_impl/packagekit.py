@@ -135,7 +135,7 @@ class PackagekitInfo(PackageInfo):
             packageid = detail.get_property('package-id')
             self._cache_details[packageid] = detail
 
-    def prefill_cache(self, wanted_pkgs = None):
+    def prefill_cache(self, wanted_pkgs = None, prefill_descriptions = False):
         pfilter = 1 << packagekit.FilterEnum.NEWEST
         try:
             result = self.client.get_packages(pfilter, None, self._on_progress_changed, None)
@@ -148,13 +148,15 @@ class PackagekitInfo(PackageInfo):
 
         for pkg in pkgs:
             name = pkg.get_name()
-            if name not in wanted_pkgs:
+            if wanted_pkgs and name not in wanted_pkgs:
                 continue
             if self._cache_pkg.has_key(name):
                 continue
             self._cache_pkg[name] = pkg
 
-            batch.append(pkg)
+            if prefill_descriptions:
+                batch.append(pkg)
+
             if len(batch) == 1000:
                 self._prefill_descriptions_helper(batch)
                 batch = []
