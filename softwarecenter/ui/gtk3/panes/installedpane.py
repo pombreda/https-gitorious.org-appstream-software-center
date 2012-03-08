@@ -30,7 +30,8 @@ import platform
 
 from softwarecenter.enums import (NonAppVisibility,
                                   SortMethods)
-from softwarecenter.utils import wait_for_apt_cache_ready, utf8
+from softwarecenter.utils import (
+    wait_for_apt_cache_ready, utf8, ExecutionTime)
 from softwarecenter.db.categories import (CategoriesParser,
                                           categories_sorted_by_name)
 from softwarecenter.ui.gtk3.models.appstore2 import (
@@ -209,6 +210,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         # hacky, hide the header
         self.app_view.header_hbox.hide()
 
+        self.hide_appview_spinner()
+
         # now we are initialized
         self.emit("installed-pane-created")
         
@@ -383,9 +386,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             
             # hide the local spinner
             self.hide_installed_view_spinner()
-            
-            # hide the main spinner (if it's showing)
-            self.hide_appview_spinner()
             
             if window:
                 window.set_cursor(None)
