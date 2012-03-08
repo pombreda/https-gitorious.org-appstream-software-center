@@ -22,6 +22,7 @@ import os
 
 from gi.repository import Gtk, GObject
 
+
 class SpinnerView(Gtk.Viewport):
     """
     a panel that contains a spinner preset to a standard size and centered
@@ -31,7 +32,7 @@ class SpinnerView(Gtk.Viewport):
         Gtk.Viewport.__init__(self)
         self.spinner = Gtk.Spinner()
         self.spinner.set_size_request(48, 48)
-        
+
         # use a table for the spinner (otherwise the spinner is massive!)
         spinner_table = Gtk.Table(3, 3, False)
         self.spinner_label = Gtk.Label()
@@ -39,39 +40,40 @@ class SpinnerView(Gtk.Viewport):
         spinner_vbox = Gtk.VBox()
         spinner_vbox.pack_start(self.spinner, True, True, 0)
         spinner_vbox.pack_start(self.spinner_label, True, True, 10)
-        spinner_table.attach(spinner_vbox, 1, 2, 1, 2, Gtk.AttachOptions.EXPAND, Gtk.AttachOptions.EXPAND)
-        
+        spinner_table.attach(spinner_vbox, 1, 2, 1, 2,
+            Gtk.AttachOptions.EXPAND, Gtk.AttachOptions.EXPAND)
+
         #~ self.modify_bg(Gtk.StateType.NORMAL, Gdk.Color(1.0, 1.0, 1.0))
         self.add(spinner_table)
         self.set_shadow_type(Gtk.ShadowType.NONE)
-        
+
     def start_and_show(self):
         """
         start the spinner and show it
         """
         self.spinner.start()
         self.spinner.show()
-        
+
     def stop_and_hide(self):
         """
         stop the spinner and hide it
         """
         self.spinner.stop()
         self.spinner.hide()
-        
-    def set_text(self, spinner_text = ""):
+
+    def set_text(self, spinner_text=""):
         """
-        useful for adding/removing/changing the label text after the spinner instance has been created
+        useful for adding/removing/changing the label text after the spinner
+        instance has been created
         """
         self.spinner_label.set_markup('<big>%s</big>' % spinner_text)
+
 
 class SpinnerNotebook(Gtk.Notebook):
     """ this provides a Gtk.Notebook that contains a content page
         and a spinner page.
     """
-
-
-    (CONTENT_PAGE, 
+    (CONTENT_PAGE,
      SPINNER_PAGE) = range(2)
 
     def __init__(self, content, msg=""):
@@ -79,7 +81,7 @@ class SpinnerNotebook(Gtk.Notebook):
         self.spinner_view = SpinnerView(msg)
         # its critical to show() the spinner early as otherwise
         # gtk_notebook_set_active_page() will not switch to it
-        self.spinner_view.show() 
+        self.spinner_view.show()
         if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
             self.set_show_tabs(False)
         self.set_show_border(False)
@@ -106,15 +108,16 @@ class SpinnerNotebook(Gtk.Notebook):
         self.spinner_view.stop_and_hide()
         self.set_current_page(self.CONTENT_PAGE)
 
-def get_test_spinner_window():  
+
+def get_test_spinner_window():
     label = Gtk.Label("foo")
     spinner_notebook = SpinnerNotebook(label, "random msg")
-    
+
     window = Gtk.Window()
     window.add(spinner_notebook)
     window.set_size_request(600, 500)
     window.set_position(Gtk.WindowPosition.CENTER)
-    window.show_all()    
+    window.show_all()
     window.connect('destroy', Gtk.main_quit)
     spinner_notebook.show_spinner("Loading for 1s ...")
     GObject.timeout_add_seconds(1, lambda: spinner_notebook.hide_spinner())
