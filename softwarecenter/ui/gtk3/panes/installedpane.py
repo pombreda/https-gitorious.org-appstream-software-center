@@ -30,7 +30,8 @@ import platform
 
 from softwarecenter.enums import (NonAppVisibility,
                                   SortMethods)
-from softwarecenter.utils import wait_for_apt_cache_ready, utf8
+from softwarecenter.utils import (
+    wait_for_apt_cache_ready, utf8, ExecutionTime)
 from softwarecenter.db.categories import (CategoriesParser,
                                           categories_sorted_by_name)
 from softwarecenter.ui.gtk3.models.appstore2 import (
@@ -113,6 +114,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         self.visible_docids = None
         self.visible_cats = {}
+        
+        self.installed_spinner_notebook = None
 
     def init_view(self):
         if self.view_initialized: 
@@ -207,6 +210,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         # hacky, hide the header
         self.app_view.header_hbox.hide()
 
+        self.hide_appview_spinner()
+
         # now we are initialized
         self.emit("installed-pane-created")
         
@@ -215,11 +220,13 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
     def show_installed_view_spinner(self):
         """ display the local spinner for the installed view panel """
-        self.installed_spinner_notebook.show_spinner()
+        if self.installed_spinner_notebook:
+            self.installed_spinner_notebook.show_spinner()
         
     def hide_installed_view_spinner(self):
         """ hide the local spinner for the installed view panel """
-        self.installed_spinner_notebook.hide_spinner()
+        if self.installed_spinner_notebook:
+            self.installed_spinner_notebook.hide_spinner()
 
     def _selected_computer_changed(self, oneconf_pickler, hostid, hostname):
         if self.current_hostid == hostid:
@@ -309,6 +316,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         model = self.base_model # base model not treefilter
         model.clear()
 
+        def profiled_rebuild_categorised_view():
+            with ExecutionTime("rebuild_categorized_view"):
+                rebuild_categorised_view()
+
         def rebuild_categorised_view():
             self.cat_docid_map = {}
             enq = self.enquirer
@@ -320,6 +331,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
             xfilter = AppFilter(self.db, self.cache)
             xfilter.set_installed_only(True)
+            
             for cat in self._all_cats:
                 # for each category do category query and append as a new
                 # node to tree_view
@@ -375,9 +387,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             # hide the local spinner
             self.hide_installed_view_spinner()
             
-            # hide the main spinner (if it's showing)
-            self.hide_appview_spinner()
-            
             if window:
                 window.set_cursor(None)
             
@@ -388,7 +397,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.emit("app-list-changed", i)
             return
 
-        GObject.idle_add(rebuild_categorised_view)
+        GObject.idle_add(profiled_rebuild_categorised_view)
         return
         
     def _build_oneconfview(self):
@@ -402,6 +411,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         model = self.base_model # base model not treefilter
         model.clear()
+
+        def profiled_rebuild_oneconfview():
+            with ExecutionTime("rebuild_oneconfview"):
+                rebuild_oneconfview()
 
         def rebuild_oneconfview():
         
@@ -483,7 +496,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.emit("app-list-changed", i)
             return
 
-        GObject.idle_add(rebuild_oneconfview)
+        GObject.idle_add(profiled_rebuild_oneconfview)
         return
 
     def _check_expand(self):

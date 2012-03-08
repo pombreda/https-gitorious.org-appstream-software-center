@@ -29,6 +29,7 @@ from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
 
+
 class PkgListModel(QAbstractListModel):
 
     COLUMNS = ('_appname',
@@ -40,7 +41,7 @@ class PkgListModel(QAbstractListModel):
                '_ratings_total',
                '_ratings_average',
                '_installremoveprogress')
- 
+
     def __init__(self, parent=None):
         super(PkgListModel, self).__init__()
         self._docs = []
@@ -53,7 +54,7 @@ class PkgListModel(QAbstractListModel):
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open(use_axi=False)
         self.backend = get_install_backend()
-        self.backend.connect("transaction-progress-changed", 
+        self.backend.connect("transaction-progress-changed",
                              self._on_backend_transaction_progress_changed)
         self.reviews = get_review_loader(self.cache)
         # FIXME: get this from a parent
@@ -71,9 +72,9 @@ class PkgListModel(QAbstractListModel):
         doc = self._docs[index.row()]
         role = self.COLUMNS[role]
         pkgname = unicode(self.db.get_pkgname(doc), "utf8", "ignore")
-        appname =  unicode(self.db.get_appname(doc), "utf8", "ignore")
+        appname = unicode(self.db.get_appname(doc), "utf8", "ignore")
         if role == "_pkgname":
-            return pkgname 
+            return pkgname
         elif role == "_appname":
             return appname
         elif role == "_summary":
@@ -90,12 +91,14 @@ class PkgListModel(QAbstractListModel):
             iconname = self.db.get_iconname(doc)
             return self._findIcon(iconname)
         elif role == "_ratings_average":
-            stats = self.reviews.get_review_stats(Application(appname, pkgname))
+            stats = self.reviews.get_review_stats(Application(appname,
+                pkgname))
             if stats:
                 return stats.ratings_average
             return 0
         elif role == "_ratings_total":
-            stats = self.reviews.get_review_stats(Application(appname, pkgname))
+            stats = self.reviews.get_review_stats(Application(appname,
+                pkgname))
             if stats:
                 return stats.ratings_total
             return 0
@@ -106,26 +109,27 @@ class PkgListModel(QAbstractListModel):
         return None
 
     # helper
-    def _on_backend_transaction_progress_changed(self, backend, pkgname, progress):
+    def _on_backend_transaction_progress_changed(self, backend, pkgname,
+        progress):
         column = self.COLUMNS.index("_installremoveprogress")
         # FIXME: instead of the entire model, just find the row that changed
         top = self.createIndex(0, column)
-        bottom = self.createIndex(self.rowCount()-1, column)
+        bottom = self.createIndex(self.rowCount() - 1, column)
         self.dataChanged.emit(top, bottom)
 
     def _findIcon(self, iconname):
         path = "/usr/share/icons/Humanity/categories/32/applications-other.svg"
         for ext in ["svg", "png", ".xpm"]:
             p = "/usr/share/app-install/icons/%s" % iconname
-            if os.path.exists(p+ext):
-                path = "file://%s" % p+ext
+            if os.path.exists(p + ext):
+                path = "file://%s" % p + ext
                 break
         return path
-        
+
     def clear(self):
         if self._docs == []:
             return
-        self.beginRemoveRows(QModelIndex(), 0, self.rowCount()-1)
+        self.beginRemoveRows(QModelIndex(), 0, self.rowCount() - 1)
         self._docs = []
         self.endRemoveRows()
 
@@ -133,7 +137,7 @@ class PkgListModel(QAbstractListModel):
         self.clear()
         docs = self.db.get_docs_from_query(
             str(querystr), start=0, end=500, category=self._category)
-        self.beginInsertRows(QModelIndex(), 0, len(docs)-1)
+        self.beginInsertRows(QModelIndex(), 0, len(docs) - 1)
         self._docs = docs
         self.endInsertRows()
 
@@ -143,6 +147,7 @@ class PkgListModel(QAbstractListModel):
         appname = ""
         iconname = ""
         self.backend.install(pkgname, appname, iconname)
+
     @pyqtSlot(str)
     def removePackage(self, pkgname):
         appname = ""
@@ -152,11 +157,13 @@ class PkgListModel(QAbstractListModel):
     # searchQuery property (for qml )
     def getSearchQuery(self):
         return self._query
+
     def setSearchQuery(self, query):
         self._query = query
         self._runQuery(query)
     searchQueryChanged = QtCore.pyqtSignal()
-    searchQuery = QtCore.pyqtProperty(unicode, getSearchQuery, setSearchQuery, notify=searchQueryChanged)
+    searchQuery = QtCore.pyqtProperty(unicode, getSearchQuery, setSearchQuery,
+        notify=searchQueryChanged)
 
     # allow to refine searches for specific categories
     @pyqtSlot(str)
@@ -177,7 +184,7 @@ class PkgListModel(QAbstractListModel):
 
 if __name__ == "__main__":
     from PyQt4.QtGui import QApplication
-    from PyQt4.QtDeclarative import QDeclarativeView 
+    from PyQt4.QtDeclarative import QDeclarativeView
     import sys
 
     app = QApplication(sys.argv)
@@ -195,4 +202,3 @@ if __name__ == "__main__":
     # show it
     view.show()
     sys.exit(app.exec_())
-
