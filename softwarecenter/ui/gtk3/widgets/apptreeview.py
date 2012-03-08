@@ -470,7 +470,8 @@ class AppTreeView(Gtk.TreeView):
 
         path = model.get_path(it)
 
-        # FIXME: what is this used for?
+        # this will pre-load data *only* on a AppListStore, it has
+        # no effect with a AppTreeStore
         if model[path][0] is None:
             indices = path.get_indices()
             model.load_range(indices, 5)

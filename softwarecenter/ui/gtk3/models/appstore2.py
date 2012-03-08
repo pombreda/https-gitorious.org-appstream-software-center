@@ -396,6 +396,10 @@ class AppGenericStore(_AppPropertiesHelper):
             GObject.idle_add(buffer_icons)
         return
 
+    def load_range(self, indices, step):
+        # stub
+        return
+
 class AppListStore(Gtk.ListStore, AppGenericStore):
     """ use for flat applist views. for large lists this appends rows approx
         three times faster than the AppTreeStore equivalent
@@ -526,3 +530,4 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
         self.transaction_path_map = {}
         Gtk.TreeStore.clear(self)
         return
+
