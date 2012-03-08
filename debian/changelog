@@ -15,6 +15,10 @@ software-center (5.1.12) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp789596:
     - better (less scary) string for updates from third-party
       venders (LP: #789596)
+  * lp:~mvo/software-center/fix-refresh-of-whats-new:
+    - fix missing refresh of the what's new content on a database
+      reopen so that new content from the agent appears as soon
+      as it finishes the update
 
   [ Anthony Lenton ]
   * lp:~elachuni/software-center/dont-store:
@@ -41,7 +45,7 @@ software-center (5.1.12) UNRELEASED; urgency=low
     - use consistently the same app name for every Ubuntu SSO call to
       ensure SSO tokens are handled properly
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Mar 2012 18:45:47 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Mar 2012 19:02:08 -0500
 
 software-center (5.1.11) precise; urgency=low
 
