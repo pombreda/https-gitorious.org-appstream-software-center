@@ -210,7 +210,6 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             successfully the callback is triggered with the new reviews
         """
         LOG.debug("_on_submit_review_data")
-        return
         # read stdout from submit_review
         review = ReviewDetails.from_dict(review_json)
         # FIXME: ideally this would be stored in ubuntu-sso-client
@@ -356,7 +355,6 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
     def _on_modify_review_finished(self, spawn_helper, review_json, review_id, callback):
         """called when modify_review finished"""
         LOG.debug("_on_modify_review_finished")
-        return
         #review_json = spawn_helper._stdout
         mod_review = ReviewDetails.from_dict(review_json)
         for (app, reviews) in self._reviews.items():
