@@ -1,10 +1,7 @@
 #!/usr/bin/python
 
-import time
 import unittest
 import xapian
-
-from gi.repository import Gtk
 
 from testutils import setup_test_env
 setup_test_env()
@@ -65,7 +62,7 @@ class TestAppView(unittest.TestCase):
         # setup goo
         win = get_test_window()
         appview = win.get_data("appview")
-        entry = win.get_data("entry")
+        #entry = win.get_data("entry")
         do_events()
 
         # get the model

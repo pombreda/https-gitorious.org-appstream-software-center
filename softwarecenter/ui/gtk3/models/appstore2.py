@@ -31,7 +31,6 @@ from softwarecenter.enums import (Icons,
 from softwarecenter.utils import ExecutionTime, SimpleFileDownloader, split_icon_ext
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
-from softwarecenter.db.database import Application
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 import softwarecenter.paths

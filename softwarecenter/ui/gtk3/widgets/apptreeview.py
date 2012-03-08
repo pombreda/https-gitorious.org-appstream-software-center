@@ -1,7 +1,5 @@
 from gi.repository import Gtk, Gdk, GObject
 import logging
-import os
-import xapian
 
 from gettext import gettext as _
 
@@ -13,7 +11,7 @@ from cellrenderers import (CellRendererAppView,
                            CellButtonIDs)
 
 from softwarecenter.ui.gtk3.em import em, StockEms
-from softwarecenter.enums import (AppActions, NonAppVisibility, Icons)
+from softwarecenter.enums import (AppActions, Icons)
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.backend import get_install_backend
 from softwarecenter.netstatus import (get_network_watcher,
@@ -603,7 +601,7 @@ def get_test_window():
 
     from softwarecenter.testutils import (
         get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache,
-        get_test_enquirer_matches, get_test_categories)
+        get_test_categories)
 
     cache = get_test_pkg_info()
     db = get_test_db()
