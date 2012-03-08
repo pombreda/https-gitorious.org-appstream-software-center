@@ -39,7 +39,7 @@ from softwarecenter.utils import (ExecutionTime,
 
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.widgets.actionbar import ActionBar
-from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
+from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
 from softwarecenter.ui.gtk3.widgets.searchaid import SearchAid
 
 from softwarecenter.ui.gtk3.views.appview import AppView
@@ -179,18 +179,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
         if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
             self.notebook.set_show_tabs(False)
         self.notebook.set_show_border(False)
-        # an empty notebook, where the details view will eventually go
-        self.details_notebook = Gtk.Notebook()
-        self.details_notebook.set_show_border(False)
         # make a spinner view to display while the applist is loading
-        self.spinner_view = SpinnerView()
-        self.spinner_notebook = Gtk.Notebook()
-        self.spinner_notebook.set_show_tabs(False)
-        self.spinner_notebook.set_show_border(False)
-        self.spinner_notebook.append_page(self.notebook, None)
-        self.spinner_notebook.append_page(self.details_notebook, None)
-        self.spinner_notebook.append_page(self.spinner_view, None)
-        
+        self.spinner_notebook = SpinnerNotebook(self.notebook)
         self.pack_start(self.spinner_notebook, True, True, 0)
 
         # add a bar at the bottom (hidden by default) for contextual actions
@@ -317,25 +307,15 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
         LOG.debug("show_appview_spinner")
+        # FIXME: totally the wrong place!
         if not self.state.search_term:
             self.action_bar.clear()
-        self.spinner_view.stop()
-        self.spinner_notebook.set_current_page(SoftwarePane.Pages.SPINNER)
-        # "mask" the spinner view momentarily to prevent it from flashing into
-        # view in the case of short delays where it isn't actually needed
-        GObject.timeout_add(100, self._unmask_appview_spinner)
-        
-    def _unmask_appview_spinner(self):
-        LOG.debug("_unmask_appview_spinner")
-        self.spinner_view.start()
-        return False
+        self.spinner_notebook.show_spinner()
         
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
         LOG.debug("hide_appview_spinner")
-        self.spinner_notebook.set_current_page(
-                                        SoftwarePane.Pages.APPVIEW)
-        self.spinner_view.stop()
+        self.spinner_notebook.hide_spinner()
 
     def set_section(self, section):
         self.section = section

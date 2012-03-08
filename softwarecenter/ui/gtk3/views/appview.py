@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+
 import logging
 
 from gi.repository import Gtk, GObject
@@ -27,6 +28,8 @@ from softwarecenter.ui.gtk3.models.appstore2 import AppTreeStore
 from softwarecenter.ui.gtk3.widgets.apptreeview import AppTreeView
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.utils import ExecutionTime
+
+LOG=logging.getLogger(__name__)
 
 class AppView(Gtk.VBox):
 
@@ -215,6 +218,41 @@ class AppView(Gtk.VBox):
     def get_sort_mode(self):
         active_index = self.sort_methods_combobox.get_active()
         return self._SORT_METHOD_INDEX[active_index]
+        
+    def get_app_icon_details(self):
+        """ helper for unity dbus support to provide details about the
+            application icon as it is displayed on-screen
+        """
+        icon_size = self._get_app_icon_size_on_screen()
+        (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
+        return (icon_size, icon_x, icon_y)
+
+    def _get_app_icon_size_on_screen(self):
+        """ helper for unity dbus support to get the size of the maximum side
+            for the application icon as it is displayed on-screen
+        """
+        icon_size = 32
+        if self.tree_view.selected_row_renderer.icon:
+            pb = self.tree_view.selected_row_renderer.icon
+            if pb.get_width() > pb.get_height():
+                icon_size = pb.get_width()
+            else:
+                icon_size = pb.get_height()
+        return icon_size
+                
+    def _get_app_icon_xy_position_on_screen(self):
+        """ helper for unity dbus support to get the x,y position of
+            the application icon as it is displayed on-screen
+        """
+        # find toplevel parent
+        parent = self
+        while parent.get_parent():
+            parent = parent.get_parent()
+        # get toplevel window position
+        (px, py) = parent.get_position()
+        # and return the coordinate values
+        return (px+self.tree_view.selected_row_renderer.icon_x_offset,
+                py+self.tree_view.selected_row_renderer.icon_y_offset)
 
 
 

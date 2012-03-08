@@ -58,7 +58,8 @@ from softwarecenter.enums import (Icons,
                                   AppActions,
                                   DB_SCHEMA_VERSION,
                                   MOUSE_EVENT_FORWARD_BUTTON,
-                                  MOUSE_EVENT_BACK_BUTTON)
+                                  MOUSE_EVENT_BACK_BUTTON,
+                                  SOFTWARE_CENTER_NAME_KEYRING)
 from softwarecenter.utils import (clear_token_from_ubuntu_sso,
                                   get_http_proxy_string_from_gsettings,
                                   wait_for_apt_cache_ready,
@@ -109,10 +110,10 @@ def callable(func):
     return isinstance(func, collections.Callable)
 
 class SoftwarecenterDbusController(dbus.service.Object):
-    """ 
+    """
     This is a helper to provide the SoftwarecenterIFace
-    
-    It provides only a bringToFront method that takes 
+
+    It provides only a bringToFront method that takes
     additional arguments about what packages to show
     """
     def __init__(self, parent, bus_name,
@@ -137,23 +138,23 @@ class SoftwarecenterDbusController(dbus.service.Object):
 
 # XXX Haven't really thought this through....
 #~ class SoftwareCenterInitOndemand(object):
-#~ 
+#~
     #~ """ Init objects/data that are low priority, i.e, use case is
         #~ niche and/or load times are low and will not impact user
         #~ experience.  All data and objects are loaded on request.
     #~ """
-#~ 
+#~
     #~ def init(self):
         #~ pass
 
 
 #~ class SoftwareCenterInitDelayed(object):
-#~ 
+#~
     #~ """ Init objects/data that are medium priority, not needed instantly
         #~ but rather _potentially_ required within the first few seconds
         #~ of USC usage.
     #~ """
-#~ 
+#~
     #~ def init(self):
         #~ # reviews
         #~ self.review_loader = get_review_loader(self.cache, self.db)
@@ -181,8 +182,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.setup_dbus_or_bring_other_instance_to_front(args)
 
         self.datadir = datadir
-        SimpleGtkbuilderApp.__init__(self, 
-                                     datadir+"/ui/gtk3/SoftwareCenter.ui", 
+        SimpleGtkbuilderApp.__init__(self,
+                                     datadir+"/ui/gtk3/SoftwareCenter.ui",
                                      "software-center")
         gettext.bindtextdomain("software-center", "/usr/share/locale")
         gettext.textdomain("software-center")
@@ -229,7 +230,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                     self._rebuild_and_reopen_local_db(pathname)
             except xapian.DatabaseCorruptError:
                 LOG.exception("xapian open failed")
-                dialogs.error(None, 
+                dialogs.error(None,
                               _("Sorry, can not open the software database"),
                               _("Please re-install the 'software-center' "
                                 "package."))
@@ -253,7 +254,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # misc state
         self._block_menuitem_view = False
-        
+
         # for use when viewing previous purchases
         self.scagent = None
         self.sso = None
@@ -296,7 +297,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
             # installed pane (view not fully initialized at this point)
             self.installed_pane = InstalledPane(self.cache,
-                                                self.db, 
+                                                self.db,
                                                 self.distro,
                                                 self.icons,
                                                 self.datadir)
@@ -354,7 +355,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         supported_menuitem = self.builder.get_object("menuitem_view_supported_only")
         supported_menuitem.set_label(self.distro.get_supported_filter_name())
         file_menu = self.builder.get_object("menu1")
-        
+
         if not self.distro.DEVELOPER_URL:
             help_menu = self.builder.get_object("menu_help")
             developer_separator = self.builder.get_object("separator_developer")
@@ -366,7 +367,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         och = is_oneconf_available()
         if not och:
             file_menu.remove(self.builder.get_object("menuitem_sync_between_computers"))
-            
+
         # restore the state of the add to launcher menu item, or remove the menu
         # item if Unity is not currently running
         add_to_launcher_menuitem = self.builder.get_object(
@@ -389,6 +390,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         else:
             # running the agent will trigger a db reload so we do it later
             GObject.timeout_add_seconds(30, self._run_software_center_agent)
+
+
+        # keep the cache clean
+        GObject.timeout_add_seconds(15, self._run_expunge_cache_helper)
 
         # TODO: Remove the following two lines once we have remove repository
         #       support in aptdaemon (see LP: #723911)
@@ -418,6 +423,16 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
         GObject.child_watch_add(
             pid, self._on_update_software_center_agent_finished)
+
+    def _run_expunge_cache_helper(self):
+        """ helper that expires the piston-mini-client cache """
+        sc_expunge_cache = os.path.join(
+            self.datadir, "expunge-cache.py")
+        (pid, stdin, stdout, stderr) = GObject.spawn_async(
+            [sc_expunge_cache,
+             "--by-unsuccessful-http-states",
+             softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR,
+             ])
 
     def _rebuild_and_reopen_local_db(self, pathname):
         """ helper that rebuilds a db and reopens it """
@@ -462,18 +477,18 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.available_pane.cat_view.recommended_for_you_panel.connect(
                         "recommendations-opt-out",
                         self._on_recommendations_opt_out)
-    
+
     #~ def on_installed_pane_created(self, widget):
         #~ pass
-        
-    def _on_recommendations_opt_in(self, recommender_uuid):
+
+    def _on_recommendations_opt_in(self, agent, recommender_uuid):
         self.recommender_uuid = recommender_uuid
-    
+
     def _on_recommendations_opt_out(self):
         # if the user opts back out of the recommender service, we
         # reset the UUID to indicate it
         self.recommender_uuid = ""
-    
+
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
         if os.WEXITSTATUS(condition) == 0:
@@ -490,7 +505,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             Gtk.main_quit()
         except Exception as e:
             LOG.warning(e)
-        
+
     def on_window_main_key_press_event(self, widget, event):
         """ Define all the accelerator keys here - slightly messy, but the ones
             defined in the menu don't seem to work.. """
@@ -576,7 +591,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.menuitem_view.activate()
             if self.menuitem_go_forward.get_sensitive():
                 self.menuitem_go_forward.activate()
-            
+
     def on_window_main_button_press_event(self, widget, event):
         """
         Implement back/forward navigation via mouse navigation keys using
@@ -590,7 +605,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.menuitem_view.activate()
             if self.menuitem_go_forward.get_sensitive():
                 self.menuitem_go_forward.activate()
-        
+
     def _on_lp_login(self, lp, token):
         self._lp_login_successful = True
         private_archives = self.glaunchpad.get_subscribed_archives()
@@ -614,7 +629,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             add_from_purchased_but_needs_reinstall_data)
         self.available_for_me_query = add_from_purchased_but_needs_reinstall_data(
             result_list, self.db, self.cache)
-        self.available_pane.on_previous_purchases_activated(self.available_for_me_query) 
+        self.available_pane.on_previous_purchases_activated(self.available_for_me_query)
 
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
@@ -671,9 +686,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.menuitem_remove.set_sensitive(True)
         elif pkg_state == PkgStates.UNINSTALLED and not error:
             self.menuitem_install.set_sensitive(True)
-        elif (not pkg_state and 
-              not self.active_pane.is_category_view_showing() and 
-              app.pkgname in self.cache and 
+        elif (not pkg_state and
+              not self.active_pane.is_category_view_showing() and
+              app.pkgname in self.cache and
               not app.pkgname in self.active_pane.app_view.tree_view._action_block_list and
               not error):
             # when does this happen?
@@ -693,9 +708,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         d.login()
 
     def _create_dbus_sso(self):
-        # see bug #773214 for the rationale
-        #appname = _("Ubuntu Software Center Store")
-        appname = "Ubuntu Software Center Store"
+        # see bug #773214 for the rationale, do not translate the appname
+        #appname = _("Ubuntu Software Center")
+        appname = SOFTWARE_CENTER_NAME_KEYRING
         help_text = _("To reinstall previous purchases, sign in to the "
                       "Ubuntu Single Sign-On account you used to pay for them.")
         #window = self.window_main.get_window()
@@ -715,7 +730,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             from softwarecenter.backend.scagent import SoftwareCenterAgent
             self.scagent = SoftwareCenterAgent()
             self.scagent.connect("available-for-me", self._available_for_me_result)
-            
+
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
         self.view_manager.set_active_view(ViewPages.AVAILABLE)
         self.available_pane.show_appview_spinner()
@@ -726,13 +741,13 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             # fetch the list of available items and show it
             self._create_scagent_if_needed()
             self._login_via_dbus_sso()
-            
+
     def on_menuitem_deauthorize_computer_activate(self, menuitem):
-    
+
         # FIXME: need Ubuntu SSO username here
         # account_name = get_person_from_config()
         account_name = None
-        
+
         # get a list of installed purchased packages
         installed_purchased_packages = self.db.get_installed_purchased_packages()
 
@@ -745,12 +760,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                                               installed_purchased_packages)
         if deauthorize:
             # clear the ubuntu SSO token for this account
-            # FIXME: this needs to be consolidated - one token is 
-            #        aquired for purchase in utils/submit_review.py
-            #        the other one in softwarecenter/app.py
-            clear_token_from_ubuntu_sso(_("Ubuntu Software Center"))
-            clear_token_from_ubuntu_sso(_("Ubuntu Software Center Store"))
-            
+            clear_token_from_ubuntu_sso(SOFTWARE_CENTER_NAME_KEYRING)
+
             # uninstall the list of purchased packages
             # TODO: do we need to check for dependencies and show a removal
             # dialog for that case?  seems not since these are purchased apps
@@ -758,7 +769,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 app = Application(pkgname=pkgname)
                 appdetails = app.get_details(self.db)
                 self.backend.remove(app, appdetails.icon)
-            
+
             # TODO: remove the corresponding private PPA sources
             # FIXME: this should really be done using aptdaemon, update this if/when
             #        remove repository support is added to aptdaemon
@@ -776,7 +787,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.view_manager.display_page(pane, page, state)
             self.installed_pane.refresh_apps()
         get_oneconf_handler().sync_between_computers(True)
-        
+
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
         get_appmanager().request_action(app, [], [], AppActions.INSTALL)
@@ -784,7 +795,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
         get_appmanager().request_action(app, [], [], AppActions.REMOVE)
-        
+
     def on_menuitem_close_activate(self, widget):
         Gtk.main_quit()
 
@@ -795,7 +806,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         """
         edit_menu_items = [self.menuitem_undo,
                            self.menuitem_redo,
-                           self.menuitem_cut, 
+                           self.menuitem_cut,
                            self.menuitem_copy,
                            self.menuitem_copy_web_link,
                            self.menuitem_paste,
@@ -811,10 +822,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             return False
         self.active_pane = vm.get_view_widget(vm.get_active_view())
 
-        if (self.active_pane and 
+        if (self.active_pane and
             self.active_pane.searchentry and
             self.active_pane.searchentry.get_visible()):
-            # undo, redo, cut, copy, paste, delete, select_all sensitive 
+            # undo, redo, cut, copy, paste, delete, select_all sensitive
             # if searchentry is focused (and other more specific conditions)
             if self.active_pane.searchentry.is_focus():
                 if len(self.active_pane.searchentry._undo_stack) > 1:
@@ -840,7 +851,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 self.menuitem_copy_web_link.set_sensitive(True)
 
         # details view
-        if (self.active_pane and 
+        if (self.active_pane and
             self.active_pane.is_app_details_view_showing()):
 
             self.menuitem_select_all.set_sensitive(True)
@@ -851,7 +862,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def on_menuitem_undo_activate(self, menuitem):
         self.active_pane.searchentry.undo()
-        
+
     def on_menuitem_redo_activate(self, menuitem):
         self.active_pane.searchentry.redo()
 
@@ -906,8 +917,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             xid = 0
 
         p = subprocess.Popen(
-            ["/usr/bin/software-properties-gtk", 
-             "-n", 
+            ["/usr/bin/software-properties-gtk",
+             "-n",
              "-t", str(xid)])
         # Monitor the subprocess regularly
         GObject.timeout_add(100, self._poll_software_sources_subprocess, p)
@@ -933,7 +944,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.menuitem_go_back.set_sensitive(False)
             self.menuitem_go_forward.set_sensitive(False)
             return False
-            
+
         left_sensitive = vm.back_forward.left.get_sensitive()
         self.menuitem_go_back.set_sensitive(left_sensitive)
         right_sensitive = vm.back_forward.right.get_sensitive()
@@ -993,13 +1004,13 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                     #~ ap.navigation_bar.navigate_up_twice()
                 #~ else:
                     #~ ap.navigation_bar.navigate_up()
-                #~ ap.on_application_selected(None, None)    
+                #~ ap.on_application_selected(None, None)
 
             #~ # navigate up if the list page is empty
-            #~ elif (ap and ap.is_applist_view_showing() and 
+            #~ elif (ap and ap.is_applist_view_showing() and
                 #~ len(ap.app_view.get_model()) == 0):
                 #~ ap.navigation_bar.navigate_up()
-                #~ ap.on_application_selected(None, None)    
+                #~ ap.on_application_selected(None, None)
 
     def on_navhistory_back_action_activate(self, navhistory_back_action=None):
         vm = get_viewmanager()
@@ -1008,7 +1019,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_navhistory_forward_action_activate(self, navhistory_forward_action=None):
         vm = get_viewmanager()
         vm.nav_forward()
-        
+
     def on_menuitem_add_to_launcher_toggled(self, menu_item):
         self.available_pane.add_to_launcher_enabled = menu_item.get_active()
 
@@ -1040,8 +1051,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self._ask_and_repair_broken_cache()
 
     def _on_transaction_finished(self, backend, result):
-        """ callback when an application install/remove transaction 
-            (or a cache reload) has finished 
+        """ callback when an application install/remove transaction
+            (or a cache reload) has finished
         """
         self.cache.open()
 
@@ -1108,7 +1119,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                 "com.ubuntu.Softwarecenter")
 
     def setup_dbus_or_bring_other_instance_to_front(self, args):
-        """ 
+        """
         This sets up a dbus listener
         """
         try:
@@ -1119,7 +1130,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # if there is another Softwarecenter running bring it to front
         # and exit, otherwise install the dbus controller
         try:
-            proxy_obj = bus.get_object('com.ubuntu.Softwarecenter', 
+            proxy_obj = bus.get_object('com.ubuntu.Softwarecenter',
                                        '/com/ubuntu/Softwarecenter')
             iface = dbus.Interface(proxy_obj, 'com.ubuntu.SoftwarecenterIFace')
             if args:
@@ -1173,15 +1184,17 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             @wait_for_apt_cache_ready
             def show_app(self, app):
                 # if the pkg is installed, show it in the installed pane
-                if (app.pkgname in self.cache and 
+                if (app.pkgname in self.cache and
                     self.cache[app.pkgname].installed):
-                    self.installed_pane.init_view()
-                    self.installed_pane.show_app(app)
+                    with ExecutionTime("installed_pane.init_view()"):
+                        self.installed_pane.init_view()
+                    with ExecutionTime("installed_pane.show_app()"):
+                        self.installed_pane.show_app(app)
                 else:
                     self.available_pane.init_view()
                     self.available_pane.show_app(app)
             show_app(self, app)
-            return    
+            return
         elif len(packages) > 1:
             # turn multiple packages into a search with ","
             self.available_pane.init_view()
@@ -1233,7 +1246,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         else:
             self.config.set("general", "maximized", "False")
             # size only matters when non-maximized
-            size = self.window_main.get_size() 
+            size = self.window_main.get_size()
             self.config.set("general","size", "%s, %s" % (size[0], size[1]))
         if self.available_pane.add_to_launcher_enabled:
             self.config.set("general", "add_to_launcher", "True")

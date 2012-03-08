@@ -1,7 +1,7 @@
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 import time
 import unittest
-from mock import patch
+from mock import patch, Mock
 
 from testutils import setup_test_env
 setup_test_env()
@@ -38,6 +38,12 @@ class TestCatView(unittest.TestCase):
         # get the widgets we need
         win = get_test_window_catview()
         lobby = win.get_data("lobby")
+
+        # test db reopen triggers whats-new update
+        lobby._update_whats_new_content = Mock()
+        lobby.db.emit("reopen")
+        self.assertTrue(lobby._update_whats_new_content.called)
+
         # test clicking new
         lobby.connect("category-selected", self._on_category_selected)
         lobby.whats_new_frame.more.clicked()
@@ -87,6 +93,13 @@ class TestCatView(unittest.TestCase):
         win.destroy()
         
     def test_subcatview_recommended_for_you_opt_in_display(self):
+    
+        # patch the recommender UUID value to insure that we are not opted-in for this test
+        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
+        self.addCleanup(get_recommender_uuid_patcher.stop)
+        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
+        mock_get_recommender_uuid.return_value = ""
+        
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
@@ -100,8 +113,15 @@ class TestCatView(unittest.TestCase):
         
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
-           '.query_submit_profile')
+           '.post_submit_profile')
     def test_subcatview_recommended_for_you_spinner_display(self, mock_query):
+    
+        # patch the recommender UUID value to insure that we are not opted-in for this test
+        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
+        self.addCleanup(get_recommender_uuid_patcher.stop)
+        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
+        mock_get_recommender_uuid.return_value = ""
+        
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
@@ -114,13 +134,29 @@ class TestCatView(unittest.TestCase):
         from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
         self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.SPINNER)
         self.assertTrue(rec_panel.opt_in_vbox.get_property("visible"))
-        self.assertTrue(rec_panel.spinner.spinner_label)
-        win.destroy()
-        
+        # now pretent that we got data and ensure its displayed
+        rec_panel._update_recommended_for_you_content()
+        rec_panel.recommended_for_you_cat._recommend_me_result(
+            None, make_recommender_agent_recommend_me_dict())
+        self._p()
+        self.assertTrue(rec_panel.recommended_for_you_content.get_property("visible"))
+        self.assertFalse(rec_panel.opt_in_vbox.get_property("visible"))
+        # exit after brief timeout
+        TIMEOUT=100
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
+
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
-           '.query_submit_profile')
+           '.post_submit_profile')
     def test_subcatview_recommended_for_you_display_recommendations(self, mock_query):
+    
+        # patch the recommender UUID value to insure that we are not opted-in for this test
+        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
+        self.addCleanup(get_recommender_uuid_patcher.stop)
+        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
+        mock_get_recommender_uuid.return_value = ""
+        
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
@@ -158,6 +194,6 @@ class TestCatView(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
+    #import logging
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()

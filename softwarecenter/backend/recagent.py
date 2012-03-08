@@ -25,6 +25,10 @@ import logging
 import softwarecenter.paths
 from spawn_helper import SpawnHelper
 
+from softwarecenter.config import get_config
+from softwarecenter.db.utils import get_installed_apps_list
+from softwarecenter.utils import get_uuid
+
 LOG = logging.getLogger(__name__)
 
 class RecommenderAgent(GObject.GObject):
@@ -38,11 +42,11 @@ class RecommenderAgent(GObject.GObject):
                      GObject.TYPE_NONE, 
                      (GObject.TYPE_PYOBJECT,),
                     ),
-        "submit-profile" : (GObject.SIGNAL_RUN_LAST,
+        "submit-profile-finished" : (GObject.SIGNAL_RUN_LAST,
                             GObject.TYPE_NONE, 
-                            (GObject.TYPE_PYOBJECT,),
+                            (GObject.TYPE_PYOBJECT, str),
                            ),
-        "submit-anon-profile" : (GObject.SIGNAL_RUN_LAST,
+        "submit-anon-profile-finished" : (GObject.SIGNAL_RUN_LAST,
                                  GObject.TYPE_NONE, 
                                  (GObject.TYPE_PYOBJECT,),
                                 ),
@@ -71,7 +75,8 @@ class RecommenderAgent(GObject.GObject):
     def __init__(self, xid=None):
         GObject.GObject.__init__(self)
         self.xid = xid
-        
+        self.recommender_uuid = self._get_recommender_uuid()
+
     def query_server_status(self):
         # build the command
         spawner = SpawnHelper()
@@ -82,7 +87,19 @@ class RecommenderAgent(GObject.GObject):
         spawner.run_generic_piston_helper(
             "SoftwareCenterRecommenderAPI", "server_status")
             
-    def query_submit_profile(self, data):
+    def post_submit_profile(self, db):
+        """ This will post the users profile to the recommender server
+            and also generate the UUID for the user if that is not 
+            there yet
+        """
+        # if we have not already set a recommender UUID, now is the time
+        # to do it
+        if not self.recommender_uuid:
+            self.recommender_uuid = get_uuid()
+        installed_pkglist = [app.pkgname 
+                             for app in get_installed_apps_list(db)]
+        data = self._generate_submit_profile_data(self.recommender_uuid,
+                                                  installed_pkglist)
         # build the command
         spawner = SpawnHelper()
         spawner.parent_xid = self.xid
@@ -94,7 +111,7 @@ class RecommenderAgent(GObject.GObject):
             "submit_profile",
             data=data)
             
-    def query_submit_anon_profile(self, uuid, installed_packages, extra):
+    def post_submit_anon_profile(self, uuid, installed_packages, extra):
         # build the command
         spawner = SpawnHelper()
         spawner.parent_xid = self.xid
@@ -166,7 +183,9 @@ class RecommenderAgent(GObject.GObject):
         self.emit("profile", piston_profile)
         
     def _on_submit_profile_data(self, spawner, piston_submit_profile):
-        self.emit("submit-profile", piston_submit_profile)
+        self.emit("submit-profile-finished", 
+                  piston_submit_profile, 
+                  self.recommender_uuid)
         
     def _on_submit_anon_profile_data(self, spawner, piston_submit_anon_profile):
         self.emit("submit-anon_profile", piston_submit_anon_profile)
@@ -182,6 +201,27 @@ class RecommenderAgent(GObject.GObject):
         
     def _on_recommend_top_data(self, spawner, piston_top_apps):
         self.emit("recommend-top", piston_top_apps)
+        
+    def _get_recommender_uuid(self):
+        """ returns the recommender UUID value, which can be empty if it
+            has not yet been set (indicating that the user has not yet
+            opted-in to the recommender service)
+        """
+        config = get_config()
+        if config.has_option("general", "recommender_uuid"):
+            recommender_uuid = config.get("general", "recommender_uuid")
+            if recommender_uuid:
+                return recommender_uuid
+        return ""
+        
+    def _generate_submit_profile_data(self, recommender_uuid, package_list):
+        submit_profile_data = [
+            {
+                'uuid': recommender_uuid, 
+                'package_list': package_list
+            }
+        ]
+        return submit_profile_data
 
    
 if __name__ == "__main__":

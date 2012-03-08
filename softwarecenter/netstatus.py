@@ -88,14 +88,16 @@ def __connection_state_changed_handler(state):
 def __init_network_state():
     global NETWORK_STATE
 
-    # check is SOFTWARE_CENTER_NET_DISCONNECTED is in the environment variables
-    # if so force the network status to be disconnected
+    # honor SOFTWARE_CENTER_NET_{DIS,}CONNECTED in the environment variables
     import os
-    if ("SOFTWARE_CENTER_NET_DISCONNECTED" in os.environ and
-        os.environ["SOFTWARE_CENTER_NET_DISCONNECTED"] == 1):
-        NETWORK_STATE = NetState.NM_STATE_DISCONNECTED
-        print('forced netstate into disconnected mode...')
-        return
+    env_map = { 
+        'SOFTWARE_CENTER_NET_DISCONNECTED' : NetState.NM_STATE_DISCONNECTED,
+        'SOFTWARE_CENTER_NET_CONNECTED' : NetState.NM_STATE_CONNECTED_GLOBAL,
+    }
+    for envkey, state in env_map.iteritems():
+        if envkey in os.environ:
+            NETWORK_STATE = state
+            return
 
     dbus_loop = DBusGMainLoop()
     try:

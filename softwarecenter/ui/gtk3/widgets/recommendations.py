@@ -28,9 +28,7 @@ from softwarecenter.ui.gtk3.widgets.containers import (FramedHeaderBox,
 from softwarecenter.db.categories import (RecommendedForYouCategory,
                                           AppRecommendationsCategory)
 from softwarecenter.backend.recagent import RecommenderAgent
-from softwarecenter.db.utils import get_installed_package_list
-from softwarecenter.utils import get_uuid
-from softwarecenter.config import get_config
+
 
 LOG = logging.getLogger(__name__)
 
@@ -80,27 +78,22 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         RecommendationsPanel.__init__(self, catview)
         self.set_header_label(_(u"Recommended for You"))
         
-        self.recommender_uuid = ""
-        # FIXME: probs should just pass this on in instead of reading config
-        config = get_config()
-        if config.has_option("general", "recommender_uuid"):
-            self.recommender_uuid = config.get("general",
-                                               "recommender_uuid")
-        
-        if not self.recommender_uuid:
-            self._show_opt_in_view()
-        else:
+        # if we already have a recommender UUID, then the user is already
+        # opted-in to the recommender service
+        self.recommended_for_you_content = None
+        if self.recommender_agent.recommender_uuid:
             self._update_recommended_for_you_content()
+        else:
+            self._show_opt_in_view()
             
-        self.add(self.recommended_for_you_content)
-        self.header_implements_more_button()
-
     def _show_opt_in_view(self):
         # opt in box
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
         vbox.set_border_width(StockEms.LARGE)
         self.opt_in_vbox = vbox  # for tests
         self.recommended_for_you_content = vbox  # hook it up to the rest
+        
+        self.add(self.recommended_for_you_content)
 
         # opt in button
         button = Gtk.Button(_("Turn On Recommendations"))
@@ -132,24 +125,19 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self._upload_user_profile()
         
     def _upload_user_profile(self):
-        self.spinner.set_text(_("Submitting inventory…"))
-        self.show_spinner()
-        self.recommender_uuid = get_uuid()
-        installed_pkglist = list(get_installed_package_list())
-        self.recommender_agent.connect("submit-profile",
+        self.spinner_notebook.show_spinner(_("Submitting inventory…"))
+        self.recommender_agent.connect("submit-profile-finished",
                                   self._on_profile_submitted)
         self.recommender_agent.connect("error",
                                   self._on_profile_submitted_error)
-        self.recommender_agent.query_submit_profile(
-                self._generate_submit_profile_data(self.recommender_uuid, 
-                                                   installed_pkglist))
+        self.recommender_agent.post_submit_profile(self.catview.db)
                                                 
-    def _on_profile_submitted(self):
+    def _on_profile_submitted(self, agent, profile, recommender_uuid):
         # after the user profile data has been uploaded, make the request
         # and load the the recommended_for_you content
         LOG.debug("The recommendations profile has been successfully "
                   "submitted to the recommender agent")
-        self.emit("recommendations-opt-in", self.recommender_uuid)
+        self.emit("recommendations-opt-in", recommender_uuid)
         self._update_recommended_for_you_content()
         
     def _on_profile_submitted_error(self, agent, msg):
@@ -159,9 +147,15 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self._hide_recommended_for_you_panel()
         
     def _update_recommended_for_you_content(self):
+        # destroy the old content to ensure we don't see it twice
+        # (also removes the opt-in panel if it was there)
+        if self.recommended_for_you_content:
+            self.recommended_for_you_content.destroy()
+        # add the new stuff
+        self.header_implements_more_button()
         self.recommended_for_you_content = FlowableGrid()
-        self.spinner.set_text(_("Receiving recommendations…"))
-        self.show_spinner()
+        self.add(self.recommended_for_you_content)
+        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.recommended_for_you_cat = RecommendedForYouCategory()
         self.recommended_for_you_cat.connect(
@@ -177,7 +171,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
             self.catview._add_tiles_to_flowgrid(docs,
                                         self.recommended_for_you_content, 8)
             self.recommended_for_you_content.show_all()
-            self.show_content()
+            self.spinner_notebook.hide_spinner()
             self.more.connect('clicked',
                               self.catview.on_category_clicked,
                               cat)
@@ -197,16 +191,6 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         # and hide the pane
         self.hide()
         
-    def _generate_submit_profile_data(self,
-                                      recommender_uuid,
-                                      package_list):
-        submit_profile_data = [
-            {
-                'uuid': recommender_uuid, 
-                'package_list': package_list
-            }
-        ]
-        return submit_profile_data
         
 class RecommendationsPanelDetails(RecommendationsPanel):
     """
@@ -225,8 +209,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
 
     def _update_app_recommendations_content(self):
         self.app_recommendations_content.remove_all()
-        self.spinner.set_text(_("Receiving recommendations…"))
-        self.show_spinner()
+        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.app_recommendations_cat = AppRecommendationsCategory(self.pkgname)
         self.app_recommendations_cat.connect(
@@ -241,8 +224,8 @@ class RecommendationsPanelDetails(RecommendationsPanel):
         if len(docs) > 0:
             self.catview._add_tiles_to_flowgrid(docs,
                                         self.app_recommendations_content, 8)
-            self.app_recommendations_content.show_all()
-            self.show_content()
+            self.show_all()
+            self.spinner_notebook.hide_spinner()
         else:
             self._hide_app_recommendations_panel()
         return
@@ -258,14 +241,29 @@ class RecommendationsPanelDetails(RecommendationsPanel):
         self.hide()
     
 
-
-def get_test_window_recommendations_panel_lobby():
+# test helpers
+def get_test_window():
     import softwarecenter.log
     softwarecenter.log.root.setLevel(level=logging.DEBUG)
     fmt = logging.Formatter("%(name)s - %(message)s", None)
     softwarecenter.log.handler.setFormatter(fmt)
     
-    view = RecommendationsPanelLobby()
+
+    # this is *way* to complicated we should *not* need a CatView
+    # here! see FIXME in RecommendationsPanel.__init__()
+    from softwarecenter.ui.gtk3.views.catview_gtk import CategoriesViewGtk
+    from softwarecenter.testutils import (
+        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache)
+    cache = get_test_pkg_info()
+    db = get_test_db()
+    icons = get_test_gtk3_icon_cache()
+    catview = CategoriesViewGtk(softwarecenter.paths.datadir,
+                                softwarecenter.paths.APP_INSTALL_PATH,
+                                cache, 
+                                db,
+                                icons)
+
+    view = RecommendationsPanelLobby(catview)
 
     win = Gtk.Window()
     win.connect("destroy", lambda x: Gtk.main_quit())
@@ -278,5 +276,5 @@ def get_test_window_recommendations_panel_lobby():
     
 
 if __name__ == "__main__":
-    win = get_test_window_recommendations_panel_lobby()
+    win = get_test_window()
     Gtk.main()

@@ -1,13 +1,88 @@
-software-center (5.1.11) UNRELEASED; urgency=low
+software-center (5.1.12) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/webcam-string-fix:
+  - small fix to support the debtagshw updated tags for hardware::camera
+    (split into webcam,digicam now)
+  * lp:~mvo/software-center/trivial-nm-state-override:
+    - support the SOFTWARE_CENTER_NET_CONNECTED environment value to
+      force the connected state as a stopgap workaround for bug 911706
+  * lp:~mvo/software-center/lp941361:
+    - adds a general make_string_from_list() helper to build (somewhat)
+      i18n friendly human readable strings easily (LP: #941361)
+  * lp:~mvo/software-center/expunge-cache:
+    - merge os.nice() addition
+  * lp:~mvo/software-center/lp789596:
+    - better (less scary) string for updates from third-party
+      venders (LP: #789596)
+  * lp:~mvo/software-center/fix-refresh-of-whats-new:
+    - fix missing refresh of the what's new content on a database
+      reopen so that new content from the agent appears as soon
+      as it finishes the update
+
+  [ Anthony Lenton ]
+  * lp:~elachuni/software-center/dont-store:
+    - consolidate Ubunty SSO logins to use "Ubuntu Software Center", fixes
+      inconsistent UI and storing of two keys in they keyring, as well as
+      being prompted to log in twice the first time that you review an app
+  # lp:~elachuni/software-center/pep8-test:
+    - add a unit test to check code statically for pep8 compliance and update
+      an initial set of modules to meet it
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/fix-crash-lp944875:
+    - Fix an intermittent crash that can happen if the installed view pane
+      has not been built yet when a call to show the spinner is made as a
+      result of a refresh (LP: #944875)
+  * lp:~gary-lasker/software-center/list-view-icon-coordinates-lp947624:
+    - This branch adds support for providing the correct icon size and 
+      on-screen coordinates values in the Unity launcher integration dbus 
+      call when an installation is initiated via the list view. 
+      LP: #947624
+  * lp:~gary-lasker/software-center/enable-published-date-unit-test:
+    - unit test change only, enable the published-date unit test that was
+      disabled pending deployment of support on the staging server
+
+  [ Natalia Bidart ]
+  * lp:~nataliabidart/software-center/one-auth:
+    - use consistently the same app name for every Ubuntu SSO call to
+      ensure SSO tokens are handled properly
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Mar 2012 20:38:24 -0500
+
+software-center (5.1.11) precise; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/ui/gtk3/views/appdetailsview.py:
     - only set vadj/hadj if we have the objects for it (LP: #941384)
-      already supported 'X-AppInstall-Keywords' entries
+  * lp:~mvo/software-center/get-installed-apps-instead-of-pkgs:
+    - refactor to move the recommender UUID code into the back end,
+      add a mock test for the submit_profile call to the server
+  * lp:~mvo/software-center/region-blacklist:
+    - add support for filtering out apps that are blacklisted for certain
+      regions such that they will not appear in any searches anymore
+  * lp:~mvo/software-center/installed-view-speedup:
+    - remove an unused notebook in the installed view to speed up
+      opening software center with an already installed package
+  * softwarecenter/ui/gtk3/widgets/recommendations.py:
+    - fix per-app recommendations show/hide logic
+  * lp:~mvo/software-center/spinner-fixes:
+    - consolidate various instances of the spinner notebook and instead
+      use a single SpinnerNotebook class everywhere
+  * lp:~mvo/software-center/recommender-fixes:
+    - tiny fixes to make the recommendations-for-you actually work
+      with the rec.ubuntu.com server
+  * lp:~mvo/software-center/expunge-cache:
+    - add a helper that keeps the cache clean from cached 301/404 etc
+      responses, it also offers cleanup by mtime but that is currently
+      not used (only tested)
+  * lp:~mvo/software-center/lobby-recommends-fixes:
+    - add test for recommender-opt-in behavior
   
   [ Kiwinote ]
   * softwarecenter/db/update.py:
     - index 'Keywords' entries from desktop files in addition to the
+      already supported 'X-AppInstall-Keywords' entries
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - increase delay between the 'load-finished' signal from webkit and us
       actually trying to get a pixbuf of the surface - this means that the
@@ -19,7 +94,14 @@ software-center (5.1.11) UNRELEASED; urgency=low
     - resolve unescaped markup issues
     - line wrap text so we don't get horizontal scrollbar (LP: #933497)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 27 Feb 2012 17:05:15 +0100
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/get-installed-apps-instead-of-pkgs-tweaks:
+    - unit test and other small needed fixes, further simplification of
+      the recommender UUID code 
+  * lp:~gary-lasker/software-center/lobby-recommends-fixes: 
+    - fix recommender opt-in
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 01 Mar 2012 20:11:27 +0100
 
 software-center (5.1.10) precise; urgency=low
 

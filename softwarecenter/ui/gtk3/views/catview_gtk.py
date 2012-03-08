@@ -226,13 +226,14 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.departments = None
         self.appcount = None
 
-        # this means that the departments don't jump down once the cache loads
-        # it doesn't look odd if the recommends are never loaded
-        #~ self.recommended = Gtk.Label()
-        #~ self.vbox.pack_start(self.recommended, False, False, 0)
+        # ensure that on db-reopen we refresh the whats-new titles
+        self.db.connect("reopen", self._on_db_reopen)
 
         self.build(desktopdir)
         return
+
+    def _on_db_reopen(self, db):
+        self._update_whats_new_content()
 
     def _build_homepage_view(self):
         # these methods add sections to the page

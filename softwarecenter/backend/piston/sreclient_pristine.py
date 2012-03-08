@@ -40,6 +40,7 @@ class SoftwareCenterRecommenderAPI(PistonAPI):
             scheme=PUBLIC_API_SCHEME)
 
     @oauth_protected
+    @returns_json
     def recommend_me(self):
         return self._get('recommend_me/', scheme=AUTHENTICATED_API_SCHEME)
 

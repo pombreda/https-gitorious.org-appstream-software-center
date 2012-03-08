@@ -319,9 +319,7 @@ class TestDatabase(unittest.TestCase):
             doc.get_value(value_time) >= last_time
             last_time = doc.get_value(value_time)
 
-    # FIXME: re-enable both tests once sc.staging.ubuntu.com has the new
-    #        version of scagent with support for the publication date
-    def disabled_test_for_purchase_apps_date_published(self):
+    def test_for_purchase_apps_date_published(self):
         from softwarecenter.testutils import get_test_pkg_info
         #os.environ["SOFTWARE_CENTER_DEBUG_HTTP"] = "1"
         os.environ["SOFTWARE_CENTER_AGENT_HOST"] = "http://sc.staging.ubuntu.com/"
@@ -339,36 +337,6 @@ class TestDatabase(unittest.TestCase):
             # make sure that a date_published value is provided
             self.assertNotEqual(date_published, "")
             self.assertNotEqual(date_published, None)
-        del os.environ["SOFTWARE_CENTER_AGENT_HOST"]
-
-    def disabled_test_for_purchase_apps_cataloged_time(self):
-        from softwarecenter.testutils import get_test_pkg_info
-        #os.environ["SOFTWARE_CENTER_DEBUG_HTTP"] = "1"
-        os.environ["SOFTWARE_CENTER_AGENT_HOST"] = "http://sc.staging.ubuntu.com/"
-        # staging does not have a valid cert
-        os.environ["PISTON_MINI_CLIENT_DISABLE_SSL_VALIDATION"] = "1"
-        cache = get_test_pkg_info()
-        db = xapian.WritableDatabase("./data/test.db",
-                                     xapian.DB_CREATE_OR_OVERWRITE)
-        res = update_from_software_center_agent(db, cache, ignore_cache=True)
-        self.assertTrue(res)
-        res = update_from_app_install_data(db, self.cache, datadir="./data/desktop")
-        self.assertTrue(res)
-        db = StoreDatabase("./data/test.db", self.cache)
-        db.open(use_axi=True)
-
-        axi_value_time = db._axi_values["catalogedtime"]
-        sc_app = Application("Ubuntu Software Center Test", "software-center")
-        sc_doc = db.get_xapian_document(sc_app.appname, sc_app.pkgname)
-        sc_cataloged_time = sc_doc.get_value(axi_value_time)
-        for_purch_app = Application("For Purchase Test App", "hellox")
-        for_purch_doc = db.get_xapian_document(for_purch_app.appname,
-                                               for_purch_app.pkgname)
-        for_purch_cataloged_time = for_purch_doc.get_value(axi_value_time)
-        # the for-purchase test package should be cataloged at a
-        # later time than axi package Ubuntu Software Center
-        self.assertTrue(for_purch_cataloged_time > sc_cataloged_time)
-
         del os.environ["SOFTWARE_CENTER_AGENT_HOST"]
 
     def test_hardware_requirements_satisfied(self):
@@ -458,10 +426,23 @@ app-popcon	4	# app-install .desktop popcon rank
         self.assertTrue(len(enquirer.get_docids()) > 0)
         # FIXME: test more of the interface
         
+class UtilsTestCase(unittest.TestCase):
+
     def test_utils_get_installed_package_list(self):
         from softwarecenter.db.utils import get_installed_package_list
         installed_pkgs = get_installed_package_list()
         self.assertTrue(len(installed_pkgs) > 0)
+
+    def test_utils_get_installed_apps_list(self):
+        from softwarecenter.db.utils import (
+            get_installed_package_list,get_installed_apps_list)
+        db = get_test_db()
+        # installed pkgs
+        installed_pkgs = get_installed_package_list()
+        # the installed apps
+        installed_apps = get_installed_apps_list(db)
+        self.assertTrue(len(installed_apps) > 0)
+        self.assertTrue(len(installed_pkgs) > len(installed_apps))
 
 
 def make_purchased_app_details(db=None, supported_series=None):
@@ -542,6 +523,20 @@ class AppDetailsSCAApplicationParser(unittest.TestCase):
         # ensure that archive.canonical.com archive roots are detected
         # as the partner channel
         self.assertEqual(app_details.date_published, "2012-01-21 02:15:10")
+
+    @patch("softwarecenter.db.update.get_region_cached")
+    def test_region_blacklist(self, get_region_cached_mock):
+        from softwarecenter.region import REGION_BLACKLIST_TAG
+        get_region_cached_mock.return_value = { "countrycode" : "es",
+                                              }
+        app_dict = make_software_center_agent_app_dict()
+        app_dict["debtags"] = ["%s%s" % (REGION_BLACKLIST_TAG, "es"),
+                              ]
+        # see _get_app_details_from_app_dict
+        item = PistonResponseObject.from_dict(app_dict)
+        parser = SCAApplicationParser(item)
+        doc = make_doc_from_parser(parser, self.db._aptcache)
+        self.assertEqual(doc, None)
         
 
 class AppDetailsPkgStateTestCase(unittest.TestCase):

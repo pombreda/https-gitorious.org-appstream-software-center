@@ -16,40 +16,12 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-
 import gi
 gi.require_version("Gtk", "3.0")
+import os
+
 from gi.repository import Gtk, GObject
 
-from softwarecenter.paths import IMAGE_LOADING_INSTALLED
-
-class Spinner(object):
-    """
-    A factory to create the appropriate spinner based on whether
-    Gtk.Spinner is available (see LP: #637422, LP: #624204)
-    """
-    def __new__(cls, *args, **kwargs):
-        try:
-            spinner = Gtk.Spinner()
-        except AttributeError:
-            spinner = GifSpinner()
-        return spinner
-
-class GifSpinner(Gtk.VBox):
-    """
-    an alternative spinner implementation that uses an animated gif
-    """
-    def __init__(self):
-        GObject.GObject.__init__(self)
-        self.image = Gtk.Image()
-        self.image.set_from_file(IMAGE_LOADING_INSTALLED)
-        self.add(self.image)
-        
-    def start(self):
-        pass
-    def stop(self):
-        pass
-        
 class SpinnerView(Gtk.Viewport):
     """
     a panel that contains a spinner preset to a standard size and centered
@@ -57,7 +29,7 @@ class SpinnerView(Gtk.Viewport):
     """
     def __init__(self, label_text=""):
         Gtk.Viewport.__init__(self)
-        self.spinner = Spinner()
+        self.spinner = Gtk.Spinner()
         self.spinner.set_size_request(48, 48)
         
         # use a table for the spinner (otherwise the spinner is massive!)
@@ -73,14 +45,14 @@ class SpinnerView(Gtk.Viewport):
         self.add(spinner_table)
         self.set_shadow_type(Gtk.ShadowType.NONE)
         
-    def start(self):
+    def start_and_show(self):
         """
         start the spinner and show it
         """
         self.spinner.start()
         self.spinner.show()
         
-    def stop(self):
+    def stop_and_hide(self):
         """
         stop the spinner and hide it
         """
@@ -93,18 +65,59 @@ class SpinnerView(Gtk.Viewport):
         """
         self.spinner_label.set_markup('<big>%s</big>' % spinner_text)
 
+class SpinnerNotebook(Gtk.Notebook):
+    """ this provides a Gtk.Notebook that contains a content page
+        and a spinner page.
+    """
 
-def get_test_spinner_window():        
-    spinner_view = SpinnerView()
-    spinner_view.start()
+
+    (CONTENT_PAGE, 
+     SPINNER_PAGE) = range(2)
+
+    def __init__(self, content, msg=""):
+        Gtk.Notebook.__init__(self)
+        self.spinner_view = SpinnerView(msg)
+        # its critical to show() the spinner early as otherwise
+        # gtk_notebook_set_active_page() will not switch to it
+        self.spinner_view.show() 
+        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+            self.set_show_tabs(False)
+        self.set_show_border(False)
+        self.append_page(content, Gtk.Label("content"))
+        self.append_page(self.spinner_view, Gtk.Label("spinner"))
+
+    def _unmask_view_spinner(self):
+        # start is actually start_and_show()
+        self.spinner_view.start_and_show()
+        return False
+
+    def show_spinner(self, msg=""):
+        """ show the spinner page with a alternative message """
+        if msg:
+            self.spinner_view.set_text(msg)
+        # "mask" the spinner view momentarily to prevent it from flashing into
+        # view in the case of short delays where it isn't actually needed
+        self.spinner_view.stop_and_hide()
+        GObject.timeout_add(100, self._unmask_view_spinner)
+        self.set_current_page(self.SPINNER_PAGE)
+
+    def hide_spinner(self):
+        """ hide the spinner page again and show the content page """
+        self.spinner_view.stop_and_hide()
+        self.set_current_page(self.CONTENT_PAGE)
+
+def get_test_spinner_window():  
+    label = Gtk.Label("foo")
+    spinner_notebook = SpinnerNotebook(label, "random msg")
     
     window = Gtk.Window()
-    window.add(spinner_view)
+    window.add(spinner_notebook)
     window.set_size_request(600, 500)
     window.set_position(Gtk.WindowPosition.CENTER)
     window.show_all()    
     window.connect('destroy', Gtk.main_quit)
-    spinner_view.set_text("Loading...")
+    spinner_notebook.show_spinner("Loading for 1s ...")
+    GObject.timeout_add_seconds(1, lambda: spinner_notebook.hide_spinner())
     return window
 
 if __name__ == "__main__":

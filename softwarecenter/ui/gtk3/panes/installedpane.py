@@ -37,7 +37,7 @@ from softwarecenter.ui.gtk3.models.appstore2 import (
     AppTreeStore, CategoryRowReference)
 from softwarecenter.ui.gtk3.widgets.menubutton import MenuButton
 from softwarecenter.ui.gtk3.widgets.oneconfviews import OneConfViews
-from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
+from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
 from softwarecenter.ui.gtk3.views.appview import AppView
 from softwarepane import SoftwarePane
 from softwarecenter.backend.oneconfhandler import get_oneconf_handler
@@ -113,9 +113,12 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         self.visible_docids = None
         self.visible_cats = {}
+        
+        self.installed_spinner_notebook = None
 
     def init_view(self):
-        if self.view_initialized: return
+        if self.view_initialized: 
+            return
 
         SoftwarePane.init_view(self)
         
@@ -187,15 +190,12 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         # we do not support the search aid feature in the installedview
         self.box_app_list.remove(self.search_aid)
-        
+
+        # remove here
+        self.box_app_list.remove(self.app_view)        
+
         # create a local spinner notebook for the installed view
-        self.installed_spinner_view = SpinnerView()
-        self.installed_spinner_notebook = Gtk.Notebook()
-        self.installed_spinner_notebook.set_show_tabs(False)
-        self.installed_spinner_notebook.set_show_border(False)
-        self.installed_spinner_notebook.append_page(self.installed_spinner_view, None)
-        self.box_app_list.remove(self.app_view)
-        self.installed_spinner_notebook.append_page(self.app_view, None)
+        self.installed_spinner_notebook = SpinnerNotebook(self.app_view)
         
         self.computerpane.pack2(self.installed_spinner_notebook, True, True)
         self.show_installed_view_spinner()
@@ -217,20 +217,13 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
     def show_installed_view_spinner(self):
         """ display the local spinner for the installed view panel """
-        self.installed_spinner_view.stop()
-        self.installed_spinner_notebook.set_current_page(self.PAGE_SPINNER)
-        # "mask" the spinner view momentarily to prevent it from flashing into
-        # view in the case of short delays where it isn't actually needed
-        GObject.timeout_add(100, self._unmask_installed_view_spinner)
-        
-    def _unmask_installed_view_spinner(self):
-        self.installed_spinner_view.start()
-        return False
+        if self.installed_spinner_notebook:
+            self.installed_spinner_notebook.show_spinner()
         
     def hide_installed_view_spinner(self):
         """ hide the local spinner for the installed view panel """
-        self.installed_spinner_notebook.set_current_page(self.PAGE_INSTALLED)
-        self.installed_spinner_view.stop()
+        if self.installed_spinner_notebook:
+            self.installed_spinner_notebook.hide_spinner()
 
     def _selected_computer_changed(self, oneconf_pickler, hostid, hostname):
         if self.current_hostid == hostid:

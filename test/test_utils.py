@@ -85,7 +85,7 @@ class TestSCUtils(unittest.TestCase):
 
     def test_no_display_desktop_file(self):
         from softwarecenter.utils import is_no_display_desktop_file
-        d = "/usr/share/app-install/desktop/wine1.3:wine.desktop"
+        d = "/usr/share/app-install/desktop/wine1.4:wine.desktop"
         self.assertTrue(is_no_display_desktop_file(d))
         d = "/usr/share/app-install/desktop/software-center:ubuntu-software-center.desktop"
         self.assertFalse(is_no_display_desktop_file(d))
@@ -123,6 +123,68 @@ class TestSCUtils(unittest.TestCase):
         from softwarecenter.utils import get_uuid
         uuid = get_uuid()
         self.assertTrue(uuid and len(uuid) > 0)
+
+    def test_make_string_from_list(self):
+        from softwarecenter.utils import make_string_from_list
+        base = "There was a problem posting this review to %s (omg!)"
+        # test the various forms
+        l = ["twister"]
+        self.assertEqual(
+            make_string_from_list(base, l),
+            "There was a problem posting this review to twister (omg!)")
+        # two
+        l = ["twister", "factbook"]
+        self.assertEqual(
+            make_string_from_list(base, l),
+            "There was a problem posting this review to twister and factbook (omg!)")
+        # three
+        l = ["twister", "factbook", "identi.catz"]
+        self.assertEqual(
+            make_string_from_list(base, l),
+            "There was a problem posting this review to twister, factbook and identi.catz (omg!)")
+        # four
+        l = ["twister", "factbook", "identi.catz", "baz"]
+        self.assertEqual(
+            make_string_from_list(base, l),
+            "There was a problem posting this review to twister, factbook, identi.catz and baz (omg!)")
+        
+
+class TestExpungeCache(unittest.TestCase):
+
+    def test_expunge_cache(self):
+        import subprocess
+        import tempfile
+        dirname = tempfile.mkdtemp('s-c-testsuite')
+        for name, content in [ ("foo-301", "status: 301"),
+                               ("foo-200", "status: 200"),
+                               ("foo-random", "random"),
+                             ]:
+            fullpath = os.path.join(dirname, name)
+            open(fullpath, "w").write(content)
+            # set to 1970+1s time to ensure the cleaner finds it
+            os.utime(fullpath, (1,1))
+        res = subprocess.call(["../utils/expunge-cache.py", dirname])
+        # no arguments
+        self.assertEqual(res, 1)
+        # by status
+        res = subprocess.call(["../utils/expunge-cache.py",
+                               "--debug",
+                               "--by-unsuccessful-http-states",
+                               dirname])
+        self.assertFalse(os.path.exists(os.path.join(dirname, "foo-301")))
+        self.assertTrue(os.path.exists(os.path.join(dirname, "foo-200")))
+        self.assertTrue(os.path.exists(os.path.join(dirname, "foo-random")))
+
+        # by time 
+        res = subprocess.call(["../utils/expunge-cache.py",
+                               "--debug",
+                               "--by-days", "1",
+                               dirname])
+        # now we expect the old file to be gone but the unknown one not to
+        # be touched
+        self.assertFalse(os.path.exists(os.path.join(dirname, "foo-200")))
+        self.assertTrue(os.path.exists(os.path.join(dirname, "foo-random")))
+
 
 
 if __name__ == "__main__":
