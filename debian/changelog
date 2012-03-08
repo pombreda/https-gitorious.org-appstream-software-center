@@ -21,6 +21,10 @@ software-center (5.1.12) UNRELEASED; urgency=low
       as it finishes the update
   * lp:~mvo/software-center/review-fixes:
     - ensure ui is correctly updated after submitting/modifying review
+  * lp:~mvo/software-center/simulate-slow-network:
+    - add a small helper to simulate a slow network connection to
+      see if we have hidden latencies in the UI when the network
+      is (really) slow
 
   [ Anthony Lenton ]
   * lp:~elachuni/software-center/dont-store:
@@ -51,7 +55,7 @@ software-center (5.1.12) UNRELEASED; urgency=low
     - use consistently the same app name for every Ubuntu SSO call to
       ensure SSO tokens are handled properly
 
- -- Kiwinote <kiwinote@gmail.com>  Thu, 08 Mar 2012 15:38:27 +0000
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Mar 2012 11:53:50 -0500
 
 software-center (5.1.11) precise; urgency=low
 
