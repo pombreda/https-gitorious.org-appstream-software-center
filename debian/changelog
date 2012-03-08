@@ -15,12 +15,19 @@ software-center (5.1.12) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp789596:
     - better (less scary) string for updates from third-party
       venders (LP: #789596)
+  * lp:~mvo/software-center/fix-refresh-of-whats-new:
+    - fix missing refresh of the what's new content on a database
+      reopen so that new content from the agent appears as soon
+      as it finishes the update
 
   [ Anthony Lenton ]
   * lp:~elachuni/software-center/dont-store:
     - consolidate Ubunty SSO logins to use "Ubuntu Software Center", fixes
       inconsistent UI and storing of two keys in they keyring, as well as
       being prompted to log in twice the first time that you review an app
+  # lp:~elachuni/software-center/pep8-test:
+    - add a unit test to check code statically for pep8 compliance and update
+      an initial set of modules to meet it
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-crash-lp944875:
@@ -32,8 +39,16 @@ software-center (5.1.12) UNRELEASED; urgency=low
       on-screen coordinates values in the Unity launcher integration dbus 
       call when an installation is initiated via the list view. 
       LP: #947624
+  * lp:~gary-lasker/software-center/enable-published-date-unit-test:
+    - unit test change only, enable the published-date unit test that was
+      disabled pending deployment of support on the staging server
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Mar 2012 01:28:21 -0500
+  [ Natalia Bidart ]
+  * lp:~nataliabidart/software-center/one-auth:
+    - use consistently the same app name for every Ubuntu SSO call to
+      ensure SSO tokens are handled properly
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Mar 2012 20:38:24 -0500
 
 software-center (5.1.11) precise; urgency=low
 

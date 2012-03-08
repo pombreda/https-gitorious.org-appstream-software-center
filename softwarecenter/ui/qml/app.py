@@ -27,7 +27,7 @@ import sys
 from PyQt4 import QtDeclarative
 from PyQt4.QtCore import QUrl
 from PyQt4.QtGui import QApplication, QIcon
-from PyQt4.QtDeclarative import QDeclarativeView 
+from PyQt4.QtDeclarative import QDeclarativeView
 
 from softwarecenter.db.pkginfo import get_pkg_info
 
@@ -46,7 +46,8 @@ if __name__ == '__main__':
 
     view = QDeclarativeView()
     view.setWindowTitle(view.tr("Ubuntu Software Center"))
-    view.setWindowIcon(QIcon(os.path.join(os.path.dirname(__file__), "../../../data/icons/scalable/apps/softwarecenter.svg")))
+    view.setWindowIcon(QIcon(os.path.join(os.path.dirname(__file__),
+        "../../../data/icons/scalable/apps/softwarecenter.svg")))
     view.setResizeMode(QtDeclarative.QDeclarativeView.SizeRootObjectToView)
 
     # if running locally, fixup softwarecenter.paths

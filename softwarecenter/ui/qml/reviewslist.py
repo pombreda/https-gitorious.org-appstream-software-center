@@ -26,6 +26,7 @@ from softwarecenter.db.database import Application
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.backend.reviews import get_review_loader
 
+
 class ReviewsListModel(QAbstractListModel):
 
     # should match the softwarecenter.backend.reviews.Review attributes
@@ -35,7 +36,7 @@ class ReviewsListModel(QAbstractListModel):
                '_date_created',
                '_reviewer_displayname',
                )
- 
+
     def __init__(self, parent=None):
         super(ReviewsListModel, self).__init__()
         self._reviews = []
@@ -56,20 +57,21 @@ class ReviewsListModel(QAbstractListModel):
         review = self._reviews[index.row()]
         role = self.COLUMNS[role]
         if role == '_date_created':
-            when = datetime.strptime(getattr(review, role[1:]), '%Y-%m-%d %H:%M:%S')
+            when = datetime.strptime(getattr(review, role[1:]),
+                '%Y-%m-%d %H:%M:%S')
             return when.strftime('%Y-%m-%d')
         return unicode(getattr(review, role[1:]))
 
     # helper
     def clear(self):
-        self.beginRemoveRows(QModelIndex(), 0, self.rowCount()-1)
+        self.beginRemoveRows(QModelIndex(), 0, self.rowCount() - 1)
         self._reviews = []
         self.endRemoveRows()
 
     def _on_reviews_ready_callback(self, loader, reviews):
         self.beginInsertRows(QModelIndex(),
-                             self.rowCount(), # first
-                             self.rowCount() + len(reviews)-1) # last
+                             self.rowCount(),  # first
+                             self.rowCount() + len(reviews) - 1)  # last
         self._reviews += reviews
         self.endInsertRows()
 
@@ -99,5 +101,3 @@ class ReviewsListModel(QAbstractListModel):
     # FIXME: how is this signal actually used in the qml JS?
     # signals
     reviewStatsChanged = pyqtSignal()
-
-
