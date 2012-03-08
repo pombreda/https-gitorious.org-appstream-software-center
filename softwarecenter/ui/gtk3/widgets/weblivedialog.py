@@ -26,6 +26,7 @@ import sys
 
 from gettext import gettext as _
 
+
 class ShowWebLiveServerChooserDialog(Gtk.Dialog):
     """A dialog to choose between multiple server"""
 
@@ -40,35 +41,37 @@ class ShowWebLiveServerChooserDialog(Gtk.Dialog):
                 parent = parent.get_parent()
 
         # servers
-        self.servers_vbox=Gtk.VBox(homogeneous=False, spacing=0)
+        self.servers_vbox = Gtk.VBox(homogeneous=False, spacing=0)
 
         # Merge duplicate servers, keep the one with the most space
-        servers=[]
+        servers = []
         for server in supplied_servers:
-            duplicate=False
+            duplicate = False
             for otherserver in servers:
                 if server.title == otherserver.title:
-                    percent_server=((float(server.current_users)/float(server.userlimit))*100.0)
-                    percent_otherserver=((float(otherserver.current_users)/float(otherserver.userlimit))*100.0)
+                    percent_server = ((float(server.current_users) /
+                        float(server.userlimit)) * 100.0)
+                    percent_otherserver = ((float(otherserver.current_users) /
+                        float(otherserver.userlimit)) * 100.0)
 
                     for package in server.packages:
                         if package.pkgname == pkgname:
-                            autoinstall_server=package.autoinstall
+                            autoinstall_server = package.autoinstall
 
                     for package in otherserver.packages:
                         if package.pkgname == pkgname:
-                            autoinstall_otherserver=package.autoinstall
+                            autoinstall_otherserver = package.autoinstall
 
                     # Replace existing server if:
-                    #  current server has more free slots and we don't switch 
+                    #  current server has more free slots and we don't switch
                     #  to a server requiring autoinstall
                     #  or doesn't need autoinstall but existing one does
-                    if ( (percent_otherserver > percent_server and
-                          not autoinstall_otherserver < autoinstall_server) or
-                         autoinstall_otherserver > autoinstall_server ):
+                    if ((percent_otherserver > percent_server and
+                        not autoinstall_otherserver < autoinstall_server) or
+                        autoinstall_otherserver > autoinstall_server):
                         servers.remove(otherserver)
                         servers.append(server)
-                    duplicate=True
+                    duplicate = True
 
             if duplicate:
                 continue
@@ -76,15 +79,15 @@ class ShowWebLiveServerChooserDialog(Gtk.Dialog):
             servers.append(server)
 
         if len(servers) == 1:
-            self.show_dialog=False
+            self.show_dialog = False
         else:
-            self.show_dialog=True
+            self.show_dialog = True
 
-        button=Gtk.RadioButton()
+        button = Gtk.RadioButton()
         for server in sorted(servers, key=lambda server: server.title):
-            button=Gtk.RadioButton.new_from_widget(button)
+            button = Gtk.RadioButton.new_from_widget(button)
             button.set_label("%s - %s" % (server.title, server.description))
-            button.serverid=server.name
+            button.serverid = server.name
             self.servers_vbox.pack_start(button, True, True, 0)
 
         # dialog
@@ -110,8 +113,8 @@ if __name__ == "__main__":
     sys.path.append('../../../')
 
     from softwarecenter.backend.weblive_pristine import WebLive
-    weblive=WebLive('https://weblive.stgraber.org/weblive/json',True)
-    servers=weblive.list_everything()
+    weblive = WebLive('https://weblive.stgraber.org/weblive/json', True)
+    servers = weblive.list_everything()
 
     d = ShowWebLiveServerChooserDialog(servers, "gimp")
     if d.run() == Gtk.ResponseType.OK:

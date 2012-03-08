@@ -30,7 +30,8 @@ from softwarecenter.ui.gtk3.em import StockEms, em, small_em, big_em
 
 _star_surface_cache = {}
 
-LOG=logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
+
 
 class StarSize:
     SMALL = 1
@@ -66,7 +67,6 @@ class StarRenderer(ShapeStar):
                           StarSize.NORMAL: em,
                           StarSize.BIG: big_em,
                           StarSize.PIXEL_VALUE: self.get_pixel_size}
-        return
 
     # private
     def _get_mangled_keys(self, size):
@@ -95,8 +95,8 @@ class StarRenderer(ShapeStar):
             cr.set_line_join(cairo.LINE_CAP_ROUND)
 
         for i in range(self.n_stars):
-            x = 1 + i*(star_width + self.spacing)
-            self.layout(cr, x+1, 1, star_width-2, vis_height-2)
+            x = 1 + i * (star_width + self.spacing)
+            self.layout(cr, x + 1, 1, star_width - 2, vis_height - 2)
             cr.stroke_preserve()
             cr.fill()
 
@@ -112,8 +112,8 @@ class StarRenderer(ShapeStar):
             cr.set_line_join(cairo.LINE_CAP_ROUND)
 
         for i in range(self.n_stars):
-            x = 1 + i*(star_width + self.spacing)
-            self.layout(cr, x+1, 1, star_width-2, vis_height-2)
+            x = 1 + i * (star_width + self.spacing)
+            self.layout(cr, x + 1, 1, star_width - 2, vis_height - 2)
             cr.stroke()
 
         del cr
@@ -132,8 +132,8 @@ class StarRenderer(ShapeStar):
             cr.set_line_join(cairo.LINE_CAP_ROUND)
 
         for i in range(self.n_stars):
-            x = 1 + i*(star_width + self.spacing)
-            self.layout(cr, x+2, 2, star_width-4, vis_height-4)
+            x = 1 + i * (star_width + self.spacing)
+            self.layout(cr, x + 2, 2, star_width - 4, vis_height - 4)
 
         line_color = context.get_border_color(Gtk.StateFlags.NORMAL)
         cr.set_source_rgb(line_color.red, line_color.green,
@@ -144,7 +144,7 @@ class StarRenderer(ShapeStar):
         cr.clip()
 
         context.save()
-        context.add_class ("button")
+        context.add_class("button")
         context.set_state(Gtk.StateFlags.NORMAL)
 
         Gtk.render_background(context, cr, 0, 0, vis_width, vis_height)
@@ -152,8 +152,8 @@ class StarRenderer(ShapeStar):
         context.restore()
 
         for i in range(self.n_stars):
-            x = 1 + i*(star_width + self.spacing)
-            self.layout(cr, x+1.5, 1.5, star_width-3, vis_height-3)
+            x = 1 + i * (star_width + self.spacing)
+            self.layout(cr, x + 1.5, 1.5, star_width - 3, vis_height - 3)
 
         cr.set_source_rgba(1, 1, 1, 0.8)
         cr.set_line_width(1)
@@ -174,8 +174,8 @@ class StarRenderer(ShapeStar):
                           line_color.blue)
 
         for i in range(self.n_stars):
-            x = 1 + i*(star_width + self.spacing)
-            self.layout(cr, x+2, 2, star_width-4, vis_height-4)
+            x = 1 + i * (star_width + self.spacing)
+            self.layout(cr, x + 2, 2, star_width - 4, vis_height - 4)
 
         cr.set_line_width(3)
         cr.stroke()
@@ -209,7 +209,7 @@ class StarRenderer(ShapeStar):
 
     def lookup_surfaces_for_size(self, size):
         full_key, empty_key = self._get_mangled_keys(size)
-        
+
         if full_key not in _star_surface_cache:
             return None, None
 
@@ -237,12 +237,11 @@ class StarRenderer(ShapeStar):
 
         if fraction < 1.0:
             empty_width = stars_width - full_width
-            cr.rectangle(x+full_width, y, empty_width, star_height)
+            cr.rectangle(x + full_width, y, empty_width, star_height)
             cr.clip()
             cr.set_source_surface(empty, x, y)
             cr.paint()
             cr.reset_clip()
-        return
 
     def get_pixel_size(self):
         return self.pixel_value
@@ -254,9 +253,7 @@ class StarRenderer(ShapeStar):
         return surf.get_width(), surf.get_height()
 
 
-
 class Star(Gtk.EventBox, StarRenderer):
-
     def __init__(self, size=StarSize.NORMAL):
         Gtk.EventBox.__init__(self)
         StarRenderer.__init__(self)
@@ -273,7 +270,6 @@ class Star(Gtk.EventBox, StarRenderer):
         self.set_visible_window(False)
         self.connect("draw", self.on_draw)
         self.connect("style-updated", self.on_style_updated)
-        return
 
     def do_get_preferred_width(self):
         context = self.get_style_context()
@@ -289,7 +285,6 @@ class Star(Gtk.EventBox, StarRenderer):
         self.xalign = xalign
         self.yalign = yalign
         self.queue_draw()
-        return
 
     #~ def set_padding(*args):
         #~ return
@@ -304,7 +299,6 @@ class Star(Gtk.EventBox, StarRenderer):
         global _star_surface_cache
         _star_surface_cache = {}
         self.queue_draw()
-        return
 
     def on_draw(self, widget, cr):
         self.render_star(widget.get_style_context(), cr, 0, 0)
@@ -312,25 +306,22 @@ class Star(Gtk.EventBox, StarRenderer):
         if self._render_allocation_bbox:
             a = widget.get_allocation()
             cr.rectangle(0, 0, a.width, a.height)
-            cr.set_source_rgb(1,0,0)
+            cr.set_source_rgb(1, 0, 0)
             cr.set_line_width(2)
             cr.stroke()
 
-        return
-
     def set_n_stars(self, n_stars):
-        if n_stars == self.n_stars: return
+        if n_stars == self.n_stars:
+            return
 
         self.n_stars = n_stars
         global _star_surface_cache
         _star_surface_cache = {}
         self.queue_draw()
-        return
 
     def set_rating(self, rating):
         self.rating = float(rating)
         self.queue_draw()
-        return
 
     def set_avg_rating(self, rating):
         # compat for ratings container
@@ -339,7 +330,6 @@ class Star(Gtk.EventBox, StarRenderer):
     def set_size(self, size):
         self.size = size
         self.queue_draw()
-        return
 
     def set_size_big(self):
         return self.set_size(StarSize.BIG)
@@ -355,10 +345,10 @@ class Star(Gtk.EventBox, StarRenderer):
         global _star_surface_cache
         _star_surface_cache = {}
         self.queue_draw()
-        return
 
     def set_size_as_pixel_value(self, pixel_value):
-        if pixel_value == self.pixel_value: return
+        if pixel_value == self.pixel_value:
+            return
 
         global _star_surface_cache
         keys = (StarSize.PIXEL_VALUE + StarFillState.FULL,
@@ -370,7 +360,6 @@ class Star(Gtk.EventBox, StarRenderer):
 
         self.pixel_value = pixel_value
         self.set_size(StarSize.PIXEL_VALUE)
-        return
 
 
 class StarRatingsWidget(Gtk.HBox):
@@ -384,7 +373,6 @@ class StarRatingsWidget(Gtk.HBox):
         self.label = Gtk.Label()
         self.label.set_alignment(0, 0.5)
         self.pack_start(self.label, False, False, 0)
-        return
 
     def set_avg_rating(self, rating):
         # compat for ratings container
@@ -394,20 +382,19 @@ class StarRatingsWidget(Gtk.HBox):
         s = gettext.ngettext(
             "%(nr_ratings)i rating",
             "%(nr_ratings)i ratings",
-            nr_reviews) % { 'nr_ratings' : nr_reviews, }
+            nr_reviews) % {'nr_ratings': nr_reviews}
 
         # FIXME don't use fixed color
         m = '<span color="#8C8C8C"><small>(%s)</small></span>'
         self.label.set_markup(m % s)
-        return
 
 
 class ReactiveStar(Star):
 
     __gsignals__ = {
-        "changed" : (GObject.SignalFlags.RUN_LAST,
-                     None, 
-                     (),)
+        "changed": (GObject.SignalFlags.RUN_LAST,
+                    None,
+                    (),)
         }
 
     def __init__(self, size=StarSize.BIG):
@@ -416,11 +403,11 @@ class ReactiveStar(Star):
         self.set_rating(0)
 
         self.set_can_focus(True)
-        self.set_events(Gdk.EventMask.BUTTON_PRESS_MASK|
-                        Gdk.EventMask.BUTTON_RELEASE_MASK|
-                        Gdk.EventMask.KEY_RELEASE_MASK|
-                        Gdk.EventMask.KEY_PRESS_MASK|
-                        Gdk.EventMask.ENTER_NOTIFY_MASK|
+        self.set_events(Gdk.EventMask.BUTTON_PRESS_MASK |
+                        Gdk.EventMask.BUTTON_RELEASE_MASK |
+                        Gdk.EventMask.KEY_RELEASE_MASK |
+                        Gdk.EventMask.KEY_PRESS_MASK |
+                        Gdk.EventMask.ENTER_NOTIFY_MASK |
                         Gdk.EventMask.LEAVE_NOTIFY_MASK)
 
         self.connect("enter-notify-event", self.on_enter_notify)
@@ -431,37 +418,35 @@ class ReactiveStar(Star):
         self.connect("key-release-event", self.on_key_release)
         self.connect("focus-in-event", self.on_focus_in)
         self.connect("focus-out-event", self.on_focus_out)
-        return
 
     # signal handlers
     def on_enter_notify(self, widget, event):
-        return
+        pass
 
     def on_leave_notify(self, widget, event):
-        return
+        pass
 
     def on_button_press(self, widget, event):
-        return
+        pass
 
     def on_button_release(self, widget, event):
         star_index = self.get_star_at_xy(event.x, event.y)
-        if star_index is None: 
+        if star_index is None:
             return
         self.set_rating(star_index)
         self.emit('changed')
-        return
 
     def on_key_press(self, widget, event):
-        return
+        pass
 
     def on_key_release(self, widget, event):
-        return
+        pass
 
     def on_focus_in(self, widget, event):
-        return
+        pass
 
     def on_focus_out(self, widget, event):
-        return
+        pass
 
     # public
     def get_rating(self):
@@ -471,9 +456,7 @@ class ReactiveStar(Star):
         # paint focus
 
         StarRenderer.render_star(self, widget, cr, x, y)
-
         # if a star is hovered paint prelit star
-        return
 
     def get_star_at_xy(self, x, y, half_star_precision=False):
         star_width = self._size_map[self.size]()
@@ -492,8 +475,7 @@ class ReactiveStar(Star):
 
 
 class StarRatingSelector(Gtk.Box):
-
-    RATING_WORDS = [_('Hint: Click a star to rate this app'),   # unrated caption
+    RATING_WORDS = [_('Hint: Click a star to rate this app'),  # unrated
                     _('Awful'),         # 1 star rating
                     _('Poor'),          # 2 star rating
                     _('Adequate'),      # 3 star rating
@@ -502,7 +484,6 @@ class StarRatingSelector(Gtk.Box):
 
     INIT_RATING = 3
     N_STARS = 5
-
 
     def __init__(self):
         Gtk.Box.__init__(self)
@@ -519,7 +500,7 @@ class StarRatingSelector(Gtk.Box):
         self.set_orientation(Gtk.Orientation.HORIZONTAL)
         self.pack_start(self.selector, False, False, 0)
         self.pack_start(self.caption, False, False, 0)
-        return
+
 
 # test helper also used in the unit tests
 def get_test_stars_window():
