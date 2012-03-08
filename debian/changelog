@@ -25,8 +25,11 @@ software-center (5.1.12) UNRELEASED; urgency=low
     - add a small helper to simulate a slow network connection to
       see if we have hidden latencies in the UI when the network
       is (really) slow
-  * merge lp:~mvo/software-center/top-rated-refresh:
+  * lp:~mvo/software-center/top-rated-refresh:
     - ensure that the top-rated apps are refreshed when we have new data
+  * lp:~mvo/software-center/apptreeview-tweaks:
+    - fix 'load_range" errors when navigating the installed view, and
+      do some nice needed refactoring/cleanup
 
   [ Anthony Lenton ]
   * lp:~elachuni/software-center/dont-store:
@@ -57,7 +60,7 @@ software-center (5.1.12) UNRELEASED; urgency=low
     - use consistently the same app name for every Ubuntu SSO call to
       ensure SSO tokens are handled properly
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Mar 2012 12:18:11 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Mar 2012 12:32:34 -0500
 
 software-center (5.1.11) precise; urgency=low
 
