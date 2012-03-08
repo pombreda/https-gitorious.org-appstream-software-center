@@ -165,7 +165,8 @@ class AppTreeView(Gtk.TreeView):
         return None
 
     def get_rowref(self, model, path):
-        if path == None: return None
+        if path == None:
+            return None
         return model[path][AppGenericStore.COL_ROW_DATA]
 
     def rowref_is_category(self, rowref):
@@ -618,11 +619,8 @@ def get_test_window():
     app_view = AppView(db, cache, icons, show_ratings=True)
     app_view.set_model(store)
 
-    scroll = Gtk.ScrolledWindow()
-    scroll.add(app_view)
-
     box = Gtk.VBox()
-    box.pack_start(scroll, True, True, 0)
+    box.pack_start(app_view, True, True, 0)
 
     win = Gtk.Window()
     win.add(box)
