@@ -24,6 +24,12 @@ class TestCatView(unittest.TestCase):
         # get the widgets we need
         win = get_test_window_catview()
         lobby = win.get_data("lobby")
+
+        # simulate review-stats refresh
+        lobby._update_top_rated_content = Mock()
+        lobby.reviews_loader.emit("refresh-review-stats-finished", [])
+        self.assertTrue(lobby._update_top_rated_content.called)
+
         # test clicking top_rated
         lobby.connect("category-selected", self._on_category_selected)
         lobby.top_rated_frame.more.clicked()

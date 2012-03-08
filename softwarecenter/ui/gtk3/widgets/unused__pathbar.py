@@ -13,7 +13,7 @@ LOG = logging.getLogger("softwarecenter.view.widgets.NavigationBar")
 # pi constants
 from math import pi
 
-PI          = pi
+PI = pi
 PI_OVER_180 = pi / 180
 
 
@@ -30,7 +30,7 @@ class Shape:
 
         If the Shape is direction dependent, the Shape MUST
         implement <_layout_ltr> and <_layout_rtl> methods.
-        
+
         If the Shape is not direction dependent, then it simply can
         override the <layout> method.
 
@@ -51,7 +51,6 @@ class Shape:
         self.name = 'Shapeless'
         self.hadjustment = 0
         self._color = 1, 0, 0
-        return
 
     def __eq__(self, other):
         return self.name == other.name
@@ -61,7 +60,6 @@ class Shape:
             self._layout_ltr(cr, x, y, w, h, r, aw)
         else:
             self._layout_rtl(cr, x, y, w, h, r, aw)
-        return
 
 
 class ShapeRoundedRect(Shape):
@@ -79,16 +77,14 @@ class ShapeRoundedRect(Shape):
     def __init__(self, direction=Gtk.TextDirection.LTR):
         Shape.__init__(self, direction)
         self.name = 'RoundedRect'
-        return
 
     def layout(self, cr, x, y, w, h, r, aw):
         cr.new_sub_path()
-        cr.arc(r+x, r+y, r, PI, 270*PI_OVER_180)
-        cr.arc(x+w-r, r+y, r, 270*PI_OVER_180, 0)
-        cr.arc(x+w-r, y+h-r, r, 0, 90*PI_OVER_180)
-        cr.arc(r+x, y+h-r, r, 90*PI_OVER_180, PI)
+        cr.arc(r + x, r + y, r, PI, 270 * PI_OVER_180)
+        cr.arc(x + w - r, r + y, r, 270 * PI_OVER_180, 0)
+        cr.arc(x + w - r, y + h - r, r, 0, 90 * PI_OVER_180)
+        cr.arc(r + x, y + h - r, r, 90 * PI_OVER_180, PI)
         cr.close_path()
-        return
 
 
 class ShapeStartArrow(Shape):
@@ -96,34 +92,31 @@ class ShapeStartArrow(Shape):
     def __init__(self, direction=Gtk.TextDirection.LTR):
         Shape.__init__(self, direction)
         self.name = 'StartArrow'
-        return
 
     def _layout_ltr(self, cr, x, y, w, h, r, aw):
-        haw = aw/2
+        haw = aw / 2
 
         cr.new_sub_path()
-        cr.arc(r+x, r+y, r, PI, 270*PI_OVER_180)
+        cr.arc(r + x, r + y, r, PI, 270 * PI_OVER_180)
 
         # arrow head
-        cr.line_to(x+w-haw, y)
-        cr.line_to(x+w+haw, y+(h/2))
-        cr.line_to(x+w-haw, y+h)
-        
-        cr.arc(r+x, y+h-r, r, 90*PI_OVER_180, PI)
+        cr.line_to(x + w - haw, y)
+        cr.line_to(x + w + haw, y + (h / 2))
+        cr.line_to(x + w - haw, y + h)
+
+        cr.arc(r + x, y + h - r, r, 90 * PI_OVER_180, PI)
         cr.close_path()
-        return
 
     def _layout_rtl(self, cr, x, y, w, h, r, aw):
-        haw = aw/2
+        haw = aw / 2
 
         cr.new_sub_path()
-        cr.move_to(x-haw, (y+h)/2)
-        cr.line_to(x+aw-haw, y)
-        cr.arc(x+w-r, r+y, r, 270*PI_OVER_180, 0)
-        cr.arc(x+w-r, y+h-r, r, 0, 90*PI_OVER_180)
-        cr.line_to(x+aw-haw, y+h)
+        cr.move_to(x - haw, (y + h) / 2)
+        cr.line_to(x + aw - haw, y)
+        cr.arc(x + w - r, r + y, r, 270 * PI_OVER_180, 0)
+        cr.arc(x + w - r, y + h - r, r, 0, 90 * PI_OVER_180)
+        cr.line_to(x + aw - haw, y + h)
         cr.close_path()
-        return
 
 
 class ShapeMidArrow(Shape):
@@ -133,33 +126,30 @@ class ShapeMidArrow(Shape):
         #~ self.draw_xoffset = -2
         self._color = 0, 1, 0
         self.name = 'MidArrow'
-        return
 
     def _layout_ltr(self, cr, x, y, w, h, r, aw):
-        self.hadjustment = haw = aw/2
-        cr.move_to(x-haw-1, y)
+        self.hadjustment = haw = aw / 2
+        cr.move_to(x - haw - 1, y)
         # arrow head
-        cr.line_to(x+w-haw, y)
-        cr.line_to(x+w+haw, y+(h/2))
-        cr.line_to(x+w-haw, y+h)
-        cr.line_to(x-haw-1, y+h)
+        cr.line_to(x + w - haw, y)
+        cr.line_to(x + w + haw, y + (h / 2))
+        cr.line_to(x + w - haw, y + h)
+        cr.line_to(x - haw - 1, y + h)
 
-        cr.line_to(x+haw-1, y+(h/2))
+        cr.line_to(x + haw - 1, y + (h / 2))
 
         cr.close_path()
-        return
 
     def _layout_rtl(self, cr, x, y, w, h, r, aw):
-        self.hadjustment = haw = -aw/2
+        self.hadjustment = haw = -aw / 2
 
-        cr.move_to(x+haw, (h+y)/2)
-        cr.line_to(x+aw+haw, y)
-        cr.line_to(x+w-haw+1, y)
-        cr.line_to(x+w-aw-haw+1, (y+h)/2)
-        cr.line_to(x+w-haw+1, y+h)
-        cr.line_to(x+aw+haw, y+h)
+        cr.move_to(x + haw, (h + y) / 2)
+        cr.line_to(x + aw + haw, y)
+        cr.line_to(x + w - haw + 1, y)
+        cr.line_to(x + w - aw - haw + 1, (y + h) / 2)
+        cr.line_to(x + w - haw + 1, y + h)
+        cr.line_to(x + aw + haw, y + h)
         cr.close_path()
-        return
 
 
 class ShapeEndCap(Shape):
@@ -169,48 +159,41 @@ class ShapeEndCap(Shape):
         #~ self.draw_xoffset = -2
         self._color = 0, 0, 1
         self.name = 'EndCap'
-        return
 
     def _layout_ltr(self, cr, x, y, w, h, r, aw):
-        self.hadjustment = haw = aw/2
+        self.hadjustment = haw = aw / 2
 
-        cr.move_to(x-haw-1, y)
+        cr.move_to(x - haw - 1, y)
         # rounded end
-        cr.arc(x+w-r, r+y, r, 270*PI_OVER_180, 0)
-        cr.arc(x+w-r, y+h-r, r, 0, 90*PI_OVER_180)
+        cr.arc(x + w - r, r + y, r, 270 * PI_OVER_180, 0)
+        cr.arc(x + w - r, y + h - r, r, 0, 90 * PI_OVER_180)
         # arrow
-        cr.line_to(x-haw-1, y+h)
-        cr.line_to(x+haw-1, y+(h/2))
+        cr.line_to(x - haw - 1, y + h)
+        cr.line_to(x + haw - 1, y + (h / 2))
         cr.close_path()
-        return
 
     def _layout_rtl(self, cr, x, y, w, h, r, aw):
-        self.hadjustment = haw = -aw/2
+        self.hadjustment = haw = -aw / 2
 
-        cr.arc(r+x, r+y, r, PI, 270*PI_OVER_180)
-        cr.line_to(x+w-haw+1, y)
-        cr.line_to(x+w-haw-aw+1, (y+h)/2)
-        cr.line_to(x+w-haw+1, y+h)
-        cr.arc(r+x, y+h-r, r, 90*PI_OVER_180, PI)
+        cr.arc(r + x, r + y, r, PI, 270 * PI_OVER_180)
+        cr.line_to(x + w - haw + 1, y)
+        cr.line_to(x + w - haw - aw + 1, (y + h) / 2)
+        cr.line_to(x + w - haw + 1, y + h)
+        cr.arc(r + x, y + h - r, r, 90 * PI_OVER_180, PI)
         cr.close_path()
-        return
 
 
 class AnimationClock(GObject.GObject):
-
     _1SECOND = 1000
-
-
     __gsignals__ = {
-        "animation-frame"    : (GObject.SignalFlags.RUN_LAST,
+        "animation-frame": (GObject.SignalFlags.RUN_LAST,
                                 None,
                                 (float,),),
 
-        "animation-finished" : (GObject.SignalFlags.RUN_FIRST,
+        "animation-finished": (GObject.SignalFlags.RUN_FIRST,
                                 None,
                                 (bool,),),
                     }
-
 
     def __init__(self, fps, duration):
         GObject.GObject.__init__(self)
@@ -221,7 +204,6 @@ class AnimationClock(GObject.GObject):
 
         self._clock = None
         self._progress = 0  # progress as an msec offset
-        return
 
     def _get_timstep(self):
         d = self.duration
@@ -245,7 +227,6 @@ class AnimationClock(GObject.GObject):
     def set_duration(self, duration):
         self.duration = float(duration)
         self._timestep = self._get_timstep()
-        return
 
     def stop(self, who_called='?'):
 
@@ -257,29 +238,27 @@ class AnimationClock(GObject.GObject):
         self._clock = None
         self._progress = 0
         self.in_progress = False
-        return
 
     def start(self):
         self.stop(who_called='start')
-        if not self.sequence: return
+        if not self.sequence:
+            return
 
         self._clock = GObject.timeout_add(self._timestep,
                                           self._schedule_animation_frame,
                                           priority=100)
         self.in_progress = True
-        return
 
 
 class PathBarAnimator(AnimationClock):
-
     # animation display constants
-    FPS      = 50
+    FPS = 50
     DURATION = 150  # spec says 150ms
 
     # animation modes
-    NONE         = 'animation-none'
-    OUT          = 'animation-out'
-    IN           = 'animation-in'
+    NONE = 'animation-none'
+    OUT = 'animation-out'
+    IN = 'animation-in'
     WIDTH_CHANGE = 'animation-width-change'
 
     def __init__(self, pathbar):
@@ -290,7 +269,6 @@ class PathBarAnimator(AnimationClock):
 
         self.connect('animation-frame', self._on_animation_frame)
         self.connect('animation-finished', self._on_animation_finished)
-        return
 
     def _animate_out(self, part, progress, kwargs):
         real_alloc = part.get_allocation()
@@ -300,13 +278,12 @@ class PathBarAnimator(AnimationClock):
             xo *= -1
 
         anim_alloc = Gdk.Rectangle()
-        anim_alloc.x = real_alloc.x-xo
+        anim_alloc.x = real_alloc.x - xo
         anim_alloc.y = real_alloc.y
         anim_alloc.width = real_alloc.width
         anim_alloc.height = real_alloc.height
 
         part.new_frame(anim_alloc)
-        return
 
     def _animate_in(self, part, progress, kwargs):
         real_alloc = part.get_allocation()
@@ -316,13 +293,12 @@ class PathBarAnimator(AnimationClock):
             xo *= -1
 
         anim_alloc = Gdk.Rectangle()
-        anim_alloc.x = real_alloc.x-xo
+        anim_alloc.x = real_alloc.x - xo
         anim_alloc.y = real_alloc.y
         anim_alloc.width = real_alloc.width
         anim_alloc.height = real_alloc.height
 
         part.new_frame(anim_alloc)
-        return
 
     def _animate_width_change(self, part, progress, kwargs):
         start_w = kwargs['start_width']
@@ -330,14 +306,14 @@ class PathBarAnimator(AnimationClock):
 
         width = int(round(start_w + (end_w - start_w) * progress))
         part.set_size_request(width, part.get_height_request())
-        return
 
     def _on_animation_frame(self, clock, progress):
-        if not self.sequence: return
+        if not self.sequence:
+            return
 
         for actor, animation, kwargs in self.sequence:
-
-            if animation == PathBarAnimator.NONE: continue
+            if animation == PathBarAnimator.NONE:
+                continue
 
             if animation == PathBarAnimator.OUT:
                 self._animate_out(actor, progress, kwargs)
@@ -348,8 +324,6 @@ class PathBarAnimator(AnimationClock):
             elif animation == PathBarAnimator.WIDTH_CHANGE:
                 self._animate_width_change(actor, progress, kwargs)
 
-        return
-
     def _on_animation_finished(self, clock, interrupted):
         for actor, animation, kwargs in self.sequence:
             actor.animation_finished()
@@ -357,21 +331,18 @@ class PathBarAnimator(AnimationClock):
         self.sequence = []
         self.pathbar.psuedo_parts = []
         self.pathbar.queue_draw()
-        return
 
     def append_animation(self, actor, animation, **kwargs):
         self.sequence.append((actor, animation, kwargs))
-        return
 
     def reset(self, who_called='?'):
-        AnimationClock.stop(self, who_called=who_called+'.reset')
+        AnimationClock.stop(self, who_called=who_called + '.reset')
         self.sequence = []
-        return
 
 
 class PathBar(Gtk.HBox):
 
-    MIN_PART_WIDTH = 25 # pixels
+    MIN_PART_WIDTH = 25  # pixels
 
     def __init__(self):
         GObject.GObject.__init__(self)
@@ -405,7 +376,6 @@ class PathBar(Gtk.HBox):
         # les signales!
         self.connect('size-allocate', self._on_allocate)
         self.connect('draw', self._on_draw)
-        return
 
     # sugar
     def __len__(self):
@@ -454,7 +424,6 @@ class PathBar(Gtk.HBox):
             self.animator.start()
         else:
             self.queue_draw()
-        return
 
     def _on_draw(self, widget, cr):
         # always paint psuedo parts first
@@ -467,7 +436,7 @@ class PathBar(Gtk.HBox):
 
         # paint a frame around the entire pathbar
         width = self.get_parts_width()
-        Gtk.render_background(context, cr, 1, 1, width-2, a.height-2)
+        Gtk.render_background(context, cr, 1, 1, width - 2, a.height - 2)
 
         self._paint_widget_parts(cr, context, a.x, a.y)
 
@@ -486,7 +455,6 @@ class PathBar(Gtk.HBox):
                        part.animation_allocation or part.get_allocation(),
                        context,
                        xo, yo)
-        return
 
     def _paint_psuedo_parts(self, cr, context, xo, yo):
         # a special case: paint psuedo parts paint first,
@@ -496,7 +464,6 @@ class PathBar(Gtk.HBox):
                        part.animation_allocation or part.get_allocation(),
                        context,
                        xo, yo)
-        return
 
     def _shrink_parts(self, overhang):
         self.out_of_width = True
@@ -505,7 +472,7 @@ class PathBar(Gtk.HBox):
             old_width = part.get_width_request()
             new_width = max(self.MIN_PART_WIDTH, old_width - overhang)
 
-            if False:#self.use_animations:
+            if False:  # self.use_animations:
                 self.animator.append_animation(part,
                                                PathBarAnimator.WIDTH_CHANGE,
                                                start_width=old_width,
@@ -515,8 +482,8 @@ class PathBar(Gtk.HBox):
                                       part.get_height_request())
 
             overhang -= old_width - new_width
-            if overhang <= 0: break
-        return
+            if overhang <= 0:
+                break
 
     def _grow_parts(self, claim):
         children = self.get_children()
@@ -528,7 +495,8 @@ class PathBar(Gtk.HBox):
                 continue
 
             growth = min(claim, (part.get_natural_width() - part.width))
-            if growth <= 0: break
+            if growth <= 0:
+                break
 
             claim -= growth
 
@@ -540,11 +508,11 @@ class PathBar(Gtk.HBox):
             else:
                 part.set_size_request(part.width + growth,
                                       part.get_height_request())
-        return
 
     def _make_space(self, part):
         children = self.get_children()
-        if not children: return
+        if not children:
+            return
 
         cur_width = self.get_parts_width()
         incomming_width = cur_width + part.get_width_request()
@@ -553,14 +521,13 @@ class PathBar(Gtk.HBox):
         if overhang > 0:
             print 'shrink parts by:', overhang
             self._shrink_parts(overhang)
-        return
 
     def _reclaim_space(self, part):
-        if not self.out_of_width: return
+        if not self.out_of_width:
+            return
 
         claim = part.get_width_request()
         self._grow_parts(claim)
-        return
 
     def _append_compose_parts(self, new_part):
         d = self.get_direction()
@@ -574,11 +541,11 @@ class PathBar(Gtk.HBox):
         else:
             new_part.set_shape(ShapeRoundedRect(d))
 
-        if not n_parts > 1: return
+        if not n_parts > 1:
+            return
 
         new_mid = children[-1]
         new_mid.set_shape(ShapeMidArrow(d))
-        return
 
     def _remove_compose_parts(self):
         d = self.get_direction()
@@ -595,31 +562,29 @@ class PathBar(Gtk.HBox):
         last = children[-1]
         last.set_shape(ShapeEndCap(d))
         self.queue_draw()
-        return
 
     def _cleanup_revealer(self):
-        if not self._revealer: return
+        if not self._revealer:
+            return
         GObject.source_remove(self._revealer)
         self._revealer = None
-        return
 
     def _theme(self, part):
         #~ part.set_padding(self.theme['xpad'], self.theme['ypad'])
         part.set_padding(12, 4)
-        return
 
     # public methods
     @property
     def first_part(self):
         children = self.get_children()
-        if not children: return None
-        return children[0]
+        if children:
+            return children[0]
 
     @property
     def last_part(self):
         children = self.get_children()
-        if not children: return None
-        return children[-1]
+        if children:
+            return children[-1]
 
     def reveal_part(self, part, animate=True):
         # do not do here:
@@ -629,7 +594,8 @@ class PathBar(Gtk.HBox):
         part_old_width = part.get_width_request()
         part_new_width = part.get_natural_width()
 
-        if part_new_width == part_old_width: return
+        if part_new_width == part_old_width:
+            return
 
         change_amount = part_new_width - part_old_width
 
@@ -639,7 +605,8 @@ class PathBar(Gtk.HBox):
                 old_width = part_old_width
                 new_width = part_new_width
             else:
-                if change_amount <= 0: continue
+                if change_amount <= 0:
+                    continue
 
                 old_width = p.get_width_request()
                 new_width = max(self.MIN_PART_WIDTH, old_width - change_amount)
@@ -655,7 +622,6 @@ class PathBar(Gtk.HBox):
                                    p.get_height_request())
 
         self.animator.start()
-        return
 
     def queue_reveal_part(self, part):
 
@@ -667,11 +633,11 @@ class PathBar(Gtk.HBox):
         self._revealer = GObject.timeout_add(self._timeout_reveal,
                                              reveal_part_cb,
                                              part)
-        return
 
     def get_parts_width(self):
         last = self.last_part
-        if not last: return 0
+        if not last:
+            return 0
 
         if self.get_direction() != Gtk.TextDirection.RTL:
             return last.x + last.width - self.first_part.x
@@ -682,7 +648,8 @@ class PathBar(Gtk.HBox):
     def get_visual_width(self):
         last = self.last_part
         first = self.first_part
-        if not last: return 0
+        if not last:
+            return 0
 
         la = last.animation_allocation or last.get_allocation()
         fa = first.animation_allocation or first.get_allocation()
@@ -691,13 +658,11 @@ class PathBar(Gtk.HBox):
             return la.x + la.width - fa.x
 
         return fa.x + fa.width - la.x
-        
 
     def set_use_animations(self, use_animations):
         self.use_animations = use_animations
         if not use_animations and self.animator.in_progress:
             self.animator.reset()
-        return
 
     def append(self, part):
         print 'append', part
@@ -721,11 +686,11 @@ class PathBar(Gtk.HBox):
         else:
             part.set_nopaint(False)
             part.queue_draw()
-        return
 
     def pop(self):
         children = self.get_children()
-        if not children: return
+        if not children:
+            return
 
         self.animator.reset('pop')
 
@@ -744,11 +709,11 @@ class PathBar(Gtk.HBox):
 
         last.destroy()
 
-        if not self.use_animations: return
+        if not self.use_animations:
+            return
 
         self.animator.append_animation(part, PathBarAnimator.IN)
         self.animator.start()
-        return
 
     def navigate_up(self):
         """ just another name for pop() """
@@ -760,7 +725,6 @@ class PathPartCommon:
     def __init__(self):
         self.animation_in_progress = False
         self.animation_allocation = None
-        return
 
     @property
     def x(self):
@@ -786,41 +750,41 @@ class PathPartCommon:
 
         self.animation_allocation = allocation
         self.queue_draw()
-        return
 
     def animation_finished(self):
         self.animation_in_progress = False
         self.animation_allocation = None
-        if self.get_parent(): self.get_parent().queue_draw()
-        return
+        if self.get_parent():
+            self.get_parent().queue_draw()
 
     def paint(self, cr, a, context, xo, yo):
-        if self.is_nopaint: return
+        if self.is_nopaint:
+            return
 
         cr.save()
 
         x, y = 0, 0
         w, h = a.width, a.height
-        arrow_width = 12#theme['arrow-width']
+        arrow_width = 12  # theme['arrow-width']
 
         if isinstance(self, PathPart):
             _a = self.get_allocation()
             self.shape.layout(cr,
-                              _a.x-xo+1, _a.y-yo,
+                              _a.x - xo + 1, _a.y - yo,
                               w, h, 3, arrow_width)
             cr.clip()
         else:
             Gtk.render_background(context, cr,
-                                  a.x-xo-10, a.y-yo,
-                                  a.width+10, a.height)
+                                  a.x - xo - 10, a.y - yo,
+                                  a.width + 10, a.height)
 
-        cr.translate(a.x-xo, a.y-yo)
+        cr.translate(a.x - xo, a.y - yo)
 
         if self.shape.name.find('Arrow') != -1:
             # draw arrow head
-            cr.move_to(w-arrow_width/2, 2)
-            cr.line_to(w+5, h/2)
-            cr.line_to(w-arrow_width/2, h-2)
+            cr.move_to(w - arrow_width / 2, 2)
+            cr.line_to(w + 5, h / 2)
+            cr.line_to(w - arrow_width / 2, h - 2)
             # fetch the line color and stroke
             rgba = context.get_border_color(Gtk.StateFlags.NORMAL)
             cr.set_source_rgb(rgba.red, rgba.green, rgba.blue)
@@ -831,13 +795,13 @@ class PathPartCommon:
         e = self.layout.get_pixel_extents()[1]
         lw, lh = e.width, e.height
         pw, ph = a.width, a.height
- 
-        x = min(self.xpadding, (pw-lw)/2)
-        y = (ph-lh)/2
+
+        x = min(self.xpadding, (pw - lw) / 2)
+        y = (ph - lh) / 2
 
         # layout area
         Gtk.render_layout(context,
-                          cr, 
+                          cr,
                           int(x),
                           int(y),
                           self.layout)
@@ -845,11 +809,10 @@ class PathPartCommon:
         # paint the focus frame if need be
         if isinstance(self, PathPart) and self.has_focus():
             # layout area
-            x, w, h = x-2, lw+4, lh+1
+            x, w, h = x - 2, lw + 4, lh + 1
             Gtk.render_focus(context, cr, x, y, w, h)
 
         cr.restore()
-        return
 
 
 class PsuedoPathPart(PathPartCommon):
@@ -872,7 +835,6 @@ class PsuedoPathPart(PathPartCommon):
         self.layout = real_part.create_pango_layout(self.label)
 
         self.is_nopaint = False
-        return
 
     def get_allocation(self):
         return self.allocation
@@ -887,20 +849,19 @@ class PsuedoPathPart(PathPartCommon):
         return self.size_request[1]
 
     def animation_finished(self):
-        return
+        pass
 
     def queue_draw(self):
         a = self.allocation
         aw = 12
-        self.parent.queue_draw_area(a.x-aw/2, a.y,
-                                    a.width+aw, a.height)
-        return
+        self.parent.queue_draw_area(a.x - aw / 2, a.y,
+                                    a.width + aw, a.height)
 
 
 class PathPart(Gtk.EventBox, PathPartCommon):
 
     __gsignals__ = {
-        "clicked" : (GObject.SignalFlags.RUN_LAST,
+        "clicked": (GObject.SignalFlags.RUN_LAST,
                      None,
                      (),),
         }
@@ -924,7 +885,6 @@ class PathPart(Gtk.EventBox, PathPartCommon):
 
         self.set_label(label)
         self._init_event_handling()
-        return
 
     def __repr__(self):
         return "PathPart: '%s'" % self.label
@@ -940,23 +900,22 @@ class PathPart(Gtk.EventBox, PathPartCommon):
         else:
             part.set_state(Gtk.StateFlags.PRELIGHT)
         self.queue_draw()
-        return
 
     def _on_leave_notify(self, part, event):
         self.pathbar.queue_reveal_part(self.pathbar.last_part)
         part.set_state(Gtk.StateFlags.NORMAL)
         self.queue_draw()
-        return
 
     def _on_button_press(self, part, event):
-        if event.button != 1: return
+        if event.button != 1:
+            return
         self.pathbar._press_origin = part
         part.set_state(Gtk.StateFlags.ACTIVE)
         self.queue_draw()
-        return
 
     def _on_button_release(self, part, event):
-        if event.button != 1: return
+        if event.button != 1:
+            return
 
         if self.pathbar._press_origin != part:
             self.pathbar._press_origin = None
@@ -971,13 +930,11 @@ class PathPart(Gtk.EventBox, PathPartCommon):
                                 self.emit, 'clicked')
 
         self.queue_draw()
-        return
 
     def _on_key_press(self, part, event):
         if event.keyval in (Gdk.KEY_space, Gdk.KEY_Return, Gdk.KEY_KP_Enter):
             part.set_state(Gtk.StateFlags.ACTIVE)
         self.queue_draw()
-        return
 
     def _on_key_release(self, part, event):
         if event.keyval in (Gdk.KEY_space, Gdk.KEY_Return, Gdk.KEY_KP_Enter):
@@ -985,24 +942,21 @@ class PathPart(Gtk.EventBox, PathPartCommon):
             GObject.timeout_add(self.pathbar._timeout_initial,
                                 self.emit, 'clicked')
         self.queue_draw()
-        return
 
     def _on_focus_in(self, part, event):
         self.pathbar.reveal_part(self)
-        return
 
     def _on_focus_out(self, part, event):
         self.queue_draw()
-        return
 
     # private methods
     def _init_event_handling(self):
         self.set_property("can-focus", True)
-        self.set_events(Gdk.EventMask.BUTTON_PRESS_MASK|
-                        Gdk.EventMask.BUTTON_RELEASE_MASK|
-                        Gdk.EventMask.KEY_RELEASE_MASK|
-                        Gdk.EventMask.KEY_PRESS_MASK|
-                        Gdk.EventMask.ENTER_NOTIFY_MASK|
+        self.set_events(Gdk.EventMask.BUTTON_PRESS_MASK |
+                        Gdk.EventMask.BUTTON_RELEASE_MASK |
+                        Gdk.EventMask.KEY_RELEASE_MASK |
+                        Gdk.EventMask.KEY_PRESS_MASK |
+                        Gdk.EventMask.ENTER_NOTIFY_MASK |
                         Gdk.EventMask.LEAVE_NOTIFY_MASK)
 
         self.connect("enter-notify-event", self._on_enter_notify)
@@ -1013,18 +967,16 @@ class PathPart(Gtk.EventBox, PathPartCommon):
         self.connect("key-release-event", self._on_key_release)
         self.connect("focus-in-event", self._on_focus_in)
         self.connect("focus-out-event", self._on_focus_out)
-        return
 
     def _calc_natural_size(self, who_called='?'):
         ne = self.natural_extents
         nw, nh = ne.width, ne.height
 
-        nw += self.shape.hadjustment + 2*self.xpadding
-        nh += 2*self.ypadding
+        nw += self.shape.hadjustment + 2 * self.xpadding
+        nh += 2 * self.ypadding
 
         self.natural_size = nw, nh
         self.set_size_request(nw, nh)
-        return
 
     # public methods
     @property
@@ -1035,26 +987,23 @@ class PathPart(Gtk.EventBox, PathPartCommon):
         self.xpadding = xpadding
         self.ypadding = ypadding
         self._calc_natural_size()
-        return
 
     def set_size_request(self, width, height):
-        width = max(2*self.xpadding+1, width)
-        height = max(2*self.ypadding+1, height)
-        self.layout.set_width(Pango.SCALE * (width - 2*self.xpadding))
+        width = max(2 * self.xpadding + 1, width)
+        height = max(2 * self.ypadding + 1, height)
+        self.layout.set_width(Pango.SCALE * (width - 2 * self.xpadding))
         Gtk.Widget.set_size_request(self, width, height)
-        return
 
     def set_nopaint(self, is_nopaint):
         self.is_nopaint = is_nopaint
         self.queue_draw()
-        return
 
     def set_shape(self, shape):
-        if shape == self.shape: return
+        if shape == self.shape:
+            return
         self.shape = shape
         self._calc_natural_size()
         self.queue_draw()
-        return
 
     def set_label(self, label):
         self.label = label
@@ -1068,7 +1017,6 @@ class PathPart(Gtk.EventBox, PathPartCommon):
 
         self._calc_natural_size()
         self.queue_draw()
-        return
 
     def get_natural_size(self):
         return self.natural_size
@@ -1092,9 +1040,8 @@ class PathPart(Gtk.EventBox, PathPartCommon):
             aw = 12
         else:
             aw = 0
-        self.queue_draw_area(a.x-aw/2, a.y,
-                             a.width+aw, a.height)
-        return
+        self.queue_draw_area(a.x - aw / 2, a.y,
+                             a.width + aw, a.height)
 
 
 class NavigationBar(PathBar):
@@ -1103,11 +1050,9 @@ class NavigationBar(PathBar):
         PathBar.__init__(self)
         self.id_to_part = {}
         self._callback_id = None
-        return
 
     def _on_part_clicked(self, part):
         part.callback(self, part)
-        return
 
     def add_with_id(self, label, callback, id, do_callback=True, animate=True):
         """
@@ -1149,13 +1094,12 @@ class NavigationBar(PathBar):
                     self._callback_id = None
 
                 # if i do not have call the callback in an idle,
-                # all hell breaks loose    
+                # all hell breaks loose
                 self._callback_id = GObject.idle_add(callback,
                                                      self,      # pathbar
                                                      part)
 
             self.append(part)
-        return
 
     def remove_ids(self, *ids, **kwargs):
         parts = self.get_parts()
@@ -1169,14 +1113,16 @@ class NavigationBar(PathBar):
         index = len(parts)
 
         for id, part in self.id_to_part.iteritems():
-            if id not in ids: continue
+            if id not in ids:
+                continue
             if part not in parts:
                 cleanup_ids.append(id)
                 part.destroy()
             else:
                 index = min(index, parts.index(part))
 
-        if index == len(parts): return
+        if index == len(parts):
+            return
 
         # cleanup any stale id:part pairs in the id_to_part dict
         for id in cleanup_ids:
@@ -1192,7 +1138,7 @@ class NavigationBar(PathBar):
 
         # the index is used to remove all parts after the index but we
         # keep one part around to animate its removal
-        for part in parts[index+1:]:
+        for part in parts[index + 1:]:
             part.destroy()
 
         animate = True
@@ -1207,36 +1153,33 @@ class NavigationBar(PathBar):
         if 'do_callback' in kwargs and kwargs['do_callback']:
             part = self[-1]
             part.callback(self, part)
-        return
 
     def remove_all(self, **kwargs):
-        if len(self) <= 1: return
+        if len(self) <= 1:
+            return
         ids = filter(lambda k: k != 'category',
                      self.id_to_part.keys())
         self.remove_ids(*ids, **kwargs)
-        return
 
     def has_id(self, id):
-        return self.id_to_part.has_key(id)
+        return id in self.id_to_part
 
     def get_parts(self):
         return self.get_children()
 
     def get_active(self):
         parts = self.get_parts()
-        if not parts: return None
-        return parts[-1]
+        if parts:
+            return parts[-1]
 
     def get_button_from_id(self, id):
         """
         return the button for the given id (or None)
         """
-        if not id in self.id_to_part:
-            return None
-        return self.id_to_part[id]
+        return self.id_to_part.get(id)
 
     def set_active_no_callback(self, part):
-        return
+        pass
 
 
 class TestIt:
@@ -1247,11 +1190,9 @@ class TestIt:
             t = entry.get_text() or 'no label %s' % len(pathbar)
             part = PathPart(t)
             pathbar.append(part)
-            return
 
         def remove(button, entry, pathbar):
             pathbar.pop()
-            return
 
         win = Gtk.Window()
         win.set_border_width(30)
@@ -1284,6 +1225,7 @@ class TestIt:
         self.win = win
         self.win.pb = pb
 
+
 def get_test_pathbar_window():
     t = TestIt()
     return t.win
@@ -1291,4 +1233,3 @@ def get_test_pathbar_window():
 if __name__ == '__main__':
     win = get_test_pathbar_window()
     Gtk.main()
-

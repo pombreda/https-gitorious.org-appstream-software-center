@@ -103,6 +103,8 @@ class Application(object):
         if doc:
             appname = db.get_appname(doc)
             if appname:
+                if db.is_appname_duplicated(appname):
+                    appname = "%s (%s)" % (appname, db.get_pkgname(doc))
                 return appname
             else:
                 return db.get_summary(doc)
