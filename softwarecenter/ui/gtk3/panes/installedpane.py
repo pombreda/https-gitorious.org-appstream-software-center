@@ -30,8 +30,7 @@ import platform
 
 from softwarecenter.enums import (NonAppVisibility,
                                   SortMethods)
-from softwarecenter.utils import (
-    wait_for_apt_cache_ready, utf8, ExecutionTime)
+from softwarecenter.utils import wait_for_apt_cache_ready, utf8
 from softwarecenter.db.categories import (CategoriesParser,
                                           categories_sorted_by_name)
 from softwarecenter.ui.gtk3.models.appstore2 import (
@@ -420,6 +419,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         model = self.base_model # base model not treefilter
         model.clear()
 
+        def profiled_rebuild_oneconfview():
+            with ExecutionTime("rebuild_oneconfview"):
+                rebuild_oneconfview()
+
         def rebuild_oneconfview():
         
             # FIXME for P: hide the search entry
@@ -500,7 +503,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.emit("app-list-changed", i)
             return
 
-        GObject.idle_add(rebuild_oneconfview)
+        GObject.idle_add(profiled_rebuild_oneconfview)
         return
 
     def _check_expand(self):
