@@ -138,31 +138,23 @@ class _AppPropertiesHelper(GObject.GObject):
         return self.db.get_pkgname(doc)
 
     def get_application(self, doc):
-        appname = doc.get_value(XapianValues.APPNAME)
-        pkgname = self.db.get_pkgname(doc)
-        # TODO: requests
-        return Application(appname, pkgname, "")
+        return self.db.get_application(doc)
 
     def get_appname(self, doc):
-        appname = doc.get_value(XapianValues.APPNAME)
-        if not appname:
-            appname = self.db.get_summary(doc)
-        else:
-            if self.db.is_appname_duplicated(appname):
-                appname = "%s (%s)" % (appname, self.get_pkgname(doc))
-        return appname
+        app = self.db.get_application(doc)
+        return app.get_display_name(self.db, doc)
 
     def get_markup(self, doc):
-        appname = doc.get_value(XapianValues.APPNAME)
+        app = self.db.get_application(doc)
 
-        if not appname:
+        # the logic is that "apps" are displayed normally
+        # but "packages" are displayed with their summary as name
+        if app.appname:
+            appname = self.get_appname(doc)
+            summary = self.db.get_summary(doc)
+        else:
             appname = self.db.get_summary(doc)
             summary = self.get_pkgname(doc)
-        else:
-            if self.db.is_appname_duplicated(appname):
-                appname = "%s (%s)" % (appname, self.get_pkgname(doc))
-
-            summary = self.db.get_summary(doc)
 
         return "%s\n<small>%s</small>" % (
                  GObject.markup_escape_text(appname),
