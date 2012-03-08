@@ -189,10 +189,10 @@ class AppView(Gtk.VBox):
         # ... also we dont currently support user sorting in the
         # installedview, so issue is somewhat moot for the time being...
         if isinstance(self.tree_view.appmodel, AppTreeStore):
+            LOG.debug("display_matches called on AppTreeStore, ignoring")
             return
 
         sort_by_relevance = is_search and not self.user_defined_sort_method
-
         if sort_by_relevance:
             self._use_combobox_with_sort_by_search_ranking()
             self.set_sort_method_with_no_signal(self._SORT_BY_SEARCH_RANKING)
@@ -330,16 +330,15 @@ def get_test_window():
     entry = Gtk.Entry()
     entry.stamp = 0
     entry.connect("changed", on_entry_changed, (view, enquirer))
-    entry.set_text("gtk3")
 
-    scroll = Gtk.ScrolledWindow()
     box = Gtk.VBox()
     box.pack_start(entry, False, True, 0)
-    box.pack_start(scroll, True, True, 0)
+    box.pack_start(view, True, True, 0)
 
     win = Gtk.Window()
+    win.set_data("appview", view)
+    win.set_data("entry", entry)
     win.connect("destroy", lambda x: Gtk.main_quit())
-    scroll.add(view)
     win.add(box)
     win.set_size_request(600, 400)
     win.show_all()
@@ -348,4 +347,5 @@ def get_test_window():
 
 if __name__ == "__main__":
     win = get_test_window()
+    win.get_data("entry").set_text("gtk3")
     Gtk.main()
