@@ -28,7 +28,7 @@ from softwarecenter.ui.gtk3.drawing import rounded_rect
 
 # pi constants
 _2PI = 2 * PI
-PI_OVER_180 =   PI / 180
+PI_OVER_180 = PI / 180
 
 
 def radian(deg):
@@ -60,7 +60,6 @@ class SymbolicIcon(Gtk.Image):
 
         self.connect("draw", self.on_draw, self.drop_shadow, self.icon,
                      self.drop_shadow_x_offset, self.drop_shadow_y_offset)
-        return
 
     def do_get_preferred_width(self):
         ds = self.drop_shadow
@@ -87,13 +86,12 @@ class SymbolicIcon(Gtk.Image):
         x = (a.width - icon.get_width()) * 0.5 + xo
         y = (a.height - icon.get_height()) * 0.5 + yo
         cr.mask_surface(icon, int(x), int(y))
-        return
 
 
 class RotationAboutCenterAnimation(object):
 
-    NEW_FRAME_DELAY = 50 # msec
-    ROTATION_INCREMENT = radian(5) # 5 degrees -> radians
+    NEW_FRAME_DELAY = 50  # msec
+    ROTATION_INCREMENT = radian(5)  # 5 degrees -> radians
 
     def __init__(self):
         self.rotation = 0
@@ -113,15 +111,13 @@ class RotationAboutCenterAnimation(object):
         return _continue
 
     def start(self):
-        if self.is_animating(): return
-        self.animator = GObject.timeout_add(self.NEW_FRAME_DELAY,
-                                            self.new_frame)
-        return
+        if not self.is_animating():
+            self.animator = GObject.timeout_add(self.NEW_FRAME_DELAY,
+                                                self.new_frame)
 
     def stop(self):
-        if not self.is_animating(): return
-        self._stop_requested = True
-        return
+        if self.is_animating():
+            self._stop_requested = True
 
     def is_animating(self):
         return self.animator is not None
@@ -141,7 +137,6 @@ class PendingSymbolicIcon(SymbolicIcon, RotationAboutCenterAnimation):
         # for painting the trans count bubble
         self.layout = self.create_pango_layout("")
         self.transaction_count = 0
-        return
 
     def on_draw(self, widget, cr, *args, **kwargs):
         cr.save()
@@ -158,18 +153,21 @@ class PendingSymbolicIcon(SymbolicIcon, RotationAboutCenterAnimation):
         SymbolicIcon.on_draw(self, widget, cr, *args, **kwargs)
         cr.restore()
 
-        if not self.is_animating() or not self.transaction_count: return
+        if not self.is_animating() or not self.transaction_count:
+            return
 
         # paint transactions bubble
 
         # get the layout extents and calc the bubble size
         ex = self.layout.get_pixel_extents()[1]
-        x = (a.width - self.icon.get_width()) / 2 + self.icon.get_width() - ex.width + 2
-        y = (a.height - self.icon.get_height()) / 2 + self.icon.get_height() - ex.height + 2
-        w = ex.width + 2*self.BUBBLE_XPADDING
-        h = ex.height + 2*self.BUBBLE_YPADDING
+        x = ((a.width - self.icon.get_width()) / 2 +
+            self.icon.get_width() - ex.width + 2)
+        y = ((a.height - self.icon.get_height()) / 2 +
+            self.icon.get_height() - ex.height + 2)
+        w = ex.width + 2 * self.BUBBLE_XPADDING
+        h = ex.height + 2 * self.BUBBLE_YPADDING
 
-        border_radius = w/3
+        border_radius = w / 3
         if border_radius > self.BUBBLE_MAX_BORDER_RADIUS:
             border_radius = self.BUBBLE_MAX_BORDER_RADIUS
 
@@ -177,37 +175,36 @@ class PendingSymbolicIcon(SymbolicIcon, RotationAboutCenterAnimation):
         context = widget.get_style_context()
         context.save()
         color = context.get_background_color(Gtk.StateFlags.SELECTED)
-        rounded_rect(cr, x+1, y+1, w-2, h-2, border_radius)
+        rounded_rect(cr, x + 1, y + 1, w - 2, h - 2, border_radius)
         Gdk.cairo_set_source_rgba(cr, color)
         cr.fill()
         context.restore()
 
         # paint outline
-        rounded_rect(cr, x+1.5, y+1.5, w-3, h-3, border_radius-1)
-        cr.set_source_rgb(1,1,1)
+        rounded_rect(cr, x + 1.5, y + 1.5, w - 3, h - 3, border_radius - 1)
+        cr.set_source_rgb(1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
 
         # paint layout
         cr.save()
-        cr.translate(x+(w-ex.width)*0.5, y+(h-ex.height)*0.5)
+        cr.translate(x + (w - ex.width) * 0.5, y + (h - ex.height) * 0.5)
         cr.move_to(0, 1)
         PangoCairo.layout_path(cr, self.layout)
-        cr.set_source_rgba(0,0,0,0.6)
+        cr.set_source_rgba(0, 0, 0, 0.6)
         cr.fill()
         Gtk.render_layout(context, cr, 0, 0, self.layout)
         cr.restore()
-        return
 
     def set_transaction_count(self, count):
-        if count == self.transaction_count: return
+        if count == self.transaction_count:
+            return
         self.transaction_count = count
-        m = '<span font_desc="%s" color="%s">%i</span>' % (self.BUBBLE_FONT_DESC,
-                                                           "white", 
-                                                           count)
+        m = ('<span font_desc="%s" color="%s">%i</span>' %
+            (self.BUBBLE_FONT_DESC, "white", count))
         self.layout.set_markup(m, -1)
         self.queue_draw()
-        return
+
 
 def get_test_symbolic_icons_window():
     win = Gtk.Window()
