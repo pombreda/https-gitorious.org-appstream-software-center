@@ -1297,12 +1297,17 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                         self.recommender_uuid)
         self.config.write()
 
+    def cache_magic(self):
+        self.cache.open()
+        if hasattr(self.cache, 'prefill_cache'):
+            self.cache.prefill_cache()
+
     def run(self, args):
         # show window as early as possible
         self.window_main.show_all()
 
         # delay cache open
-        GObject.timeout_add(1, self.cache.open)
+        GObject.timeout_add(1, self.cache_magic)
 
         # support both "pkg1 pkg" and "pkg1,pkg2" (and pkg1,pkg2 pkg3)
         if args:
