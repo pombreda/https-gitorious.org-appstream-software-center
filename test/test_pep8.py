@@ -8,12 +8,21 @@ setup_test_env()
 
 # Only test these two packages for now:
 import softwarecenter.db.pkginfo_impl
+import softwarecenter.ui.gtk3.widgets
 import softwarecenter.ui.qml
 
 class PackagePep8TestCase(unittest.TestCase):
     maxDiff = None
-    packages = [softwarecenter.ui.qml, softwarecenter.db.pkginfo_impl]
-    exclude = []
+    packages = [softwarecenter.ui.qml,
+                softwarecenter.ui.gtk3.widgets,
+                softwarecenter.db.pkginfo_impl]
+    exclude = ['reviews.py', 'symbolic_icons.py', 'stars.py', 'spinner.py',
+        'weblivedialog.py', 'viewport.py', 'videoplayer.py', 'sections.py',
+        'thumbnail.py', 'separators.py', 'searchentry.py', 'searchaid.py',
+        'recommendations.py', 'oneconfviews.py', 'menubutton.py', 'labels.py',
+        'imagedialog.py', 'exhibits.py', 'description.py', 'containers.py',
+        'cellrenderers.py', 'buttons.py', 'backforward.py', 'apptreeview.py',
+        'animatedimage.py', 'actionbar.py']
 
     def message(self, text):
         self.errors.append(text)

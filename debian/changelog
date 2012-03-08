@@ -25,7 +25,8 @@ software-center (5.1.12) UNRELEASED; urgency=low
     - consolidate Ubunty SSO logins to use "Ubuntu Software Center", fixes
       inconsistent UI and storing of two keys in they keyring, as well as
       being prompted to log in twice the first time that you review an app
-  # lp:~elachuni/software-center/pep8-test:
+  * lp:~elachuni/software-center/pep8-test,
+    lp:~elachuni/software-center/pep8-test-part2:
     - add a unit test to check code statically for pep8 compliance and update
       an initial set of modules to meet it
   
@@ -48,7 +49,7 @@ software-center (5.1.12) UNRELEASED; urgency=low
     - use consistently the same app name for every Ubuntu SSO call to
       ensure SSO tokens are handled properly
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Mar 2012 20:38:24 -0500
+ -- Kiwinote <kiwinote@gmail.com>  Thu, 08 Mar 2012 15:15:15 +0000
 
 software-center (5.1.11) precise; urgency=low
 
