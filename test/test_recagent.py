@@ -23,8 +23,10 @@ class TestRecommenderAgent(unittest.TestCase):
         self.loop = GObject.MainLoop(GObject.main_context_default())
         self.error = False
         self.orig_host = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST")
-        #if not "SOFTWARE_CENTER_RECOMMENDER_HOST" in os.environ:
-        #    os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = "https://rec.staging.ubuntu.com"
+        if not "SOFTWARE_CENTER_RECOMMENDER_HOST" in os.environ:
+	    #server = "https://rec.staging.ubuntu.com"
+	    server = "https://rec.ubuntu.com"
+            os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = server
 
     def tearDown(self):
         if self.orig_host is None:
