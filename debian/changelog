@@ -1,4 +1,4 @@
-software-center (5.1.12) UNRELEASED; urgency=low
+software-center (5.1.12) precise; urgency=low
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/webcam-string-fix:
@@ -62,7 +62,7 @@ software-center (5.1.12) UNRELEASED; urgency=low
     - use consistently the same app name for every Ubuntu SSO call to
       ensure SSO tokens are handled properly
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Mar 2012 13:19:41 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 09 Mar 2012 08:55:46 +0100
 
 software-center (5.1.11) precise; urgency=low
 
