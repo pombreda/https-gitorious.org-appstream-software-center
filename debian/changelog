@@ -38,7 +38,8 @@ software-center (5.1.12) UNRELEASED; urgency=low
       being prompted to log in twice the first time that you review an app
   * lp:~elachuni/software-center/pep8-test,
     lp:~elachuni/software-center/pep8-test-part2,
-    lp:~elachuni/software-center/pep8-test-part3:
+    lp:~elachuni/software-center/pep8-test-part3,
+    lp:~elachuni/software-center/pep8-test-part4:
     - add a unit test to check code statically for pep8 compliance and update
       more and more of the code to meet it
 
