@@ -10,10 +10,10 @@ from softwarecenter.ui.gtk3.em import StockEms
 class Suggestions(Gtk.VBox):
 
     __gsignals__ = {
-        "activate-link" : (GObject.SignalFlags.RUN_LAST,
-                              None, 
-                              (GObject.TYPE_PYOBJECT, str),
-                             ),
+        "activate-link": (GObject.SignalFlags.RUN_LAST,
+                          None,
+                          (GObject.TYPE_PYOBJECT, str),
+                          ),
     }
 
     def __init__(self):
@@ -29,28 +29,24 @@ class Suggestions(Gtk.VBox):
 
         self._labels = []
         self._handlers = []
-        return
 
     def on_link_activate(self, widget, uri):
         self.reset_all()
         self.emit("activate-link", widget, uri)
-        return True #silences the gtk-warning
+        return True  # silences the gtk-warning
 
     def foreach(self, label_func, *args):
-        for label in [self.title,] + self._labels:
+        for label in [self.title] + self._labels:
             label_func(label, *args)
-        return
 
     def set_alignment(self, xalign, yalign):
         self.xalign = xalign
         self.yalign = yalign
 
         self.foreach(Gtk.Label.set_alignment, xalign, yalign)
-        return
 
     def set_title(self, title_markup):
         self.title.set_markup(title_markup)
-        return
 
     def append_suggestion(self, suggestion_markup):
         label = Gtk.Label()
@@ -62,13 +58,12 @@ class Suggestions(Gtk.VBox):
         self._handlers.append(
                 label.connect("activate-link", self.on_link_activate))
         self._labels.append(label)
-        return
 
     def set_suggestions(self, suggestions):
-        if self._labels: self.reset()
+        if self._labels:
+            self.reset()
         for s in suggestions:
             self.append_suggestion(s)
-        return
 
     def reset(self):
         for label, handler in zip(self._labels, self._handlers):
@@ -77,26 +72,24 @@ class Suggestions(Gtk.VBox):
 
         self._labels = []
         self._handlers = []
-        return
 
     def reset_all(self):
         self.title.set_text('')
         self.reset()
-        return
 
 
 class SearchAidLogic(object):
 
     HEADER_ICON_NAME = "face-sad"
     HEADER_MARKUP = '<b><big>%s</big></b>'
-    #TRANSLATORS: this is the layout of an indented line starting with a bullet point
+    #TRANSLATORS: this is the layout of an indented
+    # line starting with a bullet point
     BULLET = unicode(_("\t• %s"), 'utf8').encode('utf8')
 
     def __init__(self, pane):
         self.pane = pane
         self.db = pane.db
         self.enquirer = pane.enquirer
-        return
 
     def is_search_aid_required(self, state):
         return (state.search_term and
@@ -115,7 +108,7 @@ class SearchAidLogic(object):
                 return category.name
             plain_text = _("%(category_name)s → %(subcategory_name)s")
             usable_text = unicode(plain_text, 'utf8').encode('utf8')
-            return usable_text % {'category_name': category.name, 
+            return usable_text % {'category_name': category.name,
                                   'subcategory_name': state.subcategory.name}
 
         if not category:
@@ -172,7 +165,8 @@ class SearchAidLogic(object):
                  "suggestions that may aid you in your search")
 
     def get_include_parent_suggestion_text(self, term, category, state):
-        if not state.subcategory: return None
+        if not state.subcategory:
+            return
 
         enq = self.enquirer
         query = self.db.get_query_list_from_search_entry(
@@ -195,14 +189,13 @@ class SearchAidLogic(object):
                  n=enq.nr_apps) % \
                  {'category': category.name, 'n': enq.nr_apps}
             return text
-        return None
 
     def get_unsupported_suggestion_text(self, term, category, state):
         if state.filter is None:
-            return None
+            return
         supported_only = state.filter.get_supported_only()
         if not supported_only:
-            return None
+            return
 
         state.filter.set_supported_only(False)
 
@@ -224,12 +217,11 @@ class SearchAidLogic(object):
         if enq.nr_apps > 0:
             text = self.BULLET % gettext.ngettext("Try "
                  "<a href=\"search-unsupported:\">the %(amount)d item "
-                 "that matches</a> in software not maintained by Canonical", 
+                 "that matches</a> in software not maintained by Canonical",
                  "Try <a href=\"search-unsupported:\">the %(amount)d items "
                  "that match</a> in software not maintained by Canonical",
                  enq.nr_apps) % {'amount': enq.nr_apps}
             return text
-        return None
 
     def update_search_help(self, state):
         # do any non toolkit logic here
@@ -238,12 +230,10 @@ class SearchAidLogic(object):
         # do toolkit stuff here
         if hasattr(self, 'on_update_search_help'):
             self.on_update_search_help(state)
-        return
 
     def reset(self):
         if hasattr(self, 'on_reset'):
             self.on_reset()
-        return
 
 
 class SearchAid(Gtk.Table, SearchAidLogic):
@@ -259,8 +249,8 @@ class SearchAid(Gtk.Table, SearchAidLogic):
         image = Gtk.Image.new_from_icon_name(self.HEADER_ICON_NAME,
                                              Gtk.IconSize.DIALOG)
         self.attach(image,
-                    0, 1, # left_attach, right_attach
-                    0, 1, # top_attach, bottom_attach
+                    0, 1,  # left_attach, right_attach
+                    0, 1,  # top_attach, bottom_attach
                     Gtk.AttachOptions.SHRINK,
                     Gtk.AttachOptions.SHRINK,
                     StockEms.LARGE, 0)
@@ -270,8 +260,8 @@ class SearchAid(Gtk.Table, SearchAidLogic):
         self.title.set_use_markup(True)
         self.title.set_alignment(0.0, 0.5)
         self.attach(self.title,
-                    1, 2, # left_attach, right_attach
-                    0, 1, # top_attach, bottom_attach
+                    1, 2,  # left_attach, right_attach
+                    0, 1,  # top_attach, bottom_attach
                     Gtk.AttachOptions.FILL,
                     Gtk.AttachOptions.FILL,
                     StockEms.MEDIUM, 0)
@@ -280,17 +270,15 @@ class SearchAid(Gtk.Table, SearchAidLogic):
         self.suggestion = Suggestions()
         self.suggestion.set_alignment(0.0, 0.5)
         self.attach(self.suggestion,
-                    1, 2, # left_attach, right_attach
-                    1, 2, # top_attach, bottom_attach
+                    1, 2,  # left_attach, right_attach
+                    1, 2,  # top_attach, bottom_attach
                     Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND,
                     Gtk.AttachOptions.FILL,
                     StockEms.MEDIUM, StockEms.MEDIUM)
 
         self.suggestion.connect("activate-link", self.on_link_activate)
-        return
 
     def on_update_search_help(self, state):
-
         if not self.is_search_aid_required(state):
             # catchall
             self.pane.app_view.set_visible(True)
@@ -311,17 +299,14 @@ class SearchAid(Gtk.Table, SearchAidLogic):
         suggestions_title = self.get_suggestion_title_text(suggestions)
         self.suggestion.set_title(suggestions_title)
         self.suggestion.set_suggestions(suggestions)
-        return
 
     def on_reset(self):
         self.suggestion.reset_all()
-        return
 
     def on_link_activate(self, suggestions, link, uri):
         markup = self.HEADER_MARKUP % _('Trying suggestion ...')
         self.title.set_markup(markup)
         GObject.timeout_add(750, self._handle_suggestion_action, uri)
-        return
 
     def _handle_suggestion_action(self, uri):
         self = self.pane
@@ -339,4 +324,3 @@ class SearchAid(Gtk.Table, SearchAidLogic):
         # FIXME: add ability to remove categories restriction here
         # True stops event propergation
         return False
-
