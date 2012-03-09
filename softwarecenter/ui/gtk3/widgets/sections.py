@@ -1,30 +1,32 @@
 #from gi.repository import Gtk
 
-import cairo, os
+import cairo
+import os
 
 from softwarecenter.enums import ViewPages
 from softwarecenter.paths import datadir
 from mkit import floats_from_string
 
+
 class SectionPainter(object):
-    
-    # specify background overlay image and color mappings for available and installed view ids
-    BACKGROUND_IMAGES = {ViewPages.AVAILABLE : cairo.ImageSurface.create_from_png(
-                                                 os.path.join(datadir, 'images/clouds.png')),
-                         ViewPages.INSTALLED : cairo.ImageSurface.create_from_png(
-                                                 os.path.join(datadir, 'images/arrows.png')),
+
+    # specify background overlay image and color mappings for available and
+    # installed view ids
+    BACKGROUND_IMAGES = {
+        ViewPages.AVAILABLE: cairo.ImageSurface.create_from_png(
+            os.path.join(datadir, 'images/clouds.png')),
+        ViewPages.INSTALLED: cairo.ImageSurface.create_from_png(
+            os.path.join(datadir, 'images/arrows.png')),
                         }
-    BACKGROUND_COLORS = {ViewPages.AVAILABLE : floats_from_string('#0769BC'),
-                         ViewPages.INSTALLED : floats_from_string('#aea79f'),
+    BACKGROUND_COLORS = {ViewPages.AVAILABLE: floats_from_string('#0769BC'),
+                         ViewPages.INSTALLED: floats_from_string('#aea79f'),
                         }
 
     def __init__(self):
         self._view_id = None
-        return
-        
+
     def set_view_id(self, id):
         self._view_id = id
-        return
 
     def draw(self, widget, cr):
         # sky
@@ -43,7 +45,7 @@ class SectionPainter(object):
         #    cr.set_source_surface(s, a.x, 0)
 
         #cr.paint()
-        return
+        pass
 
     def get_background_color(self):
         return self.BACKGROUND_COLORS[self._view_id]

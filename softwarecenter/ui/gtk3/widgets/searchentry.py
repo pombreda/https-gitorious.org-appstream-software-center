@@ -30,12 +30,11 @@ from softwarecenter.ui.gtk3.em import em
 class SearchEntry(Gtk.Entry):
 
     # FIMXE: we need "can-undo", "can-redo" signals
-    __gsignals__ = {'terms-changed':(GObject.SignalFlags.RUN_FIRST,
-                                     None,
-                                     (GObject.TYPE_STRING,))}
+    __gsignals__ = {'terms-changed': (GObject.SignalFlags.RUN_FIRST,
+                                      None,
+                                      (GObject.TYPE_STRING,))}
 
     SEARCH_TIMEOUT = 600
-
 
     def __init__(self, icon_theme=None):
         """
@@ -52,7 +51,8 @@ class SearchEntry(Gtk.Entry):
 
         self.connect("icon-press", self._on_icon_pressed)
 
-        self.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, 'edit-find-symbolic')
+        self.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY,
+            'edit-find-symbolic')
         self.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, None)
 
         # set sensible atk name
@@ -90,7 +90,7 @@ class SearchEntry(Gtk.Entry):
         text = self._undo_stack.pop()
         self.set_text(text)
         self.set_position(-1)
-    
+
     def redo(self):
         if not self._redo_stack:
             return
@@ -106,7 +106,6 @@ class SearchEntry(Gtk.Entry):
     def set_text(self, text, cursor_to_end=True):
         Gtk.Entry.set_text(self, text)
         self.emit("move-cursor", Gtk.MovementStep.BUFFER_ENDS, 1, False)
-        return
 
     def set_text_with_no_signal(self, text):
         """Clear and do not send a term-changed signal"""
@@ -143,16 +142,20 @@ class SearchEntry(Gtk.Entry):
         Show the clear icon whenever the field is not empty
         """
         if self.get_text() != "":
-            self.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, Gtk.STOCK_CLEAR)
+            self.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY,
+                Gtk.STOCK_CLEAR)
             # reverse the icon if we are in an rtl environment
             if self.get_direction() == Gtk.TextDirection.RTL:
-                pb = self.get_icon_pixbuf(Gtk.EntryIconPosition.SECONDARY).flip(True)
+                pb = self.get_icon_pixbuf(
+                    Gtk.EntryIconPosition.SECONDARY).flip(True)
                 self.set_icon_from_pixbuf(Gtk.EntryIconPosition.SECONDARY, pb)
         else:
             self.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, None)
 
+
 def on_entry_changed(self, terms):
     print(terms)
+
 
 def get_test_searchentry_window():
     icons = Gtk.IconTheme.get_default()
@@ -162,12 +165,11 @@ def get_test_searchentry_window():
     win = Gtk.Window()
     win.connect("destroy", Gtk.main_quit)
     win.add(entry)
-    win.set_size_request(400,400)
+    win.set_size_request(400, 400)
     win.show_all()
     win.entry = entry
     return win
-    
+
 if __name__ == "__main__":
     win = get_test_searchentry_window()
     Gtk.main()
-    
