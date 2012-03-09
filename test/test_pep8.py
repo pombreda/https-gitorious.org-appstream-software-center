@@ -16,8 +16,7 @@ class PackagePep8TestCase(unittest.TestCase):
     packages = [softwarecenter.ui.qml,
                 softwarecenter.ui.gtk3.widgets,
                 softwarecenter.db.pkginfo_impl]
-    exclude = ['recommendations.py', 'oneconfviews.py', 'menubutton.py',
-        'labels.py', 'imagedialog.py', 'exhibits.py', 'description.py',
+    exclude = ['description.py',
         'containers.py', 'cellrenderers.py', 'buttons.py', 'backforward.py',
         'apptreeview.py', 'animatedimage.py', 'actionbar.py']
 
