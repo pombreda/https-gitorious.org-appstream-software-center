@@ -21,26 +21,27 @@ from gettext import gettext as _
 
 from softwarecenter.hw import TAG_DESCRIPTION
 
+
 class HardwareRequirementsLabel(Gtk.HBox):
-    """ contains a single HW requirement string and a image that shows if 
-        the requirements are meet 
+    """ contains a single HW requirement string and a image that shows if
+        the requirements are meet
     """
 
     SUPPORTED_SYM = {
         # TRANSLATORS: symbol for "hardware-supported"
-        'yes' : _(u'\u2713'),
+        'yes': _(u'\u2713'),
         # TRANSLATORS: symbol for hardware "not-supported"
-        'no' : u'<span foreground="red">%s</span>' % _(u'\u2718'),
+        'no': u'<span foreground="red">%s</span>' % _(u'\u2718'),
     }
 
-    # TRANSLATORS: this is a substring that used to build the 
+    # TRANSLATORS: this is a substring that used to build the
     #              "hardware-supported" string, where sym is
     #              either a unicode checkmark or a cross
     #              and hardware is the short hardware description
     #              Note that this is the last substr, no trailing ","
     LABEL_LAST_ITEM = _("%(sym)s%(hardware)s")
 
-    # TRANSLATORS: this is a substring that used to build the 
+    # TRANSLATORS: this is a substring that used to build the
     #              "hardware-supported" string, where sym is
     #              either a unicode checkmark or a cross
     #              and hardware is the short hardware description
@@ -53,26 +54,30 @@ class HardwareRequirementsLabel(Gtk.HBox):
         self.result = None
         self.last_item = last_item
         self._build_ui()
+
     def _build_ui(self):
         self._label = Gtk.Label()
         self._label.show()
         self.pack_start(self._label, True, True, 0)
+
     def get_label(self):
         # get the right symbol
         sym = self.SUPPORTED_SYM[self.result]
-        # we add a trailing 
+        # we add a trailing
         if self.last_item:
             s = self.LABEL_LAST_ITEM
         else:
-            s= self.LABEL
+            s = self.LABEL
         return _(s) % {
-            "sym" : sym,
-            "hardware" : _(TAG_DESCRIPTION[self.tag]),
+            "sym": sym,
+            "hardware": _(TAG_DESCRIPTION[self.tag]),
             }
+
     def set_hardware_requirement(self, tag, result):
         self.tag = tag
         self.result = result
         self._label.set_markup(self.get_label())
+
 
 class HardwareRequirementsBox(Gtk.HBox):
     """ A collection of HW requirement labels """
@@ -107,9 +112,10 @@ def get_test_window():
     win = Gtk.Window()
     win.set_size_request(300, 200)
 
-    HW_TEST_RESULT = { 'hardware::gps' : 'yes',
-                       'hardware::video:opengl' : 'no',
-                       }
+    HW_TEST_RESULT = {
+        'hardware::gps': 'yes',
+        'hardware::video:opengl': 'no',
+    }
 
     # add it
     hwbox = HardwareRequirementsBox()
