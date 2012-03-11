@@ -10,7 +10,6 @@ setup_test_env()
 from softwarecenter.db.categories import (
     CategoriesParser,
     RecommendedForYouCategory,
-    RecommendedForYouInCatCategory,
     get_category_by_name, get_query_for_category)
 from softwarecenter.testutils import (get_test_db,
                                       make_recommender_agent_recommend_me_dict)
@@ -41,7 +40,7 @@ class TestCategories(unittest.TestCase):
         cats = parser.parse_applications_menu("./data")
         # "2" is a multimedia query
         #     see ./test/data/desktop/software-center.menu
-        recommends_cat = RecommendedForYouInCatCategory(cats[2])
+        recommends_cat = RecommendedForYouCategory(cats[2])
         # ensure we get a query when the callback is called
         recommends_cat._recommend_me_result(
                                 None, 
