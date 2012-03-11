@@ -1,4 +1,12 @@
-software-center (5.1.12) UNRELEASED; urgency=low
+software-center (5.1.13) UNRELEASED; urgency=low
+
+  [ Anthony Lenton ]
+  * lp:~elachuni/software-center/pep8-test-part5:
+    - Make the pep8 test pass on 6 more files in ui.gtk3.widgets
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Mar 2012 16:59:35 -0500
+
+software-center (5.1.12) precise; urgency=low
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/webcam-string-fix:
@@ -38,7 +46,8 @@ software-center (5.1.12) UNRELEASED; urgency=low
       being prompted to log in twice the first time that you review an app
   * lp:~elachuni/software-center/pep8-test,
     lp:~elachuni/software-center/pep8-test-part2,
-    lp:~elachuni/software-center/pep8-test-part3:
+    lp:~elachuni/software-center/pep8-test-part3,
+    lp:~elachuni/software-center/pep8-test-part4:
     - add a unit test to check code statically for pep8 compliance and update
       more and more of the code to meet it
 
@@ -61,7 +70,7 @@ software-center (5.1.12) UNRELEASED; urgency=low
     - use consistently the same app name for every Ubuntu SSO call to
       ensure SSO tokens are handled properly
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Mar 2012 13:19:41 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 09 Mar 2012 08:55:46 +0100
 
 software-center (5.1.11) precise; urgency=low
 
