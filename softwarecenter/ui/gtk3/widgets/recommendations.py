@@ -26,7 +26,6 @@ from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.containers import (FramedHeaderBox,
                                                        FlowableGrid)
 from softwarecenter.db.categories import (RecommendedForYouCategory,
-                                          RecommendedForYouInCatCategory,
                                           AppRecommendationsCategory)
 from softwarecenter.backend.recagent import RecommenderAgent
 from softwarecenter.config import get_config
@@ -226,8 +225,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         self.recommended_for_you_in_cat_content = FlowableGrid()
         self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
         # get the recommendations from the recommender agent
-        self.recommended_for_you_cat = RecommendedForYouInCatCategory(
-                                                            self.category)
+        self.recommended_for_you_cat = RecommendedForYouCategory(self.category)
         self.recommended_for_you_cat.connect(
                             'needs-refresh',
                             self._on_recommended_for_you_in_cat_agent_refresh)
