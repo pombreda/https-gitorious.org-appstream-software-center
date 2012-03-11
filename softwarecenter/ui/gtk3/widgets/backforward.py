@@ -24,15 +24,16 @@ from gettext import gettext as _
 
 DEFAULT_PART_SIZE = (28, -1)
 
+
 class BackForwardButton(Gtk.HBox):
 
-    __gsignals__ = {'left-clicked':(GObject.SignalFlags.RUN_LAST,
-                                    None,
-                                    ()),
+    __gsignals__ = {'left-clicked': (GObject.SignalFlags.RUN_LAST,
+                                     None,
+                                     ()),
 
-                    'right-clicked':(GObject.SignalFlags.RUN_LAST,
-                                    None,
-                                    ())}
+                    'right-clicked': (GObject.SignalFlags.RUN_LAST,
+                                     None,
+                                     ())}
 
     def __init__(self, part_size=None):
         Gtk.HBox.__init__(self)
@@ -49,13 +50,14 @@ class BackForwardButton(Gtk.HBox):
 
         self.left.connect("clicked", self.on_clicked)
         self.right.connect("clicked", self.on_clicked)
-        return
 
     def _build_left_right_buttons(self):
         if self.get_direction() != Gtk.TextDirection.RTL:
             # ltr
-            self.left = ButtonPart('left-clicked', arrow_type=Gtk.ArrowType.LEFT)
-            self.right = ButtonPart('right-clicked', arrow_type=Gtk.ArrowType.RIGHT)
+            self.left = ButtonPart('left-clicked',
+                arrow_type=Gtk.ArrowType.LEFT)
+            self.right = ButtonPart('right-clicked',
+                arrow_type=Gtk.ArrowType.RIGHT)
 
             context = self.left.get_style_context()
             context.add_class("backforward-left-button")
@@ -65,8 +67,10 @@ class BackForwardButton(Gtk.HBox):
             self.set_button_atk_info_ltr()
         else:
             # rtl
-            self.left = ButtonPart('left-clicked', arrow_type=Gtk.ArrowType.RIGHT)
-            self.right = ButtonPart('right-clicked', arrow_type=Gtk.ArrowType.LEFT)
+            self.left = ButtonPart('left-clicked',
+                arrow_type=Gtk.ArrowType.RIGHT)
+            self.right = ButtonPart('right-clicked',
+                arrow_type=Gtk.ArrowType.LEFT)
 
             context = self.left.get_style_context()
             context.add_class("backforward-right-button")
@@ -74,11 +78,9 @@ class BackForwardButton(Gtk.HBox):
             context.add_class("backforward-left-button")
 
             self.set_button_atk_info_rtl()
-        return
 
     def on_clicked(self, button):
         self.emit(button.signal_name)
-        return
 
     def set_button_atk_info_ltr(self):
         # left button
@@ -90,7 +92,6 @@ class BackForwardButton(Gtk.HBox):
         atk_obj = self.right.get_accessible()
         atk_obj.set_name(_('Forward Button'))
         atk_obj.set_description(_('Navigates forward.'))
-        return
 
     def set_button_atk_info_rtl(self):
         # right button
@@ -104,11 +105,9 @@ class BackForwardButton(Gtk.HBox):
         atk_obj.set_name(_('Forward Button'))
         atk_obj.set_description(_('Navigates forward.'))
         atk_obj.set_role(Atk.Role.PUSH_BUTTON)
-        return
 
     def set_use_hand_cursor(self, use_hand):
         self.use_hand = use_hand
-        return
 
 
 class ButtonPart(Gtk.Button):
@@ -129,7 +128,6 @@ class ButtonPart(Gtk.Button):
         self.arrow.set_margin_right(2)
         self.add(self.arrow)
         self.signal_name = signal_name
-        return
 
     def do_draw(self, cr):
         context = self.get_style_context()
@@ -161,8 +159,8 @@ class ButtonPart(Gtk.Button):
 
         context.restore()
 
-        for child in self: self.propagate_draw(child, cr)
-        return
+        for child in self:
+            self.propagate_draw(child, cr)
 
 
 # this is used in the automatic tests as well
@@ -170,7 +168,7 @@ def get_test_backforward_window():
     win = Gtk.Window()
     win.set_border_width(20)
     win.connect("destroy", lambda x: Gtk.main_quit())
-    win.set_default_size(300,100)
+    win.set_default_size(300, 100)
     backforward = BackForwardButton()
     win.add(backforward)
     return win
