@@ -39,24 +39,23 @@ class CellRendererAppView(Gtk.CellRendererText):
 
     # size of the install overlay icon
     OVERLAY_SIZE = 16
-    
+
     # ratings
     MAX_STARS = 5
     STAR_SIZE = EM
 
     __gproperties__ = {
-        'application' : (GObject.TYPE_PYOBJECT, 'document',
-                         'a xapian document containing pkg information',
-                         GObject.PARAM_READWRITE),
+        'application': (GObject.TYPE_PYOBJECT, 'document',
+                       'a xapian document containing pkg information',
+                       GObject.PARAM_READWRITE),
 
-        'isactive'    : (bool, 'isactive', 'is cell active/selected', False,
-                         GObject.PARAM_READWRITE),
-                     }
-
+        'isactive': (bool, 'isactive', 'is cell active/selected', False,
+                    GObject.PARAM_READWRITE),
+                    }
 
     def __init__(self, icons, layout, show_ratings, overlay_icon_name):
         GObject.GObject.__init__(self)
-        
+
         # the icon pixbuf to be displayed in the row
         self.icon = None
 
@@ -70,8 +69,10 @@ class CellRendererAppView(Gtk.CellRendererText):
 
         # button packing
         self.button_spacing = 0
-        self._buttons = {Gtk.PackType.START: [],
-                         Gtk.PackType.END:   []}
+        self._buttons = {
+            Gtk.PackType.START: [],
+            Gtk.PackType.END: []
+        }
         self._all_buttons = {}
 
         # cache a layout
@@ -88,7 +89,6 @@ class CellRendererAppView(Gtk.CellRendererText):
             # icon not present in theme, probably because running uninstalled
             self._installed = icons.load_icon('emblem-system',
                                               self.OVERLAY_SIZE, 0)
-        return
 
     def _layout_get_pixel_width(self, layout):
         return layout.get_size()[0] / Pango.SCALE
@@ -109,12 +109,12 @@ class CellRendererAppView(Gtk.CellRendererText):
             x = cell_area.x
         else:
             x = cell_area.x + cell_area.width - lw
-        y = cell_area.y + (cell_area.height - lh)/2
+        y = cell_area.y + (cell_area.height - lh) / 2
 
         Gtk.render_layout(context, cr, x, y, layout)
-        return
 
-    def _render_price(self, context, cr, app, layout, cell_area, xpad, ypad, is_rtl):
+    def _render_price(self, context, cr, app, layout, cell_area, xpad, ypad,
+        is_rtl):
         layout.set_markup("US$ %s" % self.model.get_price(app), -1)
 
         if is_rtl:
@@ -125,15 +125,14 @@ class CellRendererAppView(Gtk.CellRendererText):
 
         Gtk.render_layout(context, cr,
                           x, ypad + cell_area.y, layout)
-        return
 
     def _render_icon(self, cr, app, cell_area, xpad, ypad, is_rtl):
         # calc offsets so icon is nicely centered
         self.icon = self.model.get_icon(app)
         self.icon_x_offset = xpad + cell_area.x
         self.icon_y_offset = ypad + cell_area.y
-        xo = (self.pixbuf_width - self.icon.get_width())/2
-        
+        xo = (self.pixbuf_width - self.icon.get_width()) / 2
+
         if not is_rtl:
             x = cell_area.x + xo + xpad
         else:
@@ -143,7 +142,7 @@ class CellRendererAppView(Gtk.CellRendererText):
         # draw appicon pixbuf
         Gdk.cairo_set_source_pixbuf(cr, self.icon, x, y)
         cr.paint()
-        
+
         # draw overlay if application is installed
         if self.model.is_installed(app):
             if not is_rtl:
@@ -153,7 +152,6 @@ class CellRendererAppView(Gtk.CellRendererText):
             y += (self.pixbuf_width - self.OVERLAY_SIZE + self.OVERLAY_YO)
             Gdk.cairo_set_source_pixbuf(cr, self._installed, x, y)
             cr.paint()
-        return
 
     def _render_summary(self, context, cr, app,
                         cell_area, layout, xpad, ypad,
@@ -165,20 +163,21 @@ class CellRendererAppView(Gtk.CellRendererText):
         layout.set_width(-1)
         lw = self._layout_get_pixel_width(layout)
         max_layout_width = (cell_area.width - self.pixbuf_width -
-                            3*xpad - star_width)
-                            
-        max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad
-        
+                            3 * xpad - star_width)
+
+        max_layout_width = cell_area.width - self.pixbuf_width - 3 * xpad
+
         stats = self.model.get_review_stats(app)
         if self.show_ratings and stats:
-            max_layout_width -= star_width+6*xpad
-            
-        if self.props.isactive and self.model.get_transaction_progress(app) > 0:
+            max_layout_width -= star_width + 6 * xpad
+
+        if (self.props.isactive and
+            self.model.get_transaction_progress(app) > 0):
             action_btn = self.get_button_by_name(CellButtonIDs.ACTION)
-            max_layout_width -= (xpad + action_btn.width) 
+            max_layout_width -= (xpad + action_btn.width)
 
         if lw >= max_layout_width:
-            layout.set_width((max_layout_width)*Pango.SCALE)
+            layout.set_width((max_layout_width) * Pango.SCALE)
             layout.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
             lw = max_layout_width
 
@@ -187,21 +186,22 @@ class CellRendererAppView(Gtk.CellRendererText):
         self.apptitle_height = apptitle_extents.height
 
         if not is_rtl:
-            x = cell_area.x+2*xpad+self.pixbuf_width
+            x = cell_area.x + 2 * xpad + self.pixbuf_width
         else:
-            x = cell_area.x+cell_area.width-lw-self.pixbuf_width-2*xpad
+            x = (cell_area.x + cell_area.width - lw - self.pixbuf_width -
+                2 * xpad)
 
-        y = cell_area.y+ypad
+        y = cell_area.y + ypad
 
         Gtk.render_layout(context, cr, x, y, layout)
-        return
 
     def _render_rating(self, context, cr, app,
                        cell_area, layout, xpad, ypad,
                        star_width, star_height, is_rtl):
 
         stats = self.model.get_review_stats(app)
-        if not stats: return
+        if not stats:
+            return
 
         sr = self._stars
 
@@ -212,14 +212,14 @@ class CellRendererAppView(Gtk.CellRendererText):
             x = (cell_area.x + cell_area.width
                  - 3 * xpad
                  - self.pixbuf_width
-                 - self.apptitle_width 
+                 - self.apptitle_width
                  - star_width)
 
-        y = cell_area.y + ypad + (self.apptitle_height-self.STAR_SIZE)/2
+        y = cell_area.y + ypad + (self.apptitle_height - self.STAR_SIZE) / 2
 
         sr.rating = stats.ratings_average
         sr.render_star(context, cr, x, y)
-        
+
         # and nr-reviews in parenthesis to the right of the title
         nreviews = stats.ratings_total
         s = "(%i)" % nreviews
@@ -227,19 +227,19 @@ class CellRendererAppView(Gtk.CellRendererText):
         layout.set_markup("<small>%s</small>" % s, -1)
 
         if not is_rtl:
-            x += xpad+star_width
+            x += xpad + star_width
         else:
-            x -= xpad+self._layout_get_pixel_width(layout)
+            x -= xpad + self._layout_get_pixel_width(layout)
 
         context.save()
         context.add_class("cellrenderer-avgrating-label")
         Gtk.render_layout(context, cr, x, y, layout)
         context.restore()
-        return
 
     def _render_progress(self, context, cr, progress, cell_area, ypad, is_rtl):
         percent = progress * 0.01
-        # per the spec, the progressbar should be the width of the action button
+        # per the spec, the progressbar should be the width of the action
+        # button
         action_btn = self.get_button_by_name(CellButtonIDs.ACTION)
 
         x, _, w, h = action_btn.allocation
@@ -252,26 +252,25 @@ class CellRendererAppView(Gtk.CellRendererText):
         Gtk.render_background(context, cr, x, y, w, h)
         Gtk.render_frame(context, cr, x, y, w, h)
 
-        context.restore ()
+        context.restore()
 
         bar_size = w * percent
 
-        context.save ()
-        context.add_class ("progressbar")
+        context.save()
+        context.add_class("progressbar")
 
         if (bar_size > 0):
             if is_rtl:
                 x += (w - bar_size)
             Gtk.render_activity(context, cr, x, y, bar_size, h)
 
-        context.restore ()
-        return
+        context.restore()
 
-    def _render_buttons(
-            self, context, cr, cell_area, layout, xpad, ypad, is_rtl):
+    def _render_buttons(self, context, cr, cell_area, layout, xpad, ypad,
+        is_rtl):
 
         # layout buttons and paint
-        y = cell_area.y+cell_area.height-ypad
+        y = cell_area.y + cell_area.height - ypad
         spacing = self.button_spacing
 
         if not is_rtl:
@@ -286,30 +285,26 @@ class CellRendererAppView(Gtk.CellRendererText):
             xb = cell_area.x + cell_area.width - 2 * xpad - self.pixbuf_width
 
         for btn in self._buttons[start]:
-            btn.set_position(xs, y-btn.height)
+            btn.set_position(xs, y - btn.height)
             btn.render(context, cr, layout)
             xs += btn.width + spacing
 
         for btn in self._buttons[end]:
             xb -= btn.width
-            btn.set_position(xb, y-btn.height)
+            btn.set_position(xb, y - btn.height)
             btn.render(context, cr, layout)
 
             xb -= spacing
-        return
 
     def set_pixbuf_width(self, w):
         self.pixbuf_width = w
-        return
 
     def set_button_spacing(self, spacing):
         self.button_spacing = spacing
-        return
 
     def get_button_by_name(self, name):
         if name in self._all_buttons:
             return self._all_buttons[name]
-        return None
 
     def get_buttons(self):
         btns = ()
@@ -320,15 +315,12 @@ class CellRendererAppView(Gtk.CellRendererText):
     def button_pack(self, btn, pack_type=Gtk.PackType.START):
         self._buttons[pack_type].append(btn)
         self._all_buttons[btn.name] = btn
-        return
 
     def button_pack_start(self, btn):
         self.button_pack(btn, Gtk.PackType.START)
-        return
 
     def button_pack_end(self, btn):
         self.button_pack(btn, Gtk.PackType.END)
-        return
 
     def do_set_property(self, pspec, value):
         setattr(self, pspec.name, value)
@@ -345,7 +337,8 @@ class CellRendererAppView(Gtk.CellRendererText):
 
     def do_render(self, cr, widget, bg_area, cell_area, flags):
         app = self.props.application
-        if not app: return
+        if not app:
+            return
 
         self.model = widget.appmodel
 
@@ -356,9 +349,11 @@ class CellRendererAppView(Gtk.CellRendererText):
         is_rtl = widget.get_direction() == Gtk.TextDirection.RTL
         layout = self._layout
 
-        # important! ensures correct text rendering, esp. when using hicolor theme
+        # important! ensures correct text rendering, esp. when using hicolor
+        # theme
         #~ if (flags & Gtk.CellRendererState.SELECTED) != 0:
-            #~ # this follows the behaviour that gtk+ uses for states in treeviews
+            #~ # this follows the behaviour that gtk+ uses for states in
+            #~ # treeviews
             #~ if widget.has_focus():
                 #~ state = Gtk.StateFlags.SELECTED
             #~ else:
@@ -388,7 +383,7 @@ class CellRendererAppView(Gtk.CellRendererText):
                              xpad, ypad,
                              star_width,
                              is_rtl)
-                             
+
         # only show ratings if we have one
         if self.show_ratings:
             self._render_rating(context, cr, app,
@@ -421,7 +416,6 @@ class CellRendererAppView(Gtk.CellRendererText):
                              is_rtl)
 
         context.restore()
-        return
 
 
 class CellButtonRenderer(object):
@@ -441,28 +435,30 @@ class CellButtonRenderer(object):
         self.visible = True
 
         self.widget = widget
-        return
 
     def _layout_reset(self, layout):
         layout.set_width(-1)
         layout.set_ellipsize(Pango.EllipsizeMode.NONE)
-        return
 
     @property
-    def x(self): return self.allocation[0]
+    def x(self):
+        return self.allocation[0]
 
     @property
-    def y(self): return self.allocation[1]
+    def y(self):
+        return self.allocation[1]
 
     @property
-    def width(self): return self.allocation[2]
+    def width(self):
+        return self.allocation[2]
 
     @property
-    def height(self): return self.allocation[3]
+    def height(self):
+        return self.allocation[3]
 
     def configure_geometry(self, layout):
         self._layout_reset(layout)
-        max_size = (0,0)
+        max_size = (0, 0)
 
         for k, variant in self.markup_variants.items():
             safe_markup = GObject.markup_escape_text(utf8(variant))
@@ -474,8 +470,7 @@ class CellButtonRenderer(object):
         w /= Pango.SCALE
         h /= Pango.SCALE
 
-        self.set_size(w+2*self.xpad, h+2*self.ypad)
-        return
+        self.set_size(w + 2 * self.xpad, h + 2 * self.ypad)
 
     def point_in(self, px, py):
         x, y, w, h = self.allocation
@@ -487,22 +482,21 @@ class CellButtonRenderer(object):
 
     def set_position(self, x, y):
         self.allocation[:2] = int(x), int(y)
-        return
 
     def set_size(self, w, h):
         self.allocation[2:] = int(w), int(h)
-        return
 
     def set_state(self, state):
         if not isinstance(state, Gtk.StateFlags):
-            msg = "state should be of type Gtk.StateFlags, got %s" % type(state)
+            msg = ("state should be of type Gtk.StateFlags, got %s" %
+                type(state))
             raise TypeError(msg)
 
-        elif state == self.state: return
+        elif state == self.state:
+            return
 
         self.state = state
         self.widget.queue_draw_area(*self.allocation)
-        return
 
     def set_sensitive(self, is_sensitive):
         if is_sensitive:
@@ -510,7 +504,6 @@ class CellButtonRenderer(object):
         else:
             state = Gtk.StateFlags.INSENSITIVE
         self.set_state(state)
-        return
 
     def show(self):
         self.visible = True
@@ -520,22 +513,20 @@ class CellButtonRenderer(object):
 
     def set_markup(self, markup):
         self.markup_variant = (markup,)
-        return
 
     def set_markup_variants(self, markup_variants):
         if not isinstance(markup_variants, dict):
             msg = type(markup_variants)
             raise TypeError("Expects a dict object, got %s" % msg)
 
-        elif not markup_variants: return
+        elif not markup_variants:
+            return
 
         self.markup_variants = markup_variants
         self.current_variant = markup_variants.keys()[0]
-        return
 
     def set_variant(self, current_var):
         self.current_variant = current_var
-        return
 
     def is_sensitive(self):
         return self.state == Gtk.StateFlags.INSENSITIVE
@@ -576,4 +567,3 @@ class CellButtonRenderer(object):
         context.restore()
 
         context.restore()
-        return
