@@ -96,7 +96,6 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         self.recommended_for_you_content = None
         if self.recommender_uuid:
             self._update_recommended_for_you_content()
-            self.add(self.recommended_for_you_content)
         else:
             self.opted_in = False
 
@@ -105,7 +104,6 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         if self.recommended_for_you_content:
             self.recommended_for_you_content.destroy()
         # add the new stuff
-        self.header_implements_more_button()
         self.recommended_for_you_content = FlowableGrid()
         self.add(self.recommended_for_you_content)
         self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
@@ -119,6 +117,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
                                              self._on_recommender_agent_error)
 
     def _on_recommended_for_you_agent_refresh(self, cat):
+        self.header_implements_more_button()
         docs = cat.get_documents(self.catview.db)
         # display the recommendedations
         if len(docs) > 0:
@@ -129,6 +128,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
             self.more.connect('clicked',
                               self.catview.on_category_clicked,
                               cat)
+            self.show_all()
         else:
             # hide the panel if we have no recommendations to show
             self._hide_recommended_for_you_panel()
@@ -156,9 +156,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
 
         # if we already have a recommender UUID, then the user is already
         # opted-in to the recommender service
-        if self.recommender_agent.recommender_uuid:
-            self._update_recommended_for_you_content()
-        else:
+        if not self.opted_in:
             self._show_opt_in_view()
 
     def _show_opt_in_view(self):
