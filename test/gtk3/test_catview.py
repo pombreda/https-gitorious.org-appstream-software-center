@@ -99,13 +99,18 @@ class TestCatView(unittest.TestCase):
         win.destroy()
 
     def test_subcatview_recommended_for_you_opt_in_display(self):
+    
+        # patch the recommender UUID value to insure that we are not opted-in for this test
+        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
+        self.addCleanup(get_recommender_uuid_patcher.stop)
+        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
+        mock_get_recommender_uuid.return_value = ""
+        
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
         lobby = win.get_data("lobby")
         rec_panel = lobby.recommended_for_you_panel
-        # monkey-patch the recommender UUID value to insure that we are not opted-in for this test
-        rec_panel.recommender_agent.recommender_uuid = ""
         self._p()
         from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
         self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
@@ -116,13 +121,18 @@ class TestCatView(unittest.TestCase):
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.post_submit_profile')
     def test_subcatview_recommended_for_you_spinner_display(self, mock_query):
+    
+        # patch the recommender UUID value to insure that we are not opted-in for this test
+        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
+        self.addCleanup(get_recommender_uuid_patcher.stop)
+        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
+        mock_get_recommender_uuid.return_value = ""
+        
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
         lobby = win.get_data("lobby")
         rec_panel = lobby.recommended_for_you_panel
-        # monkey-patch the recommender UUID value to insure that we are not opted-in for this test
-        rec_panel.recommender_agent.recommender_uuid = ""
         self._p()
         # click the opt-in button to initiate the process, this will show the spinner
         rec_panel.opt_in_button.emit('clicked')
@@ -137,13 +147,17 @@ class TestCatView(unittest.TestCase):
            '.post_submit_profile')
     def test_subcatview_recommended_for_you_display_recommendations(self, mock_query):
     
+        # patch the recommender UUID value to insure that we are not opted-in for this test
+        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
+        self.addCleanup(get_recommender_uuid_patcher.stop)
+        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
+        mock_get_recommender_uuid.return_value = ""
+        
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
         lobby = win.get_data("lobby")
         rec_panel = lobby.recommended_for_you_panel
-        # monkey-patch the recommender UUID value to insure that we are not opted-in for this test
-        rec_panel.recommender_agent.recommender_uuid = ""
         self._p()
         # click the opt-in button to initiate the process, this will show the spinner
         rec_panel.opt_in_button.emit('clicked')
@@ -171,6 +185,13 @@ class TestCatView(unittest.TestCase):
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.query_recommend_me')
     def test_subcatview_recommended_for_you_display_recommendations_not_opted_in(self, mock_query):
+    
+        # patch the recommender UUID value to insure that we are not opted-in for this test
+        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
+        self.addCleanup(get_recommender_uuid_patcher.stop)
+        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
+        mock_get_recommender_uuid.return_value = ""
+        
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
@@ -180,8 +201,6 @@ class TestCatView(unittest.TestCase):
         
         subcat_view = win.get_data("subcat")
         rec_cat_panel = subcat_view.recommended_for_you_in_cat
-        # monkey-patch the recommender UUID value to insure that we are not opted-in for this test
-        rec_cat_panel.recommender_agent.recommender_uuid = ""
         self._p()
         self.assertFalse(subcat_view.recommended_for_you_in_cat.get_property("visible"))
         win.destroy()
@@ -190,6 +209,13 @@ class TestCatView(unittest.TestCase):
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.query_recommend_me')
     def test_subcatview_recommended_for_you_display_recommendations_opted_in(self, mock_query):
+    
+        # patch the recommender UUID value to insure that we are not opted-in for this test
+        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
+        self.addCleanup(get_recommender_uuid_patcher.stop)
+        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
+        mock_get_recommender_uuid.return_value = "scintillantorange"
+        
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
         win = get_test_window_catview()
@@ -199,8 +225,6 @@ class TestCatView(unittest.TestCase):
         
         subcat_view = win.get_data("subcat")
         rec_cat_panel = subcat_view.recommended_for_you_in_cat
-        # monkey-patch the recommender UUID value to return a value to insure that we are not opted-in for this test
-        rec_cat_panel.recommender_agent.recommender_uuid = "scintillantorange"
         self._p()
         rec_cat_panel._update_recommended_for_you_content()
         self._p()
