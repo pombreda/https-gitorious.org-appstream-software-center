@@ -1,4 +1,4 @@
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk
 import time
 import unittest
 from mock import patch, Mock
@@ -230,7 +230,7 @@ class TestCatView(unittest.TestCase):
         subcat_view = win.get_data("subcat")
         rec_cat_panel = subcat_view.recommended_for_you_in_cat
         self._p()
-        rec_cat_panel._update_recommended_for_you_in_cat_content()
+        rec_cat_panel._update_recommended_for_you_content()
         self._p()
         # we fake the callback from the agent here
         rec_cat_panel.recommended_for_you_cat._recommend_me_result(
@@ -246,8 +246,8 @@ class TestCatView(unittest.TestCase):
         self.assertTrue(rec_cat_panel.spinner_notebook.get_current_page() == SpinnerNotebook.CONTENT_PAGE)
         # check that the tiles themselves are visible
         self._p()
-        self.assertTrue(rec_cat_panel.recommended_for_you_in_cat_content.get_property("visible"))
-        self.assertTrue(rec_cat_panel.recommended_for_you_in_cat_content.get_children()[0].title.get_property("visible"))
+        self.assertTrue(rec_cat_panel.recommended_for_you_content.get_property("visible"))
+        self.assertTrue(rec_cat_panel.recommended_for_you_content.get_children()[0].title.get_property("visible"))
         self._p()
         # test clicking recommended_for_you More button
         subcat_view.connect("category-selected", self._on_category_selected)

@@ -67,9 +67,74 @@ class RecommendationsPanel(FramedHeaderBox):
 
     def _on_application_activated(self, catview, app):
         self.emit("application-activated", app)
+        
+    def _on_recommender_agent_error(self, agent, msg):
+        LOG.warn("Error while accessing the recommender agent: %s" % msg)
+        # TODO: temporary, instead we will display cached recommendations here
+        self._hide_recommended_for_you_panel()
 
+    def _hide_recommended_for_you_panel(self):
+        # and hide the pane
+        self.hide()
+        
 
-class RecommendationsPanelLobby(RecommendationsPanel):
+class RecommendationsPanelCategory(RecommendationsPanel):
+    """
+    Panel for use in the category view that displays recommended apps for
+    the given category
+    """
+    def __init__(self, catview, subcategory):
+        RecommendationsPanel.__init__(self, catview)
+        self.subcategory = subcategory
+        if self.subcategory:
+            self.set_header_label(
+                        _(u"Recommended for You in %s") % self.subcategory.name)
+        else:
+            self.set_header_label(_(u"Recommended for You"))
+        self.opted_in = True
+        self.recommender_uuid = self.get_recommender_uuid()
+        self.recommended_for_you_content = None
+        if self.recommender_uuid:
+            self._update_recommended_for_you_content()
+            self.add(self.recommended_for_you_content)
+        else:
+            self.opted_in = False
+
+    def _update_recommended_for_you_content(self):
+        # destroy the old content to ensure we don't see it twice
+        if self.recommended_for_you_content:
+            self.recommended_for_you_content.destroy()
+        # add the new stuff
+        self.header_implements_more_button()
+        self.recommended_for_you_content = FlowableGrid()
+        self.add(self.recommended_for_you_content)
+        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
+        # get the recommendations from the recommender agent
+        self.recommended_for_you_cat = RecommendedForYouCategory(
+                                            subcategory = self.subcategory)
+        self.recommended_for_you_cat.connect(
+                                    'needs-refresh',
+                                    self._on_recommended_for_you_agent_refresh)
+        self.recommended_for_you_cat.connect('recommender-agent-error',
+                                             self._on_recommender_agent_error)
+
+    def _on_recommended_for_you_agent_refresh(self, cat):
+        docs = cat.get_documents(self.catview.db)
+        # display the recommendedations
+        if len(docs) > 0:
+            self.catview._add_tiles_to_flowgrid(docs,
+                                        self.recommended_for_you_content, 8)
+            self.recommended_for_you_content.show_all()
+            self.spinner_notebook.hide_spinner()
+            self.more.connect('clicked',
+                              self.catview.on_category_clicked,
+                              cat)
+        else:
+            # hide the panel if we have no recommendations to show
+            self._hide_recommended_for_you_panel()
+            
+
+class RecommendationsPanelLobby(RecommendationsPanelCategory):
     """
     Panel for use in the lobby view that manages the recommendations
     experience, includes the initial opt-in screen and display of
@@ -87,12 +152,10 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         }
 
     def __init__(self, catview):
-        RecommendationsPanel.__init__(self, catview)
-        self.set_header_label(_(u"Recommended for You"))
+        RecommendationsPanelCategory.__init__(self, catview, subcategory=None)
 
         # if we already have a recommender UUID, then the user is already
         # opted-in to the recommender service
-        self.recommended_for_you_content = None
         if self.recommender_agent.recommender_uuid:
             self._update_recommended_for_you_content()
         else:
@@ -158,107 +221,6 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         # TODO: handle this! display an error message in the panel
         self._hide_recommended_for_you_panel()
 
-    def _update_recommended_for_you_content(self):
-        # destroy the old content to ensure we don't see it twice
-        # (also removes the opt-in panel if it was there)
-        if self.recommended_for_you_content:
-            self.recommended_for_you_content.destroy()
-        # add the new stuff
-        self.header_implements_more_button()
-        self.recommended_for_you_content = FlowableGrid()
-        self.add(self.recommended_for_you_content)
-        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
-        # get the recommendations from the recommender agent
-        self.recommended_for_you_cat = RecommendedForYouCategory()
-        self.recommended_for_you_cat.connect(
-                                    'needs-refresh',
-                                    self._on_recommended_for_you_agent_refresh)
-        self.recommended_for_you_cat.connect('recommender-agent-error',
-                                             self._on_recommender_agent_error)
-
-    def _on_recommended_for_you_agent_refresh(self, cat):
-        docs = cat.get_documents(self.catview.db)
-        # display the recommendedations
-        if len(docs) > 0:
-            self.catview._add_tiles_to_flowgrid(docs,
-                                        self.recommended_for_you_content, 8)
-            self.recommended_for_you_content.show_all()
-            self.spinner_notebook.hide_spinner()
-            self.more.connect('clicked',
-                              self.catview.on_category_clicked,
-                              cat)
-        else:
-            # TODO: this test for zero docs is temporary and will not be
-            # needed once the recommendation agent is up and running
-            self._hide_recommended_for_you_panel()
-
-    def _on_recommender_agent_error(self, agent, msg):
-        LOG.warn("Error while accessing the recommender agent for the "
-                 "lobby recommendations: %s" % msg)
-        # TODO: temporary, instead we will display cached recommendations here
-        self._hide_recommended_for_you_panel()
-
-    def _hide_recommended_for_you_panel(self):
-        # and hide the pane
-        self.hide()
-
-
-class RecommendationsPanelCategory(RecommendationsPanel):
-    """
-    Panel for use in the category view that displays recommended apps for
-    the given category
-    """
-    def __init__(self, catview, category):
-        RecommendationsPanel.__init__(self, catview)
-        self.category = category
-        self.set_header_label(_(u"Recommended for You in %s") % category.name)
-        
-        self.opted_in = True
-        self.recommender_uuid = self.get_recommender_uuid()
-        if self.recommender_uuid:
-            self._update_recommended_for_you_in_cat_content()
-            self.add(self.recommended_for_you_in_cat_content)
-        else:
-            self.opted_in = False
-
-    def _update_recommended_for_you_in_cat_content(self):
-        self.recommended_for_you_in_cat_content = FlowableGrid()
-        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
-        # get the recommendations from the recommender agent
-        self.recommended_for_you_cat = RecommendedForYouCategory(self.category)
-        self.recommended_for_you_cat.connect(
-                            'needs-refresh',
-                            self._on_recommended_for_you_in_cat_agent_refresh)
-        self.recommended_for_you_cat.connect('recommender-agent-error',
-                                             self._on_recommender_agent_error)
-        
-    def _on_recommended_for_you_in_cat_agent_refresh(self, cat):
-        docs = cat.get_documents(self.catview.db)
-        # display the recommendedations
-        if len(docs) > 0:
-            self.header_implements_more_button()
-            self.catview._add_tiles_to_flowgrid(
-                                    docs,
-                                    self.recommended_for_you_in_cat_content, 8)
-            self.recommended_for_you_in_cat_content.show_all()
-            self.spinner_notebook.hide_spinner()
-            self.more.connect('clicked',
-                              self.catview.on_category_clicked,
-                              cat)
-        else:
-            self._hide_recommended_for_you_in_cat_panel()
-        return
-        
-    def _on_recommender_agent_error(self, agent, msg):
-        LOG.warn("Error while accessing the recommender agent for the "
-                 "lobby recommendations: %s" % msg)
-        # TODO: temporary, instead we will display cached recommendations here
-        self._hide_recommended_for_you_in_cat_panel()
-
-    def _hide_recommended_for_you_in_cat_panel(self):
-        # and hide the pane
-        self.hide()
-
 
 class RecommendationsPanelDetails(RecommendationsPanel):
     """
@@ -268,7 +230,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
     def __init__(self, catview):
         RecommendationsPanel.__init__(self, catview)
         self.set_header_label(_(u"People Also Installed"))
-        self.app_recommendations_content = FlowableGrid()
+        self.app_recommendations_content = None
         self.add(self.app_recommendations_content)
 
     def set_pkgname(self, pkgname):
@@ -276,7 +238,8 @@ class RecommendationsPanelDetails(RecommendationsPanel):
         self._update_app_recommendations_content()
 
     def _update_app_recommendations_content(self):
-        self.app_recommendations_content.remove_all()
+        if self.app_recommendations_content:
+            self.app_recommendations_content.remove_all()
         self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.app_recommendations_cat = AppRecommendationsCategory(self.pkgname)
