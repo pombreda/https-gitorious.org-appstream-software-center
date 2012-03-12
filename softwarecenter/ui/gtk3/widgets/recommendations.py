@@ -54,16 +54,6 @@ class RecommendationsPanel(FramedHeaderBox):
                     "application-activated", self._on_application_activated)
         self.recommender_agent = RecommenderAgent()
         
-    def is_opted_in(self):
-        """
-        Return True is the user is currently opted-in to the recommender
-        service
-        """
-        if self.recommender_agent.recommender_uuid:
-            return True
-        else:
-            return False
-
     def _on_application_activated(self, catview, app):
         self.emit("application-activated", app)
         
@@ -89,7 +79,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
             self.set_header_label(
                         _(u"Recommended for You in %s") % self.subcategory.name)
         self.recommended_for_you_content = None
-        if self.is_opted_in():
+        if self.recommender_agent.is_opted_in():
             self._update_recommended_for_you_content()
         else:
             self._hide_recommended_for_you_panel()
@@ -151,7 +141,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.subcategory = None
         self.set_header_label(_(u"Recommended for You"))
         self.recommended_for_you_content = None
-        if self.is_opted_in():
+        if self.recommender_agent.is_opted_in():
             self._update_recommended_for_you_content()
         else:
             self._show_opt_in_view()
