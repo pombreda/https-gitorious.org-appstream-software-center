@@ -576,7 +576,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # is opted in to the recommender service
         # FIXME: this is needed vs. a simple hide() on the widget because
         #        we do a show_all on the view
-        if self.recommended_for_you_in_cat.opted_in:
+        if self.recommended_for_you_in_cat.is_opted_in():
             self.vbox.pack_start(self.recommended_for_you_in_cat, 
                                         False, False, 0)
 

@@ -28,7 +28,6 @@ from softwarecenter.ui.gtk3.widgets.containers import (FramedHeaderBox,
 from softwarecenter.db.categories import (RecommendedForYouCategory,
                                           AppRecommendationsCategory)
 from softwarecenter.backend.recagent import RecommenderAgent
-from softwarecenter.config import get_config
 
 LOG = logging.getLogger(__name__)
 
@@ -51,19 +50,19 @@ class RecommendationsPanel(FramedHeaderBox):
         #        and "on_category_clicked" so we should be able to
         #        extract this to a "leaner" widget
         self.catview = catview
-        self.recommender_uuid = ""
         self.catview.connect(
                     "application-activated", self._on_application_activated)
         self.recommender_agent = RecommenderAgent()
-
-    def get_recommender_uuid(self):
-        # FIXME: probs should just pass this on in instead of reading config
-        recommender_uuid = ""
-        config = get_config()
-        if config.has_option("general", "recommender_uuid"):
-            recommender_uuid = config.get("general",
-                                           "recommender_uuid")
-        return recommender_uuid
+        
+    def is_opted_in(self):
+        """
+        Return True is the user is currently opted-in to the recommender
+        service
+        """
+        if self.recommender_agent.recommender_uuid:
+            return True
+        else:
+            return False
 
     def _on_application_activated(self, catview, app):
         self.emit("application-activated", app)
@@ -89,15 +88,11 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         if self.subcategory:
             self.set_header_label(
                         _(u"Recommended for You in %s") % self.subcategory.name)
-        else:
-            self.set_header_label(_(u"Recommended for You"))
-        self.opted_in = True
-        self.recommender_uuid = self.get_recommender_uuid()
         self.recommended_for_you_content = None
-        if self.recommender_uuid:
+        if self.is_opted_in():
             self._update_recommended_for_you_content()
         else:
-            self.opted_in = False
+            self._hide_recommended_for_you_panel()
 
     def _update_recommended_for_you_content(self):
         # destroy the old content to ensure we don't see it twice
@@ -152,11 +147,13 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         }
 
     def __init__(self, catview):
-        RecommendationsPanelCategory.__init__(self, catview, subcategory=None)
-
-        # if we already have a recommender UUID, then the user is already
-        # opted-in to the recommender service
-        if not self.opted_in:
+        RecommendationsPanel.__init__(self, catview)
+        self.subcategory = None
+        self.set_header_label(_(u"Recommended for You"))
+        self.recommended_for_you_content = None
+        if self.is_opted_in():
+            self._update_recommended_for_you_content()
+        else:
             self._show_opt_in_view()
 
     def _show_opt_in_view(self):
