@@ -230,7 +230,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
     def __init__(self, catview):
         RecommendationsPanel.__init__(self, catview)
         self.set_header_label(_(u"People Also Installed"))
-        self.app_recommendations_content = None
+        self.app_recommendations_content = FlowableGrid()
         self.add(self.app_recommendations_content)
 
     def set_pkgname(self, pkgname):
