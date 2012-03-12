@@ -24,8 +24,9 @@ from softwarecenter.ui.gtk3.drawing import rounded_rect
 
 class ProgressImage(Gtk.Image):
 
-    ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
-    FRAME_DELAY = 50 # msec
+    ANIMATION_PATH = ("/usr/share/icons/hicolor/24x24/status/"
+        "softwarecenter-progress.png")
+    FRAME_DELAY = 50  # msec
 
     BUBBLE_BORDER_RADIUS = 6
     BUBBLE_XPADDING = 4
@@ -55,7 +56,6 @@ class ProgressImage(Gtk.Image):
         # a Pango.Layout for rendering the transaction count
         layout = self.create_pango_layout("")
         self.connect("draw", self.on_draw, layout)
-        return
 
     # overrides
     def do_get_preferred_width(self):
@@ -70,20 +70,20 @@ class ProgressImage(Gtk.Image):
         x = i * self.h_stride
         y = j * self.v_stride
 
-        if (i,j) in self._frame_cache:
-            self.frame = self._frame_cache[(i,j)]
+        if (i, j) in self._frame_cache:
+            self.frame = self._frame_cache[(i, j)]
         else:
             self.frame = GdkPixbuf.Pixbuf.new_subpixbuf(self.pixbuf,
                                                         x, y,
                                                         self.h_stride,
                                                         self.v_stride)
-            self._frame_cache[(i,j)] = self.frame
+            self._frame_cache[(i, j)] = self.frame
 
-        if i < self.col_count-1:
+        if i < self.col_count - 1:
             i += 1
         else:
             i = 0
-            if j < self.row_count-1:
+            if j < self.row_count - 1:
                 j += 1
             else:
                 j = 0
@@ -102,13 +102,12 @@ class ProgressImage(Gtk.Image):
                                                     x, y,
                                                     self.h_stride,
                                                     self.v_stride)
-        self._frame_cache[(i,j)] = self.frame
+        self._frame_cache[(i, j)] = self.frame
         return self.frame
 
     def set_transaction_count(self, transaction_count):
         self.transaction_count = transaction_count
         self.queue_draw()
-        return
 
     def on_draw(self, widget, cr, layout):
         a = widget.get_allocation()
@@ -117,7 +116,8 @@ class ProgressImage(Gtk.Image):
         y = (a.height - self.v_stride) * 0.5
         Gdk.cairo_set_source_pixbuf(cr, self.frame, x, y)
         cr.paint()
-        if self.transaction_count <= 0: return
+        if self.transaction_count <= 0:
+            return
         # paint a bubble with the transaction count
         layout.set_markup('<small>%i</small>' % self.transaction_count, -1)
         # determine bubble size
@@ -129,23 +129,22 @@ class ProgressImage(Gtk.Image):
         x += self.h_stride + self.BUBBLE_XPADDING
         y += (self.v_stride - height) / 2
         rounded_rect(cr, x, y, width, height, self.BUBBLE_BORDER_RADIUS)
-        cr.set_source_rgba(0,0,0,0.2)
+        cr.set_source_rgba(0, 0, 0, 0.2)
         cr.fill()
         Gtk.render_layout(context, cr,
                           x + self.BUBBLE_XPADDING,
                           y + self.BUBBLE_YPADDING,
                           layout)
-        return
 
     def is_playing(self):
         return self.handler is not None
 
     def start(self):
-        if self.is_playing(): return
+        if self.is_playing():
+            return
         self.position = (0, 0)
         self.handler = GObject.timeout_add(self.FRAME_DELAY,
                                            self.on_new_frame)
-        return
 
     def stop(self):
         if self.handler:
@@ -154,4 +153,3 @@ class ProgressImage(Gtk.Image):
 
         self.position = (0, 0)
         self.queue_draw()
-        return
