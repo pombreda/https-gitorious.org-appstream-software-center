@@ -53,10 +53,10 @@ class RecommendationsPanel(FramedHeaderBox):
         self.catview.connect(
                     "application-activated", self._on_application_activated)
         self.recommender_agent = RecommenderAgent()
-        
+
     def _on_application_activated(self, catview, app):
         self.emit("application-activated", app)
-        
+
     def _on_recommender_agent_error(self, agent, msg):
         LOG.warn("Error while accessing the recommender agent: %s" % msg)
         # TODO: temporary, instead we will display cached recommendations here
@@ -65,7 +65,7 @@ class RecommendationsPanel(FramedHeaderBox):
     def _hide_recommended_for_you_panel(self):
         # and hide the pane
         self.hide()
-        
+
 
 class RecommendationsPanelCategory(RecommendationsPanel):
     """
@@ -77,7 +77,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         self.subcategory = subcategory
         if self.subcategory:
             self.set_header_label(
-                        _(u"Recommended for You in %s") % self.subcategory.name)
+                       _(u"Recommended for You in %s") % self.subcategory.name)
         self.recommended_for_you_content = None
         if self.recommender_agent.is_opted_in():
             self._update_recommended_for_you_content()
@@ -94,7 +94,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.recommended_for_you_cat = RecommendedForYouCategory(
-                                            subcategory = self.subcategory)
+                                            subcategory=self.subcategory)
         self.recommended_for_you_cat.connect(
                                     'needs-refresh',
                                     self._on_recommended_for_you_agent_refresh)
@@ -117,7 +117,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         else:
             # hide the panel if we have no recommendations to show
             self._hide_recommended_for_you_panel()
-            
+
 
 class RecommendationsPanelLobby(RecommendationsPanelCategory):
     """
