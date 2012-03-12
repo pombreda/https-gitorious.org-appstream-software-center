@@ -16,8 +16,7 @@ class PackagePep8TestCase(unittest.TestCase):
     packages = [softwarecenter.ui.qml,
                 softwarecenter.ui.gtk3.widgets,
                 softwarecenter.db.pkginfo_impl]
-    exclude = ['containers.py', 'cellrenderers.py', 'buttons.py',
-        'apptreeview.py', 'animatedimage.py', 'actionbar.py']
+    exclude = ['buttons.py', 'apptreeview.py', 'actionbar.py']
 
     def message(self, text):
         self.errors.append(text)

@@ -1,7 +1,7 @@
 import cairo
 import os
 from math import pi as PI
-PI_OVER_180 = PI/180
+PI_OVER_180 = PI / 180
 import softwarecenter.paths
 
 from gi.repository import Gtk, Gdk
@@ -25,7 +25,6 @@ class FlowableGrid(Gtk.Fixed):
         self.n_rows = 0
         self.paint_grid_pattern = paint_grid_pattern
         self._cell_size = None
-        return
 
     # private
     def _get_n_columns_for_width(self, width, cell_w, col_spacing):
@@ -33,7 +32,8 @@ class FlowableGrid(Gtk.Fixed):
         return n_cols
 
     def _layout_children(self, a):
-        if not self.get_visible(): return
+        if not self.get_visible():
+            return
 
         children = self.get_children()
         width = a.width
@@ -45,7 +45,8 @@ class FlowableGrid(Gtk.Fixed):
         cell_w, cell_h = self.get_cell_size()
         n_cols = self._get_n_columns_for_width(width, cell_w, col_spacing)
 
-        if n_cols == 0: return
+        if n_cols == 0:
+            return
         cell_w = width / n_cols
         self.n_columns = n_cols
 
@@ -54,11 +55,11 @@ class FlowableGrid(Gtk.Fixed):
             #~ xo = h_overhang / (n_cols-1)
         #~ else:
             #~ xo = h_overhang
-        
+
         if len(children) % n_cols:
-            self.n_rows = len(children)/n_cols + 1
+            self.n_rows = len(children) / n_cols + 1
         else:
-            self.n_rows = len(children)/n_cols
+            self.n_rows = len(children) / n_cols
 
         y = 0
         for i, child in enumerate(children):
@@ -67,7 +68,7 @@ class FlowableGrid(Gtk.Fixed):
             #~ x = a.x + (i % n_cols) * (cell_w + col_spacing + xo)
             #~ if n_cols == 1:
                 #~ x += xo/2
-            if (i%n_cols) == 0:
+            if (i % n_cols) == 0:
                 y = a.y + (i / n_cols) * (cell_h + row_spacing)
 
             child_alloc = child.get_allocation()
@@ -76,7 +77,6 @@ class FlowableGrid(Gtk.Fixed):
             child_alloc.width = cell_w
             child_alloc.height = cell_h
             child.size_allocate(child_alloc)
-        return
 
     # overrides
     def do_get_request_mode(self):
@@ -84,13 +84,15 @@ class FlowableGrid(Gtk.Fixed):
 
     def do_get_preferred_height_for_width(self, width):
         old = self.get_allocation()
-        if width == old.width: old.height, old.height
+        if width == old.width:
+            old.height, old.height
 
         cell_w, cell_h = self.get_cell_size()
         n_cols = self._get_n_columns_for_width(
                         width, cell_w, self.column_spacing)
 
-        if not n_cols: return self.MIN_HEIGHT, self.MIN_HEIGHT
+        if not n_cols:
+            return self.MIN_HEIGHT, self.MIN_HEIGHT
 
         children = self.get_children()
         n_rows = len(children) / n_cols
@@ -99,7 +101,7 @@ class FlowableGrid(Gtk.Fixed):
         if len(children) % n_cols:
             n_rows += 1
 
-        pref_h = n_rows*cell_h + (n_rows-1)*self.row_spacing + 1
+        pref_h = n_rows * cell_h + (n_rows - 1) * self.row_spacing + 1
         pref_h = max(self.MIN_HEIGHT, pref_h)
         return pref_h, pref_h
 
@@ -107,16 +109,16 @@ class FlowableGrid(Gtk.Fixed):
     def do_size_allocate(self, allocation):
         self.set_allocation(allocation)
         self._layout_children(allocation)
-        return
 
     def do_draw(self, cr):
-        if not (self.n_columns and self.n_rows): return
+        if not (self.n_columns and self.n_rows):
+            return
 
         if self.paint_grid_pattern:
             self.render_grid(cr)
 
-        for child in self: self.propagate_draw(child, cr)
-        return
+        for child in self:
+            self.propagate_draw(child, cr)
 
     # public
     def render_grid(self, cr):
@@ -135,24 +137,22 @@ class FlowableGrid(Gtk.Fixed):
         w = a.width / self.n_columns
 
         for i in range(self.n_columns):
-            cr.move_to(i*w+0.5, 0)
-            cr.rel_line_to(0, a.height-3)
+            cr.move_to(i * w + 0.5, 0)
+            cr.rel_line_to(0, a.height - 3)
             cr.stroke()
 
         w = a.height / self.n_rows
 
         for i in range(self.n_rows):
-            cr.move_to(2, i*w+0.5)
-            cr.rel_line_to(a.width-4, 0)
+            cr.move_to(2, i * w + 0.5)
+            cr.rel_line_to(a.width - 4, 0)
             cr.stroke()
 
         cr.restore()
-        return
 
     def add_child(self, child):
         self._cell_size = None
         self.put(child, 0, 0)
-        return
 
     def get_cell_size(self):
         if self._cell_size is not None:
@@ -170,22 +170,22 @@ class FlowableGrid(Gtk.Fixed):
 
     def set_row_spacing(self, value):
         self.row_spacing = value
-        return
 
     def set_column_spacing(self, value):
         self.column_spacing = value
         self._layout_children(self.get_allocation())
-        return
 
     def remove_all(self):
         self._cell_size = None
         for child in self:
             self.remove(child)
-        return
+
 
 # first tier of caching, cache component assets from which frames are
 # rendered
 _frame_asset_cache = {}
+
+
 class Frame(Gtk.Alignment):
 
     BORDER_RADIUS = 8
@@ -200,7 +200,7 @@ class Frame(Gtk.Alignment):
         # set padding + some additional padding in the bottom, left and
         # right edges to factor in the dropshadow width, and ensure even
         # visual border
-        self.set_padding(padding, padding+2, padding+1, padding+1)
+        self.set_padding(padding, padding + 2, padding + 1, padding + 1)
 
         # corner lable jazz
         #~ self.show_corner_label = False
@@ -218,11 +218,9 @@ class Frame(Gtk.Alignment):
         self._allocation = Gdk.Rectangle()
         self.connect("size-allocate", self.on_size_allocate)
         self.connect("style-updated", self.on_style_updated)
-        return
 
     def on_style_updated(self, widget):
         self._frame_surface_cache = None
-        return
 
     def on_size_allocate(self, *args):
         old = self._allocation
@@ -237,7 +235,8 @@ class Frame(Gtk.Alignment):
         global _frame_asset_cache
         at = self.ASSET_TAG
         assets = _frame_asset_cache
-        if at in assets: return assets
+        if at in assets:
+            return assets
 
         def cache_corner_surface(tag, xo, yo):
             sw = sh = cnr_slice
@@ -247,7 +246,6 @@ class Frame(Gtk.Alignment):
             cr.paint()
             assets[tag] = surf
             del cr
-            return
 
         def cache_edge_pattern(tag, xo, yo, sw, sh):
             surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, sw, sh)
@@ -258,7 +256,6 @@ class Frame(Gtk.Alignment):
             ptrn.set_extend(cairo.EXTEND_REPEAT)
             assets[tag] = ptrn
             del cr
-            return
 
         # register the asset tag within the asset_cache
         assets[at] = 'loaded'
@@ -275,24 +272,24 @@ class Frame(Gtk.Alignment):
         # northern edge pattern
         cache_edge_pattern("%s-n" % at,
                            -cnr_slice, 0,
-                           w-2*cnr_slice, cnr_slice)
+                           w - 2 * cnr_slice, cnr_slice)
         # north-east corner
-        cache_corner_surface("%s-ne" % at, -(w-cnr_slice), 0)
+        cache_corner_surface("%s-ne" % at, -(w - cnr_slice), 0)
         # eastern edge pattern
         cache_edge_pattern("%s-e" % at,
-                           -(w-cnr_slice), -cnr_slice,
-                           cnr_slice, h-2*cnr_slice)
+                           -(w - cnr_slice), -cnr_slice,
+                           cnr_slice, h - 2 * cnr_slice)
         # south-east corner
-        cache_corner_surface("%s-se" % at, -(w-cnr_slice), -(h-cnr_slice))
+        cache_corner_surface("%s-se" % at, -(w - cnr_slice), -(h - cnr_slice))
         # southern edge pattern
         cache_edge_pattern("%s-s" % at,
-                           -cnr_slice, -(h-cnr_slice),
-                           w-2*cnr_slice, cnr_slice)
+                           -cnr_slice, -(h - cnr_slice),
+                           w - 2 * cnr_slice, cnr_slice)
         # south-west corner
-        cache_corner_surface("%s-sw" % at, 0, -(h-cnr_slice))
+        cache_corner_surface("%s-sw" % at, 0, -(h - cnr_slice))
         # western edge pattern
         cache_edge_pattern("%s-w" % at, 0, -cnr_slice,
-                           cnr_slice, h-2*cnr_slice)
+                           cnr_slice, h - 2 * cnr_slice)
         # all done!
         return assets
 
@@ -300,17 +297,17 @@ class Frame(Gtk.Alignment):
         cr.save()
         self.on_draw(cr)
         cr.restore()
-        return
 
     def on_draw(self, cr):
         a = self.get_allocation()
         self.render_frame(cr, a, self.BORDER_RADIUS, _frame_asset_cache)
 
-        for child in self: self.propagate_draw(child, cr)
-        return
+        for child in self:
+            self.propagate_draw(child, cr)
 
     #~ def on_draw_after(self, widget, cr, assets, layout):
-        #~ if not self.show_corner_label: return
+        #~ if not self.show_corner_label:
+        #~     return
         #~ cr.save()
         #~ surf = assets["corner-label"]
         #~ w = surf.get_width()
@@ -320,7 +317,7 @@ class Frame(Gtk.Alignment):
         #~ # corner-label.png image...
 
         #~ # alter the to allow drawing outside of the widget bounds
-        #~ cr.rectangle(-10, -10, w+4, h+4)
+        #~ cr.rectangle(-10, -10, w + 4, h + 4)
         #~ cr.clip()
         #~ cr.set_source_surface(surf, -7, -8)
         #~ cr.paint()
@@ -329,16 +326,16 @@ class Frame(Gtk.Alignment):
         #~ # transalate to the visual center of the corner-label
         #~ cr.translate(19, 18)
         #~ # rotate counter-clockwise
-        #~ cr.rotate(-pi*0.25)
+        #~ cr.rotate(-pi * 0.25)
         #~ # paint normal markup
         #~ Gtk.render_layout(widget.get_style_context(),
-                          #~ cr, -ex.width/2, -ex.height/2, layout)
+                          #~ cr, -ex.width / 2, -ex.height / 2, layout)
         #~ cr.restore()
-        #~ return
 
     def set_show_corner_label(self, show_label):
         if (not self.layout.get_text() and
-            self.show_corner_label == show_label): return
+            self.show_corner_label == show_label):
+                return
         global _frame_asset_cache
         assets = _frame_asset_cache
 
@@ -349,14 +346,13 @@ class Frame(Gtk.Alignment):
 
         self.show_corner_label = show_label
         self.queue_draw()
-        return
 
     #~ def set_corner_label(self, markup):
-        #~ markup = '<span font_desc="12" color="white"><b>%s</b></span>' % markup
+        #~ markup = ('<span font_desc="12" color="white"><b>%s</b></span>' %
+        #~     markup)
         #~ self.set_show_corner_label(True)
         #~ self.layout.set_markup(markup, -1)
         #~ self.queue_draw()
-        #~ return
 
     def render_frame(self, cr, a, border_radius, assets):
         # we cache as much of the drawing as possible
@@ -379,56 +375,56 @@ class Frame(Gtk.Alignment):
             # paint north length
             _cr.save()
             _cr.set_source(assets["%s-n" % at])
-            _cr.rectangle(cnr_slice, 0, width-2*cnr_slice, cnr_slice)
+            _cr.rectangle(cnr_slice, 0, width - 2 * cnr_slice, cnr_slice)
             _cr.clip()
             _cr.paint()
             _cr.restore()
 
             # paint north-east corner
             _cr.set_source_surface(assets["%s-ne" % at],
-                                   width-cnr_slice, 0)
+                                   width - cnr_slice, 0)
             _cr.paint()
 
             # paint east length
             _cr.save()
-            _cr.translate(width-cnr_slice, cnr_slice)
+            _cr.translate(width - cnr_slice, cnr_slice)
             _cr.set_source(assets["%s-e" % at])
-            _cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
+            _cr.rectangle(0, 0, cnr_slice, height - 2 * cnr_slice)
             _cr.clip()
             _cr.paint()
             _cr.restore()
 
             # paint south-east corner
             _cr.set_source_surface(assets["%s-se" % at],
-                                   width-cnr_slice,
-                                   height-cnr_slice)
+                                   width - cnr_slice,
+                                   height - cnr_slice)
             _cr.paint()
 
             # paint south length
             _cr.save()
-            _cr.translate(cnr_slice, height-cnr_slice)
+            _cr.translate(cnr_slice, height - cnr_slice)
             _cr.set_source(assets["%s-s" % at])
-            _cr.rectangle(0, 0, width-2*cnr_slice, cnr_slice)
+            _cr.rectangle(0, 0, width - 2 * cnr_slice, cnr_slice)
             _cr.clip()
             _cr.paint()
             _cr.restore()
 
             # paint south-west corner
             _cr.set_source_surface(assets["%s-sw" % at],
-                                   0, height-cnr_slice)
+                                   0, height - cnr_slice)
             _cr.paint()
 
             # paint west length
             _cr.save()
             _cr.translate(0, cnr_slice)
             _cr.set_source(assets["%s-w" % at])
-            _cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
+            _cr.rectangle(0, 0, cnr_slice, height - 2 * cnr_slice)
             _cr.clip()
             _cr.paint()
             _cr.restore()
 
             # fill interior
-            rounded_rect(_cr, 3, 2, a.width-6, a.height-6, border_radius)
+            rounded_rect(_cr, 3, 2, a.width - 6, a.height - 6, border_radius)
             context = self.get_style_context()
             bg = context.get_background_color(self.get_state_flags())
 
@@ -447,14 +443,13 @@ class Frame(Gtk.Alignment):
         # paint the cached surface and apply a rounded rect clip to
         # child draw ops
         A = self.get_allocation()
-        xo, yo = a.x-A.x, a.y-A.y
+        xo, yo = a.x - A.x, a.y - A.y
 
         cr.set_source_surface(self._frame_surface_cache, xo, yo)
         cr.paint()
 
         #~ rounded_rect(cr, xo+3, yo+2, a.width-6, a.height-6, border_radius)
         #~ cr.clip()
-        return
 
 
 class SmallBorderRadiusFrame(Frame):
@@ -462,20 +457,20 @@ class SmallBorderRadiusFrame(Frame):
     BORDER_RADIUS = 3
     ASSET_TAG = "small"
     BORDER_IMAGE = os.path.join(
-        softwarecenter.paths.datadir, "ui/gtk3/art/frame-border-image-2px-border-radius.png")
+        softwarecenter.paths.datadir,
+        "ui/gtk3/art/frame-border-image-2px-border-radius.png")
 
     def __init__(self, padding=3):
         Frame.__init__(self, padding)
-        return
 
 
 class FramedBox(Frame):
 
-    def __init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=0, padding=0):
+    def __init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=0,
+        padding=0):
         Frame.__init__(self, padding)
         self.box = Gtk.Box.new(orientation, spacing)
         Gtk.Alignment.add(self, self.box)
-        return
 
     def add(self, *args, **kwargs):
         return self.box.add(*args, **kwargs)
@@ -496,7 +491,7 @@ class HeaderPosition:
 class FramedHeaderBox(FramedBox):
 
     MARKUP = '<b>%s</b>'
-    
+
     # pages for the spinner notebook
     (CONTENT,
      SPINNER) = range(2)
@@ -517,7 +512,6 @@ class FramedHeaderBox(FramedBox):
         # finally, a notebook for the spinner and the content box to share
         self.spinner_notebook = SpinnerNotebook(self.content_box)
         self.box.add(self.spinner_notebook)
-        return
 
     def on_draw(self, cr):
         a = self.get_allocation()
@@ -525,8 +519,8 @@ class FramedHeaderBox(FramedBox):
         a = self.header_alignment.get_allocation()
         self.render_header(cr, a, Frame.BORDER_RADIUS, _frame_asset_cache)
 
-        for child in self: self.propagate_draw(child, cr)
-        return
+        for child in self:
+            self.propagate_draw(child, cr)
 
     def add(self, *args, **kwargs):
         return self.content_box.add(*args, **kwargs)
@@ -536,7 +530,7 @@ class FramedHeaderBox(FramedBox):
 
     def pack_end(self, *args, **kwargs):
         return self.content_box.pack_end(*args, **kwargs)
-        
+
     # XXX: non-functional with current code...
     #~ def set_header_expand(self, expand):
         #~ alignment = self.header_alignment
@@ -564,13 +558,11 @@ class FramedHeaderBox(FramedBox):
             self.title.show()
 
         self.title.set_markup(self.MARKUP % label)
-        return
 
     def header_implements_more_button(self):
         if not hasattr(self, "more"):
             self.more = MoreLink()
             self.header.pack_end(self.more, False, False, 0)
-        return
 
     def render_header(self, cr, a, border_radius, assets):
 
@@ -596,35 +588,35 @@ class FramedHeaderBox(FramedBox):
                 w = ta.width + StockEms.MEDIUM
 
                 cr.new_sub_path()
-                cr.arc(r+x, r+y, r, PI, 270*PI_OVER_180)
-                cr.line_to(x+w, y)
-                cr.line_to(x+w - StockEms.MEDIUM, y + h/2)
-                cr.line_to(x+w, y+h)
-                cr.line_to(x, y+h)
+                cr.arc(r + x, r + y, r, PI, 270 * PI_OVER_180)
+                cr.line_to(x + w, y)
+                cr.line_to(x + w - StockEms.MEDIUM, y + h / 2)
+                cr.line_to(x + w, y + h)
+                cr.line_to(x, y + h)
                 cr.close_path()
 
                 cr.fill()
 
-                cr.move_to(x+w, y)
-                cr.line_to(x+w - StockEms.MEDIUM, y + h/2)
-                cr.line_to(x+w, y+h)
+                cr.move_to(x + w, y)
+                cr.line_to(x + w - StockEms.MEDIUM, y + h / 2)
+                cr.line_to(x + w, y + h)
 
             else:
                 x = ta.x - a.x - StockEms.MEDIUM
                 w = ta.width + StockEms.MEDIUM - 1
 
                 cr.move_to(x, y)
-                cr.arc(x+w-r, y+r, r, 270*PI_OVER_180, 0)
-                cr.line_to(x+w, y+h)
-                cr.line_to(x, y+h)
-                cr.line_to(x + StockEms.MEDIUM, y + h/2)
+                cr.arc(x + w - r, y + r, r, 270 * PI_OVER_180, 0)
+                cr.line_to(x + w, y + h)
+                cr.line_to(x, y + h)
+                cr.line_to(x + StockEms.MEDIUM, y + h / 2)
                 cr.close_path()
 
                 cr.fill()
 
                 cr.move_to(x, y)
-                cr.line_to(x + StockEms.MEDIUM, y + h/2)
-                cr.line_to(x, y+h)
+                cr.line_to(x + StockEms.MEDIUM, y + h / 2)
+                cr.line_to(x, y + h)
 
             bc = context.get_border_color(self.get_state_flags())
             Gdk.cairo_set_source_rgba(cr, bc)
@@ -634,8 +626,8 @@ class FramedHeaderBox(FramedBox):
             cr.restore()
 
         # paint the containers children
-        for child in self: self.propagate_draw(child, cr)
-        return
+        for child in self:
+            self.propagate_draw(child, cr)
 
 
 # this is used in the automatic tests
