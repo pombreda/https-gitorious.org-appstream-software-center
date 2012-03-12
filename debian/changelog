@@ -6,7 +6,11 @@ software-center (5.1.13) UNRELEASED; urgency=low
     lp:~elachuni/software-center/pep8-test-part7:
     - pep8 fixes for many more files in ui.gtk3.widgets
 
- -- Kiwinote <kiwinote@gmail.com>  Mon, 12 Mar 2012 17:54:18 +0000
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/recommendations-categories-view:
+    - fix the display of recommendations in the categories view 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 12 Mar 2012 18:28:22 -0400
 
 software-center (5.1.12) precise; urgency=low
 
