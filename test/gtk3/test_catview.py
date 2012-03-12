@@ -200,7 +200,6 @@ class TestCatView(unittest.TestCase):
         notebook.next_page()
         
         subcat_view = win.get_data("subcat")
-        rec_cat_panel = subcat_view.recommended_for_you_in_cat
         self._p()
         self.assertFalse(subcat_view.recommended_for_you_in_cat.get_property("visible"))
         win.destroy()
