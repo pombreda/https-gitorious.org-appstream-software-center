@@ -2,10 +2,11 @@ software-center (5.1.13) UNRELEASED; urgency=low
 
   [ Anthony Lenton ]
   * lp:~elachuni/software-center/pep8-test-part5,
-    lp:~elachuni/software-center/pep8-test-part6:
+    lp:~elachuni/software-center/pep8-test-part6,
+    lp:~elachuni/software-center/pep8-test-part7:
     - pep8 fixes for many more files in ui.gtk3.widgets
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 11 Mar 2012 19:52:24 -0400
+ -- Kiwinote <kiwinote@gmail.com>  Mon, 12 Mar 2012 17:54:18 +0000
 
 software-center (5.1.12) precise; urgency=low
 
