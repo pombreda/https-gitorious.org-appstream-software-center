@@ -37,7 +37,8 @@ from softwarecenter.ui.gtk3.widgets.viewport import Viewport
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, FramedBox, FlowableGrid)
 from softwarecenter.ui.gtk3.widgets.recommendations import (
-                                        RecommendationsPanelLobby)
+                                        RecommendationsPanelLobby,
+                                        RecommendationsPanelCategory)
 from softwarecenter.ui.gtk3.widgets.exhibits import (
                                         ExhibitBanner, FeaturedExhibit)
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
@@ -525,7 +526,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.current_category = None
         self.departments = None
         self.top_rated = None
-        self.recommended_for_you = None
+        self.recommended_for_you_in_cat = None
         self.appcount = None
 
         # widgetry
@@ -548,7 +549,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
     def _update_sub_top_rated_content(self, category):
         self.top_rated.remove_all()
         # FIXME: should this be m = "%s %s" % (_(gettext text), header text) ??
-	# TRANSLATORS: %s is a category name, like Internet or Development Tools
+        # TRANSLATORS: %s is a category name, like Internet or Development Tools
         m = _('Top Rated %(category)s') % { 'category' : GObject.markup_escape_text(self.header)}
         self.top_rated_frame.set_header_label(m)
         docs = self._get_sub_top_rated_content(category)
@@ -564,6 +565,20 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.top_rated_frame.pack_start(self.top_rated, True, True, 0)
         self.vbox.pack_start(self.top_rated_frame, False, True, 0)
         return
+        
+    def _update_recommended_for_you_in_cat_content(self, category):
+        if (self.recommended_for_you_in_cat and
+            self.recommended_for_you_in_cat.get_parent()):
+            self.vbox.remove(self.recommended_for_you_in_cat)
+        self.recommended_for_you_in_cat = RecommendationsPanelCategory(self,
+                                                                       category)
+        # only show the panel in the categories view when the user
+        # is opted in to the recommender service
+        # FIXME: this is needed vs. a simple hide() on the widget because
+        #        we do a show_all on the view
+        if self.recommended_for_you_in_cat.recommender_agent.is_opted_in():
+            self.vbox.pack_start(self.recommended_for_you_in_cat, 
+                                        False, False, 0)
 
     def _update_subcat_departments(self, category, num_items):
         self.departments.remove_all()
@@ -639,6 +654,9 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # changing order of methods changes order that they appear in the page
         self._append_subcat_departments()
         self._append_sub_top_rated()
+        # NOTE that the recommended for you in category view is built and added
+        # in the _update_recommended_for_you_in_cat method (and so is not needed
+        # here)
         self._append_appcount()
         self._built = True
         return
@@ -646,6 +664,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
     def _update_subcat_view(self, category, num_items=0):
         num_items = self._update_subcat_departments(category, num_items)
         self._update_sub_top_rated_content(category)
+        self._update_recommended_for_you_in_cat_content(category)
         self._update_appcount(num_items)
         self.show_all()
         return
@@ -686,7 +705,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 def get_test_window_catview():
 
     def on_category_selected(view, cat):
-        print("on_category_selected %s %s" % view, cat)
+        print "on_category_selected view: ", view
+        print "on_category_selected cat: ", cat
 
     from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
@@ -711,7 +731,7 @@ def get_test_window_catview():
 
     # gui
     win = Gtk.Window()
-    n = Gtk.Notebook()
+    notebook = Gtk.Notebook()
 
     from softwarecenter.paths import APP_INSTALL_PATH
     view = LobbyViewGtk(datadir, APP_INSTALL_PATH,
@@ -720,7 +740,7 @@ def get_test_window_catview():
 
     scroll = Gtk.ScrolledWindow()
     scroll.add(view)
-    n.append_page(scroll, Gtk.Label(label="Lobby"))
+    notebook.append_page(scroll, Gtk.Label(label="Lobby"))
 
     # find a cat in the LobbyView that has subcategories
     subcat_cat = None
@@ -737,9 +757,9 @@ def get_test_window_catview():
 
     scroll = Gtk.ScrolledWindow()
     scroll.add(view)
-    n.append_page(scroll, Gtk.Label(label="Subcats"))
+    notebook.append_page(scroll, Gtk.Label(label="Subcats"))
 
-    win.add(n)
+    win.add(notebook)
     win.set_size_request(800,800)
     win.show_all()
     win.connect('destroy', Gtk.main_quit)
