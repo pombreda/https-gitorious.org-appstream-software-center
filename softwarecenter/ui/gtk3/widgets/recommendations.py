@@ -173,12 +173,22 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         vbox.pack_start(label, False, False, 0)
 
     def _on_opt_in_button_clicked(self, button):
+        self.opt_in_to_recommendations_service()
+        
+    def opt_in_to_recommendations_service(self):
         # we upload the user profile here, and only after this is finished
         # do we fire the request for recommendations and finally display
         # them here -- a spinner is shown for this process (the spec
         # wants a progress bar, but we don't have access to real-time
         # progress info)
         self._upload_user_profile_and_get_recommendations()
+        
+    def opt_out_of_recommendations_service(self):
+        if self.recommended_for_you_content:
+            self.recommended_for_you_content.destroy()
+        self._show_opt_in_view()
+        self.show_all()
+        self.emit("recommendations-opt-out")
 
     def _upload_user_profile_and_get_recommendations(self):
         # initiate upload of the user profile here
