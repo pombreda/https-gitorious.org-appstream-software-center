@@ -491,11 +491,17 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def _on_recommendations_opt_in(self, rec_panel, recommender_uuid):
         self.recommender_uuid = recommender_uuid
+        recommendations_opt_in_menuitem = self.builder.get_object(
+                                        "menuitem_recommendations_opt_in")
+        recommendations_opt_in_menuitem.set_active(True)
 
     def _on_recommendations_opt_out(self, rec_panel):
         # if the user opts back out of the recommender service, we
         # reset the recommender UUID to indicate it
         self.recommender_uuid = ""
+        recommendations_opt_in_menuitem = self.builder.get_object(
+                                        "menuitem_recommendations_opt_in")
+        recommendations_opt_in_menuitem.set_active(False)
 
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
