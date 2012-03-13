@@ -187,6 +187,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         if self.recommended_for_you_content:
             self.recommended_for_you_content.destroy()
         self._show_opt_in_view()
+        self.remove_more_button()
         self.show_all()
         self.emit("recommendations-opt-out")
 
