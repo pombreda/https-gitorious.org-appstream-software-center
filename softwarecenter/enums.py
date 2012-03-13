@@ -38,11 +38,11 @@ BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_AGENT_HOST") or o
 RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or "https://rec.ubuntu.com"
 #RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or "https://rec.staging.ubuntu.com"
 
-# for the sso login
+# for the sso login.  ussoc expects the USSOC_SERVICE_URL environment variable
+# to be a full path to the service root (including /api/1.0), not just the
+# hostname, so we use the same convention for UBUNTU_SSO_SERVICE:
 UBUNTU_SSO_SERVICE = os.environ.get(
-    "USSOC_SERVICE_URL", "https://login.ubuntu.com/")
-SSO_LOGIN_HOST = UBUNTU_SSO_SERVICE
-
+    "USSOC_SERVICE_URL", "https://login.ubuntu.com/api/1.0")
 
 # version of the database, every time something gets added (like
 # terms for mime-type) increase this (but keep as a string!)
