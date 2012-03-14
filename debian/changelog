@@ -4,8 +4,9 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~elachuni/software-center/pep8-test-part5,
     lp:~elachuni/software-center/pep8-test-part6,
     lp:~elachuni/software-center/pep8-test-part7,
-    lp:~elachuni/software-center/pep8-test-part8:
-    - pep8 fixes for many more files in ui.gtk3.widgets
+    lp:~elachuni/software-center/pep8-test-part8,
+    lp:~elachuni/software-center/pep8-test-part9:
+    - pep8 fixes for many more files in ui.gtk3.{views, widgets}
   * lp:~elachuni/software-center/unify-ussoc-envvar:
     - fix USSOC_SERVICE_URL env variable
   
@@ -14,7 +15,7 @@ software-center (5.1.13) UNRELEASED; urgency=low
     - Translate review sorting criteria
     - Fix the Recommendation spinner text translations
 
- -- Kiwinote <kiwinote@gmail.com>  Mon, 12 Mar 2012 17:54:18 +0000
+ -- Kiwinote <kiwinote@gmail.com>  Wed, 14 Mar 2012 21:51:18 +0000
 
 software-center (5.1.12) precise; urgency=low
 
