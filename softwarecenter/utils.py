@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import dbus
 import gettext
 from gi.repository import GObject
 from gi.repository import Gio
@@ -327,7 +328,6 @@ def is_unity_running():
     """
     return True if Unity is currently running
     """
-    import dbus
     unity_running = False
     try:
         bus = dbus.SessionBus()
@@ -396,10 +396,9 @@ def clear_token_from_ubuntu_sso(appname):
     """ send a dbus signal to the com.ubuntu.sso service to clear 
         the credentials for the given appname, e.g. _("Ubuntu Software Center")
     """
-    import dbus
     bus = dbus.SessionBus()
     proxy = bus.get_object('com.ubuntu.sso', '/com/ubuntu/sso/credentials')
-    proxy.clear_credentials(appname, {})
+    proxy.clear_credentials(appname, dbus.Dictionary(signature='ss'))
 
 def get_nice_date_string(cur_t):
     """ return a "nice" human readable date, like "2 minutes ago"  """
