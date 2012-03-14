@@ -397,7 +397,7 @@ class AppStreamXMLParser(AppInfoParserBase):
     @property
     def desktopf(self):
         subelm = self.appinfo_xml.find("id")
-        if not subelm:
+        if subelm is None:
             return None
 
         return subelm.text
