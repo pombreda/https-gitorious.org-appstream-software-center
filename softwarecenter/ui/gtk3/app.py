@@ -236,6 +236,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 # FIXME: force rebuild by providing a dbus service for this
                 sys.exit(1)
 
+        self.prefill_pkgnames = []
+        for doc in self.db:
+            self.prefill_pkgnames.append(self.db.get_pkgname(doc))
+
         # additional icons come from app-install-data
         with ExecutionTime("building the icon cache"):
             self.icons = get_sc_icon_theme(self.datadir)
@@ -1259,7 +1263,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def cache_magic(self):
         self.cache.open()
         if hasattr(self.cache, 'prefill_cache'):
-            self.cache.prefill_cache()
+            self.cache.prefill_cache(wanted_pkgs = self.prefill_pkgnames)
 
     def run(self, args):
         # show window as early as possible
