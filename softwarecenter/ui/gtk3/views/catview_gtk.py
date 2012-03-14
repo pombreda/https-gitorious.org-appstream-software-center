@@ -53,6 +53,7 @@ from softwarecenter.db.categories import (Category,
 from softwarecenter.db.utils import get_query_for_pkgnames
 from softwarecenter.distro import get_distro
 from softwarecenter.backend.scagent import SoftwareCenterAgent
+from softwarecenter.backend.reviews import get_review_loader
 
 LOG=logging.getLogger(__name__)
 
@@ -226,13 +227,22 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.departments = None
         self.appcount = None
 
-        # this means that the departments don't jump down once the cache loads
-        # it doesn't look odd if the recommends are never loaded
-        #~ self.recommended = Gtk.Label()
-        #~ self.vbox.pack_start(self.recommended, False, False, 0)
+        # ensure that on db-reopen we refresh the whats-new titles
+        self.db.connect("reopen", self._on_db_reopen)
+
+        # ensure that updates to the stats are reflected in the UI
+        self.reviews_loader = get_review_loader(self.cache)
+        self.reviews_loader.connect(
+            "refresh-review-stats-finished", self._on_refresh_review_stats)
 
         self.build(desktopdir)
         return
+
+    def _on_db_reopen(self, db):
+        self._update_whats_new_content()
+
+    def _on_refresh_review_stats(self, reviews_loader, review_stats):
+        self._update_top_rated_content()
 
     def _build_homepage_view(self):
         # these methods add sections to the page

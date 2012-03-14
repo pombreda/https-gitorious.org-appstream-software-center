@@ -31,7 +31,6 @@ from softwarecenter.enums import (Icons,
 from softwarecenter.utils import ExecutionTime, SimpleFileDownloader, split_icon_ext
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
-from softwarecenter.db.database import Application
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 import softwarecenter.paths
@@ -74,7 +73,7 @@ class UncategorisedRowRef(CategoryRowReference):
         return
 
 
-class _AppPropertiesHelper(GObject.GObject):
+class AppPropertiesHelper(GObject.GObject):
     """ Baseclass that contains common functions for our
         liststore/treestore, only useful for subclassing
     """
@@ -86,8 +85,30 @@ class _AppPropertiesHelper(GObject.GObject):
                            ),
         }
 
-    def __init__(self):
+    def __init__(self, db, cache, icons, icon_size=48, global_icon_cache=False):
         GObject.GObject.__init__(self)
+        self.db = db
+        self.cache = cache
+
+        # get all categories
+        cat_parser = CategoriesParser(db)
+        self.all_categories = cat_parser.parse_applications_menu(
+            softwarecenter.paths.APP_INSTALL_PATH)
+
+        # reviews stats loader
+        self.review_loader = get_review_loader(cache, db)
+
+        # icon jazz
+        self.icons = icons
+        self.icon_size = icon_size
+
+        # cache the 'missing icon' used in the treeview for apps without an icon
+        self._missing_icon = icons.load_icon(Icons.MISSING_APP, icon_size, 0)
+        if global_icon_cache:
+            self.icon_cache = _app_icon_cache
+        else:
+            self.icon_cache = {}
+        return
 
     def _download_icon_and_show_when_ready(self, url, pkgname, icon_file_name):
         LOG.debug("did not find the icon locally, must download %s" % icon_file_name)
@@ -138,31 +159,23 @@ class _AppPropertiesHelper(GObject.GObject):
         return self.db.get_pkgname(doc)
 
     def get_application(self, doc):
-        appname = doc.get_value(XapianValues.APPNAME)
-        pkgname = self.db.get_pkgname(doc)
-        # TODO: requests
-        return Application(appname, pkgname, "")
+        return self.db.get_application(doc)
 
     def get_appname(self, doc):
-        appname = doc.get_value(XapianValues.APPNAME)
-        if not appname:
-            appname = self.db.get_summary(doc)
-        else:
-            if self.db.is_appname_duplicated(appname):
-                appname = "%s (%s)" % (appname, self.get_pkgname(doc))
-        return appname
+        app = self.db.get_application(doc)
+        return app.get_display_name(self.db, doc)
 
     def get_markup(self, doc):
-        appname = doc.get_value(XapianValues.APPNAME)
+        app = self.db.get_application(doc)
 
-        if not appname:
+        # the logic is that "apps" are displayed normally
+        # but "packages" are displayed with their summary as name
+        if app.appname:
+            appname = self.get_appname(doc)
+            summary = self.db.get_summary(doc)
+        else:
             appname = self.db.get_summary(doc)
             summary = self.get_pkgname(doc)
-        else:
-            if self.db.is_appname_duplicated(appname):
-                appname = "%s (%s)" % (appname, self.get_pkgname(doc))
-
-            summary = self.db.get_summary(doc)
 
         return "%s\n<small>%s</small>" % (
                  GObject.markup_escape_text(appname),
@@ -239,44 +252,14 @@ class _AppPropertiesHelper(GObject.GObject):
         else:
             return ''
 
-class AppPropertiesHelper(_AppPropertiesHelper):
-
-    def __init__(self, db, cache, icons, icon_size=48, global_icon_cache=False):
-        super(AppPropertiesHelper, self).__init__()
-        self.db = db
-        self.cache = cache
-
-        cat_parser = CategoriesParser(db)
-        self.all_categories = cat_parser.parse_applications_menu(
-            softwarecenter.paths.APP_INSTALL_PATH)
-
-        # reviews stats loader
-        self.review_loader = get_review_loader(cache, db)
-
-        # icon jazz
-        self.icons = icons
-        self.icon_size = icon_size
-        # cache the 'missing icon' used in the treeview for apps without an icon
-        self._missing_icon = icons.load_icon(Icons.MISSING_APP,
-                                             icon_size, 0)
-
-        if global_icon_cache:
-            self.icon_cache = _app_icon_cache
-        else:
-            self.icon_cache = {}
-        return
-
     def get_icon_at_size(self, doc, width, height):
         pixbuf = self.get_icon(doc)
         pixbuf = pixbuf.scale_simple(width, height,
                                      GdkPixbuf.InterpType.BILINEAR)
         return pixbuf
 
-    def get_transaction_progress(self, doc):
-        raise NotImplemented
 
-
-class AppGenericStore(_AppPropertiesHelper):
+class AppGenericStore(AppPropertiesHelper):
 
     # column types
     COL_TYPES = (GObject.TYPE_PYOBJECT,)
@@ -291,12 +274,8 @@ class AppGenericStore(_AppPropertiesHelper):
     LOAD_INITIAL   = 75
 
     def __init__(self, db, cache, icons, icon_size, global_icon_cache):
-        # the usual suspects
-        self.db = db
-        self.cache = cache
-
-        # reviews stats loader
-        self.review_loader = get_review_loader(cache, db)
+        AppPropertiesHelper.__init__(self, db, cache, icons, icon_size, 
+                                     global_icon_cache)
 
         # backend stuff
         self.backend = get_install_backend()
@@ -307,20 +286,8 @@ class AppGenericStore(_AppPropertiesHelper):
         # keep track of paths for transactions in progress
         self.transaction_path_map = {}
 
-        # icon jazz
-        self.icons = icons
-        self.icon_size = icon_size
-
-        if global_icon_cache:
-            self.icon_cache = _app_icon_cache
-        else:
-            self.icon_cache = {}
-
         # active row path
         self.active_row = None
-
-        # cache the 'missing icon' used in the treeview for apps without an icon
-        self._missing_icon = icons.load_icon(Icons.MISSING_APP, icon_size, 0)
 
         self._in_progress = False
         self._break = False
@@ -394,6 +361,10 @@ class AppGenericStore(_AppPropertiesHelper):
 
         if self.current_matches is not None:
             GObject.idle_add(buffer_icons)
+        return
+
+    def load_range(self, indices, step):
+        # stub
         return
 
 class AppListStore(Gtk.ListStore, AppGenericStore):
@@ -526,3 +497,4 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
         self.transaction_path_map = {}
         Gtk.TreeStore.clear(self)
         return
+

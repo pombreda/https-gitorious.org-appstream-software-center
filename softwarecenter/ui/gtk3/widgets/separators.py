@@ -29,8 +29,7 @@ class HBar(Gtk.VBox):
         a = self.get_allocation()
         cr.move_to(0, 0)
         cr.rel_line_to(a.width, 0)
-        cr.set_dash((width, 2*width), 0)
-        cr.set_line_width(2*width)
+        cr.set_dash((width, 2 * width), 0)
+        cr.set_line_width(2 * width)
         cr.stroke()
         cr.restore()
-        return

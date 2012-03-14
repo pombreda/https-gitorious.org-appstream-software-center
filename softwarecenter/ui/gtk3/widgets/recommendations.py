@@ -32,16 +32,17 @@ from softwarecenter.backend.recagent import RecommenderAgent
 
 LOG = logging.getLogger(__name__)
 
+
 class RecommendationsPanel(FramedHeaderBox):
     """
     Base class for widgets that display recommendations
     """
 
     __gsignals__ = {
-        "application-activated" : (GObject.SIGNAL_RUN_LAST,
-                                    GObject.TYPE_NONE, 
-                                    (GObject.TYPE_PYOBJECT,),
-                                   ),
+        "application-activated": (GObject.SIGNAL_RUN_LAST,
+                                  GObject.TYPE_NONE,
+                                  (GObject.TYPE_PYOBJECT,),
+                                 ),
         }
 
     def __init__(self, catview):
@@ -53,31 +54,32 @@ class RecommendationsPanel(FramedHeaderBox):
         self.catview.connect(
             "application-activated", self._on_application_activated)
         self.recommender_agent = RecommenderAgent()
+
     def _on_application_activated(self, catview, app):
         self.emit("application-activated", app)
 
+
 class RecommendationsPanelLobby(RecommendationsPanel):
     """
-    Panel for use in the lobby view that manages the recommendations experience,
-    includes the initial opt-in screen and display of recommendations once they
-    have been received from the recommender agent
+    Panel for use in the lobby view that manages the recommendations
+    experience, includes the initial opt-in screen and display of
+    recommendations once they have been received from the recommender agent
     """
-    
     __gsignals__ = {
-        "recommendations-opt-in" : (GObject.SIGNAL_RUN_LAST,
-                                    GObject.TYPE_NONE, 
-                                    (GObject.TYPE_STRING,),
+        "recommendations-opt-in": (GObject.SIGNAL_RUN_LAST,
+                                   GObject.TYPE_NONE,
+                                   (GObject.TYPE_STRING,),
+                                  ),
+        "recommendations-opt-out": (GObject.SIGNAL_RUN_LAST,
+                                    GObject.TYPE_NONE,
+                                    (),
                                    ),
-        "recommendations-opt-out" : (GObject.SIGNAL_RUN_LAST,
-                                     GObject.TYPE_NONE, 
-                                     (),
-                                    ),
         }
-        
+
     def __init__(self, catview):
         RecommendationsPanel.__init__(self, catview)
         self.set_header_label(_(u"Recommended for You"))
-        
+
         # if we already have a recommender UUID, then the user is already
         # opted-in to the recommender service
         self.recommended_for_you_content = None
@@ -85,14 +87,14 @@ class RecommendationsPanelLobby(RecommendationsPanel):
             self._update_recommended_for_you_content()
         else:
             self._show_opt_in_view()
-            
+
     def _show_opt_in_view(self):
         # opt in box
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
         vbox.set_border_width(StockEms.LARGE)
         self.opt_in_vbox = vbox  # for tests
         self.recommended_for_you_content = vbox  # hook it up to the rest
-        
+
         self.add(self.recommended_for_you_content)
 
         # opt in button
@@ -111,7 +113,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         label.set_alignment(0, 0.5)
         label.set_line_wrap(True)
         vbox.pack_start(label, False, False, 0)
-        
+
     def _on_opt_in_button_clicked(self, button):
         # we upload the user profile here, and only after this is finished
         # do we fire the request for recommendations and finally display
@@ -119,19 +121,19 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         # wants a progress bar, but we don't have access to real-time
         # progress info)
         self._upload_user_profile_and_get_recommendations()
-        
+
     def _upload_user_profile_and_get_recommendations(self):
         # initiate upload of the user profile here
         self._upload_user_profile()
-        
+
     def _upload_user_profile(self):
-        self.spinner_notebook.show_spinner(_("Submitting inventory…"))
+        self.spinner_notebook.show_spinner(_(u"Submitting inventory…"))
         self.recommender_agent.connect("submit-profile-finished",
                                   self._on_profile_submitted)
         self.recommender_agent.connect("error",
                                   self._on_profile_submitted_error)
         self.recommender_agent.post_submit_profile(self.catview.db)
-                                                
+
     def _on_profile_submitted(self, agent, profile, recommender_uuid):
         # after the user profile data has been uploaded, make the request
         # and load the the recommended_for_you content
@@ -139,13 +141,13 @@ class RecommendationsPanelLobby(RecommendationsPanel):
                   "submitted to the recommender agent")
         self.emit("recommendations-opt-in", recommender_uuid)
         self._update_recommended_for_you_content()
-        
+
     def _on_profile_submitted_error(self, agent, msg):
         LOG.warn("Error while submitting the recommendations profile to the "
                  "recommender agent: %s" % msg)
         # TODO: handle this! display an error message in the panel
         self._hide_recommended_for_you_panel()
-        
+
     def _update_recommended_for_you_content(self):
         # destroy the old content to ensure we don't see it twice
         # (also removes the opt-in panel if it was there)
@@ -155,7 +157,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self.header_implements_more_button()
         self.recommended_for_you_content = FlowableGrid()
         self.add(self.recommended_for_you_content)
-        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
+        self.spinner_notebook.show_spinner(_(u"Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.recommended_for_you_cat = RecommendedForYouCategory()
         self.recommended_for_you_cat.connect(
@@ -163,7 +165,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
                                     self._on_recommended_for_you_agent_refresh)
         self.recommended_for_you_cat.connect('recommender-agent-error',
                                              self._on_recommender_agent_error)
-        
+
     def _on_recommended_for_you_agent_refresh(self, cat):
         docs = cat.get_documents(self.catview.db)
         # display the recommendedations
@@ -179,8 +181,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
             # TODO: this test for zero docs is temporary and will not be
             # needed once the recommendation agent is up and running
             self._hide_recommended_for_you_panel()
-        return
-        
+
     def _on_recommender_agent_error(self, agent, msg):
         LOG.warn("Error while accessing the recommender agent for the "
                  "lobby recommendations: %s" % msg)
@@ -190,8 +191,8 @@ class RecommendationsPanelLobby(RecommendationsPanel):
     def _hide_recommended_for_you_panel(self):
         # and hide the pane
         self.hide()
-        
-        
+
+
 class RecommendationsPanelDetails(RecommendationsPanel):
     """
     Panel for use in the details view to display recommendations for a given
@@ -202,14 +203,14 @@ class RecommendationsPanelDetails(RecommendationsPanel):
         self.set_header_label(_(u"People Also Installed"))
         self.app_recommendations_content = FlowableGrid()
         self.add(self.app_recommendations_content)
-        
+
     def set_pkgname(self, pkgname):
         self.pkgname = pkgname
         self._update_app_recommendations_content()
 
     def _update_app_recommendations_content(self):
         self.app_recommendations_content.remove_all()
-        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
+        self.spinner_notebook.show_spinner(_(u"Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.app_recommendations_cat = AppRecommendationsCategory(self.pkgname)
         self.app_recommendations_cat.connect(
@@ -217,7 +218,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
                                     self._on_app_recommendations_agent_refresh)
         self.app_recommendations_cat.connect('recommender-agent-error',
                                              self._on_recommender_agent_error)
-        
+
     def _on_app_recommendations_agent_refresh(self, cat):
         docs = cat.get_documents(self.catview.db)
         # display the recommendations
@@ -228,8 +229,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
             self.spinner_notebook.hide_spinner()
         else:
             self._hide_app_recommendations_panel()
-        return
-        
+
     def _on_recommender_agent_error(self, agent, msg):
         LOG.warn("Error while accessing the recommender agent for the "
                  "details view recommendations: %s" % msg)
@@ -239,7 +239,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
     def _hide_app_recommendations_panel(self):
         # and hide the pane
         self.hide()
-    
+
 
 # test helpers
 def get_test_window():
@@ -247,7 +247,6 @@ def get_test_window():
     softwarecenter.log.root.setLevel(level=logging.DEBUG)
     fmt = logging.Formatter("%(name)s - %(message)s", None)
     softwarecenter.log.handler.setFormatter(fmt)
-    
 
     # this is *way* to complicated we should *not* need a CatView
     # here! see FIXME in RecommendationsPanel.__init__()
@@ -259,7 +258,7 @@ def get_test_window():
     icons = get_test_gtk3_icon_cache()
     catview = CategoriesViewGtk(softwarecenter.paths.datadir,
                                 softwarecenter.paths.APP_INSTALL_PATH,
-                                cache, 
+                                cache,
                                 db,
                                 icons)
 
@@ -271,9 +270,9 @@ def get_test_window():
     win.set_data("rec_panel", view)
     win.set_size_request(600, 200)
     win.show_all()
-    
+
     return win
-    
+
 
 if __name__ == "__main__":
     win = get_test_window()

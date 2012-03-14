@@ -1,4 +1,22 @@
-software-center (5.1.12) UNRELEASED; urgency=low
+software-center (5.1.13) UNRELEASED; urgency=low
+
+  [ Anthony Lenton ]
+  * lp:~elachuni/software-center/pep8-test-part5,
+    lp:~elachuni/software-center/pep8-test-part6,
+    lp:~elachuni/software-center/pep8-test-part7,
+    lp:~elachuni/software-center/pep8-test-part8:
+    - pep8 fixes for many more files in ui.gtk3.widgets
+  * lp:~elachuni/software-center/unify-ussoc-envvar:
+    - fix USSOC_SERVICE_URL env variable
+  
+  [ Gabor Kelemen ]  
+  * lp:~kelemeng/software-center/bug953812: (LP: #953812)
+    - Translate review sorting criteria
+    - Fix the Recommendation spinner text translations
+
+ -- Kiwinote <kiwinote@gmail.com>  Mon, 12 Mar 2012 17:54:18 +0000
+
+software-center (5.1.12) precise; urgency=low
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/webcam-string-fix:
@@ -15,13 +33,34 @@ software-center (5.1.12) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp789596:
     - better (less scary) string for updates from third-party
       venders (LP: #789596)
+  * lp:~mvo/software-center/fix-refresh-of-whats-new:
+    - fix missing refresh of the what's new content on a database
+      reopen so that new content from the agent appears as soon
+      as it finishes the update
+  * lp:~mvo/software-center/review-fixes:
+    - ensure ui is correctly updated after submitting/modifying review
+  * lp:~mvo/software-center/simulate-slow-network:
+    - add a small helper to simulate a slow network connection to
+      see if we have hidden latencies in the UI when the network
+      is (really) slow
+  * lp:~mvo/software-center/top-rated-refresh:
+    - ensure that the top-rated apps are refreshed when we have new data
+  * lp:~mvo/software-center/apptreeview-tweaks:
+    - fix 'load_range" errors when navigating the installed view
+      (LP: #913675), and do some nice needed refactoring/cleanup
 
   [ Anthony Lenton ]
   * lp:~elachuni/software-center/dont-store:
     - consolidate Ubunty SSO logins to use "Ubuntu Software Center", fixes
       inconsistent UI and storing of two keys in they keyring, as well as
       being prompted to log in twice the first time that you review an app
-  
+  * lp:~elachuni/software-center/pep8-test,
+    lp:~elachuni/software-center/pep8-test-part2,
+    lp:~elachuni/software-center/pep8-test-part3,
+    lp:~elachuni/software-center/pep8-test-part4:
+    - add a unit test to check code statically for pep8 compliance and update
+      more and more of the code to meet it
+
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-crash-lp944875:
     - Fix an intermittent crash that can happen if the installed view pane
@@ -30,10 +69,18 @@ software-center (5.1.12) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/list-view-icon-coordinates-lp947624:
     - This branch adds support for providing the correct icon size and 
       on-screen coordinates values in the Unity launcher integration dbus 
-      call when an installation is initiated via the list view. 
-      LP: #947624
+      call when an installation is initiated via the list view
+      (LP: #947624)
+  * lp:~gary-lasker/software-center/enable-published-date-unit-test:
+    - unit test change only, enable the published-date unit test that was
+      disabled pending deployment of support on the staging server
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Mar 2012 01:28:21 -0500
+  [ Natalia Bidart ]
+  * lp:~nataliabidart/software-center/one-auth:
+    - use consistently the same app name for every Ubuntu SSO call to
+      ensure SSO tokens are handled properly
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 09 Mar 2012 08:55:46 +0100
 
 software-center (5.1.11) precise; urgency=low
 

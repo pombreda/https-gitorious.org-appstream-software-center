@@ -22,11 +22,14 @@ from gi.repository import Gtk, GdkPixbuf
 
 ICON_EXCEPTIONS = ["gnome"]
 
+
 class Url404Error(IOError):
     pass
 
+
 class Url403Error(IOError):
     pass
+
 
 class SimpleShowImageDialog(Gtk.Dialog):
     """A dialog that shows a image """
@@ -61,7 +64,7 @@ class SimpleShowImageDialog(Gtk.Dialog):
         self.add_button(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)
         self.set_default_size(SimpleShowImageDialog.DEFAULT_WIDTH,
                               SimpleShowImageDialog.DEFAULT_HEIGHT)
-        
+
     def run(self):
         # show all and run the real thing
         self.show_all()
@@ -71,5 +74,7 @@ class SimpleShowImageDialog(Gtk.Dialog):
 if __name__ == "__main__":
 
     # pixbuf
-    d = SimpleShowImageDialog("Synaptic Screenshot",  GdkPixbuf.Pixbuf.new_from_file("/usr/share/software-center/images/arrows.png"))
+    d = SimpleShowImageDialog("Synaptic Screenshot",
+        GdkPixbuf.Pixbuf.new_from_file(
+        "/usr/share/software-center/images/arrows.png"))
     d.run()

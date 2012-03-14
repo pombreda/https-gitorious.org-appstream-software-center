@@ -209,8 +209,15 @@ class Review(object):
             setattr(review, k, v)
         return review
 
-class ReviewLoader(object):
+class ReviewLoader(GObject.GObject):
     """A loader that returns a review object list"""
+
+    __gsignals__ = {
+        "refresh-review-stats-finished" : (GObject.SIGNAL_RUN_LAST,
+                                           GObject.TYPE_NONE, 
+                                           (GObject.TYPE_PYOBJECT,),
+                                          ),
+    }
 
     # cache the ReviewStats
     REVIEW_STATS_CACHE = {}
@@ -218,6 +225,7 @@ class ReviewLoader(object):
     _review_sort_methods = ReviewSortMethods.REVIEW_SORT_METHODS
 
     def __init__(self, cache, db, distro=None):
+        GObject.GObject.__init__(self)
         self.cache = cache
         self.db = db
         self.distro = distro
@@ -436,6 +444,7 @@ class ReviewLoaderFake(ReviewLoader):
     IPSUM = "no ipsum\n\nstill no ipsum"
 
     def __init__(self, cache, db):
+        ReviewLoader.__init__(self, cache, db)
         self._review_stats_cache = {}
         self._reviews_cache = {}
     def _random_person(self):
@@ -614,6 +623,7 @@ class ReviewLoaderNull(ReviewLoader):
     """A dummy review loader which just returns empty results."""
 
     def __init__(self, cache, db):
+        ReviewLoader.__init__(self, cache, db)
         self._review_stats_cache = {}
         self._reviews_cache = {}
 

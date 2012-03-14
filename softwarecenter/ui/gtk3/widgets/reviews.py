@@ -32,21 +32,27 @@ from gettext import gettext as _
 from stars import Star
 from softwarecenter.utils import (
     get_person_from_config,
-    get_nice_date_string, 
-    upstream_version_compare, 
+    get_nice_date_string,
+    upstream_version_compare,
     upstream_version,
     utf8,
     )
 
 
-from softwarecenter.i18n import get_languages, langcode_to_name
+from softwarecenter.i18n import (
+    get_languages,
+    langcode_to_name,
+    )
 
-from softwarecenter.netstatus import network_state_is_connected, get_network_watcher
+from softwarecenter.netstatus import (
+    network_state_is_connected,
+    get_network_watcher,
+    )
 from softwarecenter.enums import (
-    PkgStates, 
+    PkgStates,
     ReviewSortMethods,
     )
-    
+
 from softwarecenter.backend.reviews import UsefulnessCache
 
 from softwarecenter.ui.gtk3.em import StockEms
@@ -58,33 +64,34 @@ LOG = logging.getLogger(__name__)
 (COL_LANGNAME,
  COL_LANGCODE) = range(2)
 
+
 class UIReviewsList(Gtk.VBox):
 
     __gsignals__ = {
-        'new-review':(GObject.SignalFlags.RUN_FIRST,
+        'new-review': (GObject.SignalFlags.RUN_FIRST,
                     None,
                     ()),
-        'report-abuse':(GObject.SignalFlags.RUN_FIRST,
+        'report-abuse': (GObject.SignalFlags.RUN_FIRST,
                     None,
                     (GObject.TYPE_PYOBJECT,)),
-        'submit-usefulness':(GObject.SignalFlags.RUN_FIRST,
+        'submit-usefulness': (GObject.SignalFlags.RUN_FIRST,
                     None,
                     (GObject.TYPE_PYOBJECT, bool)),
-        'modify-review':(GObject.SignalFlags.RUN_FIRST,
+        'modify-review': (GObject.SignalFlags.RUN_FIRST,
                     None,
                     (GObject.TYPE_PYOBJECT,)),
-        'delete-review':(GObject.SignalFlags.RUN_FIRST,
+        'delete-review': (GObject.SignalFlags.RUN_FIRST,
                     None,
                     (GObject.TYPE_PYOBJECT,)),
-        'more-reviews-clicked':(GObject.SignalFlags.RUN_FIRST,
+        'more-reviews-clicked': (GObject.SignalFlags.RUN_FIRST,
                                 None,
-                                () ),
-        'different-review-language-clicked':(GObject.SignalFlags.RUN_FIRST,
+                                ()),
+        'different-review-language-clicked': (GObject.SignalFlags.RUN_FIRST,
                                              None,
-                                             (GObject.TYPE_STRING,) ),
-        'review-sort-changed':(GObject.SignalFlags.RUN_FIRST,
+                                             (GObject.TYPE_STRING,)),
+        'review-sort-changed': (GObject.SignalFlags.RUN_FIRST,
                                None,
-                               (GObject.TYPE_INT,) ),
+                               (GObject.TYPE_INT,)),
     }
 
     def __init__(self, parent):
@@ -109,7 +116,7 @@ class UIReviewsList(Gtk.VBox):
         label.set_alignment(0, 0.5)
         self.pack_start(label, False, False, 0)
 
-        # header 
+        # header
         self.header = Gtk.HBox()
         self.header.set_spacing(StockEms.MEDIUM)
 
@@ -124,7 +131,7 @@ class UIReviewsList(Gtk.VBox):
         self.sort_combo = Gtk.ComboBoxText()
         self._current_sort = 0
         for sort_method in ReviewSortMethods.REVIEW_SORT_LIST_ENTRIES:
-            self.sort_combo.append_text(sort_method)
+            self.sort_combo.append_text(_(sort_method))
         self.sort_combo.set_active(self._current_sort)
         self.sort_combo.connect('changed', self._on_sort_method_changed)
         self.header.pack_end(self.sort_combo, False, False, 3)
@@ -136,8 +143,8 @@ class UIReviewsList(Gtk.VBox):
         self.review_language.add_attribute(cell, "text", COL_LANGNAME)
         self.review_language_model = Gtk.ListStore(str, str)
         for lang in get_languages():
-            self.review_language_model.append( (langcode_to_name(lang), lang) )
-        self.review_language_model.append( (_('Any language'), 'any') )
+            self.review_language_model.append((langcode_to_name(lang), lang))
+        self.review_language_model.append((_('Any language'), 'any'))
         self.review_language.set_model(self.review_language_model)
         self.review_language.set_active(0)
         self.review_language.connect(
@@ -153,10 +160,9 @@ class UIReviewsList(Gtk.VBox):
         self.no_network_msg = None
         watcher = get_network_watcher()
         watcher.connect(
-            "changed", lambda w,s: self._on_network_state_change())
+            "changed", lambda w, s: self._on_network_state_change())
 
         self.show_all()
-        return
 
     def _on_network_state_change(self):
         is_connected = network_state_is_connected()
@@ -171,7 +177,7 @@ class UIReviewsList(Gtk.VBox):
 
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
-    
+
     def _on_sort_method_changed(self, cb):
         selection = self.sort_combo.get_active()
         if selection == self._current_sort:
@@ -179,7 +185,7 @@ class UIReviewsList(Gtk.VBox):
         else:
             self._current_sort = selection
             self.emit("review-sort-changed", selection)
-    
+
     def update_useful_votes(self, my_votes):
         self.useful_votes = my_votes
 
@@ -191,26 +197,25 @@ class UIReviewsList(Gtk.VBox):
         if self.reviews:
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
-                review = UIReview(r, pkgversion, self.logged_in_person, self.useful_votes)
+                review = UIReview(r, pkgversion, self.logged_in_person,
+                    self.useful_votes)
                 self.vbox.pack_start(review, True, True, 0)
-        return
 
     def _be_the_first_to_review(self):
         s = _('Be the first to review it')
         self.new_review.set_label(s)
         self.vbox.pack_start(NoReviewYetWriteOne(), True, True, 0)
         self.vbox.show_all()
-        return
 
     def _install_to_review(self):
-        s = '<small>%s</small>' % _("You need to install this before you can review it")
+        s = ('<small>%s</small>' %
+            _("You need to install this before you can review it"))
         self.install_first_label = Gtk.Label(label=s)
         self.install_first_label.set_use_markup(True)
         self.install_first_label.set_alignment(1.0, 0.5)
         self.header.pack_start(self.install_first_label, False, False, 0)
         self.install_first_label.show()
-        return
-    
+
     # FIXME: this needs to be smarter in the future as we will
     #        not allow multiple reviews for the same software version
     def _any_reviews_current_user(self):
@@ -225,14 +230,14 @@ class UIReviewsList(Gtk.VBox):
         m = EmbeddedMessage(title, msg, 'network-offline')
         self.vbox.pack_start(m, True, True, 0)
         return m
-        
+
     def _clear_vbox(self, vbox):
         children = vbox.get_children()
         for child in children:
             child.destroy()
 
-    # FIXME: instead of clear/add_reviews/configure_reviews_ui we should provide
-    #        a single show_reviews(reviews_data_list)
+    # FIXME: instead of clear/add_reviews/configure_reviews_ui we should
+    #        provide a single show_reviews(reviews_data_list)
     def configure_reviews_ui(self):
         """ this needs to be called after add_reviews, it will actually
             show the reviews
@@ -243,7 +248,7 @@ class UIReviewsList(Gtk.VBox):
             self.install_first_label.hide()
         except AttributeError:
             pass
-        
+
         self._clear_vbox(self.vbox)
 
         # network sensitive stuff, only show write_review if connected,
@@ -253,14 +258,14 @@ class UIReviewsList(Gtk.VBox):
 
         # only show new_review for installed stuff
         is_installed = (self._parent.app_details and
-                        self._parent.app_details.pkg_state == PkgStates.INSTALLED)
+            self._parent.app_details.pkg_state == PkgStates.INSTALLED)
 
         # show/hide new review button
         if is_installed:
             self.new_review.show()
         else:
             self.new_review.hide()
-            # if there are no reviews, the install to review text appears 
+            # if there are no reviews, the install to review text appears
             # where the reviews usually are (LP #823255)
             if self.reviews:
                 self._install_to_review()
@@ -301,7 +306,6 @@ class UIReviewsList(Gtk.VBox):
         # always run this here to make update the current ui based on the
         # network state
         self._on_network_state_change()
-        return
 
     def _on_more_reviews_clicked(self, button):
         # remove buttn and emit signal
@@ -323,11 +327,10 @@ class UIReviewsList(Gtk.VBox):
         ids = []
         for review in self.reviews:
             ids.append(review.id)
-        return ids 
+        return ids
 
     def add_review(self, review):
         self.reviews.append(review)
-        return
 
     def replace_review(self, review):
         for r in self.reviews:
@@ -336,14 +339,12 @@ class UIReviewsList(Gtk.VBox):
                 self.reviews.remove(r)
                 self.reviews.insert(pos, review)
                 break
-        return
 
     def remove_review(self, review):
         for r in self.reviews:
             if r.id == review.id:
                 self.reviews.remove(r)
                 break
-        return
 
     def clear(self):
         self.reviews = []
@@ -358,7 +359,7 @@ class UIReviewsList(Gtk.VBox):
             self.install_first_label.hide()
         except AttributeError:
             pass
-        
+
         a = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
         hb = Gtk.HBox(spacing=12)
         hb.show()
@@ -380,26 +381,23 @@ class UIReviewsList(Gtk.VBox):
 
         self.vbox.pack_start(a, False, False, 0)
         self.vbox.show()
-        return
 
     def hide_spinner(self):
         for child in self.vbox.get_children():
             if isinstance(child, Gtk.Alignment):
                 child.destroy()
-        return
 
     def draw(self, cr, a):
         for r in self.vbox:
             if isinstance(r, (UIReview)):
                 r.draw(cr, r.get_allocation())
-        return
 
 
 class UIReview(Gtk.VBox):
     """ the UI for a individual review including all button to mark
         useful/inappropriate etc
     """
-    def __init__(self, review_data=None, app_version=None, 
+    def __init__(self, review_data=None, app_version=None,
                  logged_in_person=None, useful_votes=None):
         GObject.GObject.__init__(self)
         self.set_spacing(StockEms.SMALL)
@@ -420,15 +418,15 @@ class UIReview(Gtk.VBox):
         self.delete_error_img = Gtk.Image()
         self.delete_error_img.set_from_stock(
                                 Gtk.STOCK_DIALOG_ERROR,
-                                Gtk.IconSize.SMALL_TOOLBAR) 
+                                Gtk.IconSize.SMALL_TOOLBAR)
         self.submit_error_img = Gtk.Image()
         self.submit_error_img.set_from_stock(
                                 Gtk.STOCK_DIALOG_ERROR,
                                 Gtk.IconSize.SMALL_TOOLBAR)
         self.submit_status_spinner = Gtk.Spinner()
-        self.submit_status_spinner.set_size_request(12,12)
+        self.submit_status_spinner.set_size_request(12, 12)
         self.delete_status_spinner = Gtk.Spinner()
-        self.delete_status_spinner.set_size_request(12,12)
+        self.delete_status_spinner.set_size_request(12, 12)
         self.acknowledge_error = Gtk.Button()
         label = Gtk.Label()
         label.set_markup('<small>%s</small>' % _("OK"))
@@ -465,7 +463,6 @@ class UIReview(Gtk.VBox):
 
     def _on_realize(self, widget, *content):
         self._build(*content)
-        return
 
     def _on_report_abuse_clicked(self, button):
         reviews = self.get_ancestor(UIReviewsList)
@@ -476,46 +473,54 @@ class UIReview(Gtk.VBox):
         reviews = self.get_ancestor(UIReviewsList)
         if reviews:
             reviews.emit("modify-review", self.id)
-    
+
     def _on_useful_clicked(self, btn, is_useful):
         reviews = self.get_ancestor(UIReviewsList)
         if reviews:
             self._usefulness_ui_update('progress')
             reviews.emit("submit-usefulness", self.id, is_useful)
-            
-    def _on_error_acknowledged(self, button, current_user_reviewer, useful_total, useful_favorable):
+
+    def _on_error_acknowledged(self, button, current_user_reviewer,
+        useful_total, useful_favorable):
         self.usefulness_error = False
-        self._usefulness_ui_update('renew', current_user_reviewer, useful_total, useful_favorable)
-    
-    def _usefulness_ui_update(self, type, current_user_reviewer=False, useful_total=0, useful_favorable=0):
+        self._usefulness_ui_update('renew', current_user_reviewer,
+            useful_total, useful_favorable)
+
+    def _usefulness_ui_update(self, type, current_user_reviewer=False,
+        useful_total=0, useful_favorable=0):
         self._hide_usefulness_elements()
         #print "_usefulness_ui_update: %s" % type
         if type == 'renew':
-            self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, self.useful_votes)
+            self._build_usefulness_ui(current_user_reviewer, useful_total,
+                useful_favorable, self.useful_votes)
             return
         if type == 'progress':
-            self.status_label = Gtk.Label.new("<small>%s</small>" % _(u"Submitting now\u2026"))
+            self.status_label = Gtk.Label.new(
+                "<small>%s</small>" % _(u"Submitting now\u2026"))
             self.status_label.set_use_markup(True)
-            self.status_box.pack_start(self.submit_status_spinner, False, False, 0)
+            self.status_box.pack_start(self.submit_status_spinner, False,
+                False, 0)
             self.submit_status_spinner.show()
             self.submit_status_spinner.start()
-            self.status_label.set_padding(2,0)
+            self.status_label.set_padding(2, 0)
             self.status_box.pack_start(self.status_label, False, False, 0)
             self.status_label.show()
         if type == 'error':
             self.submit_error_img.show()
-            self.status_label = Gtk.Label.new("<small>%s</small>" % _("Error submitting usefulness"))
+            self.status_label = Gtk.Label.new(
+                "<small>%s</small>" % _("Error submitting usefulness"))
             self.status_label.set_use_markup(True)
             self.status_box.pack_start(self.submit_error_img, False, False, 0)
-            self.status_label.set_padding(2,0)
+            self.status_label.set_padding(2, 0)
             self.status_box.pack_start(self.status_label, False, False, 0)
             self.status_label.show()
             self.acknowledge_error.show()
             self.status_box.pack_start(self.acknowledge_error, False, False, 0)
-            self.acknowledge_error.connect('clicked', self._on_error_acknowledged, current_user_reviewer, useful_total, useful_favorable)
+            self.acknowledge_error.connect('clicked',
+                self._on_error_acknowledged, current_user_reviewer,
+                useful_total, useful_favorable)
         self.status_box.show()
         self.footer.pack_start(self.status_box, False, False, 0)
-        return
 
     def _hide_usefulness_elements(self):
         """ hide all usefulness elements """
@@ -526,13 +531,13 @@ class UIReview(Gtk.VBox):
             widget = getattr(self, attr, None)
             if widget:
                 widget.hide()
-        return
 
     def _get_datetime_from_review_date(self, raw_date_str):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date_str, '%Y-%m-%d %H:%M:%S')
 
-    def _delete_ui_update(self, type, current_user_reviewer=False, action=None):
+    def _delete_ui_update(self, type, current_user_reviewer=False,
+        action=None):
         self._hide_delete_elements()
         if type == 'renew':
             self._build_delete_flag_ui(current_user_reviewer)
@@ -540,35 +545,42 @@ class UIReview(Gtk.VBox):
         if type == 'progress':
             self.delete_status_spinner.start()
             self.delete_status_spinner.show()
-            self.delete_status_label = Gtk.Label("<small><b>%s</b></small>" % _(u"Deleting now\u2026"))
-            self.delete_status_box.pack_start(self.delete_status_spinner, False, False, 0)
+            self.delete_status_label = Gtk.Label(
+                "<small><b>%s</b></small>" % _(u"Deleting now\u2026"))
+            self.delete_status_box.pack_start(self.delete_status_spinner,
+                False, False, 0)
             self.delete_status_label.set_use_markup(True)
-            self.delete_status_label.set_padding(2,0)
-            self.delete_status_box.pack_start(self.delete_status_label, False, False, 0)
+            self.delete_status_label.set_padding(2, 0)
+            self.delete_status_box.pack_start(self.delete_status_label, False,
+                False, 0)
             self.delete_status_label.show()
         if type == 'error':
             self.delete_error_img.show()
-            # build full strings for easier i18n 
+            # build full strings for easier i18n
             if action == 'deleting':
                 s = _("Error deleting review")
             elif action == 'modifying':
                 s = _("Error modifying review")
             else:
-                # or unknown error, but we are in string freeze, 
+                # or unknown error, but we are in string freeze,
                 # should never happen anyway
                 s = _("Internal Error")
-            self.delete_status_label = Gtk.Label("<small><b>%s</b></small>" % s)
-            self.delete_status_box.pack_start(self.delete_error_img, False, False, 0)
+            self.delete_status_label = Gtk.Label(
+                "<small><b>%s</b></small>" % s)
+            self.delete_status_box.pack_start(self.delete_error_img,
+                False, False, 0)
             self.delete_status_label.set_use_markup(True)
-            self.delete_status_label.set_padding(2,0)
-            self.delete_status_box.pack_start(self.delete_status_label, False, False, 0)
+            self.delete_status_label.set_padding(2, 0)
+            self.delete_status_box.pack_start(self.delete_status_label,
+                False, False, 0)
             self.delete_status_label.show()
             self.delete_acknowledge_error.show()
-            self.delete_status_box.pack_start(self.delete_acknowledge_error, False, False, 0)
-            self.delete_acknowledge_error.connect('clicked', self._on_delete_error_acknowledged, current_user_reviewer)
+            self.delete_status_box.pack_start(self.delete_acknowledge_error,
+                False, False, 0)
+            self.delete_acknowledge_error.connect('clicked',
+                self._on_delete_error_acknowledged, current_user_reviewer)
         self.delete_status_box.show()
         self.footer.pack_end(self.delete_status_box, False, False, 0)
-        return
 
     def _on_delete_clicked(self, btn):
         reviews = self.get_ancestor(UIReviewsList)
@@ -583,16 +595,16 @@ class UIReview(Gtk.VBox):
     def _hide_delete_elements(self):
         """ hide all delete elements """
         for attr in ["complain", "edit", "delete", "delete_status_spinner",
-                     "delete_error_img", "delete_status_box", "delete_status_label",
-                     "delete_acknowledge_error", "flagbox"
+                     "delete_error_img", "delete_status_box",
+                     "delete_status_label", "delete_acknowledge_error",
+                     "flagbox"
                      ]:
             o = getattr(self, attr, None)
             if o:
                 o.hide()
-        return
 
     def _build(self, review_data, app_version, logged_in_person, useful_votes):
-        # all the attributes of review_data may need markup escape, 
+        # all the attributes of review_data may need markup escape,
         # depening on if they are used as text or markup
         self.id = review_data.id
         self.person = review_data.reviewer_username
@@ -610,15 +622,15 @@ class UIReview(Gtk.VBox):
         # upstream version
         version = GObject.markup_escape_text(upstream_version(review_version))
         # default string
-        version_string = _("For version %(version)s") % { 
-            'version' : version,
+        version_string = _("For version %(version)s") % {
+            'version': version,
             }
         # If its for the same version, show it as such
         if (review_version and
             app_version and
             upstream_version_compare(review_version, app_version) == 0):
-            version_string = _("For this version (%(version)s)") % { 
-                    'version' : version,
+            version_string = _("For this version (%(version)s)") % {
+                    'version': version,
                     }
 
         m = '<small>%s</small>'
@@ -663,31 +675,34 @@ class UIReview(Gtk.VBox):
             current_user_reviewer = True
 
         self._build_usefulness_ui(current_user_reviewer, useful_total,
-                                  useful_favorable, useful_votes, useful_submit_error)
+                                  useful_favorable, useful_votes,
+                                  useful_submit_error)
 
         self.flagbox = Gtk.HBox()
         self.flagbox.set_spacing(4)
-        self._build_delete_flag_ui(current_user_reviewer, delete_error, modify_error)
+        self._build_delete_flag_ui(current_user_reviewer, delete_error,
+            modify_error)
         self.footer.pack_end(self.flagbox, False, False, 0)
 
         # connect network signals
         self.connect("realize", lambda w: self._on_network_state_change())
         watcher = get_network_watcher()
         watcher.connect(
-            "changed", lambda w,s: self._on_network_state_change())
-        return
-    
-    def _build_usefulness_ui(self, current_user_reviewer, useful_total, 
-                             useful_favorable, useful_votes, usefulness_submit_error=False):
+            "changed", lambda w, s: self._on_network_state_change())
+
+    def _build_usefulness_ui(self, current_user_reviewer, useful_total,
+                             useful_favorable, useful_votes,
+                             usefulness_submit_error=False):
         if usefulness_submit_error:
-            self._usefulness_ui_update('error', current_user_reviewer, 
+            self._usefulness_ui_update('error', current_user_reviewer,
                                        useful_total, useful_favorable)
         else:
             already_voted = useful_votes.check_for_usefulness(self.id)
-            #get correct label based on retrieved usefulness totals and 
+            #get correct label based on retrieved usefulness totals and
             # if user is reviewer
             self.useful = self._get_usefulness_label(
-                current_user_reviewer, useful_total, useful_favorable, already_voted)
+                current_user_reviewer, useful_total, useful_favorable,
+                already_voted)
             self.useful.set_use_markup(True)
             #vertically centre so it lines up with the Yes and No buttons
             self.useful.set_alignment(0, 0.5)
@@ -714,7 +729,6 @@ class UIReview(Gtk.VBox):
                 self.likebox.pack_start(self.yes_no_separator, False, False, 0)
                 self.likebox.pack_start(self.no_like, False, False, 0)
                 self.footer.pack_start(self.likebox, False, False, 0)
-        return
 
     def _on_network_state_change(self):
         """ show/hide widgets based on network connection state """
@@ -732,10 +746,10 @@ class UIReview(Gtk.VBox):
             # actually submit anything without network
             self.useful.hide()
             self.complain.hide()
-    
-    def _get_usefulness_label(self, current_user_reviewer, 
-                              useful_total,  useful_favorable, already_voted):
-        '''returns Gtk.Label() to be used as usefulness label depending 
+
+    def _get_usefulness_label(self, current_user_reviewer,
+                              useful_total, useful_favorable, already_voted):
+        '''returns Gtk.Label() to be used as usefulness label depending
            on passed in parameters
         '''
         if already_voted == None:
@@ -751,9 +765,10 @@ class UIReview(Gtk.VBox):
                     "found this review helpful.",
                     "%(useful_favorable)s of %(useful_total)s people "
                     "found this review helpful.",
-                    useful_total) % { 'useful_total' : useful_total,
-                                    'useful_favorable' : useful_favorable,
-                                    }
+                    useful_total) % {
+                        'useful_total': useful_total,
+                        'useful_favorable': useful_favorable,
+                        }
             else:
                 # user has not already voted for the review
                 s = gettext.ngettext(
@@ -761,9 +776,10 @@ class UIReview(Gtk.VBox):
                     "found this review helpful. Did you?",
                     "%(useful_favorable)s of %(useful_total)s people "
                     "found this review helpful. Did you?",
-                    useful_total) % { 'useful_total' : useful_total,
-                                    'useful_favorable' : useful_favorable,
-                                    }
+                    useful_total) % {
+                        'useful_total': useful_total,
+                        'useful_favorable': useful_favorable,
+                        }
         else:
         #only display these special strings if the user voted either way
             if already_voted:
@@ -775,9 +791,10 @@ class UIReview(Gtk.VBox):
                         "found this review helpful, including you",
                         "%(useful_favorable)s of %(useful_total)s people "
                         "found this review helpful, including you.",
-                        useful_total) % { 'useful_total' : useful_total,
-                                    'useful_favorable' : useful_favorable,
-                                    }
+                        useful_total) % {
+                            'useful_total': useful_total,
+                            'useful_favorable': useful_favorable,
+                            }
             else:
                 if useful_total == 1:
                     s = _("You found this review unhelpful.")
@@ -787,17 +804,19 @@ class UIReview(Gtk.VBox):
                         "found this review helpful; you did not.",
                         "%(useful_favorable)s of %(useful_total)s people "
                         "found this review helpful; you did not.",
-                        useful_total) % { 'useful_total' : useful_total,
-                                    'useful_favorable' : useful_favorable,
-                                    }
+                        useful_total) % {
+                            'useful_total': useful_total,
+                            'useful_favorable': useful_favorable,
+                            }
 
         m = '<small>%s</small>'
         label = Gtk.Label()
         label.set_name("subtle-label")
         label.set_markup(m % s)
         return label
-        
-    def _build_delete_flag_ui(self, current_user_reviewer, delete_error=False, modify_error=False):
+
+    def _build_delete_flag_ui(self, current_user_reviewer, delete_error=False,
+        modify_error=False):
         if delete_error:
             self._delete_ui_update('error', current_user_reviewer, 'deleting')
         elif modify_error:
@@ -814,16 +833,16 @@ class UIReview(Gtk.VBox):
                 self.edit.connect('clicked', self._on_modify_clicked)
                 self.delete.connect('clicked', self._on_delete_clicked)
             else:
-                # Translators: This link is for flagging a review as inappropriate.
-                # To minimize repetition, if at all possible, keep it to a single word.
-                # If your language has an obvious verb, it won't need a question mark.
+                # Translators: This link is for flagging a review as
+                # inappropriate.  To minimize repetition, if at all possible,
+                # keep it to a single word.  If your language has an obvious
+                # verb, it won't need a question mark.
                 self.complain = Link(m % _('Inappropriate?'))
                 self.complain.set_name("subtle-label")
                 self.complain.set_sensitive(network_state_is_connected())
                 self.flagbox.pack_start(self.complain, False, False, 0)
                 self.complain.connect('clicked', self._on_report_abuse_clicked)
             self.flagbox.show_all()
-            return
 
     def _whom_when_markup(self, person, displayname, cur_t):
         nice_date = get_nice_date_string(cur_t)
@@ -851,7 +870,7 @@ class UIReview(Gtk.VBox):
         return m
 
     def draw(self, widget, cr):
-        return
+        pass
 
 
 class EmbeddedMessage(UIReview):
@@ -860,7 +879,7 @@ class EmbeddedMessage(UIReview):
         UIReview.__init__(self)
         self.label = None
         self.image = None
-        
+
         a = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
         self.body.pack_start(a, False, False, 0)
 
@@ -878,16 +897,16 @@ class EmbeddedMessage(UIReview):
         self.label.set_alignment(0, 0.5)
 
         if title:
-            self.label.set_markup('<b><big>%s</big></b>\n%s' % (title, message))
+            self.label.set_markup('<b><big>%s</big></b>\n%s' %
+                (title, message))
         else:
             self.label.set_markup(message)
 
         hb.pack_start(self.label, True, True, 0)
         self.show_all()
-        return
 
     def draw(self, cr, a):
-        return
+        pass
 
 
 class NoReviewRelaxLanguage(EmbeddedMessage):
@@ -922,7 +941,6 @@ class NoReviewYetWriteOne(EmbeddedMessage):
         msg = _('Be the first to contribute a review for this application')
 
         EmbeddedMessage.__init__(self, title, msg, 'text-editor')
-        return
 
 
 def get_test_reviews_window():

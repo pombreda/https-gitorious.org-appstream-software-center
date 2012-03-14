@@ -1,7 +1,5 @@
 from gi.repository import Gtk, Gdk, GObject
 import logging
-import os
-import xapian
 
 from gettext import gettext as _
 
@@ -13,7 +11,7 @@ from cellrenderers import (CellRendererAppView,
                            CellButtonIDs)
 
 from softwarecenter.ui.gtk3.em import em, StockEms
-from softwarecenter.enums import (AppActions, NonAppVisibility, Icons)
+from softwarecenter.enums import (AppActions, Icons)
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.backend import get_install_backend
 from softwarecenter.netstatus import (get_network_watcher,
@@ -45,7 +43,7 @@ class AppTreeView(Gtk.TreeView):
         self._action_block_list = []
         self._needs_collapse = []
         self.expanded_path = None
-        
+
         # pixbuf for the icon that is displayed in the selected row
         self.selected_row_icon = None
 
@@ -56,7 +54,8 @@ class AppTreeView(Gtk.TreeView):
             self.set_property("ubuntu-almost-fixed-height-mode", True)
             self.set_fixed_height_mode(True)
         except:
-            self._logger.warn("ubuntu-almost-fixed-height-mode extension not available")
+            self._logger.warn(
+                "ubuntu-almost-fixed-height-mode extension not available")
 
         self.set_headers_visible(False)
 
@@ -124,7 +123,7 @@ class AppTreeView(Gtk.TreeView):
         if isinstance(model, Gtk.TreeModelFilter):
             return model.get_model()
         return model
-        
+
     def clear_model(self):
         vadjustment = self.get_scrolled_window_vadjustment()
         if vadjustment:
@@ -136,7 +135,7 @@ class AppTreeView(Gtk.TreeView):
 
     def expand_path(self, path):
         if path is not None and not isinstance(path, Gtk.TreePath):
-            raise TypeError, ("Expects Gtk.TreePath or None, got %s" %
+            raise TypeError("Expects Gtk.TreePath or None, got %s" %
                               type(path))
 
         model = self.get_model()
@@ -156,33 +155,35 @@ class AppTreeView(Gtk.TreeView):
                            "path is an invalid tree path: '%s'" % old)
                     logging.debug(msg)
 
-        if path == None: return
+        if path == None:
+            return
 
         model.row_changed(path, model.get_iter(path))
-        return
 
     def get_scrolled_window_vadjustment(self):
         ancestor = self.get_ancestor(Gtk.ScrolledWindow)
         if ancestor:
             return ancestor.get_vadjustment()
-        return None
 
     def get_rowref(self, model, path):
-        if path == None: return None
-        return model[path][AppGenericStore.COL_ROW_DATA]
+        if path is not None:
+            return model[path][AppGenericStore.COL_ROW_DATA]
 
     def rowref_is_category(self, rowref):
         return isinstance(rowref, CategoryRowReference)
 
     def _on_realize(self, widget, tr):
-        # connect to backend events once self is realized so handlers 
+        # connect to backend events once self is realized so handlers
         # have access to the TreeView's initialised Gdk.Window
-        if self._transactions_connected: return
-        self.backend.connect("transaction-started", self._on_transaction_started, tr)
-        self.backend.connect("transaction-finished", self._on_transaction_finished, tr)
-        self.backend.connect("transaction-stopped", self._on_transaction_stopped, tr)
+        if self._transactions_connected:
+            return
+        self.backend.connect("transaction-started",
+            self._on_transaction_started, tr)
+        self.backend.connect("transaction-finished",
+            self._on_transaction_finished, tr)
+        self.backend.connect("transaction-stopped",
+            self._on_transaction_stopped, tr)
         self._transactions_connected = True
-        return
 
     def _calc_row_heights(self, tr):
         ypad = StockEms.SMALL
@@ -195,13 +196,11 @@ class AppTreeView(Gtk.TreeView):
 
         btn_h = btn.height
 
-        tr.normal_height = max(32 + 2*ypad, em(2.5) + ypad)
+        tr.normal_height = max(32 + 2 * ypad, em(2.5) + ypad)
         tr.selected_height = tr.normal_height + btn_h + StockEms.MEDIUM
-        return
 
     def _on_style_updated(self, widget, tr):
         self._calc_row_heights(tr)
-        return
 
     def _on_motion(self, tree, event, tr):
         window = self.get_window()
@@ -216,7 +215,8 @@ class AppTreeView(Gtk.TreeView):
             return
 
         rowref = self.get_rowref(tree.get_model(), path[0])
-        if not rowref: return
+        if not rowref:
+            return
 
         if self.rowref_is_category(rowref):
             window.set_cursor(None)
@@ -249,7 +249,6 @@ class AppTreeView(Gtk.TreeView):
             window.set_cursor(self._cursor_hand)
         else:
             window.set_cursor(None)
-        return
 
     def _on_cursor_changed(self, view, tr):
         model = view.get_model()
@@ -257,9 +256,11 @@ class AppTreeView(Gtk.TreeView):
         path = view.get_cursor()[0]
 
         rowref = self.get_rowref(model, path)
-        if not rowref: return
+        if not rowref:
+            return
 
-        if self.has_focus(): self.grab_focus()
+        if self.has_focus():
+            self.grab_focus()
 
         if self.rowref_is_category(rowref):
             self.expand_path(None)
@@ -267,7 +268,6 @@ class AppTreeView(Gtk.TreeView):
 
         sel.select_path(path)
         self._update_selected_row(view, tr, path)
-        return
 
     def _update_selected_row(self, view, tr, path=None):
         # keep track of the currently selected row renderer for use when
@@ -279,7 +279,7 @@ class AppTreeView(Gtk.TreeView):
         if not sel:
             return False
         model, rows = sel.get_selected_rows()
-        if not rows: 
+        if not rows:
             return False
         row = rows[0]
         if self.rowref_is_category(row):
@@ -344,53 +344,60 @@ class AppTreeView(Gtk.TreeView):
 
         x, y = self.get_pointer()
         for btn in tr.get_buttons():
-            if btn.point_in(x, y): 
+            if btn.point_in(x, y):
                 return
 
         app = self.appmodel.get_application(rowref)
         if app:
             self.app_view.emit("application-activated", app)
-        return
 
     def _on_button_event_get_path(self, view, event):
-        if event.button != 1: return False
+        if event.button != 1:
+            return False
 
         res = view.get_path_at_pos(int(event.x), int(event.y))
-        if not res: return False
+        if not res:
+            return False
 
         # check the path is valid and is not a category row
         path = res[0]
-        is_cat = self.rowref_is_category(self.get_rowref(view.get_model(), path))
-        if path is None or is_cat: return False
+        is_cat = self.rowref_is_category(self.get_rowref(view.get_model(),
+            path))
+        if path is None or is_cat:
+            return False
 
         # only act when the selection is already there
         selection = view.get_selection()
-        if not selection.path_is_selected(path): return False
+        if not selection.path_is_selected(path):
+            return False
 
         return path
 
     def _on_button_press_event(self, view, event, tr):
-        if not self._on_button_event_get_path(view, event): return
+        if not self._on_button_event_get_path(view, event):
+            return
 
         self.pressed = True
         x, y = int(event.x), int(event.y)
         for btn in tr.get_buttons():
-            if btn.point_in(x, y) and (btn.state != Gtk.StateFlags.INSENSITIVE):
+            if (btn.point_in(x, y) and
+                (btn.state != Gtk.StateFlags.INSENSITIVE)):
                 self.focal_btn = btn
                 btn.set_state(Gtk.StateFlags.ACTIVE)
                 view.queue_draw()
                 return
         self.focal_btn = None
-        return
 
     def _on_button_release_event(self, view, event, tr):
         path = self._on_button_event_get_path(view, event)
-        if not path: return
+        if not path:
+            return
 
         self.pressed = False
         x, y = int(event.x), int(event.y)
         for btn in tr.get_buttons():
-            if btn.point_in(x, y) and (btn.state != Gtk.StateFlags.INSENSITIVE):
+            if (btn.point_in(x, y) and
+                (btn.state != Gtk.StateFlags.INSENSITIVE)):
                 btn.set_state(Gtk.StateFlags.NORMAL)
                 self.get_window().set_cursor(self._cursor_hand)
                 if self.focal_btn is not btn:
@@ -399,22 +406,23 @@ class AppTreeView(Gtk.TreeView):
                 view.queue_draw()
                 break
         self.focal_btn = None
-        return
 
     def _on_key_press_event(self, widget, event, tr):
         kv = event.keyval
         #print kv
         r = False
-        if kv == Gdk.KEY_Right: # right-key
+        if kv == Gdk.KEY_Right:  # right-key
             btn = tr.get_button_by_name(CellButtonIDs.ACTION)
-            if btn is None: return  # Bug #846779
+            if btn is None:
+                return  # Bug #846779
             if btn.state != Gtk.StateFlags.INSENSITIVE:
                 btn.has_focus = True
                 btn = tr.get_button_by_name(CellButtonIDs.INFO)
                 btn.has_focus = False
-        elif kv == Gdk.KEY_Left: # left-key
+        elif kv == Gdk.KEY_Left:  # left-key
             btn = tr.get_button_by_name(CellButtonIDs.ACTION)
-            if btn is None: return  # Bug #846779
+            if btn is None:
+                return  # Bug #846779
             btn.has_focus = False
             btn = tr.get_button_by_name(CellButtonIDs.INFO)
             btn.has_focus = True
@@ -463,12 +471,17 @@ class AppTreeView(Gtk.TreeView):
                             app,
                             model,
                             path)
-        return
 
     def _cell_data_func_cb(self, col, cell, model, it, user_data):
 
         path = model.get_path(it)
 
+        # this will give us the right underlying model regardless if its
+        # a TreeModelFilter, a AppTreeStore or a AppListStore
+        model = self.appmodel
+
+        # this will pre-load data *only* on a AppListStore, it has
+        # no effect with a AppTreeStore
         if model[path][0] is None:
             indices = path.get_indices()
             model.load_range(indices, 5)
@@ -483,12 +496,11 @@ class AppTreeView(Gtk.TreeView):
             return
 
         cell.set_property('isactive', path == self.expanded_path)
-        return
 
     def _app_activated_cb(self, btn, btn_id, app, store, path):
-        if self.rowref_is_category(app): 
+        if self.rowref_is_category(app):
             return
-        
+
         # FIXME: would be nice if that would be more elegant
         # because we use a treefilter we need to get the "real"
         # model first
@@ -521,7 +533,7 @@ class AppTreeView(Gtk.TreeView):
                 action = AppActions.INSTALL
 
             store.notify_action_request(app, path)
-            
+
             app_manager.request_action(
                 self.appmodel.get_application(app), [], [],
                 action)
@@ -535,15 +547,20 @@ class AppTreeView(Gtk.TreeView):
             if btn.point_in(x, y):
                 window.set_cursor(cursor)
 
-    def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type, tr):
-        """ callback when an application install/remove transaction has started """
+    def _on_transaction_started(self, backend, pkgname, appname, trans_id,
+        trans_type, tr):
+        """callback when an application install/remove transaction has
+        started
+        """
         action_btn = tr.get_button_by_name(CellButtonIDs.ACTION)
         if action_btn:
             action_btn.set_sensitive(False)
             self._set_cursor(action_btn, None)
 
     def _on_transaction_finished(self, backend, result, tr):
-        """ callback when an application install/remove transaction has finished """
+        """callback when an application install/remove transaction has
+        finished
+        """
         # need to send a cursor-changed so the row button is properly updated
         self.emit("cursor-changed")
         # remove pkg from the block list
@@ -555,13 +572,15 @@ class AppTreeView(Gtk.TreeView):
             self._set_cursor(action_btn, self._cursor_hand)
 
     def _on_transaction_stopped(self, backend, result, tr):
-        """ callback when an application install/remove transaction has stopped """
+        """callback when an application install/remove transaction has
+        stopped
+        """
         # remove pkg from the block list
         self._check_remove_pkg_from_blocklist(result.pkgname)
 
         action_btn = tr.get_button_by_name(CellButtonIDs.ACTION)
         if action_btn:
-            # this should be a function that decides action button state label...
+            # this should be a function that decides action button state label
             if action_btn.current_variant == self.VARIANT_INSTALL:
                 action_btn.set_markup(self.VARIANT_REMOVE)
             action_btn.set_sensitive(True)
@@ -571,7 +590,6 @@ class AppTreeView(Gtk.TreeView):
         self._update_selected_row(self, tr)
         # queue a draw just to be sure the view is looking right
         self.queue_draw()
-        return
 
     def _check_remove_pkg_from_blocklist(self, pkgname):
         if pkgname in self._action_block_list:
@@ -586,42 +604,6 @@ class AppTreeView(Gtk.TreeView):
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
 
 
-def get_query_from_search_entry(search_term):
-    if not search_term:
-        return xapian.Query("")
-    parser = xapian.QueryParser()
-    user_query = parser.parse_query(search_term)
-    return user_query
-
-def on_entry_changed(widget, data):
-
-    def _work():
-        new_text = widget.get_text()
-        (view, enquirer) = data
-
-        with ExecutionTime("total time"):
-            with ExecutionTime("enquire.set_query()"):
-                enquirer.set_query(get_query_from_search_entry(new_text),
-                                  limit=100*1000,
-                                  nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE)
-
-            store = view.tree_view.get_model()
-            with ExecutionTime("store.clear()"):
-                store.clear()
-
-            with ExecutionTime("store.set_documents()"):
-                store.set_from_matches(enquirer.matches)
-
-            with ExecutionTime("model settle (size=%s)" % len(store)):
-                while Gtk.events_pending():
-                    Gtk.main_iteration()
-        return
-
-    if widget.stamp: GObject.source_remove(widget.stamp)
-    widget.stamp = GObject.timeout_add(250, _work)
-
-
-
 def get_test_window():
     import softwarecenter.log
     softwarecenter.log.root.setLevel(level=logging.DEBUG)
@@ -629,24 +611,13 @@ def get_test_window():
     fmt = logging.Formatter("%(name)s - %(message)s", None)
     softwarecenter.log.handler.setFormatter(fmt)
 
-    from softwarecenter.paths import XAPIAN_BASE_PATH
-    xapian_base_path = XAPIAN_BASE_PATH
-    pathname = os.path.join(xapian_base_path, "xapian")
+    from softwarecenter.testutils import (
+        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache,
+        get_test_categories)
 
-    # the store
-    from softwarecenter.db.pkginfo import get_pkg_info
-    cache = get_pkg_info()
-    cache.open()
-
-    # the db
-    from softwarecenter.db.database import StoreDatabase
-    db = StoreDatabase(pathname, cache)
-    db.open()
-
-    # additional icons come from app-install-data
-    icons = Gtk.IconTheme.get_default()
-    icons.prepend_search_path("/usr/share/app-install/icons/")
-    icons.prepend_search_path("/usr/share/software-center/icons/")
+    cache = get_test_pkg_info()
+    db = get_test_db()
+    icons = get_test_gtk3_icon_cache()
 
     # create a filter
     from softwarecenter.db.appfilter import AppFilter
@@ -654,35 +625,34 @@ def get_test_window():
     filter.set_supported_only(False)
     filter.set_installed_only(True)
 
-    # appview
-    from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
-    from softwarecenter.db.enquire import AppEnquire
-    enquirer = AppEnquire(cache, db)
-    store = AppListStore(db, cache, icons)
+    # get the TREEstore
+    from softwarecenter.ui.gtk3.models.appstore2 import AppTreeStore
+    store = AppTreeStore(db, cache, icons)
 
+    # populate from data
+    cats = get_test_categories(db)
+    for cat in cats[:3]:
+        with ExecutionTime("query cat '%s'" % cat.name):
+            docs = db.get_docs_from_query(cat.query)
+            store.set_category_documents(cat, docs)
+
+    # ok, this is confusing - the AppView contains the AppTreeView that
+    #                         is a tree or list depending on the model
     from softwarecenter.ui.gtk3.views.appview import AppView
-    view = AppView(db, cache, icons, show_ratings=True)
-    view.set_model(store)
+    app_view = AppView(db, cache, icons, show_ratings=True)
+    app_view.set_model(store)
 
-    entry = Gtk.Entry()
-    entry.stamp = 0
-    entry.connect("changed", on_entry_changed, (view, enquirer))
-    entry.set_text("gtk3")
-
-    scroll = Gtk.ScrolledWindow()
     box = Gtk.VBox()
-    box.pack_start(entry, False, True, 0)
-    box.pack_start(scroll, True, True, 0)
+    box.pack_start(app_view, True, True, 0)
 
     win = Gtk.Window()
-    win.connect("destroy", lambda x: Gtk.main_quit())
-    scroll.add(view)
     win.add(box)
+    win.connect("destroy", lambda x: Gtk.main_quit())
     win.set_size_request(600, 400)
     win.show_all()
 
     return win
-    
+
 
 if __name__ == "__main__":
     win = get_test_window()
