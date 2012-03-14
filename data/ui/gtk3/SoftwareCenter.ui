@@ -164,13 +164,13 @@ Konstantin Datz - Icon
                       </object>
                     </child>
                     <child>
-                      <object class="GtkCheckMenuItem" id="menuitem_recommendations_opt_in">
+                      <object class="GtkMenuItem" id="menuitem_recommendations_opt_out">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_action_appearance">False</property>
-                        <property name="label" translatable="yes">Turn On Recommendations</property>
+                        <property name="label" translatable="yes">Turn Off Recommendations</property>
                         <property name="use_underline">True</property>
-                        <signal name="toggled" handler="on_menuitem_recommendations_opt_in_toggled" swapped="no"/>
+                        <signal name="activate" handler="on_menuitem_recommendations_opt_out_activate" swapped="no"/>
                       </object>
                     </child>
                     <child>
