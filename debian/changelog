@@ -5,6 +5,11 @@ software-center (5.1.13) UNRELEASED; urgency=low
     lp:~elachuni/software-center/pep8-test-part6,
     lp:~elachuni/software-center/pep8-test-part7:
     - pep8 fixes for many more files in ui.gtk3.widgets
+  
+  [ Gabor Kelemen ]  
+  * lp:~kelemeng/software-center/bug953812: (LP: #953812)
+    - Translate review sorting criteria
+    - Fix the Recommendation spinner text translations
 
  -- Kiwinote <kiwinote@gmail.com>  Mon, 12 Mar 2012 17:54:18 +0000
 
