@@ -8,15 +8,17 @@ setup_test_env()
 
 # Only test these two packages for now:
 import softwarecenter.db.pkginfo_impl
+import softwarecenter.ui.gtk3.views
 import softwarecenter.ui.gtk3.widgets
 import softwarecenter.ui.qml
 
 class PackagePep8TestCase(unittest.TestCase):
     maxDiff = None
     packages = [softwarecenter.ui.qml,
+                softwarecenter.ui.gtk3.views,
                 softwarecenter.ui.gtk3.widgets,
                 softwarecenter.db.pkginfo_impl]
-    exclude = []
+    exclude = ['appdetailsview.py']
 
     def message(self, text):
         self.errors.append(text)
