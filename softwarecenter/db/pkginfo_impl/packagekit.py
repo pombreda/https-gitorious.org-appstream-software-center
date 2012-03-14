@@ -136,6 +136,9 @@ class PackagekitInfo(PackageInfo):
             self._cache_details[packageid] = detail
 
     def prefill_cache(self, wanted_pkgs = None, prefill_descriptions = False, use_resolve = True):
+        if wanted_pkgs:
+            wanted_pkgs = list(set(wanted_pkgs))
+
         pfilter = 1 << packagekit.FilterEnum.NEWEST
         try:
             if wanted_pkgs and use_resolve:
