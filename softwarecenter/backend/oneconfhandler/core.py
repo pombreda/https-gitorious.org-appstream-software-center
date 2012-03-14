@@ -17,12 +17,12 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-
 from oneconf.dbusconnect import DbusConnect
 from oneconf.enums import MIN_TIME_WITHOUT_ACTIVITY
 
 from softwarecenter.backend.login_sso import get_sso_backend
 from softwarecenter.backend.ubuntusso import get_ubuntu_sso_backend
+from softwarecenter.enums import SOFTWARE_CENTER_NAME_KEYRING
 
 import datetime
 from gi.repository import GObject
@@ -31,7 +31,7 @@ import logging
 from gettext import gettext as _
 
 LOG = logging.getLogger(__name__)
-
+1
 class OneConfHandler(GObject.GObject):
 
     __gsignals__ = {
@@ -51,9 +51,6 @@ class OneConfHandler(GObject.GObject):
     
         LOG.debug("OneConf Handler init")
         super(OneConfHandler, self).__init__()
-        
-        # FIXME: should be an enum common to OneConf and here
-        self.appname = "Ubuntu Software Center"
         
         # OneConf stuff
         self.oneconf = DbusConnect()
@@ -165,8 +162,8 @@ class OneConfHandler(GObject.GObject):
         logging.debug("OneConf login()")
         help_text = _("With multiple Ubuntu computers, you can publish their inventories online to compare the software installed on each\n"
                       "No-one else will be able to see what you have installed.")
-        self.sso = get_sso_backend(0,
-                                   self.appname, help_text)
+        self.sso = get_sso_backend(
+            0, SOFTWARE_CENTER_NAME_KEYRING, help_text)
         self.sso.connect("login-successful", self._maybe_login_successful)
         self.sso.connect("login-canceled", self._login_canceled)
         self.sso.login_or_register()
