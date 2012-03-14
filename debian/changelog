@@ -8,9 +8,9 @@ software-center (5.1.13) UNRELEASED; urgency=low
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/recommendations-categories-view:
-    - fix the display of recommendations in the categories view 
+    - display recommendations in the categories view as well
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 12 Mar 2012 18:28:22 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 14 Mar 2012 10:46:57 -0400
 
 software-center (5.1.12) precise; urgency=low
 
