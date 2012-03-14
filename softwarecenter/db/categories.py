@@ -143,15 +143,13 @@ class RecommendedForYouCategory(Category):
         self.subcategory = subcategory
         if subcategory:
             # this is the set of recommendations for a given subcategory
-            cat_title =(
-                (u"Recommended for You in %s" % subcategory.name,
-                _(u"Recommended for You in %s") % subcategory.name))
+            cat_title = u"Recommended for You in %s" % subcategory.name
         else:
             # this is the full set of recommendations for e.g. the lobby view
-            cat_title = (u"Recommended for You", _("Recommended for You"))
+            cat_title = u"Recommended for You"
         super(RecommendedForYouCategory, self).__init__(
-                cat_title[0],
-                cat_title[1],
+                cat_title,
+                _(cat_title),
                 None, 
                 xapian.Query(),
                 flags=['available-only', 'not-installed-only'], 
@@ -196,7 +194,7 @@ class AppRecommendationsCategory(Category):
 
     def __init__(self, pkgname):
         super(AppRecommendationsCategory, self).__init__(
-            u"People Also Installed", _("People Also Installed"), None, 
+            u"People Also Installed", _(u"People Also Installed"), None, 
             xapian.Query(),flags=['available-only', 'not-installed-only'], 
             item_limit=4)
         self.recommender_agent = RecommenderAgent()
