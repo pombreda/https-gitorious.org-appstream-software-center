@@ -472,8 +472,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_available_pane_created(self, widget):
         self.available_pane.searchentry.grab_focus()
         rec_panel = self.available_pane.cat_view.recommended_for_you_panel
-        self._show_recommender_opt_out_menuitem(
-                        rec_panel.recommender_agent.is_opted_in())
+        self._update_recommendations_menuitem(
+                        opted_in=rec_panel.recommender_agent.is_opted_in())
         # connect a signal to monitor the recommendations opt-in state and
         # persist the recommendations uuid on an opt-in
         self.available_pane.cat_view.recommended_for_you_panel.connect(
@@ -488,22 +488,21 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def _on_recommendations_opt_in(self, rec_panel, recommender_uuid):
         self.recommender_uuid = recommender_uuid
-        self._show_recommender_opt_out_menuitem(True)
+        self._update_recommendations_menuitem(opted_in=True)
 
     def _on_recommendations_opt_out(self, rec_panel):
         # if the user opts back out of the recommender service, we
         # reset the recommender UUID to indicate it
         self.recommender_uuid = ""
-        self._show_recommender_opt_out_menuitem(False)
+        self._update_recommendations_menuitem(opted_in=False)
         
-    def _show_recommender_opt_out_menuitem(self, show_menu_item):
-        recommendations_opt_out_menuitem = self.builder.get_object(
-                                            "menuitem_recommendations_opt_out")
-        rec_panel = self.available_pane.cat_view.recommended_for_you_panel
-        if show_menu_item:
-            recommendations_opt_out_menuitem.show()
+    def _update_recommendations_menuitem(self, opted_in):
+        recommendations_menuitem = self.builder.get_object(
+                                            "menuitem_recommendations")
+        if opted_in:
+            recommendations_menuitem.set_label(_(u"Turn Off Recommendations"))
         else:
-            recommendations_opt_out_menuitem.hide()
+            recommendations_menuitem.set_label(_(u"Turn On Recommendations..."))
 
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
@@ -748,9 +747,13 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.scagent.connect("available-for-me", 
                                  self._available_for_me_result)
             
-    def on_menuitem_recommendations_opt_out_activate(self, menu_item):
+    def on_menuitem_recommendations_activate(self, menu_item):
         rec_panel = self.available_pane.cat_view.recommended_for_you_panel
-        rec_panel.opt_out_of_recommendations_service()
+        if rec_panel.recommender_agent.is_opted_in():
+            rec_panel.opt_out_of_recommendations_service()
+        else:
+            # TODO: SHOW A DIALOG FIRST
+            rec_panel.opt_in_to_recommendations_service()
 
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
         self.view_manager.set_active_view(ViewPages.AVAILABLE)
