@@ -22,24 +22,26 @@ from gi.repository import Gtk, Gdk, GObject
 
 LOG = logging.getLogger(__name__)
 
+
 class ActionBar(Gtk.HBox):
     """
     This is a gtk box wrapped so that all child widgets, save one, align
     to the right. The widget does not show by default when its parent
     calls show_all(), but rather autoshows and autohides when buttons
-    (or a left-aligned label) are added and removed. 
+    (or a left-aligned label) are added and removed.
 
     The widget is only intended to hold buttons and a label, for which
     it has specific methods; general add and pack are not implemented.
 
-    See: https://wiki.ubuntu.com/SoftwareCenter#Main%20window
-    https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
-    https://wiki.ubuntu.com/SoftwareCenter#software-list-view-disclosure
-    https://wiki.ubuntu.com/SoftwareCenter#Learning_how_to_launch_an_application
+    See:
+https://wiki.ubuntu.com/SoftwareCenter#Main%20window
+https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
+https://wiki.ubuntu.com/SoftwareCenter#software-list-view-disclosure
+https://wiki.ubuntu.com/SoftwareCenter#Learning_how_to_launch_an_application
     """
-    
+
     PADDING = 4
-    
+
     ANIMATE_START_DELAY = 50
     ANIMATE_STEP_INTERVAL = 10
     ANIMATE_STEP = 8
@@ -52,7 +54,7 @@ class ActionBar(Gtk.HBox):
         self._label.set_border_width(self.PADDING)
         # So that all buttons children right align
         self._btn_bin = Gtk.Alignment.new(1.0, 0.0, 1.0, 1.0)
-        self._btn_bin.set_padding(0,0,0,10)
+        self._btn_bin.set_padding(0, 0, 0, 10)
         self._btn_bin.add(self._btns)
         # Buttons go on the right, labels on the left (in LTR mode)
         super(ActionBar, self).pack_start(self._label, False, False, 10)
@@ -63,7 +65,7 @@ class ActionBar(Gtk.HBox):
         self._label.show_all()
         self._btn_bin.show_all()
         self._visible = False
-        
+
         # listen for size allocation events, used for implementing the
         # action bar slide in/out animation effect
         self.connect('size-allocate', self._on_size_allocate)
@@ -100,8 +102,9 @@ class ActionBar(Gtk.HBox):
         children = self._btns.get_children()
         for child in children:
             if child.id == id:
-                # lock the height of the action bar when removing buttons to prevent
-                # an unsightly resize if a label remains but all buttons are removed
+                # lock the height of the action bar when removing buttons to
+                # prevent an unsightly resize if a label remains but all
+                # buttons are removed
                 self.set_size_request(-1, self.get_allocation().height)
                 self._btns.remove(child)
                 if len(children) == 1 and not len(self._label):
@@ -234,7 +237,7 @@ class ActionBar(Gtk.HBox):
             self._slide_in()
         else:
             super(ActionBar, self).show()
-            
+
     def _hide(self, animate):
         if not self._visible or self._is_sliding_out:
             return
@@ -244,8 +247,7 @@ class ActionBar(Gtk.HBox):
             self.set_size_request(-1, -1)
             self._visible = False
             super(ActionBar, self).hide()
-        return
-        
+
     def _slide_in(self):
         self._is_sliding_in = True
         self._target_height = self.get_size_request()[1]
@@ -254,7 +256,6 @@ class ActionBar(Gtk.HBox):
         super(ActionBar, self).show()
         GObject.timeout_add(self.ANIMATE_START_DELAY,
                             self._slide_in_cb)
-        return
 
     def _slide_out(self):
         self._is_sliding_out = True
@@ -262,8 +263,7 @@ class ActionBar(Gtk.HBox):
         self._current_height = self.get_size_request()[1]
         GObject.timeout_add(self.ANIMATE_START_DELAY,
                             self._slide_out_cb)
-        return
-    
+
     def _slide_in_cb(self):
         if (self._is_sliding_in and
             self._current_height < self._target_height):
@@ -273,8 +273,7 @@ class ActionBar(Gtk.HBox):
             self.set_size_request(-1, new_height)
         else:
             self._is_sliding_in = False
-        return
-    
+
     def _slide_out_cb(self):
         if (self._is_sliding_out and
             self._current_height > self._target_height):
@@ -287,8 +286,7 @@ class ActionBar(Gtk.HBox):
                 super(ActionBar, self).hide()
             else:
                 self.set_size_request(-1, new_height)
-        return
-    
+
     def _on_size_allocate(self, widget, allocation):
         # FIXME: mvo: allocation.height is no longer accessable with gtk3
         #        THIS SEEMS TO BREAK THE ANIMATION
@@ -306,7 +304,6 @@ class ActionBar(Gtk.HBox):
                                 priority=100)
         else:
             self.queue_draw()
-        return
 
     def _on_draw(self, widget, cr):
         a = widget.get_allocation()
@@ -320,9 +317,8 @@ class ActionBar(Gtk.HBox):
         cr.set_source_rgba(color.red, color.green, color.blue, 0.5)
         cr.set_line_width(1)
         cr.move_to(0.5, 0.5)
-        cr.rel_line_to(a.width-1, 0)
+        cr.rel_line_to(a.width - 1, 0)
         cr.stroke()
-        return
 
     def _callback(self, function, args):
         # Disposes of the 'widget' argument that
