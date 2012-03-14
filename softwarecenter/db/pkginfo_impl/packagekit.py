@@ -140,6 +140,10 @@ class PackagekitInfo(PackageInfo):
         try:
             if wanted_pkgs and use_resolve:
                 pkgs = []
+                # FIXME: 100 is not a random value, it's the default value of
+                # MaximumItemsToResolve in /etc/PackageKit.conf.
+                # If the configuration is changed to a lower value, this will
+                # fail badly...
                 for i in xrange(0, len(wanted_pkgs), 100):
                     result = self.client.resolve(pfilter, wanted_pkgs[i:i+100], None, self._on_progress_changed, None)
                     newpkgs = result.get_package_array()
