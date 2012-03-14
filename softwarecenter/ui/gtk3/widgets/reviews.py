@@ -131,7 +131,7 @@ class UIReviewsList(Gtk.VBox):
         self.sort_combo = Gtk.ComboBoxText()
         self._current_sort = 0
         for sort_method in ReviewSortMethods.REVIEW_SORT_LIST_ENTRIES:
-            self.sort_combo.append_text(sort_method)
+            self.sort_combo.append_text(_(sort_method))
         self.sort_combo.set_active(self._current_sort)
         self.sort_combo.connect('changed', self._on_sort_method_changed)
         self.header.pack_end(self.sort_combo, False, False, 3)

@@ -127,7 +127,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self._upload_user_profile()
 
     def _upload_user_profile(self):
-        self.spinner_notebook.show_spinner(_("Submitting inventory…"))
+        self.spinner_notebook.show_spinner(_(u"Submitting inventory…"))
         self.recommender_agent.connect("submit-profile-finished",
                                   self._on_profile_submitted)
         self.recommender_agent.connect("error",
@@ -157,7 +157,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
         self.header_implements_more_button()
         self.recommended_for_you_content = FlowableGrid()
         self.add(self.recommended_for_you_content)
-        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
+        self.spinner_notebook.show_spinner(_(u"Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.recommended_for_you_cat = RecommendedForYouCategory()
         self.recommended_for_you_cat.connect(
@@ -210,7 +210,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
 
     def _update_app_recommendations_content(self):
         self.app_recommendations_content.remove_all()
-        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
+        self.spinner_notebook.show_spinner(_(u"Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.app_recommendations_cat = AppRecommendationsCategory(self.pkgname)
         self.app_recommendations_cat.connect(

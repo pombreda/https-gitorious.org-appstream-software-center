@@ -59,8 +59,9 @@ from softwarecenter.backend.piston.scaclient import SoftwareCenterAgentAPI
 from softwarecenter.backend.piston.sreclient_pristine import SoftwareCenterRecommenderAPI
 
 # patch default_service_root to the one we use
-from softwarecenter.enums import SSO_LOGIN_HOST
-UbuntuSsoAPI.default_service_root = SSO_LOGIN_HOST+"/api/1.0"
+from softwarecenter.enums import UBUNTU_SSO_SERVICE
+# *Don't* append /api/1.0, as it's already included in UBUNTU_SSO_SERVICE
+UbuntuSsoAPI.default_service_root = UBUNTU_SSO_SERVICE
 
 from softwarecenter.enums import RECOMMENDER_HOST
 SoftwareCenterRecommenderAPI.default_service_root = RECOMMENDER_HOST+"/api/1.0"
