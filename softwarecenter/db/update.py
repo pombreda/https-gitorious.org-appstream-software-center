@@ -397,6 +397,9 @@ class AppStreamXMLParser(AppInfoParserBase):
     @property
     def desktopf(self):
         subelm = self.appinfo_xml.find("id")
+        if not subelm:
+            return None
+
         return subelm.text
 
 class DesktopTagSectionParser(AppInfoParserBase):
@@ -708,6 +711,8 @@ def make_doc_from_parser(parser, cache):
         untranslated_name = parser.get_desktop("Name", translated=False)
 
     if not name:
+        return
+    if not parser.desktopf:
         return
 
     doc.set_data(name)
