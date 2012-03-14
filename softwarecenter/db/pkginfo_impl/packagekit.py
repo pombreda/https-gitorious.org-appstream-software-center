@@ -135,11 +135,19 @@ class PackagekitInfo(PackageInfo):
             packageid = detail.get_property('package-id')
             self._cache_details[packageid] = detail
 
-    def prefill_cache(self, wanted_pkgs = None, prefill_descriptions = False):
+    def prefill_cache(self, wanted_pkgs = None, prefill_descriptions = False, use_resolve = True):
         pfilter = 1 << packagekit.FilterEnum.NEWEST
         try:
-            result = self.client.get_packages(pfilter, None, self._on_progress_changed, None)
-            pkgs = result.get_package_array()
+            if wanted_pkgs and use_resolve:
+                pkgs = []
+                for i in xrange(0, len(wanted_pkgs), 100):
+                    result = self.client.resolve(pfilter, wanted_pkgs[i:i+100], None, self._on_progress_changed, None)
+                    newpkgs = result.get_package_array()
+                    pkgs.extend(newpkgs)
+
+            else:
+                result = self.client.get_packages(pfilter, None, self._on_progress_changed, None)
+                pkgs = result.get_package_array()
         except GObject.GError as e:
             LOG.info('Cannot prefill cache: %s' % e)
             return
