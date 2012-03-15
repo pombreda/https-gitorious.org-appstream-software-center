@@ -141,7 +141,7 @@ class RecommendedForYouCategory(Category):
 
     def __init__(self):
         super(RecommendedForYouCategory, self).__init__(
-            u"Recommended for You", _("Recommended for You"), None, 
+            u"Recommended For You", _("Recommended For You"), None, 
             xapian.Query(),flags=['available-only', 'not-installed-only'], 
             item_limit=60)
         self.recommender_agent = RecommenderAgent()

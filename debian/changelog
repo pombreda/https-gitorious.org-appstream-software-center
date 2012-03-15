@@ -23,6 +23,10 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~mvo/software-center/small-sso-fixes:
     - fix the clear_credentials() call if a token is no
       longer valid
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/fix-lp955048:
+    - String fix for the "Recommended For You" panel. LP: #955048
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 14 Mar 2012 22:49:32 -0400
 
