@@ -30,7 +30,6 @@ softwarecenter/region.py
 softwarecenter/utils.py
 [type: gettext/glade]data/ui/gtk3/SoftwareCenter.ui
 [type: gettext/glade]data/ui/gtk3/dialogs.ui
-[type: gettext/glade]data/ui/gtk3/login.ui
 [type: gettext/glade]data/ui/gtk3/report_abuse.ui
 [type: gettext/glade]data/ui/gtk3/submit_review.ui
 [type: gettext/glade]data/ui/gtk3/submit_usefulness.ui
