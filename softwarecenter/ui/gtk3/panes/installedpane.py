@@ -250,8 +250,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.current_hostname = hostname
         menuitem = self.oneconfproperty.get_menu().get_children()[0]
         if self.current_hostid:
-            (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = \
-                self.oneconf_handler.oneconf.diff(self.current_hostid, '')
+            diff = self.oneconf_handler.oneconf.diff(self.current_hostid, '')
+            self.oneconf_additional_pkg, self.oneconf_missing_pkg = diff
             stopsync_hostname = self.current_hostname
             # FIXME for P: oneconf views don't support search
             if self.state.search_term:
@@ -285,8 +285,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
     def _current_inventory_need_refresh(self, oneconfviews):
         if self.current_hostid:
-            (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = \
-                self.oneconf_handler.oneconf.diff(self.current_hostid, '')
+            diff = self.oneconf_handler.oneconf.diff(self.current_hostid, '')
+            self.oneconf_additional_pkg, self.oneconf_missing_pkg = diff
         self.refresh_apps()
 
     def _on_row_collapsed(self, view, it, path):
