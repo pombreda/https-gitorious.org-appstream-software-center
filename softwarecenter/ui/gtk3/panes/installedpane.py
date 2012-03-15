@@ -45,7 +45,8 @@ from softwarecenter.backend.oneconfhandler import get_oneconf_handler
 from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.paths import APP_INSTALL_PATH
 
-LOG=logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
+
 
 def interrupt_build_and_wait(f):
     """ decorator that ensures that a build of the categorised installed apps
@@ -79,19 +80,20 @@ class InstalledPane(SoftwarePane, CategoriesParser):
          DETAILS) = range(2)
         # the default page
         HOME = LIST
-        
+
     # pages for the installed view spinner notebook
     (PAGE_SPINNER,
      PAGE_INSTALLED) = range(2)
 
-    __gsignals__ = {'installed-pane-created':(GObject.SignalFlags.RUN_FIRST,
-                                              None,
-                                              ())}
+    __gsignals__ = {'installed-pane-created': (GObject.SignalFlags.RUN_FIRST,
+                                               None,
+                                               ())}
 
     def __init__(self, cache, db, distro, icons, datadir):
 
         # parent
-        SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir,
+            show_ratings=False)
         CategoriesParser.__init__(self, db)
 
         self.current_appview_selection = None
@@ -111,36 +113,42 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self._halt_build = False
 
         self.nonapps_visible = NonAppVisibility.NEVER_VISIBLE
-        
+
         self.visible_docids = None
         self.visible_cats = {}
-        
+
         self.installed_spinner_notebook = None
 
     def init_view(self):
-        if self.view_initialized: 
+        if self.view_initialized:
             return
 
         SoftwarePane.init_view(self)
-        
-        # show a busy cursor and display the main spinner while we build the view
+
+        # show a busy cursor and display the main spinner while we build the
+        # view
         window = self.get_window()
         if window:
             window.set_cursor(self.busy_cursor)
         self.show_appview_spinner()
-        
+
         self.oneconf_viewpickler = OneConfViews(self.icons)
-        self.oneconf_viewpickler.register_computer(None, _("This computer (%s)") % platform.node())
+        self.oneconf_viewpickler.register_computer(None,
+            _("This computer (%s)") % platform.node())
         self.oneconf_viewpickler.select_first()
-        self.oneconf_viewpickler.connect('computer-changed', self._selected_computer_changed)
-        self.oneconf_viewpickler.connect('current-inventory-refreshed', self._current_inventory_need_refresh)
-        
+        self.oneconf_viewpickler.connect('computer-changed',
+            self._selected_computer_changed)
+        self.oneconf_viewpickler.connect('current-inventory-refreshed',
+            self._current_inventory_need_refresh)
+
         # Start OneConf
         self.oneconf_handler = get_oneconf_handler(self.oneconf_viewpickler)
         if self.oneconf_handler:
-            self.oneconf_handler.connect('show-oneconf-changed', self._show_oneconf_changed)
-            self.oneconf_handler.connect('last-time-sync-changed', self._last_time_sync_oneconf_changed)
-        
+            self.oneconf_handler.connect('show-oneconf-changed',
+                self._show_oneconf_changed)
+            self.oneconf_handler.connect('last-time-sync-changed',
+                self._last_time_sync_oneconf_changed)
+
         # OneConf pane
         self.computerpane = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
         self.oneconfcontrol = Gtk.Box()
@@ -154,14 +162,18 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         scroll.set_shadow_type(Gtk.ShadowType.IN)
         scroll.add(self.oneconf_viewpickler)
         self.oneconfcontrol.pack_start(scroll, True, True, 0)
-        
+
         oneconftoolbar = Gtk.Box()
         oneconftoolbar.set_orientation(Gtk.Orientation.HORIZONTAL)
         oneconfpropertymenu = Gtk.Menu()
-        self.oneconfproperty = MenuButton(oneconfpropertymenu, Gtk.Image.new_from_stock(Gtk.STOCK_PROPERTIES, Gtk.IconSize.BUTTON))
+        self.oneconfproperty = MenuButton(oneconfpropertymenu,
+            Gtk.Image.new_from_stock(Gtk.STOCK_PROPERTIES,
+            Gtk.IconSize.BUTTON))
         self.stopsync_label = _(u"Stop Syncing “%s”")
-        stop_oneconf_share_menuitem = Gtk.MenuItem(label=self.stopsync_label % platform.node())
-        stop_oneconf_share_menuitem.connect("activate", self._on_stop_oneconf_hostshare_clicked)
+        stop_oneconf_share_menuitem = Gtk.MenuItem(
+            label=self.stopsync_label % platform.node())
+        stop_oneconf_share_menuitem.connect("activate",
+            self._on_stop_oneconf_hostshare_clicked)
         stop_oneconf_share_menuitem.show()
         oneconfpropertymenu.append(stop_oneconf_share_menuitem)
         self.oneconfcontrol.pack_start(oneconftoolbar, False, False, 1)
@@ -173,7 +185,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.notebook.append_page(self.box_app_list, Gtk.Label(label="list"))
 
         # details
-        self.notebook.append_page(self.scroll_details, Gtk.Label(label="details"))
+        self.notebook.append_page(self.scroll_details,
+            Gtk.Label(label="details"))
         # initial refresh
         self.state.search_term = ""
 
@@ -184,25 +197,26 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.treefilter.set_visible_func(self._row_visibility_func,
                                          AppTreeStore.COL_ROW_DATA)
         self.app_view.set_model(self.treefilter)
-        self.app_view.tree_view.connect("row-collapsed", self._on_row_collapsed)
+        self.app_view.tree_view.connect("row-collapsed",
+            self._on_row_collapsed)
 
         self._all_cats = self.parse_applications_menu(APP_INSTALL_PATH)
         self._all_cats = categories_sorted_by_name(self._all_cats)
-        
+
         # we do not support the search aid feature in the installedview
         self.box_app_list.remove(self.search_aid)
 
         # remove here
-        self.box_app_list.remove(self.app_view)        
+        self.box_app_list.remove(self.app_view)
 
         # create a local spinner notebook for the installed view
         self.installed_spinner_notebook = SpinnerNotebook(self.app_view)
-        
+
         self.computerpane.pack2(self.installed_spinner_notebook, True, True)
         self.show_installed_view_spinner()
-        
+
         self.show_all()
-        
+
         # initialize view to hide the oneconf computer selector
         self.oneconf_viewpickler.select_first()
         self.oneconfcontrol.hide()
@@ -214,15 +228,15 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         # now we are initialized
         self.emit("installed-pane-created")
-        
+
         self.view_initialized = True
         return False
-        
+
     def show_installed_view_spinner(self):
         """ display the local spinner for the installed view panel """
         if self.installed_spinner_notebook:
             self.installed_spinner_notebook.show_spinner()
-        
+
     def hide_installed_view_spinner(self):
         """ hide the local spinner for the installed view panel """
         if self.installed_spinner_notebook:
@@ -236,15 +250,17 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.current_hostname = hostname
         menuitem = self.oneconfproperty.get_menu().get_children()[0]
         if self.current_hostid:
-            (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = self.oneconf_handler.oneconf.diff(self.current_hostid, '')
+            (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = \
+                self.oneconf_handler.oneconf.diff(self.current_hostid, '')
             stopsync_hostname = self.current_hostname
             # FIXME for P: oneconf views don't support search
-            if self.state.search_term:  
+            if self.state.search_term:
                 self._search()
         else:
             stopsync_hostname = platform.node()
             self.searchentry.show()
-        menuitem.set_label(self.stopsync_label % stopsync_hostname.encode('utf-8'))
+        menuitem.set_label(self.stopsync_label %
+            stopsync_hostname.encode('utf-8'))
         self.refresh_apps()
 
     def _last_time_sync_oneconf_changed(self, oneconf_handler, msg):
@@ -266,14 +282,15 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         if self.current_hostid:
             self.oneconf_viewpickler.remove_computer(self.current_hostid)
             self.oneconf_viewpickler.select_first()
-        
+
     def _current_inventory_need_refresh(self, oneconfviews):
         if self.current_hostid:
-            (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = self.oneconf_handler.oneconf.diff(self.current_hostid, '')
+            (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = \
+                self.oneconf_handler.oneconf.diff(self.current_hostid, '')
         self.refresh_apps()
 
     def _on_row_collapsed(self, view, it, path):
-        return
+        pass
 
     def _row_visibility_func(self, model, it, col):
         row = model.get_value(it, col)
@@ -285,16 +302,18 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         elif isinstance(row, CategoryRowReference):
             return row.untranslated_name in self.visible_cats.keys()
 
-        elif row is None: return False
+        elif row is None:
+            return False
 
         return row.get_docid() in self.visible_docids
 
     def _use_category(self, cat):
         # System cat is large and slow to search, filter it in default mode
 
-        if ('carousel-only' in cat.flags or 
+        if ('carousel-only' in cat.flags or
             ((self.nonapps_visible == NonAppVisibility.NEVER_VISIBLE)
-            and cat.untranslated_name == 'System')): return False
+            and cat.untranslated_name == 'System')):
+                return False
 
         return True
 
@@ -306,14 +325,14 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     #~ @interrupt_build_and_wait
     def _build_categorised_installedview(self):
         LOG.debug('Rebuilding categorised installedview...')
-        
+
         # display the busy cursor and a local spinner while we build the view
         window = self.get_window()
         if window:
             window.set_cursor(self.busy_cursor)
         self.show_installed_view_spinner()
-        
-        model = self.base_model # base model not treefilter
+
+        model = self.base_model  # base model not treefilter
         model.clear()
 
         def profiled_rebuild_categorised_view():
@@ -323,28 +342,30 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         def rebuild_categorised_view():
             self.cat_docid_map = {}
             enq = self.enquirer
-            
+
             i = 0
-            
+
             while Gtk.events_pending():
                 Gtk.main_iteration()
 
             xfilter = AppFilter(self.db, self.cache)
             xfilter.set_installed_only(True)
-            
+
             for cat in self._all_cats:
                 # for each category do category query and append as a new
                 # node to tree_view
-                if not self._use_category(cat): continue
+                if not self._use_category(cat):
+                    continue
                 query = self.get_query_for_cat(cat)
-                LOG.debug("xfilter.installed_only: %s" % xfilter.installed_only)
+                LOG.debug("xfilter.installed_only: %s" %
+                    xfilter.installed_only)
                 enq.set_query(query,
                               sortmode=SortMethods.BY_ALPHABET,
                               nonapps_visible=self.nonapps_visible,
                               filter=xfilter,
                               nonblocking_load=False,
-                              persistent_duplicate_filter=(i>0))
-                              
+                              persistent_duplicate_filter=(i > 0))
+
                 L = len(enq.matches)
                 if L:
                     i += L
@@ -352,13 +373,13 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                     self.cat_docid_map[cat.untranslated_name] = \
                                         set([doc.get_docid() for doc in docs])
                     model.set_category_documents(cat, docs)
-                    
+
             while Gtk.events_pending():
                 Gtk.main_iteration()
 
             # check for uncategorised pkgs
             if self.state.channel:
-                self._run_channel_enquirer(persistent_duplicate_filter=(i>0))
+                self._run_channel_enquirer(persistent_duplicate_filter=(i > 0))
                 L = len(enq.matches)
                 if L:
                     # some foo for channels
@@ -369,7 +390,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                         channel_name = self.state.channel.display_name
                     docs = enq.get_documents()
                     tag = channel_name or 'Uncategorized'
-                    self.cat_docid_map[tag] = set([doc.get_docid() for doc in docs])
+                    self.cat_docid_map[tag] = set(
+                        [doc.get_docid() for doc in docs])
                     model.set_nocategory_documents(docs, untranslated_name=tag,
                                                    display_name=channel_name)
                     i += L
@@ -382,14 +404,15 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
             # cache the installed app count
             self.installed_count = i
-            self.app_view._append_appcount(self.installed_count, mode=AppView.INSTALLED_MODE)
-            
+            self.app_view._append_appcount(self.installed_count,
+                mode=AppView.INSTALLED_MODE)
+
             # hide the local spinner
             self.hide_installed_view_spinner()
-            
+
             if window:
                 window.set_cursor(None)
-            
+
             # reapply search if needed
             if self.state.search_term:
                 self._do_search(self.state.search_term)
@@ -398,18 +421,17 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             return
 
         GObject.idle_add(profiled_rebuild_categorised_view)
-        return
-        
+
     def _build_oneconfview(self):
         LOG.debug('Rebuilding oneconfview for %s...' % self.current_hostid)
-        
+
         # display the busy cursor and the local spinner while we build the view
         window = self.get_window()
         if window:
             window.set_cursor(self.busy_cursor)
         self.show_installed_view_spinner()
-        
-        model = self.base_model # base model not treefilter
+
+        model = self.base_model  # base model not treefilter
         model.clear()
 
         def profiled_rebuild_oneconfview():
@@ -417,10 +439,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                 rebuild_oneconfview()
 
         def rebuild_oneconfview():
-        
+
             # FIXME for P: hide the search entry
             self.searchentry.hide()
-            
+
             self.cat_docid_map = {}
             enq = self.enquirer
             query = xapian.Query("")
@@ -430,30 +452,33 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                      self.state.channel.query)
 
             i = 0
-            
+
             # First search: missing apps only
             xfilter = AppFilter(self.db, self.cache)
             xfilter.set_restricted_list(self.oneconf_additional_pkg)
             xfilter.set_not_installed_only(True)
-            
+
             enq.set_query(query,
                           sortmode=SortMethods.BY_ALPHABET,
                           nonapps_visible=self.nonapps_visible,
                           filter=xfilter,
-                          nonblocking_load=True, # we don't block this one for better oneconf responsiveness
-                          persistent_duplicate_filter=(i>0))
+                          nonblocking_load=True,  # we don't block this one for
+                                                # better oneconf responsiveness
+                          persistent_duplicate_filter=(i > 0))
 
             L = len(enq.matches)
 
             if L:
-                cat_title = utf8(ngettext(u'%(amount)s item on “%(machine)s” not on this computer',
-                                          u'%(amount)s items on “%(machine)s” not on this computer',
-                                          L)) % { 'amount' : L, 'machine': utf8(self.current_hostname)}
+                cat_title = utf8(ngettext(
+                    u'%(amount)s item on “%(machine)s” not on this computer',
+                    u'%(amount)s items on “%(machine)s” not on this computer',
+                    L)) % {'amount': L, 'machine': utf8(self.current_hostname)}
                 i += L
                 docs = enq.get_documents()
-                self.cat_docid_map["missingpkg"] = set([doc.get_docid() for doc in docs])
-                model.set_nocategory_documents(docs, untranslated_name="additionalpkg",
-                                               display_name=cat_title)
+                self.cat_docid_map["missingpkg"] = set(
+                    [doc.get_docid() for doc in docs])
+                model.set_nocategory_documents(docs,
+                    untranslated_name="additionalpkg", display_name=cat_title)
 
             # Second search: additional apps
             xfilter.set_restricted_list(self.oneconf_missing_pkg)
@@ -464,18 +489,20 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                           nonapps_visible=self.nonapps_visible,
                           filter=xfilter,
                           nonblocking_load=False,
-                          persistent_duplicate_filter=(i>0))
+                          persistent_duplicate_filter=(i > 0))
 
             L = len(enq.matches)
             if L:
-                cat_title = utf8(ngettext(u'%(amount)s item on this computer not on “%(machine)s”',
-                                          '%(amount)s items on this computer not on “%(machine)s”',
-                                          L)) % { 'amount' : L, 'machine': utf8(self.current_hostname)}
+                cat_title = utf8(ngettext(
+                    u'%(amount)s item on this computer not on “%(machine)s”',
+                    '%(amount)s items on this computer not on “%(machine)s”',
+                    L)) % {'amount': L, 'machine': utf8(self.current_hostname)}
                 i += L
                 docs = enq.get_documents()
-                self.cat_docid_map["additionalpkg"] = set([doc.get_docid() for doc in docs])
-                model.set_nocategory_documents(docs, untranslated_name="additionalpkg",
-                                               display_name=cat_title)
+                self.cat_docid_map["additionalpkg"] = set(
+                    [doc.get_docid() for doc in docs])
+                model.set_nocategory_documents(docs,
+                    untranslated_name="additionalpkg", display_name=cat_title)
 
             if i:
                 self.app_view.tree_view.set_cursor(Gtk.TreePath(),
@@ -485,31 +512,30 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
             # cache the installed app count
             self.installed_count = i
-            self.app_view._append_appcount(self.installed_count, mode=AppView.DIFF_MODE)
-                
+            self.app_view._append_appcount(self.installed_count,
+                mode=AppView.DIFF_MODE)
+
             # hide the local spinner
             self.hide_installed_view_spinner()
-            
+
             if window:
                 window.set_cursor(None)
-            
+
             self.emit("app-list-changed", i)
             return
 
         GObject.idle_add(profiled_rebuild_oneconfview)
-        return
 
     def _check_expand(self):
         it = self.treefilter.get_iter_first()
         while it:
             path = self.treefilter.get_path(it)
-            if self.state.search_term:# or path in self._user_expanded_paths:
+            if self.state.search_term:  # or path in self._user_expanded_paths:
                 self.app_view.tree_view.expand_row(path, False)
             else:
                 self.app_view.tree_view.collapse_row(path)
 
             it = self.treefilter.iter_next(it)
-        return
 
     def _do_search(self, terms):
         self.state.search_term = terms
@@ -519,7 +545,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                 nonapps_visible=self.nonapps_visible,
                                 filter=xfilter,
                                 nonblocking_load=True)
-        
+
         self.visible_docids = self.enquirer.get_docids()
         self.visible_cats = self._get_vis_cats(self.visible_docids)
         self.treefilter.refilter()
@@ -551,7 +577,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.emit("app-list-changed", 0)
         elif self.state.search_term != terms:
             self._do_search(terms)
-        return
 
     def get_query(self):
         # search terms
@@ -575,7 +600,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self._build_oneconfview()
         else:
             self._build_categorised_installedview()
-        return
 
     def _clear_search(self):
         # remove the details and clear the search
@@ -589,7 +613,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.state.search_term = terms
         self.notebook.set_current_page(InstalledPane.Pages.LIST)
         self.hide_installed_view_spinner()
-        return
 
     def _get_vis_cats(self, visids):
         vis_cats = {}
@@ -626,7 +649,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def display_overview_page(self, page, view_state):
         LOG.debug("view_state: %s" % view_state)
         if self.current_hostid:
-            # FIXME for P: oneconf views don't support search    
+            # FIXME for P: oneconf views don't support search
             # this one ensure that even when switching between pane, we
             # don't have the search item
             if self.state.search_term:
@@ -643,16 +666,16 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         """return the current active application object applicable
            to the context"""
         return self.current_appview_selection
-        
+
     def is_category_view_showing(self):
         # there is no category view in the installed pane
         return False
-        
+
     def is_applist_view_showing(self):
         """Return True if we are in the applist view """
         return (self.notebook.get_current_page() ==
                 InstalledPane.Pages.LIST)
-        
+
     def is_app_details_view_showing(self):
         """Return True if we are in the app_details view """
         return self.notebook.get_current_page() == InstalledPane.Pages.DETAILS
@@ -667,7 +690,7 @@ def get_test_window():
                                           )
     # needed because available pane will try to get it
     vm = get_test_gtk3_viewmanager()
-    vm # make pyflakes happy
+    vm  # make pyflakes happy
     db = get_test_db()
     cache = get_test_pkg_info()
     datadir = get_test_datadir()
@@ -696,4 +719,3 @@ def get_test_window():
 if __name__ == "__main__":
     win = get_test_window()
     Gtk.main()
-
