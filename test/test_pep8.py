@@ -16,7 +16,7 @@ class PackagePep8TestCase(unittest.TestCase):
     packages = [softwarecenter.ui.qml,
                 softwarecenter.ui.gtk3,
                 softwarecenter.db.pkginfo_impl]
-    exclude = ['review_gui_helper.py']
+    exclude = []
 
     def message(self, text):
         self.errors.append(text)
