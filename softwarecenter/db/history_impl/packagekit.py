@@ -22,6 +22,7 @@ from softwarecenter.db.history import Transaction, PackageHistory
 
 LOG = logging.getLogger(__name__)
 
+
 class PackagekitTransaction(Transaction):
     def __init__(self, pktrans):
         self.start_date = datetime.strptime(pktrans.props.timespec,
@@ -31,7 +32,8 @@ class PackagekitTransaction(Transaction):
         self.upgrade = []
         self.downgrade = []
         self.remove = []
-        self.purge = [] # can't happen with a Packagekit backend (is mapped to remove)
+        self.purge = []  # can't happen with a Packagekit backend (is mapped
+                         # to remove)
 
         # parse transaction data
         lines = pktrans.props.data.split('\n')
@@ -51,13 +53,15 @@ class PackagekitTransaction(Transaction):
                 elif action == 'removing':
                     self.remove.append(package_name)
                 else:
-                    # ignore other actions (include cleanup, downloading and untrusted)
+                    # ignore other actions (include cleanup, downloading and
+                    # untrusted)
                     continue
             except:
                 LOG.warn("malformed line emitted by PackageKit, was %s" % line)
 
+
 class PackagekitHistory(PackageHistory):
-    """ Represents the history of the transactions """    
+    """ Represents the history of the transactions """
 
     def __init__(self, use_cache=True):
         self._use_cache = use_cache
@@ -66,9 +70,9 @@ class PackagekitHistory(PackageHistory):
 
         self._client = PackageKitGlib.Client()
         self._client.get_old_transactions_async(0,
-                                                None, # cancellable
-                                                lambda *args, **kwargs: None, None, # progress callback
-                                                self._transactions_received, None)
+            None,  # cancellable
+            lambda *args, **kwargs: None, None,  # progress callback
+            self._transactions_received, None)
 
     @property
     def history_ready(self):
@@ -86,7 +90,7 @@ class PackagekitHistory(PackageHistory):
 
     def get_installed_date(self, pkg_name):
         """Return the date that the given package name got instaled """
-        return None
+        pass
 
     def _transactions_received(self, client, async_result, user_data):
         try:
