@@ -142,7 +142,7 @@ class RecommendedForYouCategory(Category):
                                    ),
         }
 
-    def __init__(self, subcategory = None):
+    def __init__(self, subcategory=None):
         self.subcategory = subcategory
         if subcategory:
             # this is the set of recommendations for a given subcategory
@@ -153,9 +153,9 @@ class RecommendedForYouCategory(Category):
         super(RecommendedForYouCategory, self).__init__(
                 cat_title,
                 _(cat_title),
-                None, 
+                None,
                 xapian.Query(),
-                flags=['available-only', 'not-installed-only'], 
+                flags=['available-only', 'not-installed-only'],
                 item_limit=60)
         self.recommender_agent = RecommenderAgent()
         self.recommender_agent.connect(
@@ -181,6 +181,7 @@ class RecommendedForYouCategory(Category):
                                                             % msg)
         self.emit("recommender-agent-error", msg)
 
+
 class AppRecommendationsCategory(Category):
 
     __gsignals__ = {
@@ -196,9 +197,12 @@ class AppRecommendationsCategory(Category):
 
     def __init__(self, pkgname):
         super(AppRecommendationsCategory, self).__init__(
-            u"People Also Installed", _(u"People Also Installed"), None,
-            xapian.Query(),flags=['available-only', 'not-installed-only'],
-            item_limit=4)
+                u"People Also Installed",
+                _(u"People Also Installed"),
+                None,
+                xapian.Query(),
+                flags=['available-only', 'not-installed-only'],
+                item_limit=4)
         self.recommender_agent = RecommenderAgent()
         self.recommender_agent.connect(
             "recommend-app", self._recommend_app_result)
