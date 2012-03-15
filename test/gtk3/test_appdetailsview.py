@@ -51,7 +51,7 @@ class TestAppdetailsView(unittest.TestCase):
         do_events()
         self.assertTrue(self.view.videoplayer.get_property("visible"))
     
-    def test_page_pkgstatusbar(self):
+    def test_page_pkgstates(self):
         # show app 
         app = Application("", "abiword")
         self.view.show_app(app)
@@ -68,7 +68,7 @@ class TestAppdetailsView(unittest.TestCase):
         mock_details._error_not_found = "error not found"
         mock_details.price = "1.00"
         mock_details.pkgname = "abiword"
-        mock_details.error = ""
+        mock_details.error = "error-text"
         self.view.app_details = mock_details
 
         # the states and what labels we expect in the pkgstatusbar
@@ -99,6 +99,11 @@ class TestAppdetailsView(unittest.TestCase):
                 self.assertEqual(
                     self.view.pkg_statusbar.get_button_label().decode("utf-8"),
                     button_label)
+            if state == PkgStates.NOT_FOUND:
+                self.assertFalse(self.view.review_stats.get_property("visible"))
+                self.assertFalse(self.view.reviews.get_property("visible"))
+            else:
+                self.assertFalse(self.view.review_stats.get_property("visible"))
 
     def test_app_icon_loading(self):
         # get icon

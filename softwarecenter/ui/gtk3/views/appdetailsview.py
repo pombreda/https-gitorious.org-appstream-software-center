@@ -1168,9 +1168,12 @@ class AppDetailsView(Viewport):
         #~ self.usage = mkit.BubbleLabel()
         #~ vb_inner.pack_start(self.usage, True, True, 0)
 
-        # star rating widget
+        # star rating box/widget
         self.review_stats_widget = StarRatingsWidget()
+        self.review_stats = Gtk.HBox()
         vb_inner.pack_start(
+            self.review_stats, False, False, 0)
+        self.review_stats.pack_start(
             self.review_stats_widget, False, False, StockEms.SMALL)
 
         #~ vb_inner.set_property("can-focus", True)
@@ -1377,6 +1380,7 @@ class AppDetailsView(Viewport):
         if pkg_error:
             self.addon_view.hide()
             self.reviews.hide()
+            self.review_stats.hide()
             self.screenshot.hide()
             #~ self.info_header.hide()
             self.info_vb.hide()
@@ -1385,6 +1389,7 @@ class AppDetailsView(Viewport):
         else:
             self.addon_view.show()
             self.reviews.show()
+            self.review_stats.show()
             self.screenshot.show()
             #~ self.info_header.show()
             self.info_vb.show()
