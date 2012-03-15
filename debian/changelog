@@ -6,8 +6,10 @@ software-center (5.1.13) UNRELEASED; urgency=low
     lp:~elachuni/software-center/pep8-test-part7,
     lp:~elachuni/software-center/pep8-test-part8,
     lp:~elachuni/software-center/pep8-test-part9,
-    lp:~elachuni/software-center/pep8-test-part10:
-    - pep8 fixes for many more files in ui.gtk3.{views, widgets}
+    lp:~elachuni/software-center/pep8-test-part10,
+    lp:~elachuni/software-center/pep8-test-part11:
+    - pep8 fixes for many more files in 
+      ui.gtk3.{views, widgets, session}
   * lp:~elachuni/software-center/unify-ussoc-envvar:
     - fix USSOC_SERVICE_URL env variable
   
@@ -21,7 +23,7 @@ software-center (5.1.13) UNRELEASED; urgency=low
     - fix the clear_credentials() call if a token is no
       longer valid
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 14 Mar 2012 22:23:51 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 14 Mar 2012 22:30:12 -0400
 
 software-center (5.1.12) precise; urgency=low
 
