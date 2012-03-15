@@ -13,7 +13,8 @@ import softwarecenter.ui
 class PackagePep8TestCase(unittest.TestCase):
     maxDiff = None
     packages = [softwarecenter.ui,
-                softwarecenter.db]
+                softwarecenter.db,
+               ]
     exclude = ['application.py', 'appfilter.py']
 
     def message(self, text):

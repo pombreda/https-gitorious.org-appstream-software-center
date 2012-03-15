@@ -19,14 +19,16 @@
 # py3 compat
 try:
     from configparser import SafeConfigParser
-    SafeConfigParser # pyflakes
+    SafeConfigParser  # pyflakes
 except ImportError:
     from ConfigParser import SafeConfigParser
 import os
 
 from paths import SOFTWARE_CENTER_CONFIG_FILE
 
+
 class SoftwareCenterConfig(SafeConfigParser):
+
     def __init__(self, config):
         SafeConfigParser.__init__(self)
         if not os.path.exists(os.path.dirname(config)):
@@ -37,18 +39,21 @@ class SoftwareCenterConfig(SafeConfigParser):
         except:
             # don't crash on a corrupted config file
             pass
+
     def write(self):
-        tmpname = self.configfile+".new"
-        f=open(tmpname, "w")
+        tmpname = self.configfile + ".new"
+        f = open(tmpname, "w")
         SafeConfigParser.write(self, f)
         f.close()
         os.rename(tmpname, self.configfile)
-    
-_software_center_config = None    
+
+
+_software_center_config = None
+
+
 def get_config(filename=SOFTWARE_CENTER_CONFIG_FILE):
     """ get the global config class """
     global _software_center_config
     if not _software_center_config:
         _software_center_config = SoftwareCenterConfig(filename)
     return _software_center_config
-

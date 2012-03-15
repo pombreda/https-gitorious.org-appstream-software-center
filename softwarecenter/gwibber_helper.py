@@ -25,8 +25,9 @@ import json
 import sys
 from random import random
 
+
 class GwibberHelper(object):
-    """ A helper class for gwibber. ideally we would just use 
+    """ A helper class for gwibber. ideally we would just use
         from gi.repository import Gwibber
         accounts = Gwibbers.Accounts()
         accounts.list()
@@ -58,9 +59,9 @@ class GwibberHelper(object):
                                    "/com/gwibber/Service")
         service_iface = dbus.Interface(proxy_obj, "com.Gwibber.Service")
         if account_id:
-            json_str = json.dumps({'message' : message,
-                                     'accounts' : [account_id],
-                                     })
+            json_str = json.dumps({'message': message,
+                                   'accounts': [account_id],
+                                   })
             service_iface.Send(json_str)
         else:
             service_iface.SendMessage(message)
@@ -84,10 +85,40 @@ class GwibberHelper(object):
             logging.exception("GwibberHelper.has_accounts_in_sqlite() failed")
             return False
 
+
 class GwibberHelperMock(object):
-        
-    fake_gwibber_accounts_one = [{u'username': u'randomuser', u'user_id': u'2323434224', u'service': u'twitter', u'secret_token': u':some-token', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'twitter-id-random-15af8bddb6'}]
-    fake_gwibber_accounts_multiple = [{u'username': u'random1 with a very long name', u'user_id': u'2342342313', u'service': u'twitter', u'secret_token': u':some-token', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'twitter-id-rnadomuser-radfsdf'}, {u'username': u'mpt', u'user_id': u'23safdsaf5', u'service': u'twitter', u'secret_token': u':some_otken', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'twitter-id-mpt-afsdfsa'}]
+
+    fake_gwibber_accounts_one = [
+        {u'username': u'randomuser',
+         u'user_id': u'2323434224',
+         u'service': u'twitter',
+         u'secret_token': u':some-token',
+         u'color': u'#729FCF',
+         u'receive_enabled': True,
+         u'access_token': u'some_access_token',
+         u'send_enabled': True,
+         u'id': u'twitter-id-random-15af8bddb6'}
+        ]
+    fake_gwibber_accounts_multiple = [
+        {u'username': u'random1 with a very long name',
+         u'user_id': u'2342342313',
+         u'service': u'twitter',
+         u'secret_token': u':some-token',
+         u'color': u'#729FCF',
+         u'receive_enabled': True,
+         u'access_token': u'some_access_token',
+         u'send_enabled': True,
+         u'id': u'twitter-id-rnadomuser-radfsdf'},
+        {u'username': u'mpt',
+         u'user_id': u'23safdsaf5',
+         u'service': u'twitter',
+         u'secret_token': u':some_otken',
+         u'color': u'#729FCF',
+         u'receive_enabled': True,
+         u'access_token': u'some_access_token',
+         u'send_enabled': True,
+         u'id': u'twitter-id-mpt-afsdfsa'}
+        ]
 
     def accounts(self):
         import copy
@@ -101,16 +132,17 @@ class GwibberHelperMock(object):
 
     def send_message(self, message, account_id="all"):
         sys.stderr.write("sending '%s' to '%s'\n" % (message, account_id))
-        #used for testing purposes, to emulate a gwibber failure for ~1 out of every 5 attempts
+        # used for testing purposes, to emulate a gwibber failure for ~1 out
+        # of every 5 attempts
         r = random()
-        if r < 0.2 and not "SOFTWARE_CENTER_GWIBBER_MOCK_NO_FAIL" in os.environ:
+        if (r < 0.2 and
+            not "SOFTWARE_CENTER_GWIBBER_MOCK_NO_FAIL" in os.environ):
             return False
         return True
-    
+
     def has_accounts_in_sqlite():
         return True
 
 
-GWIBBER_SERVICE_AVAILABLE = GwibberHelper.has_accounts_in_sqlite() and os.path.exists("/usr/bin/gwibber-poster")
-
-
+GWIBBER_SERVICE_AVAILABLE = GwibberHelper.has_accounts_in_sqlite() and \
+                             os.path.exists("/usr/bin/gwibber-poster")
