@@ -1,6 +1,143 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkDialog" id="dialog_accept_tos">
+    <property name="can_focus">False</property>
+    <property name="border_width">5</property>
+    <property name="type_hint">dialog</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="dialog-vbox7">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="dialog-action_area7">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="button4">
+                <property name="label" translatable="yes">Decline</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="has_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="action_name">b</property>
+                <property name="use_action_appearance">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="button3">
+                <property name="label" translatable="yes">Accept</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkAlignment" id="alignment1">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="top_padding">6</property>
+            <property name="bottom_padding">6</property>
+            <property name="left_padding">6</property>
+            <property name="right_padding">6</property>
+            <child>
+              <object class="GtkTable" id="table1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="n_rows">2</property>
+                <property name="n_columns">2</property>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <object class="GtkImage" id="image_package_icon3">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="pixel_size">48</property>
+                    <property name="icon_name">applications-other</property>
+                  </object>
+                  <packing>
+                    <property name="x_options"></property>
+                    <property name="y_options">GTK_FILL</property>
+                    <property name="x_padding">6</property>
+                    <property name="y_padding">6</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="label_dependency_primary2">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">0</property>
+                    <property name="label" translatable="yes">Please accept the Terms of Service below.</property>
+                    <property name="wrap">True</property>
+                    <property name="width_chars">40</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="x_options"></property>
+                    <property name="y_options">GTK_FILL</property>
+                    <property name="x_padding">6</property>
+                    <property name="y_padding">6</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLinkButton" id="linkbutton_tos">
+                    <property name="label" translatable="yes">OpenTerms of Service</property>
+                    <property name="use_action_appearance">False</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="use_action_appearance">False</property>
+                    <property name="relief">none</property>
+                    <property name="uri">http://apps.ubuntu.com/cat/tos</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="-9">button4</action-widget>
+      <action-widget response="-8">button3</action-widget>
+    </action-widgets>
+  </object>
   <object class="GtkDialog" id="dialog_broken_cache">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -23,6 +160,7 @@
             <child>
               <object class="GtkButton" id="button1">
                 <property name="label" translatable="yes">Cancel</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
@@ -37,6 +175,7 @@
             <child>
               <object class="GtkButton" id="button2">
                 <property name="label" translatable="yes">Repair</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -64,8 +203,6 @@
             <property name="can_focus">False</property>
             <property name="row_spacing">24</property>
             <property name="column_spacing">12</property>
-            <property name="n_rows">2</property>
-            <property name="n_columns">2</property>
             <child>
               <object class="GtkLabel" id="label_broken_cache">
                 <property name="visible">True</property>
@@ -162,6 +299,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="button_deauthorize_cancel">
                 <property name="label" translatable="yes">Cancel</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
@@ -176,6 +314,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="button_deauthorize_do">
                 <property name="label" translatable="yes">Remove</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -211,6 +350,9 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
                 <property name="can_focus">False</property>
                 <property name="n_rows">2</property>
                 <property name="n_columns">2</property>
+                <child>
+                  <placeholder/>
+                </child>
                 <child>
                   <object class="GtkImage" id="image_icon">
                     <property name="visible">True</property>
@@ -268,9 +410,6 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
                     <property name="y_padding">6</property>
                   </packing>
                 </child>
-                <child>
-                  <placeholder/>
-                </child>
               </object>
             </child>
           </object>
@@ -311,6 +450,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="button_dependency_cancel">
                 <property name="label" translatable="yes">Cancel</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
@@ -325,6 +465,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="button_dependency_do">
                 <property name="label" translatable="yes">Remove</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -352,8 +493,6 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <property name="can_focus">False</property>
             <property name="row_spacing">6</property>
             <property name="column_spacing">6</property>
-            <property name="n_rows">2</property>
-            <property name="n_columns">2</property>
             <child>
               <object class="GtkImage" id="image_package_icon">
                 <property name="visible">True</property>
@@ -446,6 +585,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="gwib_err_cancel_button">
                 <property name="label">gtk-cancel</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -461,6 +601,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="gwib_err_retry_button">
                 <property name="label" translatable="yes">Retry</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -505,6 +646,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="button_install_error_ok">
                 <property name="label" translatable="yes">OK</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -540,6 +682,9 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
                 <property name="can_focus">False</property>
                 <property name="n_rows">2</property>
                 <property name="n_columns">2</property>
+                <child>
+                  <placeholder/>
+                </child>
                 <child>
                   <object class="GtkImage" id="image_package_icon1">
                     <property name="visible">True</property>
@@ -603,9 +748,6 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
                     <property name="top_attach">1</property>
                     <property name="bottom_attach">2</property>
                   </packing>
-                </child>
-                <child>
-                  <placeholder/>
                 </child>
               </object>
             </child>

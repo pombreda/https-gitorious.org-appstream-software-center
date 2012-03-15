@@ -21,8 +21,9 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
-
 from gettext import gettext as _
+
+import softwarecenter.paths
 
 class SimpleGtkbuilderDialog(object):
     def __init__(self, datadir, domain):
@@ -36,8 +37,25 @@ class SimpleGtkbuilderDialog(object):
                 name = Gtk.Buildable.get_name(o)
                 setattr(self, name, o)
 
+
 # for unitesting only
 _DIALOG=None
+
+
+def show_accept_tos_dialog(parent):
+    datadir = softwarecenter.paths.datadir
+    glade_dialog = SimpleGtkbuilderDialog(datadir, domain="software-center")
+    dialog = glade_dialog.dialog_accept_tos
+    global _DIALOG
+    _DIALOG=dialog
+    dialog.set_default_size(380, -1)
+    dialog.set_transient_for(parent)
+    result = dialog.run()
+    dialog.destroy()
+    if result == Gtk.ResponseType.YES:
+        return True
+    return False
+
 
 def confirm_repair_broken_cache(parent, datadir):
     glade_dialog = SimpleGtkbuilderDialog(datadir, domain="software-center")
@@ -51,6 +69,7 @@ def confirm_repair_broken_cache(parent, datadir):
     if result == Gtk.ResponseType.ACCEPT:
         return True
     return False
+
 
 class DetailsMessageDialog(Gtk.MessageDialog):
     """Message dialog with optional details expander"""
@@ -81,6 +100,7 @@ class DetailsMessageDialog(Gtk.MessageDialog):
             self.set_modal(True)
             self.set_property("skip-taskbar-hint", True)
 
+
 def messagedialog(parent=None, 
                   title="", 
                   primary=None, 
@@ -102,6 +122,7 @@ def messagedialog(parent=None,
     dialog.destroy()
     return result
 
+
 def error(parent, primary, secondary, details=None, alternative_action=None):
     """ show a untitled error dialog """
     return messagedialog(parent=parent,
@@ -112,8 +133,13 @@ def error(parent, primary, secondary, details=None, alternative_action=None):
                          alternative_action=alternative_action)
 
 
+
 if __name__ == "__main__":
-    print("Running remove dialog")
+    softwarecenter.paths.datadir = "./data"
+
+    print("Showing tos dialog")
+    res = show_accept_tos_dialog(None)
+    print "accepted: ", res
                    
     print("Running broken apt-cache dialog")
     confirm_repair_broken_cache(None, "./data")
