@@ -95,7 +95,7 @@ class HardwareRequirementsBox(Gtk.HBox):
             # ignore unknown for now
             if not sup in ("yes", "no"):
                 continue
-            is_last_item = (i == len(hw_requirements_result)-1)
+            is_last_item = (i == len(hw_requirements_result) - 1)
             label = HardwareRequirementsLabel(last_item=is_last_item)
             label.set_hardware_requirement(tag, sup)
             label.show()

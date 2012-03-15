@@ -176,6 +176,16 @@ class RecommenderAgent(GObject.GObject):
         spawner.run_generic_piston_helper(
             "SoftwareCenterRecommenderAPI", "recommend_top")
             
+    def is_opted_in(self):
+        """
+        Return True is the user is currently opted-in to the recommender
+        service
+        """
+        if self.recommender_uuid:
+            return True
+        else:
+            return False
+            
     def _on_server_status_data(self, spawner, piston_server_status):
         self.emit("server-status", piston_server_status)
         

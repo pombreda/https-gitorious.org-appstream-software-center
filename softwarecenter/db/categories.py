@@ -142,11 +142,21 @@ class RecommendedForYouCategory(Category):
                                    ),
         }
 
-    def __init__(self):
+    def __init__(self, subcategory=None):
+        self.subcategory = subcategory
+        if subcategory:
+            # this is the set of recommendations for a given subcategory
+            cat_title = u"Recommended For You in %s" % subcategory.name
+        else:
+            # this is the full set of recommendations for e.g. the lobby view
+            cat_title = u"Recommended For You"
         super(RecommendedForYouCategory, self).__init__(
-            u"Recommended For You", _("Recommended For You"), None,
-            xapian.Query(), flags=['available-only', 'not-installed-only'],
-            item_limit=60)
+                cat_title,
+                _(cat_title),
+                None,
+                xapian.Query(),
+                flags=['available-only', 'not-installed-only'],
+                item_limit=60)
         self.recommender_agent = RecommenderAgent()
         self.recommender_agent.connect(
             "recommend-me", self._recommend_me_result)
@@ -158,7 +168,12 @@ class RecommendedForYouCategory(Category):
         pkgs = []
         for item in result_list['data']:
             pkgs.append(item['package_name'])
-        self.query = get_query_for_pkgnames(pkgs)
+        if self.subcategory:
+            self.query = xapian.Query(xapian.Query.OP_AND,
+                                  get_query_for_pkgnames(pkgs),
+                                  self.subcategory.query)
+        else:
+            self.query = get_query_for_pkgnames(pkgs)
         self.emit("needs-refresh")
 
     def _recommender_agent_error(self, recommender_agent, msg):
@@ -182,9 +197,12 @@ class AppRecommendationsCategory(Category):
 
     def __init__(self, pkgname):
         super(AppRecommendationsCategory, self).__init__(
-            u"People Also Installed", _("People Also Installed"), None,
-            xapian.Query(), flags=['available-only', 'not-installed-only'],
-            item_limit=4)
+                u"People Also Installed",
+                _(u"People Also Installed"),
+                None,
+                xapian.Query(),
+                flags=['available-only', 'not-installed-only'],
+                item_limit=4)
         self.recommender_agent = RecommenderAgent()
         self.recommender_agent.connect(
             "recommend-app", self._recommend_app_result)

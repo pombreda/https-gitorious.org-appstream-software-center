@@ -453,13 +453,13 @@ class PackageStatusBar(StatusBar):
                 #        lack the "Packages" files (but are in sources.list)
                 self.set_button_label(_("Update Now"))
 
-        # this maybe a region or hw compatibilty warning
-        if (self.app_details.warning and 
+        # this maybe a region or hw compatibility warning
+        if (self.app_details.warning and
             not self.app_details.error and
-            not state in (PkgStates.INSTALLING, 
+            not state in (PkgStates.INSTALLING,
                           PkgStates.INSTALLING_PURCHASED,
-                          PkgStates.REMOVING, 
-                          PkgStates.UPGRADING, 
+                          PkgStates.REMOVING,
+                          PkgStates.UPGRADING,
                           AppActions.APPLY)):
             self.set_label(self.app_details.warning)
 

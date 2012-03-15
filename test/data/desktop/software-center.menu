@@ -23,5 +23,15 @@
     </Include>
   </Menu> 
 
+  <!-- multimedia -->
+  <Menu>
+    <Name>Dynamic</Name>
+    <Include>
+      <And>
+        <Category>AudioVideo</Category>
+      </And>
+    </Include>
+  </Menu> 
+
 
 </Menu> 

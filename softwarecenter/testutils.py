@@ -229,8 +229,8 @@ def make_recommender_agent_recommend_me_dict():
                 u'package_name': u'hedgewars'
             },
             {
-                u'package_name': u'gelemental'
-            },
+                u'package_name': u'mangler'
+            }, 
             {
                 u'package_name': u'nexuiz'
             },
@@ -251,6 +251,12 @@ def make_recommender_agent_recommend_me_dict():
             },
             {
                 u'package_name': u'phlipple'
+            },
+            {
+                u'package_name': u'psi'
+            }, 
+            {
+                u'package_name': u'midori'
             }
             ]
         }
@@ -266,14 +272,17 @@ def make_recommender_profile_upload_data():
             'package_list': [
                 u'clementine',
                 u'hedgewars',
-                u'gelemental',
+                u'mangler',
                 u'nexuiz',
                 u'fgo',
                 u'musique',
                 u'pybik',
                 u'radiotray',
                 u'cherrytree',
-                u'phlipple'
+                u'phlipple',
+                u'psi',
+                u'midori'
+                
             ]
         }
     ]
