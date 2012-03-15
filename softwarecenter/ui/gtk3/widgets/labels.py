@@ -91,17 +91,15 @@ class HardwareRequirementsBox(Gtk.HBox):
 
     def set_hardware_requirements(self, hw_requirements_result):
         self.clear()
-        for tag, supported in hw_requirements_result.iteritems():
+        for i, (tag, sup) in enumerate(hw_requirements_result.iteritems()):
             # ignore unknown for now
-            if not supported in ("yes", "no"):
+            if not sup in ("yes", "no"):
                 continue
-            label = HardwareRequirementsLabel(last_item=False)
-            label.set_hardware_requirement(tag, supported)
+            is_last_item = (i == len(hw_requirements_result)-1)
+            label = HardwareRequirementsLabel(last_item=is_last_item)
+            label.set_hardware_requirement(tag, sup)
             label.show()
             self.pack_start(label, True, True, 6)
-        # tell the last item that its last
-        if self.get_children():
-            self.get_children()[-1].last_item = True
 
     @property
     def hw_labels(self):
