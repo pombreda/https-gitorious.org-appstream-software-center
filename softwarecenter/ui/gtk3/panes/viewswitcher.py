@@ -124,13 +124,9 @@ class ViewSwitcher(Gtk.Box):
             pending_btn.set_visible(False)
 
     def start_icon_animation(self):
-        # the pending button ProgressImage is special, see:
-        # softwarecenter/ui/gtk3/widgets/animatedimage.py
         self.view_buttons[ViewPages.PENDING].image.start()
 
     def stop_icon_animation(self):
-        # the pending button ProgressImage is special, see:
-        # softwarecenter/ui/gtk3/widgets/animatedimage.py
         self.view_buttons[ViewPages.PENDING].image.stop()
 
     def notify_icon_of_pending_count(self, count):

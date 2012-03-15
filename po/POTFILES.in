@@ -43,7 +43,6 @@ softwarecenter/ui/gtk3/dialogs/deauthorize_dialog.py
 softwarecenter/ui/gtk3/dialogs/dependency_dialogs.py
 softwarecenter/ui/gtk3/models/appstore2.py
 softwarecenter/ui/gtk3/models/pendingstore.py
-softwarecenter/ui/gtk3/models/viewstore.py
 softwarecenter/ui/gtk3/panes/availablepane.py
 softwarecenter/ui/gtk3/panes/historypane.py
 softwarecenter/ui/gtk3/panes/installedpane.py
