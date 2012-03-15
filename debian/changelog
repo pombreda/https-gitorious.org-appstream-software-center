@@ -9,7 +9,8 @@ software-center (5.1.13) UNRELEASED; urgency=low
     lp:~elachuni/software-center/pep8-test-part10,
     lp:~elachuni/software-center/pep8-test-part11,
     lp:~elachuni/software-center/pep8-test-part12,
-    lp:~elachuni/software-center/pep8-test-part13:
+    lp:~elachuni/software-center/pep8-test-part13,
+    lp:~elachuni/software-center/pep8-test-part14,
     - pep8 fixes for many more files in ui.gtk3.{*}
   * lp:~elachuni/software-center/unify-ussoc-envvar:
     - fix USSOC_SERVICE_URL env variable

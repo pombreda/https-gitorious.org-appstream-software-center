@@ -21,6 +21,7 @@
 
 from gi.repository import Gtk
 
+
 # based on SimpleGladeApp
 class SimpleGtkbuilderApp:
 
@@ -54,4 +55,3 @@ class SimpleGtkbuilderApp:
         after a program is finished by pressing Control-C.
         """
         pass
-
