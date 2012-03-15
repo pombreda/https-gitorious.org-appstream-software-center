@@ -19,6 +19,7 @@
 # order is import here, otherwise test/gtk3/test_purchase.py is unhappy
 from gi.repository import GObject
 from gi.repository import Gtk
+import gi
 
 import atexit
 import collections
@@ -430,12 +431,13 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.window_main.connect("realize", self.on_realize)
 
         # launchpad integration help, its ok if that fails
-        try:
-            from gi.repository import LaunchpadIntegration
-            LaunchpadIntegration.set_sourcepackagename("software-center")
-            LaunchpadIntegration.add_items(self.menu_help, 3, True, False)
-        except Exception, e:
-            LOG.debug("launchpad integration error: '%s'" % e)
+        if gi.Repository.get_default().enumerate_versions('LaunchpadIntegration'):
+            try:
+                from gi.repository import LaunchpadIntegration
+                LaunchpadIntegration.set_sourcepackagename("software-center")
+                LaunchpadIntegration.add_items(self.menu_help, 3, True, False)
+            except Exception, e:
+                LOG.debug("launchpad integration error: '%s'" % e)
 
     # helper
     def _run_software_center_agent(self):
