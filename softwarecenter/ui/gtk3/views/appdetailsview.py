@@ -304,13 +304,11 @@ class PackageStatusBar(StatusBar):
                      PkgStates.INSTALLING_PURCHASED,
                      PkgStates.REMOVING,
                      PkgStates.UPGRADING,
+                     PkgStates.ERROR,
                      AppActions.APPLY):
             self.show()
         elif state == PkgStates.NOT_FOUND:
             self.hide()
-        elif state == PkgStates.ERROR:
-            # error details are set below
-            self.show()
         else:
             # mvo: why do we override state here again?
             state = app_details.pkg_state
@@ -425,7 +423,7 @@ class PackageStatusBar(StatusBar):
             self.set_label(_(u'Changing Add-ons\u2026'))
             self.button.set_sensitive(False)
         elif state == PkgStates.UNKNOWN:
-            self.set_button_label("")
+            self.button.hide()
             self.set_label(_("Error"))
         elif state == PkgStates.ERROR:
             # this is used when the pkg can not be installed
@@ -438,7 +436,7 @@ class PackageStatusBar(StatusBar):
             # this is used when the pkg is not in the cache and there is no
             # request we display the error in the summary field and hide the 
             # rest
-            pass
+            self.button.hide()
         elif state == PkgStates.NEEDS_SOURCE:
             channelfile = self.app_details.channelfile
             # it has a price and is not available 
@@ -453,9 +451,15 @@ class PackageStatusBar(StatusBar):
                 #        components that are not enabled or that just
                 #        lack the "Packages" files (but are in sources.list)
                 self.set_button_label(_("Update Now"))
-        if (self.app_details.warning and not self.app_details.error and
-           not state in (PkgStates.INSTALLING, PkgStates.INSTALLING_PURCHASED,
-           PkgStates.REMOVING, PkgStates.UPGRADING, AppActions.APPLY)):
+
+        # this maybe a region or hw compatibilty warning
+        if (self.app_details.warning and 
+            not self.app_details.error and
+            not state in (PkgStates.INSTALLING, 
+                          PkgStates.INSTALLING_PURCHASED,
+                          PkgStates.REMOVING, 
+                          PkgStates.UPGRADING, 
+                          AppActions.APPLY)):
             self.set_label(self.app_details.warning)
 
         sensitive = network_state_is_connected()

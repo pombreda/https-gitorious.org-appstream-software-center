@@ -180,10 +180,11 @@ class PkgStates:
     FORCE_VERSION,
     # the package is not found in the DB or cache
     NOT_FOUND,
+    # its purchased but not found for the current series
+    PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES,
     # this *needs* to be last (for test_appdetails.py) and means
     # something went wrong and we don't have a state for this PKG
     UNKNOWN,
-    PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES,
     ) = range(17)
 
 # visibility of non applications in the search results
