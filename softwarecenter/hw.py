@@ -80,6 +80,18 @@ def get_hw_missing_long_description(tags):
         s = s[:-1]
     return s
 
+OPENGL_DRIVER_BLACKLIST_TAG="x-hardware::opengl-driver-blacklist:"
+def get_private_extenstions_hardware_support_for_tags(tags):
+    import debtagshw
+    res = {}
+    for tag in tags:
+        if tag.startswith(OPENGL_DRIVER_BLACKLIST_TAG):
+            prefix, sep, driver = tag.rpartition(":")
+            if driver == debtagshw.opengl.get_driver():
+                res[tag] = debtagshw.enums.HardwareSupported.NO
+            else:
+                res[tag] = debtagshw.enums.HardwareSupported.YES
+    return res
 
 def get_hardware_support_for_tags(tags):
     """ wrapper around the DebtagsAvailalbeHW to support adding our own 
@@ -88,4 +100,7 @@ def get_hardware_support_for_tags(tags):
     from debtagshw.debtagshw import DebtagsAvailableHW
     hw = DebtagsAvailableHW()
     support = hw.get_hardware_support_for_tags(tags)
+    private_extensions = get_private_extenstions_hardware_support_for_tags(
+        tags)
+    support.update(private_extensions)
     return support
