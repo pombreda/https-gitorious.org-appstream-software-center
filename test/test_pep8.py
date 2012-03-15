@@ -8,6 +8,7 @@ setup_test_env()
 
 # Only test these two packages for now:
 import softwarecenter.db.pkginfo_impl
+import softwarecenter.ui.gtk3.models
 import softwarecenter.ui.gtk3.panes
 import softwarecenter.ui.gtk3.session
 import softwarecenter.ui.gtk3.views
@@ -17,6 +18,7 @@ import softwarecenter.ui.qml
 class PackagePep8TestCase(unittest.TestCase):
     maxDiff = None
     packages = [softwarecenter.ui.qml,
+                softwarecenter.ui.gtk3.models,
                 softwarecenter.ui.gtk3.panes,
                 softwarecenter.ui.gtk3.session,
                 softwarecenter.ui.gtk3.views,
