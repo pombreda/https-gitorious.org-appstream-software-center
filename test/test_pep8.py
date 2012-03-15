@@ -14,8 +14,7 @@ class PackagePep8TestCase(unittest.TestCase):
     maxDiff = None
     packages = [softwarecenter.ui,
                 softwarecenter.db]
-    exclude = ['history.py', 'enquire.py', 'debfile.py', 'database.py',
-        'categories.py', 'application.py', 'appfilter.py', '__init__.py']
+    exclude = ['application.py', 'appfilter.py']
 
     def message(self, text):
         self.errors.append(text)

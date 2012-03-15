@@ -43,12 +43,14 @@ from gettext import gettext as _
 # not possible not use local logger
 LOG = logging.getLogger(__name__)
 
+
 def get_category_by_name(categories, untrans_name):
     # find a specific category
     cat = [cat for cat in categories if cat.untranslated_name == untrans_name]
-    if cat: 
+    if cat:
         return cat[0]
     return None
+
 
 def categories_sorted_by_name(categories):
     # sort categories by name
@@ -66,7 +68,8 @@ def categories_sorted_by_name(categories):
                 sorted_cats.append(cat)
                 break
     return sorted_cats
-        
+
+
 def get_query_for_category(db, untranslated_category_name):
     cat_parser = CategoriesParser(db)
     categories = cat_parser.parse_applications_menu(APP_INSTALL_PATH)
@@ -80,7 +83,7 @@ def get_query_for_category(db, untranslated_category_name):
 class Category(GObject.GObject):
     """represents a menu category"""
     def __init__(self, untranslated_name, name, iconname, query,
-                 only_unallocated=True, dont_display=False, flags=[], 
+                 only_unallocated=True, dont_display=False, flags=[],
                  subcategories=[], sortmode=SortMethods.BY_ALPHABET,
                  item_limit=0):
         GObject.GObject.__init__(self)
@@ -129,20 +132,20 @@ class Category(GObject.GObject):
 class RecommendedForYouCategory(Category):
 
     __gsignals__ = {
-        "needs-refresh" : (GObject.SIGNAL_RUN_LAST,
-                           GObject.TYPE_NONE, 
-                           (),
-                          ),
-        "recommender-agent-error" : (GObject.SIGNAL_RUN_LAST,
-                                     GObject.TYPE_NONE, 
-                                     (GObject.TYPE_STRING,),
-                                    ),
+        "needs-refresh": (GObject.SIGNAL_RUN_LAST,
+                          GObject.TYPE_NONE,
+                          (),
+                         ),
+        "recommender-agent-error": (GObject.SIGNAL_RUN_LAST,
+                                    GObject.TYPE_NONE,
+                                    (GObject.TYPE_STRING,),
+                                   ),
         }
 
     def __init__(self):
         super(RecommendedForYouCategory, self).__init__(
-            u"Recommended for You", _("Recommended for You"), None, 
-            xapian.Query(),flags=['available-only', 'not-installed-only'], 
+            u"Recommended for You", _("Recommended for You"), None,
+            xapian.Query(), flags=['available-only', 'not-installed-only'],
             item_limit=60)
         self.recommender_agent = RecommenderAgent()
         self.recommender_agent.connect(
@@ -159,27 +162,28 @@ class RecommendedForYouCategory(Category):
         self.emit("needs-refresh")
 
     def _recommender_agent_error(self, recommender_agent, msg):
-        LOG.warn("Error while accessing the recommender service: %s" 
+        LOG.warn("Error while accessing the recommender service: %s"
                                                             % msg)
         self.emit("recommender-agent-error", msg)
-        
+
+
 class AppRecommendationsCategory(Category):
 
     __gsignals__ = {
-        "needs-refresh" : (GObject.SIGNAL_RUN_LAST,
-                           GObject.TYPE_NONE, 
-                           (),
-                          ),
-        "recommender-agent-error" : (GObject.SIGNAL_RUN_LAST,
-                                     GObject.TYPE_NONE, 
-                                     (GObject.TYPE_STRING,),
-                                    ),
+        "needs-refresh": (GObject.SIGNAL_RUN_LAST,
+                          GObject.TYPE_NONE,
+                          (),
+                         ),
+        "recommender-agent-error": (GObject.SIGNAL_RUN_LAST,
+                                    GObject.TYPE_NONE,
+                                    (GObject.TYPE_STRING,),
+                                   ),
         }
 
     def __init__(self, pkgname):
         super(AppRecommendationsCategory, self).__init__(
-            u"People Also Installed", _("People Also Installed"), None, 
-            xapian.Query(),flags=['available-only', 'not-installed-only'], 
+            u"People Also Installed", _("People Also Installed"), None,
+            xapian.Query(), flags=['available-only', 'not-installed-only'],
             item_limit=4)
         self.recommender_agent = RecommenderAgent()
         self.recommender_agent.connect(
@@ -196,12 +200,13 @@ class AppRecommendationsCategory(Category):
         self.emit("needs-refresh")
 
     def _recommender_agent_error(self, recommender_agent, msg):
-        LOG.warn("Error while accessing the recommender service: %s" 
+        LOG.warn("Error while accessing the recommender service: %s"
                                                             % msg)
         self.emit("recommender-agent-error", msg)
 
+
 class CategoriesParser(object):
-    """ 
+    """
     Parser that is able to read the categories from a menu file
     """
 
@@ -214,8 +219,8 @@ class CategoriesParser(object):
         """ parse a application menu and return a list of Category objects """
         categories = []
         # we support multiple menu files and menu drop ins
-        menu_files = [ datadir+"/desktop/software-center.menu" ]
-        menu_files += glob.glob(datadir+"/menu.d/*.menu")
+        menu_files = [datadir + "/desktop/software-center.menu"]
+        menu_files += glob.glob(datadir + "/menu.d/*.menu")
         for f in menu_files:
             if not os.path.exists(f):
                 continue
@@ -230,7 +235,7 @@ class CategoriesParser(object):
         # post processing for <OnlyUnallocated>
         # now build the unallocated queries, once for top-level,
         # and for the subcategories. this means that subcategories
-        # can have a "OnlyUnallocated/" that applies only to 
+        # can have a "OnlyUnallocated/" that applies only to
         # unallocated entries in their sublevel
         for cat in categories:
             self._build_unallocated_queries(cat.subcategories)
@@ -246,15 +251,14 @@ class CategoriesParser(object):
             currently used for the CURRENT_REGION
         """
         region = "%s" % get_region_cached()["countrycode"]
-        self._template_dict = { 'CURRENT_REGION' : region,
-                              }
+        self._template_dict = {'CURRENT_REGION': region}
 
     def _substitute_string_if_needed(self, t):
         """ substitute the given string with the current supported dynamic
             menu keys
         """
         return string.Template(t).substitute(self._template_dict)
-    
+
     def _cat_sort_cmp(self, a, b):
         """sort helper for the categories sorting"""
         #print "cmp: ", a.name, b.name
@@ -277,7 +281,7 @@ class CategoriesParser(object):
         LOG.debug("reading '%s'" % fname)
         cp.read(fname)
         try:
-            untranslated_name = name = cp.get("Desktop Entry","Name")
+            untranslated_name = name = cp.get("Desktop Entry", "Name")
         except Exception:
             LOG.warn("'%s' has no name" % fname)
             return None
@@ -286,7 +290,7 @@ class CategoriesParser(object):
         except:
             gettext_domain = None
         try:
-            icon = cp.get("Desktop Entry","Icon")
+            icon = cp.get("Desktop Entry", "Icon")
         except Exception:
             icon = "applications-other"
         name = cp.get_desktop("Name", translated=True)
@@ -303,7 +307,8 @@ class CategoriesParser(object):
         for operator_elem in element.getchildren():
             # get the query-text
             if operator_elem.text:
-                qtext = self._substitute_string_if_needed(operator_elem.text).lower()
+                qtext = self._substitute_string_if_needed(
+                    operator_elem.text).lower()
             # parse the indivdual element
             if operator_elem.tag == "Not":
                 query = self._parse_and_or_not_tag(
@@ -314,7 +319,7 @@ class CategoriesParser(object):
                 query = xapian.Query(xapian.Query.OP_AND, or_elem, query)
             elif operator_elem.tag == "Category":
                 LOG.debug("adding: %s" % operator_elem.text)
-                q = xapian.Query("AC"+qtext)
+                q = xapian.Query("AC" + qtext)
                 query = xapian.Query(xapian_op, query, q)
             elif operator_elem.tag == "SCSection":
                 LOG.debug("adding section: %s" % operator_elem.text)
@@ -323,54 +328,58 @@ class CategoriesParser(object):
                 # FIXME: ponder if it makes sense to simply write
                 #        out XS in update-software-center instead of AE?
                 q = xapian.Query(xapian.Query.OP_OR,
-                                 xapian.Query("XS"+qtext),
-                                 xapian.Query("AE"+qtext))
+                                 xapian.Query("XS" + qtext),
+                                 xapian.Query("AE" + qtext))
                 query = xapian.Query(xapian_op, query, q)
             elif operator_elem.tag == "SCType":
                 LOG.debug("adding type: %s" % operator_elem.text)
-                q = xapian.Query("AT"+qtext)
+                q = xapian.Query("AT" + qtext)
                 query = xapian.Query(xapian_op, query, q)
             elif operator_elem.tag == "SCDebtag":
                 LOG.debug("adding debtag: %s" % operator_elem.text)
-                q = xapian.Query("XT"+qtext)
+                q = xapian.Query("XT" + qtext)
                 query = xapian.Query(xapian_op, query, q)
             elif operator_elem.tag == "SCChannel":
                 LOG.debug("adding channel: %s" % operator_elem.text)
-                q = xapian.Query("AH"+qtext)
+                q = xapian.Query("AH" + qtext)
                 query = xapian.Query(xapian_op, query, q)
             elif operator_elem.tag == "SCOrigin":
                 LOG.debug("adding origin: %s" % operator_elem.text)
                 # FIXME: origin is currently case-sensitive?!?
-                q = xapian.Query("XOO"+operator_elem.text)
+                q = xapian.Query("XOO" + operator_elem.text)
                 query = xapian.Query(xapian_op, query, q)
             elif operator_elem.tag == "SCPkgname":
                 LOG.debug("adding tag: %s" % operator_elem.text)
                 # query both axi and s-c
-                q1 = xapian.Query("AP"+qtext)
+                q1 = xapian.Query("AP" + qtext)
                 q = xapian.Query(xapian.Query.OP_OR, q1,
-                                 xapian.Query("XP"+qtext))
+                                 xapian.Query("XP" + qtext))
                 query = xapian.Query(xapian_op, query, q)
             elif operator_elem.tag == "SCPkgnameWildcard":
                 LOG.debug("adding tag: %s" % operator_elem.text)
                 # query both axi and s-c
                 s = "pkg_wildcard:%s" % qtext
-                q = self.db.xapian_parser.parse_query(s, xapian.QueryParser.FLAG_WILDCARD)
+                q = self.db.xapian_parser.parse_query(s,
+                    xapian.QueryParser.FLAG_WILDCARD)
                 query = xapian.Query(xapian_op, query, q)
-            else: 
-                LOG.warn("UNHANDLED: %s %s" % (operator_elem.tag, operator_elem.text))
+            else:
+                LOG.warn("UNHANDLED: %s %s" % (operator_elem.tag,
+                    operator_elem.text))
         return query
 
     def _parse_include_tag(self, element):
         for include in element.getchildren():
             if include.tag == "Or":
                 query = xapian.Query()
-                return self._parse_and_or_not_tag(include, query, xapian.Query.OP_OR)
+                return self._parse_and_or_not_tag(include, query,
+                    xapian.Query.OP_OR)
             if include.tag == "And":
                 query = xapian.Query("")
-                return self._parse_and_or_not_tag(include, query, xapian.Query.OP_AND)
+                return self._parse_and_or_not_tag(include, query,
+                    xapian.Query.OP_AND)
             # without "and" tag we take the first entry
             elif include.tag == "Category":
-                return xapian.Query("AC"+include.text.lower())
+                return xapian.Query("AC" + include.text.lower())
             else:
                 LOG.warn("UNHANDLED: _parse_include_tag: %s" % include.tag)
         # empty query matches all
@@ -389,8 +398,9 @@ class CategoriesParser(object):
         item_limit = 0
         for element in item.getchildren():
             # ignore inline translations, we use gettext for this
-            if (element.tag == "Name" and 
-                '{http://www.w3.org/XML/1998/namespace}lang' in element.attrib):
+            if (element.tag == "Name" and
+                '{http://www.w3.org/XML/1998/namespace}lang' in
+                element.attrib):
                 continue
             if element.tag == "Name":
                 untranslated_name = element.text
@@ -425,22 +435,24 @@ class CategoriesParser(object):
                     subcategories.append(subcat)
             else:
                 LOG.warn("UNHANDLED tag in _parse_menu_tag: %s" % element.tag)
-                
+
         if untranslated_name and query:
-            return Category(untranslated_name, name, icon, query,  only_unallocated, dont_display, flags, subcategories, sortmode, item_limit)
+            return Category(untranslated_name, name, icon, query,
+                only_unallocated, dont_display, flags, subcategories,
+                sortmode, item_limit)
         else:
-            LOG.warn("UNHANDLED entry: %s %s %s %s" % (name, 
-                                                       untranslated_name, 
-                                                       icon, 
+            LOG.warn("UNHANDLED entry: %s %s %s %s" % (name,
+                                                       untranslated_name,
+                                                       icon,
                                                        query))
         return None
 
     def _verify_supported_sort_mode(self, sortmode):
         """ verify that we use a sortmode that we know and can handle """
         # always supported
-        if sortmode in (SortMethods.UNSORTED, 
-                        SortMethods.BY_ALPHABET, 
-                        SortMethods.BY_TOP_RATED, 
+        if sortmode in (SortMethods.UNSORTED,
+                        SortMethods.BY_ALPHABET,
+                        SortMethods.BY_TOP_RATED,
                         SortMethods.BY_SEARCH_RANKING):
             return True
         # only supported with a apt-xapian-index version that has the
@@ -462,7 +474,8 @@ class CategoriesParser(object):
                 continue
             for cat in categories:
                 if cat.name != cat_unalloc.name:
-                    cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
+                    cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT,
+                        cat_unalloc.query, cat.query)
             #print cat_unalloc.name, cat_unalloc.query
         return
 
@@ -530,4 +543,5 @@ category_subcat = {
 'Translation': 'Developer Tools;Localization',
 'Profiling': 'Developer Tools;Profiling',
 'RevisionControl': 'Developer Tools;Version Control',
-'WebDevelopment': 'Developer Tools;Web Development',}
+'WebDevelopment': 'Developer Tools;Web Development',
+}

@@ -40,8 +40,9 @@ from softwarecenter.enums import (
 from softwarecenter.paths import XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT
 from gettext import gettext as _
 
+
 def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
-    """ parse the apt-xapian-index "values" file and provide the 
+    """ parse the apt-xapian-index "values" file and provide the
     information in the self._axi_values dict
     """
     axi_values = {}
@@ -54,6 +55,7 @@ def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
         (key, value) = line.split()
         axi_values[key] = int(value)
     return axi_values
+
 
 class SearchQuery(list):
     """ a list wrapper for a search query. it can take a search string
@@ -69,6 +71,7 @@ class SearchQuery(list):
             self.append(query_string_or_list)
         else:
             self.extend(query_string_or_list)
+
     def __eq__(self, other):
         # turn single querries into a single item list
         if  isinstance(other, xapian.Query):
@@ -76,19 +79,24 @@ class SearchQuery(list):
         q1 = [str(q) for q in self]
         q2 = [str(q) for q in other]
         return q1 == q2
+
     def __ne__(self, other):
         return not self.__eq__(other)
+
     def __repr__(self):
         return "[%s]" % ",".join([str(q) for q in self])
+
 
 class LocaleSorter(xapian.KeyMaker):
     """ Sort in a locale friendly way by using locale.xtrxfrm """
     def __init__(self, db):
         super(LocaleSorter, self).__init__()
         self.db = db
+
     def __call__(self, doc):
         return locale.strxfrm(
             doc.get_value(self.db._axi_values["display_name"]))
+
 
 class TopRatedSorter(xapian.KeyMaker):
     """ Sort using the top rated data """
@@ -96,6 +104,7 @@ class TopRatedSorter(xapian.KeyMaker):
         super(TopRatedSorter, self).__init__()
         self.db = db
         self.review_loader = review_loader
+
     def __call__(self, doc):
         app = Application(self.db.get_appname(doc),
                           self.db.get_pkgname(doc))
@@ -104,6 +113,7 @@ class TopRatedSorter(xapian.KeyMaker):
         if stats:
             return xapian.sortable_serialise(stats.dampened_rating)
         return xapian.sortable_serialise(0)
+
 
 class StoreDatabase(GObject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
@@ -117,13 +127,14 @@ class StoreDatabase(GObject.GObject):
                             "suite;tool")
 
     # signal emited
-    __gsignals__ = {"reopen" : (GObject.SIGNAL_RUN_FIRST,
-                                GObject.TYPE_NONE,
-                                ()),
-                    "open" : (GObject.SIGNAL_RUN_FIRST,
-                              GObject.TYPE_NONE,
-                              (GObject.TYPE_STRING,)),
+    __gsignals__ = {"reopen": (GObject.SIGNAL_RUN_FIRST,
+                               GObject.TYPE_NONE,
+                               ()),
+                    "open": (GObject.SIGNAL_RUN_FIRST,
+                             GObject.TYPE_NONE,
+                             (GObject.TYPE_STRING,)),
                     }
+
     def __init__(self, pathname=None, cache=None):
         GObject.GObject.__init__(self)
         if pathname is None:
@@ -138,8 +149,8 @@ class StoreDatabase(GObject.GObject):
         self._logger = logging.getLogger("softwarecenter.db")
         # we open one db per thread, thread names are reused eventually
         # so no memory leak
-        self._db_per_thread = {} 
-        self._parser_per_thread = {} 
+        self._db_per_thread = {}
+        self._parser_per_thread = {}
 
     @property
     def xapiandb(self):
@@ -154,7 +165,8 @@ class StoreDatabase(GObject.GObject):
         """ returns a per thread query parser """
         thread_name = threading.current_thread().name
         if not thread_name in self._parser_per_thread:
-            self._parser_per_thread[thread_name] = self._get_new_xapian_parser()
+            xapian_parser = self._get_new_xapian_parser()
+            self._parser_per_thread[thread_name] = xapian_parser
         return self._parser_per_thread[thread_name]
 
     def _get_new_xapiandb(self):
@@ -165,7 +177,7 @@ class StoreDatabase(GObject.GObject):
                 xapiandb.add_database(axi)
             except:
                 self._logger.exception("failed to add apt-xapian-index")
-        if (self._use_agent and 
+        if (self._use_agent and
             os.path.exists(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)):
             try:
                 sca = xapian.Database(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)
@@ -188,14 +200,14 @@ class StoreDatabase(GObject.GObject):
         xapian_parser.add_prefix("pkg_wildcard", "AP")
         xapian_parser.set_default_op(xapian.Query.OP_AND)
         return xapian_parser
-        
+
     def open(self, pathname=None, use_axi=True, use_agent=True):
         """ open the database """
         if pathname:
             self._db_pathname = pathname
         # clean existing DBs on open
-        self._db_per_thread = {} 
-        self._parser_per_thread = {} 
+        self._db_per_thread = {}
+        self._parser_per_thread = {}
         # add the apt-xapian-database for here (we don't do this
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
@@ -223,7 +235,7 @@ class StoreDatabase(GObject.GObject):
 
     def schema_version(self):
         """Return the version of the database layout
-        
+
            This is useful to ensure we force a rebuild if its
            older than what we expect
         """
@@ -236,11 +248,13 @@ class StoreDatabase(GObject.GObject):
 
     @property
     def popcon_max(self):
-        popcon_max = xapian.sortable_unserialise(self.xapiandb.get_metadata("popcon_max_desktop"))
+        popcon_max = xapian.sortable_unserialise(self.xapiandb.get_metadata(
+            "popcon_max_desktop"))
         assert popcon_max > 0
         return popcon_max
 
-    def get_query_list_from_search_entry(self, search_term, category_query=None):
+    def get_query_list_from_search_entry(self, search_term,
+        category_query=None):
         """ get xapian.Query from a search term string and a limit the
             search to the given category
         """
@@ -248,7 +262,7 @@ class StoreDatabase(GObject.GObject):
             """ helper that adds the current category to the query"""
             if not category_query:
                 return query
-            return xapian.Query(xapian.Query.OP_AND, 
+            return xapian.Query(xapian.Query.OP_AND,
                                 category_query,
                                 query)
         # empty query returns a query that matches nothing (for performance
@@ -268,8 +282,9 @@ class StoreDatabase(GObject.GObject):
             orig_search_term = search_term
             for item in self.SEARCH_GREYLIST_STR.split(";"):
                 (search_term, n) = re.subn('\\b%s\\b' % item, '', search_term)
-                if n: 
-                    self._logger.debug("greylist changed search term: '%s'" % search_term)
+                if n:
+                    self._logger.debug("greylist changed search term: '%s'" %
+                        search_term)
         # restore query if it was just greylist words
         if search_term == '':
             self._logger.debug("grey-list replaced all terms, restoring")
@@ -284,25 +299,25 @@ class StoreDatabase(GObject.GObject):
             pkg_query = xapian.Query()
             for term in search_term.split():
                 pkg_query = xapian.Query(xapian.Query.OP_OR,
-                                         xapian.Query("XP"+term),
+                                         xapian.Query("XP" + term),
                                          pkg_query)
         pkg_query = _add_category_to_query(pkg_query)
 
         # get a search query
-        if not ':' in search_term: # ie, not a mimetype query
+        if not ':' in search_term:  # ie, not a mimetype query
             # we need this to work around xapian oddness
-            search_term = search_term.replace('-','_')
-        fuzzy_query = self.xapian_parser.parse_query(search_term, 
-                                               xapian.QueryParser.FLAG_PARTIAL|
-                                               xapian.QueryParser.FLAG_BOOLEAN)
+            search_term = search_term.replace('-', '_')
+        fuzzy_query = self.xapian_parser.parse_query(search_term,
+                                           xapian.QueryParser.FLAG_PARTIAL |
+                                           xapian.QueryParser.FLAG_BOOLEAN)
         # if the query size goes out of hand, omit the FLAG_PARTIAL
         # (LP: #634449)
         if fuzzy_query.get_length() > 1000:
-            fuzzy_query = self.xapian_parser.parse_query(search_term, 
+            fuzzy_query = self.xapian_parser.parse_query(search_term,
                                             xapian.QueryParser.FLAG_BOOLEAN)
         # now add categories
         fuzzy_query = _add_category_to_query(fuzzy_query)
-        return SearchQuery([pkg_query,fuzzy_query])
+        return SearchQuery([pkg_query, fuzzy_query])
 
     def get_matches_from_query(self, query, start=0, end=-1, category=None):
         enquire = xapian.Enquire(self.xapiandb)
@@ -314,7 +329,7 @@ class StoreDatabase(GObject.GObject):
         if category:
             query = xapian.Query(xapian.Query.OP_AND, category.query, query)
         enquire.set_query(query)
-        if end == -1: 
+        if end == -1:
             end = len(self)
         return enquire.get_mset(start, end)
 
@@ -324,30 +339,30 @@ class StoreDatabase(GObject.GObject):
 
     def get_spelling_correction(self, search_term):
         # get a search query
-        if not ':' in search_term: # ie, not a mimetype query
+        if not ':' in search_term:  # ie, not a mimetype query
             # we need this to work around xapian oddness
-            search_term = search_term.replace('-','_')
+            search_term = search_term.replace('-', '_')
         self.xapian_parser.parse_query(
             search_term, xapian.QueryParser.FLAG_SPELLING_CORRECTION)
         return self.xapian_parser.get_corrected_query_string()
 
-    def get_most_popular_applications_for_mimetype(self, mimetype, 
-                                                  only_uninstalled=True, num=3):
+    def get_most_popular_applications_for_mimetype(self, mimetype,
+        only_uninstalled=True, num=3):
         """ return a list of the most popular applications for the given
-            mimetype 
+            mimetype
         """
         # sort by popularity by default
         enquire = xapian.Enquire(self.xapiandb)
         enquire.set_sort_by_value_then_relevance(XapianValues.POPCON)
         # query mimetype
-        query = xapian.Query("AM%s"%mimetype)
+        query = xapian.Query("AM%s" % mimetype)
         enquire.set_query(query)
         # mset just needs to be "big enough""
         matches = enquire.get_mset(0, 100)
         apps = []
         for match in matches:
             doc = match.document
-            app = Application(self.get_appname(doc),self.get_pkgname(doc),
+            app = Application(self.get_appname(doc), self.get_pkgname(doc),
                               popcon=self.get_popcon(doc))
             if only_uninstalled:
                 if app.get_details(self).pkg_state == PkgStates.UNINSTALLED:
@@ -364,9 +379,9 @@ class StoreDatabase(GObject.GObject):
         channel = doc.get_value(XapianValues.ARCHIVE_CHANNEL)
         # if we do not have the summary in the xapian db, get it
         # from the apt cache
-        if not summary and self._aptcache.ready: 
+        if not summary and self._aptcache.ready:
             pkgname = self.get_pkgname(doc)
-            if (pkgname in self._aptcache and 
+            if (pkgname in self._aptcache and
                 self._aptcache[pkgname].candidate):
                 return  self._aptcache[pkgname].candidate.summary
             elif channel:
@@ -384,7 +399,7 @@ class StoreDatabase(GObject.GObject):
     def get_pkgname(self, doc):
         """ Return a packagename from a xapian document """
         pkgname = doc.get_value(XapianValues.PKGNAME)
-        # if there is no value it means we use the apt-xapian-index 
+        # if there is no value it means we use the apt-xapian-index
         # that stores the pkgname in the data field or as a value
         if not pkgname:
             # the doc says that get_value() is quicker than get_data()
@@ -409,10 +424,11 @@ class StoreDatabase(GObject.GObject):
 
     def pkg_in_category(self, pkgname, cat_query):
         """ Return True if the given pkg is in the given category """
-        pkg_query1 = xapian.Query("AP"+pkgname)
-        pkg_query2 = xapian.Query("XP"+pkgname)
+        pkg_query1 = xapian.Query("AP" + pkgname)
+        pkg_query2 = xapian.Query("XP" + pkgname)
         pkg_query = xapian.Query(xapian.Query.OP_OR, pkg_query1, pkg_query2)
-        pkg_and_cat_query = xapian.Query(xapian.Query.OP_AND, pkg_query, cat_query)
+        pkg_and_cat_query = xapian.Query(xapian.Query.OP_AND, pkg_query,
+            cat_query)
         enquire = xapian.Enquire(self.xapiandb)
         enquire.set_query(pkg_and_cat_query)
         matches = enquire.get_mset(0, len(self))
@@ -424,10 +440,10 @@ class StoreDatabase(GObject.GObject):
         """ Return set of docids with the matching applications for the
             given pkgname """
         result = set()
-        for m in self.xapiandb.postlist("AP"+pkgname):
+        for m in self.xapiandb.postlist("AP" + pkgname):
             result.add(m.docid)
         return result
-        
+
     def get_icon_download_url(self, doc):
         """ Return the url of the icon or None """
         url = doc.get_value(XapianValues.ICON_URL)
@@ -444,39 +460,41 @@ class StoreDatabase(GObject.GObject):
 
     def get_xapian_document(self, appname, pkgname):
         """ Get the machting xapian document for appname, pkgname
-        
+
         If no document is found, raise a IndexError
         """
-        #self._logger.debug("get_xapian_document app='%s' pkg='%s'" % (appname,pkgname))
+        #self._logger.debug("get_xapian_document app='%s' pkg='%s'" % (appname,
+        #    pkgname))
         # first search for appname in the app-install-data namespace
-        for m in self.xapiandb.postlist("AA"+appname):
+        for m in self.xapiandb.postlist("AA" + appname):
             doc = self.xapiandb.get_document(m.docid)
             if doc.get_value(XapianValues.PKGNAME) == pkgname:
                 return doc
         # then search for pkgname in the app-install-data namespace
-        for m in self.xapiandb.postlist("AP"+pkgname):
+        for m in self.xapiandb.postlist("AP" + pkgname):
             doc = self.xapiandb.get_document(m.docid)
             if doc.get_value(XapianValues.PKGNAME) == pkgname:
                 return doc
         # then look for matching packages from a-x-i
-        for m in self.xapiandb.postlist("XP"+pkgname):
+        for m in self.xapiandb.postlist("XP" + pkgname):
             doc = self.xapiandb.get_document(m.docid)
             return doc
         # no matching document found
-        raise IndexError("No app '%s' for '%s' in database" % (appname,pkgname))
+        raise IndexError("No app '%s' for '%s' in database" % (appname,
+            pkgname))
 
     def is_appname_duplicated(self, appname):
         """Check if the given appname is stored multiple times in the db
            This can happen for generic names like "Terminal"
         """
-        for (i, m) in enumerate(self.xapiandb.postlist("AA"+appname)):
+        for (i, m) in enumerate(self.xapiandb.postlist("AA" + appname)):
             if i > 0:
                 return True
         return False
 
     def get_installed_purchased_packages(self):
         """ return a set() of packagenames of purchased apps that are
-            currently installed 
+            currently installed
         """
         for_purchase_query = xapian.Query(
             "AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
@@ -500,21 +518,22 @@ class StoreDatabase(GObject.GObject):
         return list(origins)
 
     def get_exact_matches(self, pkgnames=[]):
-        """ Returns a list of fake MSetItems. If the pkgname is available, then
-            MSetItem.document is pkgnames proper xapian document. If the pkgname
-            is not available, then MSetItem is actually an Application. """
+        """Returns a list of fake MSetItems. If the pkgname is available, then
+           MSetItem.document is pkgnames proper xapian document. If the pkgname
+           is not available, then MSetItem is actually an Application.
+        """
         matches = []
         for pkgname in pkgnames:
             app = Application('', pkgname.split('?')[0])
             if '?' in pkgname:
                 app.request = pkgname.split('?')[1]
             match = app
-            for m in  self.xapiandb.postlist("XP"+app.pkgname):
+            for m in  self.xapiandb.postlist("XP" + app.pkgname):
                 match = self.xapiandb.get_document(m.docid)
-            for m in self.xapiandb.postlist("AP"+app.pkgname):
+            for m in self.xapiandb.postlist("AP" + app.pkgname):
                 match = self.xapiandb.get_document(m.docid)
             matches.append(FakeMSetItem(match))
-        return matches        
+        return matches
 
     def __len__(self):
         """return the doc count of the database"""
@@ -525,6 +544,7 @@ class StoreDatabase(GObject.GObject):
         for it in self.xapiandb.postlist(""):
             doc = self.xapiandb.get_document(it.docid)
             yield doc
+
 
 class FakeMSetItem():
     def __init__(self, doc):
@@ -551,9 +571,8 @@ if __name__ == "__main__":
         print(doc.get_data())
 
     # test origin
-    query = xapian.Query("XOL"+"Ubuntu")
+    query = xapian.Query("XOL" + "Ubuntu")
     enquire = xapian.Enquire(db.xapiandb)
     enquire.set_query(query)
     matches = enquire.get_mset(0, len(db))
     print("Ubuntu origin: %s" % len(matches))
-    
