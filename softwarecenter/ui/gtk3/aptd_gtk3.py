@@ -21,10 +21,11 @@ from gi.repository import Gtk
 from aptdaemon.gtk3widgets import (AptMediumRequiredDialog,
                                    AptConfigFileConflictDialog)
 
-from softwarecenter.backend.installbackend import InstallBackendUI 
+from softwarecenter.backend.installbackend import InstallBackendUI
+
 
 class InstallBackendUI(InstallBackendUI):
-    
+
     def ask_config_file_conflict(self, old, new):
         dia = AptConfigFileConflictDialog(old, new)
         res = dia.run()
@@ -44,12 +45,13 @@ class InstallBackendUI(InstallBackendUI):
             return True
         else:
             return False
-    
-    def error(self, parent, primary, secondary, details=None, alternative_action=None):
+
+    def error(self, parent, primary, secondary, details=None,
+        alternative_action=None):
         from dialogs import error
         res = "ok"
         res = error(parent=parent,
-                    primary=primary, 
+                    primary=primary,
                     secondary=secondary,
                     details=details,
                     alternative_action=alternative_action)
@@ -61,7 +63,6 @@ if __name__ == "__main__":
     from softwarecenter.backend import get_install_backend
     from softwarecenter.ui.gtk3.aptd_gtk3 import InstallBackendUI
     from mock import Mock
-
 
     aptd = get_install_backend()
     aptd.ui = InstallBackendUI()
@@ -82,4 +83,3 @@ if __name__ == "__main__":
     enum = 101
     res = aptd._show_transaction_failed_dialog(trans, enum)
     print (res)
-
