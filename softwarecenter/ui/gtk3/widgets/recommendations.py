@@ -91,7 +91,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         # add the new stuff
         self.recommended_for_you_content = FlowableGrid()
         self.add(self.recommended_for_you_content)
-        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
+        self.spinner_notebook.show_spinner(_(u"Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.recommended_for_you_cat = RecommendedForYouCategory(
                                             subcategory=self.subcategory)
@@ -135,6 +135,12 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
                                     (),
                                    ),
         }
+        
+    TURN_ON_RECOMMENDATIONS_TEXT = _(u"Turn On Recommendations")
+    RECOMMENDATIONS_OPT_IN_TEXT =  _(u"To make recommendations, "
+                 "Ubuntu Software Center "
+                 "will occasionally send to Canonical an anonymous list "
+                 "of software currently installed.")
 
     def __init__(self, catview):
         RecommendationsPanel.__init__(self, catview)
@@ -156,7 +162,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.add(self.recommended_for_you_content)
 
         # opt in button
-        button = Gtk.Button(_("Turn On Recommendations"))
+        button = Gtk.Button(self.TURN_ON_RECOMMENDATIONS_TEXT)
         button.connect("clicked", self._on_opt_in_button_clicked)
         hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL)
         hbox.pack_start(button, False, False, 0)
@@ -164,9 +170,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.opt_in_button = button  # for tests
 
         # opt in text
-        text = _("To make recommendations, Ubuntu Software Center "
-                 "will occasionally send to Canonical an anonymous list "
-                 "of software currently installed.")
+        text = self.RECOMMENDATIONS_OPT_IN_TEXT
         label = Gtk.Label(text)
         label.set_alignment(0, 0.5)
         label.set_line_wrap(True)
@@ -196,7 +200,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self._upload_user_profile()
 
     def _upload_user_profile(self):
-        self.spinner_notebook.show_spinner(_("Submitting inventory…"))
+        self.spinner_notebook.show_spinner(_(u"Submitting inventory…"))
         self.recommender_agent.connect("submit-profile-finished",
                                   self._on_profile_submitted)
         self.recommender_agent.connect("error",
@@ -236,7 +240,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
     def _update_app_recommendations_content(self):
         if self.app_recommendations_content:
             self.app_recommendations_content.remove_all()
-        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
+        self.spinner_notebook.show_spinner(_(u"Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.app_recommendations_cat = AppRecommendationsCategory(self.pkgname)
         self.app_recommendations_cat.connect(

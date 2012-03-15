@@ -500,9 +500,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         recommendations_menuitem = self.builder.get_object(
                                             "menuitem_recommendations")
         if opted_in:
-            recommendations_menuitem.set_label(_(u"Turn Off Recommendations"))
+            recommendations_menuitem.set_label(
+                                            _(u"Turn Off Recommendations"))
         else:
-            recommendations_menuitem.set_label(_(u"Turn On Recommendations..."))
+            recommendations_menuitem.set_label(
+                                            _(u"Turn On Recommendations..."))
 
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
@@ -752,8 +754,26 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if rec_panel.recommender_agent.is_opted_in():
             rec_panel.opt_out_of_recommendations_service()
         else:
-            # TODO: SHOW A DIALOG FIRST
-            rec_panel.opt_in_to_recommendations_service()
+            # build and show the opt-in dialog
+            opt_in_dialog = Gtk.MessageDialog(flags=Gtk.DialogFlags.MODAL,
+                                              type=Gtk.MessageType.INFO)
+            opt_in_dialog.set_title("")
+            icon_name = "softwarecenter"
+            if self.icons.has_icon(icon_name):
+                icon = Gtk.Image.new_from_icon_name(icon_name, 
+                                                    Gtk.IconSize.DIALOG)
+                opt_in_dialog.set_image(icon)
+                icon.show()
+            opt_in_dialog.format_secondary_text(
+                                rec_panel.RECOMMENDATIONS_OPT_IN_TEXT)
+            opt_in_dialog.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+            opt_in_dialog.add_button(rec_panel.TURN_ON_RECOMMENDATIONS_TEXT,
+                                     Gtk.ResponseType.YES)
+            opt_in_dialog.set_default_response(Gtk.ResponseType.YES)
+            res = opt_in_dialog.run()
+            opt_in_dialog.destroy()
+            if res == Gtk.ResponseType.YES:
+                rec_panel.opt_in_to_recommendations_service()
 
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
         self.view_manager.set_active_view(ViewPages.AVAILABLE)
