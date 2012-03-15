@@ -18,6 +18,10 @@
 
 from gettext import gettext as _
 
+# private extension over the debtagshw stuff
+OPENGL_DRIVER_BLACKLIST_TAG = "x-hardware::opengl-driver-blacklist:"
+
+
 TAG_DESCRIPTION = {
     'hardware::webcam' : _('webcam'),
     'hardware::digicam' : _('digicam'),
@@ -67,6 +71,10 @@ TAG_MISSING_DESCRIPTION = {
                                    'drive, but none are currently connected.'),
     'hardware::video:opengl' : _('This computer does not have graphics fast '
                                  'enough for this software.'),
+    # private extension
+    OPENGL_DRIVER_BLACKLIST_TAG: _('This computer uses a "%s" video driver, '
+                                   'but the application is not compatible '
+                                   'with that.'),
 }
 
 def get_hw_short_description(tag):
@@ -78,13 +86,22 @@ def get_hw_missing_long_description(tags):
     # build string
     for tag, supported in tags.iteritems():
         if supported == "no":
-            s += "%s\n" % TAG_MISSING_DESCRIPTION.get(tag)
+            descr = TAG_MISSING_DESCRIPTION.get(tag)
+            if descr:
+                s += "%s\n" % descr
+            else:
+                # deal with generic tags
+                prefix, sep, postfix = tag.rpartition(":")
+                descr =  TAG_MISSING_DESCRIPTION.get(prefix+sep)
+                descr = descr % postfix
+                if descr:
+                    s += "%s\n" % descr
     # ensure that the last \n is gone
     if s:
         s = s[:-1]
     return s
 
-OPENGL_DRIVER_BLACKLIST_TAG="x-hardware::opengl-driver-blacklist:"
+
 def get_private_extenstions_hardware_support_for_tags(tags):
     import debtagshw
     res = {}

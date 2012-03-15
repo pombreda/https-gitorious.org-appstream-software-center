@@ -7,7 +7,9 @@ from mock import patch
 from testutils import setup_test_env
 setup_test_env()
 from softwarecenter.hw import (
-    get_hardware_support_for_tags, OPENGL_DRIVER_BLACKLIST_TAG)
+    get_hardware_support_for_tags, 
+    get_hw_missing_long_description,
+    OPENGL_DRIVER_BLACKLIST_TAG)
 
 class TestHW(unittest.TestCase):
     """ tests the hardware support detection """
@@ -26,6 +28,15 @@ class TestHW(unittest.TestCase):
             mock_get_driver.return_value = "amd"
             supported = get_hardware_support_for_tags(tags)
             self.assertEqual(supported[tags[0]], "yes")
+
+    def test_get_hw_missing_long_description(self):
+        s = get_hw_missing_long_description(
+            { "hardware::input:keyboard": "yes",
+              OPENGL_DRIVER_BLACKLIST_TAG + "intel": "no",
+            })
+        self.assertEqual(s, 'This computer uses a "intel" video driver, '
+                         'but the application is not compatible with that.')
+
 
 if __name__ == "__main__":
     #import logging
