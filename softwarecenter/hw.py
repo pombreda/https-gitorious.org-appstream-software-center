@@ -18,6 +18,10 @@
 
 from gettext import gettext as _
 
+# private extension over the debtagshw stuff
+OPENGL_DRIVER_BLACKLIST_TAG = "x-hardware::opengl-driver-blacklist:"
+
+
 TAG_DESCRIPTION = {
     'hardware::webcam': _('webcam'),
     'hardware::digicam': _('digicam'),
@@ -67,16 +71,57 @@ TAG_MISSING_DESCRIPTION = {
                                    'drive, but none are currently connected.'),
     'hardware::video:opengl': _('This computer does not have graphics fast '
                                  'enough for this software.'),
+    # private extension
+    OPENGL_DRIVER_BLACKLIST_TAG: _('This computer uses a "%s" video driver, '
+                                   'but the application is not compatible '
+                                   'with that.'),
 }
 
+def get_hw_short_description(tag):
+    s = TAG_DESCRIPTION.get(tag)
+    return s
 
 def get_hw_missing_long_description(tags):
     s = ""
     # build string
     for tag, supported in tags.iteritems():
         if supported == "no":
-            s += "%s\n" % TAG_MISSING_DESCRIPTION.get(tag)
+            descr = TAG_MISSING_DESCRIPTION.get(tag)
+            if descr:
+                s += "%s\n" % descr
+            else:
+                # deal with generic tags
+                prefix, sep, postfix = tag.rpartition(":")
+                descr =  TAG_MISSING_DESCRIPTION.get(prefix+sep)
+                descr = descr % postfix
+                if descr:
+                    s += "%s\n" % descr
     # ensure that the last \n is gone
     if s:
         s = s[:-1]
     return s
+
+
+def get_private_extensions_hardware_support_for_tags(tags):
+    import debtagshw
+    res = {}
+    for tag in tags:
+        if tag.startswith(OPENGL_DRIVER_BLACKLIST_TAG):
+            prefix, sep, driver = tag.rpartition(":")
+            if driver == debtagshw.opengl.get_driver():
+                res[tag] = debtagshw.enums.HardwareSupported.NO
+            else:
+                res[tag] = debtagshw.enums.HardwareSupported.YES
+    return res
+
+def get_hardware_support_for_tags(tags):
+    """ wrapper around the DebtagsAvailalbeHW to support adding our own 
+        private tag extension (like opengl-driver)
+    """
+    from debtagshw.debtagshw import DebtagsAvailableHW
+    hw = DebtagsAvailableHW()
+    support = hw.get_hardware_support_for_tags(tags)
+    private_extensions = get_private_extensions_hardware_support_for_tags(
+        tags)
+    support.update(private_extensions)
+    return support
