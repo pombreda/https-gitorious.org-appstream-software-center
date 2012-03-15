@@ -18,8 +18,8 @@
 
 
 class BasePane(object):
-    """ Base for all the View widgets that can be registered in a 
-        ViewManager 
+    """ Base for all the View widgets that can be registered in a
+        ViewManager
     """
 
     def __init__(self):
@@ -31,16 +31,16 @@ class BasePane(object):
 
     def is_category_view_showing(self):
         return False
-        
+
     def is_applist_view_showing(self):
         return False
-        
+
     def is_app_details_view_showing(self):
         return False
 
     def get_current_app(self):
-        return None
-        
+        pass
+
     def init_view(self):
         """
         A callback that is made at the time the pane is selected in the
@@ -50,5 +50,3 @@ class BasePane(object):
         is to optimize startup time performance.
         """
         pass
-
-

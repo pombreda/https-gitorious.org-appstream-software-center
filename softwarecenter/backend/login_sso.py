@@ -84,7 +84,7 @@ class LoginBackendDbusSSO(LoginBackend):
         self._credentials = credentials
         
 
-    def _on_credentials_error(self, app_name, error, detailed_error):
+    def _on_credentials_error(self, app_name, error, detailed_error=""):
         LOG.error("_on_credentails_error for %s: %s (%s)" % (
                 app_name, error, detailed_error))
         if app_name != self.appname:
