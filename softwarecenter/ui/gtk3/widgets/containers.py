@@ -192,8 +192,6 @@ class Frame(Gtk.Alignment):
     ASSET_TAG = "default"
     BORDER_IMAGE = os.path.join(
         softwarecenter.paths.datadir, "ui/gtk3/art/frame-border-image.png")
-    #~ CORNER_LABEL = os.path.join(
-        #~ softwarecenter.paths.datadir, "ui/gtk3/art/corner-label.png")
 
     def __init__(self, padding=0):
         Gtk.Alignment.__init__(self)
@@ -202,19 +200,10 @@ class Frame(Gtk.Alignment):
         # visual border
         self.set_padding(padding, padding + 2, padding + 1, padding + 1)
 
-        # corner lable jazz
-        #~ self.show_corner_label = False
-        #~ self.layout = self.create_pango_layout("")
-        #~ self.layout.set_width(40960)
-        #~ self.layout.set_ellipsize(Pango.EllipsizeMode.END)
-
-        #~ assets = self._cache_art_assets()
         self._cache_art_assets()
         # second tier of caching, cache resultant surface of
         # fully composed and rendered frame
         self._frame_surface_cache = None
-        #~ self.connect_after("draw", self.on_draw_after,
-                           #~ assets, self.layout)
         self._allocation = Gdk.Rectangle()
         self.connect("size-allocate", self.on_size_allocate)
         self.connect("style-updated", self.on_style_updated)
@@ -304,55 +293,6 @@ class Frame(Gtk.Alignment):
 
         for child in self:
             self.propagate_draw(child, cr)
-
-    #~ def on_draw_after(self, widget, cr, assets, layout):
-        #~ if not self.show_corner_label:
-        #~     return
-        #~ cr.save()
-        #~ surf = assets["corner-label"]
-        #~ w = surf.get_width()
-        #~ h = surf.get_height()
-        #~ cr.reset_clip()
-        #~ # the following arbitrary adjustments are specific to the
-        #~ # corner-label.png image...
-
-        #~ # alter the to allow drawing outside of the widget bounds
-        #~ cr.rectangle(-10, -10, w + 4, h + 4)
-        #~ cr.clip()
-        #~ cr.set_source_surface(surf, -7, -8)
-        #~ cr.paint()
-        #~ # render label
-        #~ ex = layout.get_pixel_extents()[1]
-        #~ # transalate to the visual center of the corner-label
-        #~ cr.translate(19, 18)
-        #~ # rotate counter-clockwise
-        #~ cr.rotate(-pi * 0.25)
-        #~ # paint normal markup
-        #~ Gtk.render_layout(widget.get_style_context(),
-                          #~ cr, -ex.width / 2, -ex.height / 2, layout)
-        #~ cr.restore()
-
-    def set_show_corner_label(self, show_label):
-        if (not self.layout.get_text() and
-            self.show_corner_label == show_label):
-                return
-        global _frame_asset_cache
-        assets = _frame_asset_cache
-
-        if "corner-label" not in assets:
-            # cache corner label
-            surf = cairo.ImageSurface.create_from_png(self.CORNER_LABEL)
-            assets["corner-label"] = surf
-
-        self.show_corner_label = show_label
-        self.queue_draw()
-
-    #~ def set_corner_label(self, markup):
-        #~ markup = ('<span font_desc="12" color="white"><b>%s</b></span>' %
-        #~     markup)
-        #~ self.set_show_corner_label(True)
-        #~ self.layout.set_markup(markup, -1)
-        #~ self.queue_draw()
 
     def render_frame(self, cr, a, border_radius, assets):
         # we cache as much of the drawing as possible
