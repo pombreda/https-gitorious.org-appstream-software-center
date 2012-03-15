@@ -453,7 +453,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         bottom_hbox_alignment.add(self.bottom_hbox)
         self.vbox.pack_start(bottom_hbox_alignment, False, False, 0)
 
-        # TODO: During development, place the "Recommended for You" panel
+        # TODO: During development, place the "Recommended For You" panel
         #       at the bottom, but swap this with the Top Rated panel once
         #       the recommended for you pieces are done and deployed
         #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen

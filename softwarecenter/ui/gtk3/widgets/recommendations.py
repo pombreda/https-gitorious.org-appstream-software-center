@@ -78,7 +78,7 @@ class RecommendationsPanelLobby(RecommendationsPanel):
 
     def __init__(self, catview):
         RecommendationsPanel.__init__(self, catview)
-        self.set_header_label(_(u"Recommended for You"))
+        self.set_header_label(_(u"Recommended For You"))
 
         # if we already have a recommender UUID, then the user is already
         # opted-in to the recommender service
