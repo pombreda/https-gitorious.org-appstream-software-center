@@ -178,7 +178,7 @@ class TestCatView(unittest.TestCase):
         lobby.recommended_for_you_panel.more.clicked()
         self._p()
         self.assertNotEqual(self._cat, None)
-        self.assertEqual(self._cat.name, "Recommended for You")
+        self.assertEqual(self._cat.name, "Recommended For You")
         win.destroy()
         
     # patch out the agent query method to avoid making the actual server call

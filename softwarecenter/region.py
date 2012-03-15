@@ -28,7 +28,7 @@ import xml.etree.ElementTree
 from gettext import dgettext
 from gettext import gettext as _
 
-LOG=logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 # warning displayed if region does not match
 REGION_WARNING_STRING = _("Sorry, this software is not available in your "
@@ -39,12 +39,13 @@ REGIONTAG = "iso3166::"
 # blacklist this region
 REGION_BLACKLIST_TAG = "blacklist-iso3166::"
 
+
 def get_region_name(countrycode):
     """ return translated region name from countrycode using iso3166 """
     # find translated name
     if countrycode:
         for iso in ["iso_3166", "iso_3166_2"]:
-            path = os.path.join("/usr/share/xml/iso-codes/", iso+".xml")
+            path = os.path.join("/usr/share/xml/iso-codes/", iso + ".xml")
             if os.path.exists(path):
                 root = xml.etree.ElementTree.parse(path)
                 xpath = ".//%s_entry[@alpha_2_code='%s']" % (iso, countrycode)
@@ -56,22 +57,25 @@ def get_region_name(countrycode):
                     return dgettext(iso, name)
     return ""
 
+
 # the first parameter of SetRequirements
 class AccuracyLevel:
- NONE = 0
- COUNTRY = 1
- REGION = 2
- LOCALITY = 3
- POSTALCODE = 4
- STREET = 5
- DETAILED = 6
+    NONE = 0
+    COUNTRY = 1
+    REGION = 2
+    LOCALITY = 3
+    POSTALCODE = 4
+    STREET = 5
+    DETAILED = 6
+
 
 class AllowedResources:
     NONE = 0
     NETWORK = 1 << 0
     CELL = 1 << 1
     GPS = 1 << 2
-    ALL = (1 << 10) -1
+    ALL = (1 << 10) - 1
+
 
 class RegionDiscover(object):
 
@@ -93,9 +97,9 @@ class RegionDiscover(object):
 
     def _get_region_dumb(self):
         """ return dict estimate about the current countrycode/country """
-        res = { 'countrycode' : '',
-                'country' : '',
-                }
+        res = {'countrycode': '',
+               'country': '',
+              }
         try:
             # use LC_MONETARY as the best guess
             loc = locale.getlocale(locale.LC_MONETARY)[0]
@@ -111,11 +115,12 @@ class RegionDiscover(object):
 
     def _get_region_geoclue(self):
         """ return the dict with at least countrycode,country from a geoclue
-            provider 
+            provider
         """
         bus = dbus.SessionBus()
         master = bus.get_object(
-            'org.freedesktop.Geoclue.Master', '/org/freedesktop/Geoclue/Master')
+            'org.freedesktop.Geoclue.Master',
+            '/org/freedesktop/Geoclue/Master')
         client = bus.get_object(
             'org.freedesktop.Geoclue.Master', master.Create())
         client.SetRequirements(AccuracyLevel.COUNTRY,   # (i) accuracy_level
@@ -128,7 +133,10 @@ class RegionDiscover(object):
         time, address_res, accuracy = client.GetAddress()
         return address_res
 
+
 my_region = None
+
+
 def get_region_cached():
     global my_region
     if my_region is None:
