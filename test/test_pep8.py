@@ -7,16 +7,15 @@ from testutils import setup_test_env
 setup_test_env()
 
 # Only test these two packages for now:
-import softwarecenter.db.pkginfo_impl
-import softwarecenter.ui.gtk3
-import softwarecenter.ui.qml
+import softwarecenter.db
+import softwarecenter.ui
 
 class PackagePep8TestCase(unittest.TestCase):
     maxDiff = None
-    packages = [softwarecenter.ui.qml,
-                softwarecenter.ui.gtk3,
-                softwarecenter.db.pkginfo_impl]
-    exclude = []
+    packages = [softwarecenter.ui,
+                softwarecenter.db]
+    exclude = ['history.py', 'enquire.py', 'debfile.py', 'database.py',
+        'categories.py', 'application.py', 'appfilter.py', '__init__.py']
 
     def message(self, text):
         self.errors.append(text)

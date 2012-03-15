@@ -33,7 +33,7 @@ import re
 
 try:
     import cPickle as pickle
-    pickle # pyflakes
+    pickle  # pyflakes
 except ImportError:
     import pickle
 
@@ -43,20 +43,22 @@ from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.db.history import Transaction, PackageHistory
 
+
 def ascii_lower(key):
     ascii_trans_table = string.maketrans(string.ascii_uppercase,
                                         string.ascii_lowercase)
     return key.translate(ascii_trans_table)
 
+
 class AptTransaction(Transaction):
-    PKGACTIONS=["Install", "Upgrade", "Downgrade", "Remove", "Purge"]
+    PKGACTIONS = ["Install", "Upgrade", "Downgrade", "Remove", "Purge"]
 
     def __init__(self, sec):
         self.start_date = datetime.strptime(sec["Start-Date"],
                                             "%Y-%m-%d  %H:%M:%S")
         # set the object attributes "install", "upgrade", "downgrade",
         #                           "remove", "purge", error
-        for k in self.PKGACTIONS+["Error"]:
+        for k in self.PKGACTIONS + ["Error"]:
             # we use ascii_lower for issues described in LP: #581207
             attr = ascii_lower(k)
             if k in sec:
@@ -68,12 +70,13 @@ class AptTransaction(Transaction):
     @staticmethod
     def _fixup_history_item(s):
         """ strip history item string and add missing ")" if needed """
-        s=s.strip()
+        s = s.strip()
         # remove the infomation about the architecture
         s = re.sub(":\w+", "", s)
         if "(" in s and not s.endswith(")"):
-            s+=")"
+            s += ")"
         return s
+
 
 class AptHistory(PackageHistory):
 
@@ -95,6 +98,7 @@ class AptHistory(PackageHistory):
     @property
     def transactions(self):
         return self._transactions
+
     @property
     def history_ready(self):
         return self._history_ready
@@ -114,7 +118,7 @@ class AptHistory(PackageHistory):
                     cachetime = os.path.getmtime(p)
                 except:
                     LOG.exception("failed to load cache")
-        for history_gz_file in sorted(glob.glob(self.history_file+".*.gz"),
+        for history_gz_file in sorted(glob.glob(self.history_file + ".*.gz"),
                                       cmp=self._mtime_cmp):
             if os.path.getmtime(history_gz_file) < cachetime:
                 LOG.debug("skipping already cached '%s'" % history_gz_file)
@@ -124,8 +128,8 @@ class AptHistory(PackageHistory):
         if use_cache:
             pickle.dump(self._transactions, open(p, "w"))
         self._history_ready = True
-    
-    def _scan(self, history_file, rescan = False):
+
+    def _scan(self, history_file, rescan=False):
         LOG.debug("_scan: '%s' (%s)" % (history_file, rescan))
         try:
             tagfile = apt_pkg.TagFile(open(history_file))
@@ -136,7 +140,7 @@ class AptHistory(PackageHistory):
             # keep the UI alive
             while self.main_context.pending():
                 self.main_context.iteration()
-            # ignore records with 
+            # ignore records with
             try:
                 trans = AptTransaction(stanza)
             except (KeyError, ValueError):
@@ -151,16 +155,16 @@ class AptHistory(PackageHistory):
             #        so we could (and should) do a binary search
             if not trans in self._transactions:
                 self._transactions.insert(0, trans)
-            
+
     def _on_apt_history_changed(self, monitor, afile, other_file, event):
-        if event ==  Gio.FileMonitorEvent.CHANGES_DONE_HINT:
-            self._scan(self.history_file, rescan = True)
+        if event == Gio.FileMonitorEvent.CHANGES_DONE_HINT:
+            self._scan(self.history_file, rescan=True)
             if self.update_callback:
                 self.update_callback()
-    
-    def set_on_update(self,update_callback):
-        self.update_callback=update_callback
-            
+
+    def set_on_update(self, update_callback):
+        self.update_callback = update_callback
+
     def get_installed_date(self, pkg_name):
         installed_date = None
         for trans in self._transactions:
@@ -169,7 +173,7 @@ class AptHistory(PackageHistory):
                     installed_date = trans.start_date
                     return installed_date
         return installed_date
-    
+
     def _find_in_terminal_log(self, date, term_file):
         found = False
         term_lines = []
@@ -191,9 +195,8 @@ class AptHistory(PackageHistory):
         term_lines = self._find_in_terminal_log(date, open(term))
         # now search the older history
         if not term_lines:
-            for f in glob.glob(term+".*.gz"):
+            for f in glob.glob(term + ".*.gz"):
                 term_lines = self._find_in_terminal_log(date, gzip.open(f))
                 if term_lines:
                     return term_lines
         return term_lines
-
