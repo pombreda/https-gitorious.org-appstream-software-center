@@ -43,6 +43,8 @@ from gettext import gettext as _
 # not possible not use local logger
 LOG = logging.getLogger(__name__)
 
+# Avoid outputting several times the same warning
+_warned_catalogedtime = False
 
 def get_category_by_name(categories, untrans_name):
     # find a specific category
@@ -479,8 +481,11 @@ class CategoriesParser(object):
             if self.db._axi_values and "catalogedtime" in self.db._axi_values:
                 return True
             else:
-                LOG.warn("sort by cataloged time requested but your a-x-i "
-                             "does not seem to support that yet")
+                global _warned_catalogedtime
+                if not _warned_catalogedtime:
+                    LOG.warn("sort by cataloged time requested but your a-x-i "
+                                 "does not seem to support that yet")
+                    _warned_catalogedtime = True
                 return False
         # we don't know this sortmode
         LOG.error("unknown sort mode '%i'" % sortmode)
