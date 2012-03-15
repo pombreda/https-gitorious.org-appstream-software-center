@@ -22,17 +22,21 @@ from navhistory import NavigationHistory, NavigationItem
 from softwarecenter.ui.gtk3.widgets.backforward import BackForwardButton
 from softwarecenter.ui.gtk3.widgets.searchentry import SearchEntry
 
-_viewmanager = None # the global Viewmanager instance
+
+_viewmanager = None  # the global Viewmanager instance
+
+
 def get_viewmanager():
     return _viewmanager
+
 
 class ViewManager(GObject.GObject):
 
     __gsignals__ = {
-        "view-changed" : (GObject.SignalFlags.RUN_LAST,
-                          None,
-                          (GObject.TYPE_PYOBJECT, ),
-                         ),
+        "view-changed": (GObject.SignalFlags.RUN_LAST,
+                         None,
+                         (GObject.TYPE_PYOBJECT, ),
+                        ),
     }
 
     def __init__(self, notebook_view, options=None):
@@ -69,30 +73,27 @@ class ViewManager(GObject.GObject):
         pane = self.get_current_view_widget()
         if hasattr(pane, "on_search_terms_changed"):
             pane.on_search_terms_changed(widget, new_text)
-        return
 
     def on_nav_back_clicked(self, widget):
         pane = self.get_current_view_widget()
         if hasattr(pane, "on_nav_back_clicked"):
             pane.on_nav_back_clicked(widget)
-        return
 
     def on_nav_forward_clicked(self, widget):
         pane = self.get_current_view_widget()
         if hasattr(pane, "on_nav_forward_clicked"):
             pane.on_nav_forward_clicked(widget)
-        return
-        
+
     def on_search_entry_key_press_event(self, widget, event):
-    
+
         pane = self.get_current_view_widget()
         if hasattr(pane, "on_search_entry_key_press_event"):
             pane.on_search_entry_key_press_event(event)
-        return
 
     def register(self, pane, view_id):
         page_id = self.notebook_view.append_page(
-            pane, Gtk.Label.new("View %s" % view_id)) # label is for debugging only
+            pane,
+            Gtk.Label.new("View %s" % view_id))  # label is for debugging only
         self.all_views[view_id] = page_id
         self.view_to_pane[view_id] = pane
 
@@ -115,7 +116,7 @@ class ViewManager(GObject.GObject):
 
     def set_active_view(self, view_id):
         # no views yet
-        if not self.all_views: 
+        if not self.all_views:
             return
         # if the view switches, ensure that the global spinner is hidden
         self.spinner.hide()
@@ -135,7 +136,7 @@ class ViewManager(GObject.GObject):
             view_widget.state.search_term):
             self.search_entry.set_text_with_no_signal(
                                         view_widget.state.search_term)
-    
+
 #        callback = view_widget.get_callback_for_page(view_page,
 #                                                     view_state)
 
@@ -157,7 +158,7 @@ class ViewManager(GObject.GObject):
 
     def get_notebook_page_from_view_id(self, view_id):
         return self.all_views[view_id]
-        
+
     def get_view_widget(self, view_id):
         return self.view_to_pane.get(view_id, None)
 
@@ -194,8 +195,9 @@ class ViewManager(GObject.GObject):
         if self.get_current_view_widget() != pane:
             view_id = None
             for view_id, widget in self.view_to_pane.items():
-                if widget == pane: break
-    
+                if widget == pane:
+                    break
+
             self.set_active_view(view_id)
 
         if (not pane.searchentry or
@@ -209,14 +211,13 @@ class ViewManager(GObject.GObject):
         else:
             self.search_entry.show()
             self.spinner.hide()
-        return
 
     def nav_back(self):
         self.navhistory.nav_back()
 
     def nav_forward(self):
         self.navhistory.nav_forward()
-        
+
     def clear_forward_history(self):
         self.navhistory.clear_forward_history()
 
