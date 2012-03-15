@@ -35,10 +35,12 @@ LOG = logging.getLogger(__name__)
 ICON_SIZE = 24
 
 # for the unittests only
-_DIALOG=None
+_DIALOG = None
+
+
 def confirm_install(parent, datadir, app, db, icons):
     """Confirm install of the given app
-       
+
        (currently only shows a dialog if a installed app needs to be removed
         in order to install the application)
     """
@@ -51,15 +53,18 @@ def confirm_install(parent, datadir, app, db, icons):
     depends = cache.get_packages_removed_on_install(appdetails.pkg)
     if not depends:
         return True
-    (primary, button_text) = distro.get_install_warning_text(cache, appdetails.pkg, app.name, depends)
-    return _confirm_internal(parent, datadir, app, db, icons, primary, button_text, depends, cache)
+    (primary, button_text) = distro.get_install_warning_text(cache,
+        appdetails.pkg, app.name, depends)
+    return _confirm_internal(parent, datadir, app, db, icons, primary,
+        button_text, depends, cache)
+
 
 def confirm_remove(parent, datadir, app, db, icons):
     """ Confirm removing of the given app """
     cache = db._aptcache
     distro = get_distro()
     appdetails = app.get_details(db)
-    # FIXME: use 
+    # FIXME: use
     #  backend = get_install_backend()
     #  backend.simulate_remove(app.pkgname)
     # once it works
@@ -70,9 +75,12 @@ def confirm_remove(parent, datadir, app, db, icons):
         return True
     (primary, button_text) = distro.get_removal_warning_text(
         db._aptcache, appdetails.pkg, app.name, depends)
-    return _confirm_internal(parent, datadir, app, db, icons, primary, button_text, depends, cache)
+    return _confirm_internal(parent, datadir, app, db, icons, primary,
+        button_text, depends, cache)
 
-def _get_confirm_internal_dialog(parent, datadir, app, db, icons, primary, button_text, depends, cache):
+
+def _get_confirm_internal_dialog(parent, datadir, app, db, icons, primary,
+    button_text, depends, cache):
     glade_dialog = SimpleGtkbuilderDialog(datadir, domain="software-center")
     dialog = glade_dialog.dialog_dependency_alert
     dialog.set_resizable(True)
@@ -85,33 +93,34 @@ def _get_confirm_internal_dialog(parent, datadir, app, db, icons, primary, butto
     if (icon_name is None or
         not icons.has_icon(icon_name)):
         icon_name = Icons.MISSING_APP
-    glade_dialog.image_package_icon.set_from_icon_name(icon_name, 
+    glade_dialog.image_package_icon.set_from_icon_name(icon_name,
                                                        Gtk.IconSize.DIALOG)
 
     # set the texts
-    glade_dialog.label_dependency_primary.set_text("<span font_weight=\"bold\" font_size=\"large\">%s</span>" % primary)
+    glade_dialog.label_dependency_primary.set_text(
+        "<span font_weight=\"bold\" font_size=\"large\">%s</span>" % primary)
     glade_dialog.label_dependency_primary.set_use_markup(True)
     glade_dialog.button_dependency_do.set_label(button_text)
 
     # add the dependencies
-    view = PackageNamesView(_("Dependency"), cache, depends, icons, ICON_SIZE, db)
+    view = PackageNamesView(_("Dependency"), cache, depends, icons, ICON_SIZE,
+        db)
     view.set_headers_visible(False)
     # FIXME: work out how not to select?/focus?/activate? first item
     glade_dialog.scrolledwindow_dependencies.add(view)
     glade_dialog.scrolledwindow_dependencies.show_all()
     return dialog
 
+
 def _confirm_internal(*args):
     dialog = _get_confirm_internal_dialog(*args)
     global _DIALOG
-    _DIALOG=dialog
+    _DIALOG = dialog
     result = dialog.run()
     dialog.hide()
     if result == Gtk.ResponseType.ACCEPT:
         return True
     return False
-
-
 
 
 def get_test_dialog():
@@ -132,7 +141,7 @@ def get_test_dialog():
         db=db, icons=icons, primary=primary, button_text=button_text,
         depends=depends, cache=db._aptcache)
     return dia
-   
+
 
 if __name__ == "__main__":
 

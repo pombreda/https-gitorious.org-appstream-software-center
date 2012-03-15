@@ -24,11 +24,15 @@ import os
 
 from gettext import gettext as _
 
-from softwarecenter.enums import (Icons, 
+from softwarecenter.enums import (Icons,
                                   XapianValues)
 
 
-from softwarecenter.utils import ExecutionTime, SimpleFileDownloader, split_icon_ext
+from softwarecenter.utils import (
+    ExecutionTime,
+    SimpleFileDownloader,
+    split_icon_ext,
+    )
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
@@ -44,8 +48,9 @@ _app_icon_cache = {}
 LOG = logging.getLogger(__name__)
 _FREE_AS_IN_BEER = ("0.00", "")
 
+
 class CategoryRowReference:
-    """ A simple container for Category properties to be 
+    """ A simple container for Category properties to be
         displayed in a AppListStore or AppTreeStore
     """
 
@@ -55,7 +60,6 @@ class CategoryRowReference:
         #self.subcategories = subcats
         self.pkg_count = pkg_count
         self.vis_count = pkg_count
-        return
 
 
 class UncategorisedRowRef(CategoryRowReference):
@@ -70,7 +74,6 @@ class UncategorisedRowRef(CategoryRowReference):
                                       untranslated_name,
                                       display_name,
                                       None, pkg_count)
-        return
 
 
 class AppPropertiesHelper(GObject.GObject):
@@ -79,13 +82,14 @@ class AppPropertiesHelper(GObject.GObject):
     """
 
     __gsignals__ = {
-        "needs-refresh" : (GObject.SignalFlags.RUN_LAST,
-                          None, 
-                           (str, ),
-                           ),
+        "needs-refresh": (GObject.SignalFlags.RUN_LAST,
+                         None,
+                          (str, ),
+                          ),
         }
 
-    def __init__(self, db, cache, icons, icon_size=48, global_icon_cache=False):
+    def __init__(self, db, cache, icons, icon_size=48,
+        global_icon_cache=False):
         GObject.GObject.__init__(self)
         self.db = db
         self.cache = cache
@@ -102,31 +106,35 @@ class AppPropertiesHelper(GObject.GObject):
         self.icons = icons
         self.icon_size = icon_size
 
-        # cache the 'missing icon' used in the treeview for apps without an icon
+        # cache the 'missing icon' used in the treeview for apps without an
+        # icon
         self._missing_icon = icons.load_icon(Icons.MISSING_APP, icon_size, 0)
         if global_icon_cache:
             self.icon_cache = _app_icon_cache
         else:
             self.icon_cache = {}
-        return
 
     def _download_icon_and_show_when_ready(self, url, pkgname, icon_file_name):
-        LOG.debug("did not find the icon locally, must download %s" % icon_file_name)
+        LOG.debug("did not find the icon locally, must download %s" %
+            icon_file_name)
 
         def on_image_download_complete(downloader, image_file_path, pkgname):
             LOG.debug("download for '%s' complete" % image_file_path)
             pb = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file_path,
                                                         self.icon_size,
                                                         self.icon_size)
-            # replace the icon in the icon_cache now that we've got the real one
+            # replace the icon in the icon_cache now that we've got the real
+            # one
             icon_file = split_icon_ext(os.path.basename(image_file_path))
             self.icon_cache[icon_file] = pb
             self.emit("needs-refresh", pkgname)
-        
+
         if url is not None:
-            icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
+            icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
+                icon_file_name)
             image_downloader = SimpleFileDownloader()
-            image_downloader.connect('file-download-complete', on_image_download_complete, pkgname)
+            image_downloader.connect('file-download-complete',
+                on_image_download_complete, pkgname)
             image_downloader.download_file(url, icon_file_path)
 
     def update_availability(self, doc):
@@ -134,7 +142,6 @@ class AppPropertiesHelper(GObject.GObject):
         doc.installed = None
         doc.purchasable = None
         self.is_installed(doc)
-        return
 
     def is_available(self, doc):
         if doc.available is None:
@@ -152,7 +159,8 @@ class AppPropertiesHelper(GObject.GObject):
 
     def is_purchasable(self, doc):
         if doc.purchasable is None:
-            doc.purchasable = doc.get_value(XapianValues.PRICE) not in _FREE_AS_IN_BEER
+            doc.purchasable = (doc.get_value(XapianValues.PRICE) not in
+                _FREE_AS_IN_BEER)
         return doc.purchasable
 
     def get_pkgname(self, doc):
@@ -195,7 +203,7 @@ class AppPropertiesHelper(GObject.GObject):
                 # icons.load_icon takes between 0.001 to 0.01s on my
                 # machine, this is a significant burden because get_value
                 # is called *a lot*. caching is the only option
-                
+
                 # look for the icon on the iconpath
                 if self.icons.has_icon(icon_name):
                     icon = self.icons.load_icon(icon_name, self.icon_size, 0)
@@ -224,11 +232,11 @@ class AppPropertiesHelper(GObject.GObject):
         return -1
 
     def _category_translate(self, catname):
-        """ helper that will look into the categories we got from the 
+        """ helper that will look into the categories we got from the
             parser and returns the translated name if it find it,
             otherwise it resorts to plain gettext
         """
-        # look into parsed categories that use .directory translation 
+        # look into parsed categories that use .directory translation
         for cat in self.all_categories:
             if cat.untranslated_name == catname:
                 return cat.name
@@ -271,17 +279,20 @@ class AppGenericStore(AppPropertiesHelper):
     ICON_SIZE = 32
 
     # the amount of items to initially lo
-    LOAD_INITIAL   = 75
+    LOAD_INITIAL = 75
 
     def __init__(self, db, cache, icons, icon_size, global_icon_cache):
-        AppPropertiesHelper.__init__(self, db, cache, icons, icon_size, 
+        AppPropertiesHelper.__init__(self, db, cache, icons, icon_size,
                                      global_icon_cache)
 
         # backend stuff
         self.backend = get_install_backend()
-        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
-        self.backend.connect("transaction-started", self._on_transaction_started)
-        self.backend.connect("transaction-finished", self._on_transaction_finished)
+        self.backend.connect("transaction-progress-changed",
+            self._on_transaction_progress_changed)
+        self.backend.connect("transaction-started",
+            self._on_transaction_started)
+        self.backend.connect("transaction-finished",
+            self._on_transaction_finished)
 
         # keep track of paths for transactions in progress
         self.transaction_path_map = {}
@@ -294,12 +305,12 @@ class AppGenericStore(AppPropertiesHelper):
 
         # other stuff
         self.active = False
-        return
 
-    # FIXME: port from 
+    # FIXME: port from
     @property
     def installable_apps(self):
         return []
+
     @property
     def existing_apps(self):
         return []
@@ -307,15 +318,15 @@ class AppGenericStore(AppPropertiesHelper):
     def notify_action_request(self, doc, path):
         pkgname = str(self.get_pkgname(doc))
         self.transaction_path_map[pkgname] = (path, self.get_iter(path))
-        return
 
     def set_from_matches(self, matches):
         # stub
         raise NotImplementedError
 
     # the following methods ensure that the contents data is refreshed
-    # whenever a transaction potentially changes it: 
-    def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
+    # whenever a transaction potentially changes it:
+    def _on_transaction_started(self, backend, pkgname, appname, trans_id,
+        trans_type):
         #~ self._refresh_transaction_map()
         pass
 
@@ -323,7 +334,6 @@ class AppGenericStore(AppPropertiesHelper):
         if pkgname in self.transaction_path_map:
             path, it = self.transaction_path_map[pkgname]
             self.row_changed(path, it)
-        return
 
     def _on_transaction_finished(self, backend, result):
         pkgname = str(result.pkgname)
@@ -356,16 +366,17 @@ class AppGenericStore(AppPropertiesHelper):
             #~ print "Appstore buffered icons in %s seconds" % t_lapsed
             #from softwarecenter.utils import get_nice_size
             #~ cache_size = get_nice_size(sys.getsizeof(_app_icon_cache))
-            #~ print "Number of icons in cache: %s consuming: %sb" % (len(_app_icon_cache), cache_size)
+            #~ print "Number of icons in cache: %s consuming: %sb" % (
+                #~ len(_app_icon_cache), cache_size)
             return False    # remove from sources on completion
 
         if self.current_matches is not None:
             GObject.idle_add(buffer_icons)
-        return
 
     def load_range(self, indices, step):
         # stub
-        return
+        pass
+
 
 class AppListStore(Gtk.ListStore, AppGenericStore):
     """ use for flat applist views. for large lists this appends rows approx
@@ -373,18 +384,18 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
     """
 
     __gsignals__ = {
-        "appcount-changed" : (GObject.SignalFlags.RUN_LAST,
-                              None, 
-                              (GObject.TYPE_PYOBJECT, ),
-                             ),
+        "appcount-changed": (GObject.SignalFlags.RUN_LAST,
+                             None,
+                             (GObject.TYPE_PYOBJECT, ),
+                            ),
         # meh, this is a signal from AppPropertiesHelper
-        "needs-refresh" : (GObject.SignalFlags.RUN_LAST,
-                              None, 
-                              (str, ),
-                             ),
+        "needs-refresh": (GObject.SignalFlags.RUN_LAST,
+                             None,
+                             (str, ),
+                            ),
         }
 
-    def __init__(self, db, cache, icons, icon_size=AppGenericStore.ICON_SIZE, 
+    def __init__(self, db, cache, icons, icon_size=AppGenericStore.ICON_SIZE,
                  global_icon_cache=True):
         AppGenericStore.__init__(
             self, db, cache, icons, icon_size, global_icon_cache)
@@ -392,8 +403,6 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         self.set_column_types(self.COL_TYPES)
 
         self.current_matches = None
-        return
-
 
     def set_from_matches(self, matches):
         """ set the content of the liststore based on a list of
@@ -401,9 +410,9 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         """
         self.current_matches = matches
         n_matches = len(matches)
-        if n_matches == 0: 
+        if n_matches == 0:
             return
-    
+
         extent = min(self.LOAD_INITIAL, n_matches)
 
         with ExecutionTime("store.append_initial"):
@@ -411,7 +420,7 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
                 doc.available = doc.installed = doc.purchasable = None
                 self.append((doc,))
 
-        if n_matches == extent: 
+        if n_matches == extent:
             return
 
         with ExecutionTime("store.append_placeholders"):
@@ -420,7 +429,6 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
 
         self.emit('appcount-changed', len(matches))
         self.buffer_icons()
-        return
 
     def load_range(self, indices, step):
         db = self.db.xapiandb
@@ -440,39 +448,37 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
             except IndexError:
                 break
 
-            if row_content: continue
+            if row_content:
+                continue
             doc = db.get_document(matches[i].docid)
             doc.available = doc.installed = doc.purchasable = None
             self[(i,)][0] = doc
-        return
 
     def clear(self):
         # reset the tranaction map because it will now be invalid
         self.transaction_path_map = {}
         self.current_matches = None
         Gtk.ListStore.clear(self)
-        return
 
 
 class AppTreeStore(Gtk.TreeStore, AppGenericStore):
     """ A treestore based application model
     """
 
-    def __init__(self, db, cache, icons, icon_size=AppGenericStore.ICON_SIZE, 
+    def __init__(self, db, cache, icons, icon_size=AppGenericStore.ICON_SIZE,
                  global_icon_cache=True):
         AppGenericStore.__init__(
             self, db, cache, icons, icon_size, global_icon_cache)
         Gtk.TreeStore.__init__(self)
         self.set_column_types(self.COL_TYPES)
-        return
 
     def set_documents(self, parent, documents):
         for doc in documents:
-            doc.available = None; doc.installed = doc.purchasable = None
+            doc.available = None
+            doc.installed = doc.purchasable = None
             self.append(parent, (doc,))
 
         self.transaction_path_map = {}
-        return
 
     def set_category_documents(self, cat, documents):
         category = CategoryRowReference(cat.untranslated_name,
@@ -484,7 +490,8 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
         self.set_documents(it, documents)
         return it
 
-    def set_nocategory_documents(self, documents, untranslated_name=None, display_name=None):
+    def set_nocategory_documents(self, documents, untranslated_name=None,
+        display_name=None):
         category = UncategorisedRowRef(untranslated_name,
                                        display_name,
                                        len(documents))
@@ -496,5 +503,3 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
         # reset the tranaction map because it will now be invalid
         self.transaction_path_map = {}
         Gtk.TreeStore.clear(self)
-        return
-

@@ -38,11 +38,11 @@ from softwarecenter.db.application import Application
 from softwarecenter.db import DebFileApplication
 from softwarecenter.backend.reviews import ReviewStats
 #from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
-from softwarecenter.enums import (AppActions, 
+from softwarecenter.enums import (AppActions,
                                   PkgStates,
-                                  Icons, 
+                                  Icons,
                                   SOFTWARE_CENTER_PKGNAME)
-from softwarecenter.utils import (is_unity_running, 
+from softwarecenter.utils import (is_unity_running,
                                   upstream_version,
                                   get_exec_line_from_desktop,
                                   SimpleFileDownloader,
@@ -82,10 +82,11 @@ from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
 
 
-LOG=logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
+
 
 class StatusBar(Gtk.Alignment):
-    """ Subclass of Gtk.Alignment that draws a small dash border 
+    """ Subclass of Gtk.Alignment that draws a small dash border
         around the rectangle.
     """
 
@@ -102,7 +103,6 @@ class StatusBar(Gtk.Alignment):
         self._bg = [1, 1, 1, 0.3]
 
         self.connect("style-updated", self.on_style_updated)
-        return
 
     def on_style_updated(self, widget):
         context = self.get_style_context()
@@ -110,7 +110,6 @@ class StatusBar(Gtk.Alignment):
         context = widget.get_style_context()
         border = context.get_border(Gtk.StateFlags.NORMAL)
         self._border_width = max(1, max(border.top, border.bottom))
-        return
 
     def do_draw(self, cr):
         cr.save()
@@ -118,7 +117,7 @@ class StatusBar(Gtk.Alignment):
         width = self._border_width
 
         # fill bg
-        cr.rectangle(-width, 0, a.width+2*width, a.height)
+        cr.rectangle(-width, 0, a.width + 2 * width, a.height)
         cr.set_source_rgba(*self._bg)
         cr.fill_preserve()
 
@@ -130,13 +129,14 @@ class StatusBar(Gtk.Alignment):
         context.restore()
 
         Gdk.cairo_set_source_rgba(cr, bc)
-        cr.set_dash((width, 2*width), 1)
-        cr.set_line_width(2*width)
+        cr.set_dash((width, 2 * width), 1)
+        cr.set_line_width(2 * width)
         cr.stroke()
 
         cr.restore()
-        for child in self: 
+        for child in self:
             self.propagate_draw(child, cr)
+
 
 class WarningStatusBar(StatusBar):
 
@@ -153,6 +153,7 @@ class WarningStatusBar(StatusBar):
         # override _bg
         self._bg = [1, 1, 0, 0.3]
 
+
 class PackageStatusBar(StatusBar):
     """ Package specific status bar that contains a state label,
         a action button and a progress bar.
@@ -160,7 +161,7 @@ class PackageStatusBar(StatusBar):
 
     def __init__(self, view):
         StatusBar.__init__(self, view)
-        self.installed_icon  = Gtk.Image.new_from_icon_name(
+        self.installed_icon = Gtk.Image.new_from_icon_name(
             Icons.INSTALLED_OVERLAY, Gtk.IconSize.DIALOG)
         self.label = Gtk.Label()
         self.label.set_line_wrap(True)
@@ -242,20 +243,17 @@ class PackageStatusBar(StatusBar):
                 app, addons_to_install, addons_to_remove)
         elif state == PkgStates.NEEDS_SOURCE:
             app_manager.enable_software_source(app)
-        return
 
     def set_label(self, label):
         m = '<big><b>%s</b></big>' % label
         self.label.set_markup(m)
-        return
 
     def get_label(self):
         return self.label.get_text()
 
     def set_button_label(self, label):
         self.button.set_label(label)
-        return
-    
+
     def get_button_label(self):
         return self.button.get_label()
 
@@ -263,14 +261,14 @@ class PackageStatusBar(StatusBar):
         # the currently forced archive_suite for the given app
         app_version = self.app_details.version
         # all available not-automatic (version, archive_suits)
-        not_automatic_suites = self.app_details.get_not_automatic_archive_versions()
-        # populat the combobox if 
-        if not_automatic_suites:
+        not_auto_suites = self.app_details.get_not_automatic_archive_versions()
+        # populat the combobox if
+        if not_auto_suites:
             combo = self.combo_multiple_versions
             combo.disconnect_by_func(self._on_combo_multiple_versions_changed)
             model = self.combo_multiple_versions.get_model()
             model.clear()
-            for i, archive_suite in enumerate(not_automatic_suites):
+            for i, archive_suite in enumerate(not_auto_suites):
                 # get the version, archive_suite
                 ver, archive_suite = archive_suite
                 # the string to display is something like:
@@ -278,9 +276,9 @@ class PackageStatusBar(StatusBar):
                 displayed_archive_suite = archive_suite
                 if i == 0:
                     displayed_archive_suite = _("default")
-                s = "v%s (%s)" % (upstream_version(ver), 
+                s = "v%s (%s)" % (upstream_version(ver),
                                   displayed_archive_suite)
-                model.append( (s, archive_suite) )
+                model.append((s, archive_suite))
                 if app_version == ver:
                     self.combo_multiple_versions.set_active(i)
             # if nothing is found, set to default
@@ -321,9 +319,9 @@ class PackageStatusBar(StatusBar):
             self.progress.hide()
             self.installed_icon.hide()
 
-        # FIXME:  Use a Gtk.Action for the Install/Remove/Buy/Add 
+        # FIXME:  Use a Gtk.Action for the Install/Remove/Buy/Add
         #         Source/Update Now action so that all UI controls
-        #         (menu item, applist view button and appdetails view button) 
+        #         (menu item, applist view button and appdetails view button)
         #         are managed centrally:  button text, button sensitivity,
         #         and the associated callback.
         if state == PkgStates.INSTALLING:
@@ -340,32 +338,34 @@ class PackageStatusBar(StatusBar):
             self.set_label(_(u'Upgrading\u2026'))
             self.button.set_sensitive(False)
         elif state == PkgStates.INSTALLED or state == PkgStates.REINSTALLABLE:
-            #special label only if the app being viewed is software centre itself
+            # special label only if the app being viewed is software centre
+            # itself
             self.installed_icon.show()
-            if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
-                self.set_label(_(u'Installed (you\u2019re using it right now)'))
+            if app_details.pkgname == SOFTWARE_CENTER_PKGNAME:
+                self.set_label(
+                    _(u'Installed (you\u2019re using it right now)'))
             else:
                 if app_details.purchase_date:
-                    # purchase_date is a string, must first convert to 
+                    # purchase_date is a string, must first convert to
                     # datetime.datetime
                     pdate = self._convert_purchase_date_str_to_datetime(
                         app_details.purchase_date)
-                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, 
-                    # please specify a format per your locale (if you prefer, 
-                    # %x can be used to provide a default locale-specific date 
+                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31,
+                    # please specify a format per your locale (if you prefer,
+                    # %x can be used to provide a default locale-specific date
                     # representation)
                     self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')))
                 elif app_details.installation_date:
-                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, 
-                    # please specify a format per your locale (if you prefer, 
-                    # %x can be used to provide a default locale-specific date 
+                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31,
+                    # please specify a format per your locale (if you prefer,
+                    # %x can be used to provide a default locale-specific date
                     # representation)
                     template = _('Installed on %Y-%m-%d')
                     self.set_label(app_details.installation_date.strftime(
                             template))
                 else:
                     self.set_label(_('Installed'))
-            if state == PkgStates.REINSTALLABLE: # only deb files atm
+            if state == PkgStates.REINSTALLABLE:  # only deb files atm
                 self.set_button_label(_('Reinstall'))
             elif state == PkgStates.INSTALLED:
                 self.set_button_label(_('Remove'))
@@ -374,7 +374,7 @@ class PackageStatusBar(StatusBar):
             #         get that info from the software-center-agent/payments
             #         service.
             # NOTE:  the currency string for this label is purposely not
-            #        translatable when hardcoded, since it (currently) 
+            #        translatable when hardcoded, since it (currently)
             #        won't vary based on locale and as such we don't want
             #        it translated
             self.set_label("US$ %s" % app_details.price)
@@ -389,11 +389,12 @@ class PackageStatusBar(StatusBar):
             PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED,
             PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES):
 
-            # purchase_date is a string, must first convert to datetime.datetime
+            # purchase_date is a string, must first convert to
+            # datetime.datetime
             pdate = self._convert_purchase_date_str_to_datetime(
                 app_details.purchase_date)
-            # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please 
-            # specify a format per your locale (if you prefer, %x can be used 
+            # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please
+            # specify a format per your locale (if you prefer, %x can be used
             # to provide a default locale-specific date representation)
             label = pdate.strftime(_('Purchased on %Y-%m-%d'))
             self.set_button_label(_('Install'))
@@ -408,7 +409,7 @@ class PackageStatusBar(StatusBar):
         elif state == PkgStates.UNINSTALLED:
             #special label only if the app being viewed is software centre
             # itself
-            if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
+            if app_details.pkgname == SOFTWARE_CENTER_PKGNAME:
                 self.set_label(_(u'Removed (close it and it\u2019ll be gone)'))
             else:
                 # TRANSLATORS: Free here means Gratis
@@ -436,12 +437,12 @@ class PackageStatusBar(StatusBar):
             self.set_label(_("Error"))
         elif state == PkgStates.NOT_FOUND:
             # this is used when the pkg is not in the cache and there is no
-            # request we display the error in the summary field and hide the 
+            # request we display the error in the summary field and hide the
             # rest
             pass
         elif state == PkgStates.NEEDS_SOURCE:
             channelfile = self.app_details.channelfile
-            # it has a price and is not available 
+            # it has a price and is not available
             if channelfile:
                 self.set_button_label(_("Use This Source"))
             # check if it comes from a non-enabled component
@@ -460,12 +461,12 @@ class PackageStatusBar(StatusBar):
 
         sensitive = network_state_is_connected()
         self.button.set_sensitive(sensitive)
-        return
-        
+
     def _convert_purchase_date_str_to_datetime(self, purchase_date):
         if purchase_date is not None:
             return datetime.datetime.strptime(
                 purchase_date, "%Y-%m-%d %H:%M:%S")
+
 
 class PackageInfo(Gtk.HBox):
     """ Box with labels for package specific information like version info
@@ -485,14 +486,13 @@ class PackageInfo(Gtk.HBox):
         self.a11y = self.get_accessible()
 
         self.connect('realize', self._on_realize)
-        return
 
     def _on_realize(self, widget):
         # key
         k = Gtk.Label()
         k.set_name("subtle-label")
         key_markup = '<b>%s</b>'
-        k.set_markup(key_markup  % self.key)
+        k.set_markup(key_markup % self.key)
         k.set_alignment(1, 0)
 
         # determine max width of all keys
@@ -516,22 +516,23 @@ class PackageInfo(Gtk.HBox):
 
         self.set_property("can-focus", True)
         self.show_all()
-        return
-    
+
     def set_width(self, width):
-        return
+        pass
 
     def set_value(self, value):
         self.value_label.set_markup(value)
         self.a11y.set_name(utf8(self.key) + ' ' + utf8(value))
 
+
 class PackageInfoHW(PackageInfo):
-    """ special version of packageinfo that uses the custom 
+    """ special version of packageinfo that uses the custom
         HardwareRequirementsBox as the "label"
     """
     def __init__(self, *args):
         super(PackageInfoHW, self).__init__(*args)
         self.value_label = HardwareRequirementsBox()
+
     def set_value(self, value):
         self.value_label.set_hardware_requirements(value)
 
@@ -553,7 +554,6 @@ class Addon(Gtk.HBox):
         self.checkbutton.pkgname = self.app.pkgname
         self.pack_start(self.checkbutton, False, False, 12)
         self.connect('realize', self._on_realize, icons, pkgname)
-        return
 
     def _on_realize(self, widget, icons, pkgname):
         # icon
@@ -610,15 +610,15 @@ class Addon(Gtk.HBox):
         self.checkbutton.set_active(is_active)
 
     def set_width(self, width):
-        return
+        pass
 
 
 class AddonsTable(Gtk.VBox):
     """ Widget to display a table of addons. """
 
-    __gsignals__ = {'table-built' : (GObject.SignalFlags.RUN_FIRST,
-                                     None,
-                                     ()),
+    __gsignals__ = {'table-built': (GObject.SignalFlags.RUN_FIRST,
+                                    None,
+                                    ()),
                    }
 
     def __init__(self, addons_manager):
@@ -687,18 +687,18 @@ class AddonsStatusBar(StatusBar):
         This will become visible if any addons are scheduled for install
         or remove.
     """
-    
+
     def __init__(self, addons_manager):
         StatusBar.__init__(self, addons_manager.view)
         self.addons_manager = addons_manager
         self.cache = self.addons_manager.view.cache
 
         self.applying = False
-        
-	# TRANSLATORS: Free here means Gratis
+
+        # TRANSLATORS: Free here means Gratis
         self.label_price = Gtk.Label(_("Free"))
         self.hbox.pack_start(self.label_price, False, False, 0)
-        
+
         self.hbuttonbox = Gtk.HButtonBox()
         self.hbuttonbox.set_layout(Gtk.ButtonBoxStyle.END)
         self.button_apply = Gtk.Button(_("Apply Changes"))
@@ -711,9 +711,9 @@ class AddonsStatusBar(StatusBar):
 
     def configure(self):
         LOG.debug("AddonsStatusBarConfigure")
-        # FIXME: addons are not always free, but the old implementation 
+        # FIXME: addons are not always free, but the old implementation
         #        of determining price was buggy
-        if (not self.addons_manager.addons_to_install and 
+        if (not self.addons_manager.addons_to_install and
             not self.addons_manager.addons_to_remove):
             self.hide()
         else:
@@ -721,7 +721,7 @@ class AddonsStatusBar(StatusBar):
             self.button_apply.set_sensitive(sensitive)
             self.button_cancel.set_sensitive(sensitive)
             self.show_all()
-   
+
     def _on_button_apply_clicked(self, button):
         self.applying = True
         self.button_apply.set_sensitive(False)
@@ -791,26 +791,27 @@ class AddonsManager(object):
 
 
 _asset_cache = {}
+
+
 class AppDetailsView(Viewport):
     """ The view that shows the application details """
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = 96 # Gtk.IconSize.DIALOG ?
+    APP_ICON_SIZE = 96  # Gtk.IconSize.DIALOG ?
     # art stuff
     BACKGROUND = os.path.join(softwarecenter.paths.datadir,
                            "ui/gtk3/art/itemview-background.png")
 
-
-    # need to include application-request-action here also since we are 
+    # need to include application-request-action here also since we are
     # multiple-inheriting
-    __gsignals__ = {'selected':(GObject.SignalFlags.RUN_FIRST,
-                                None,
-                                (GObject.TYPE_PYOBJECT,)),
-                    "different-application-selected" : (GObject.SignalFlags.RUN_LAST,
-                                                        None,
-                                                        (GObject.TYPE_PYOBJECT, )),
+    __gsignals__ = {'selected': (GObject.SignalFlags.RUN_FIRST,
+                                 None,
+                                 (GObject.TYPE_PYOBJECT,)),
+                    "different-application-selected": (
+                        GObject.SignalFlags.RUN_LAST,
+                        None,
+                        (GObject.TYPE_PYOBJECT, )),
                     }
-
 
     def __init__(self, db, distro, icons, cache, datadir):
         Viewport.__init__(self)
@@ -856,7 +857,7 @@ class AppDetailsView(Viewport):
         self.backend.connect(
             "transaction-finished", self._on_transaction_finished)
         self.backend.connect(
-            "transaction-progress-changed", 
+            "transaction-progress-changed",
             self._on_transaction_progress_changed)
 
         # network status watcher
@@ -874,7 +875,7 @@ class AppDetailsView(Viewport):
         self._reviews_server_language = None
         self._reviews_relaxed = False
         self._review_sort_method = 0
-        
+
         # switches
         self._show_overlay = False
 
@@ -883,14 +884,14 @@ class AppDetailsView(Viewport):
         self._cache_art_assets()
         self.connect('realize', self._on_realize)
         self.loaded = True
-        return
 
     def _on_destroy(self, widget):
         self.cache.disconnect_by_func(self._on_cache_ready)
 
     def _cache_art_assets(self):
         global _asset_cache
-        if _asset_cache: return _asset_cache
+        if _asset_cache:
+            return _asset_cache
         assets = _asset_cache
         # cache the bg pattern
         surf = cairo.ImageSurface.create_from_png(self.BACKGROUND)
@@ -911,8 +912,7 @@ class AppDetailsView(Viewport):
         self.addon_view.addons_set_sensitive(sensitive)
         self.addons_statusbar.button_apply.set_sensitive(sensitive)
         self.addons_statusbar.button_cancel.set_sensitive(sensitive)
-        return
-        
+
     def _update_recommendations(self, pkgname):
         self.recommended_for_app_panel.set_pkgname(pkgname)
 
@@ -920,10 +920,9 @@ class AppDetailsView(Viewport):
     def _update_reviews(self, app_details):
         self.reviews.clear()
         self._check_for_reviews()
-        return
 
     def _check_for_reviews(self):
-        # self.app may be undefined on network state change events 
+        # self.app may be undefined on network state change events
         # (LP: #742635)
         if not self.app:
             return
@@ -936,7 +935,7 @@ class AppDetailsView(Viewport):
     def _on_more_reviews_clicked(self, uilist):
         self._reviews_server_page += 1
         self._do_load_reviews()
-    
+
     def _on_review_sort_method_changed(self, uilist, sort_method):
         self._reviews_server_page = 1
         self._reviews_relaxed = False
@@ -954,7 +953,7 @@ class AppDetailsView(Viewport):
     def _do_load_reviews(self):
         self.reviews.show_spinner_with_message(_('Checking for reviews...'))
         self.review_loader.get_reviews(
-            self.app, self._reviews_ready_callback, 
+            self.app, self._reviews_ready_callback,
             page=self._reviews_server_page,
             language=self._reviews_server_language,
             sort=self._review_sort_method,
@@ -965,11 +964,10 @@ class AppDetailsView(Viewport):
             self.reviews.replace_review(review)
         elif action == 'remove':
             self.reviews.remove_review(review)
-        return
 
     def _update_review_stats_widget(self, stats):
         if stats:
-            # ensure that the review UI knows about the stats 
+            # ensure that the review UI knows about the stats
             self.reviews.global_review_stats = stats
             # update the widget
             self.review_stats_widget.set_avg_rating(stats.ratings_average)
@@ -988,7 +986,7 @@ class AppDetailsView(Viewport):
         """
         LOG.debug("_review_ready_callback: %s" % app)
         # avoid possible race if we already moved to a new app when
-        # the reviews become ready 
+        # the reviews become ready
         # (we only check for pkgname currently to avoid breaking on
         #  software-center totem)
         if self.app.pkgname != app.pkgname:
@@ -1000,7 +998,7 @@ class AppDetailsView(Viewport):
             self._reviews_relaxed = True
             self._reviews_server_page = 1
             self.review_loader.get_reviews(
-                self.app, self._reviews_ready_callback, 
+                self.app, self._reviews_ready_callback,
                 page=self._reviews_server_page,
                 language=self._reviews_server_language,
                 sort=self._review_sort_method,
@@ -1020,15 +1018,16 @@ class AppDetailsView(Viewport):
             if stats.ratings_total == 0:
                 stats.ratings_average = 0
             else:
-                stats.ratings_average = sum([x.rating for x in reviews_data]) / float(stats.ratings_total)
+                stats.ratings_average = (sum([x.rating for x in reviews_data])
+                    / float(stats.ratings_total))
             # update UI
             self._update_review_stats_widget(stats)
             # update global stats cache as well
             self.review_loader.update_review_stats(app, stats)
-        
+
         if my_votes:
             self.reviews.update_useful_votes(my_votes)
-        
+
         if action:
             self._review_update_single(action, single_review)
         else:
@@ -1042,7 +1041,7 @@ class AppDetailsView(Viewport):
                 # We retrieved data, but nothing new.  Keep going.
                 self._reviews_server_page += 1
                 self.review_loader.get_reviews(
-                    self.app, self._reviews_ready_callback, 
+                    self.app, self._reviews_ready_callback,
                     page=self._reviews_server_page,
                     language=self._reviews_server_language,
                     sort=self._review_sort_method,
@@ -1069,13 +1068,13 @@ class AppDetailsView(Viewport):
 
     def on_weblive_exception(self, weblive, exception):
         """ When receiving an exception, reset button and show the error """
-        error(None,"WebLive exception", exception)
+        error(None, "WebLive exception", exception)
         self.test_drive.set_label(_("Test drive"))
         self.test_drive.set_sensitive(True)
 
     def on_weblive_warning(self, weblive, warning):
         """ When receiving a warning, just show it """
-        error(None,"WebLive warning", warning)
+        error(None, "WebLive warning", warning)
 
     def on_test_drive_clicked(self, button):
         if self.weblive.client.state == "disconnected":
@@ -1090,20 +1089,20 @@ class AppDetailsView(Viewport):
 
             if len(servers) == 0:
                 error(None,
-                      "No available server", 
+                      "No available server",
                       "There is currently no available WebLive server "
                       "for this application.\nPlease try again later.")
             elif len(servers) == 1:
                 self.weblive.create_automatic_user_and_run_session(
-                    session=cmd,serverid=servers[0].name)
+                    session=cmd, serverid=servers[0].name)
                 button.set_sensitive(False)
             else:
                 d = ShowWebLiveServerChooserDialog(servers, self.app.pkgname)
-                serverid=None
+                serverid = None
                 if d.run() == Gtk.ResponseType.OK:
                     for server in d.servers_vbox:
                         if server.get_active():
-                            serverid=server.serverid
+                            serverid = server.serverid
                             break
                 d.destroy()
 
@@ -1122,13 +1121,11 @@ class AppDetailsView(Viewport):
             self.info_vb.reorder_child(table, 0)
         if not table.get_property('visible'):
             table.show_all()
-        return
 
     def _on_realize(self, widget):
         self.addons_statusbar.hide()
         # the install button gets initial focus
         self.pkg_statusbar.button.grab_focus()
-        return
 
     def _on_homepage_clicked(self, label, link):
         import webbrowser
@@ -1160,7 +1157,7 @@ class AppDetailsView(Viewport):
         self.title.set_selectable(True)
         self.subtitle.set_line_wrap(True)
         self.subtitle.set_selectable(True)
-        vb_inner=Gtk.VBox()
+        vb_inner = Gtk.VBox()
         vb_inner.pack_start(self.title, False, False, 0)
         vb_inner.pack_start(self.subtitle, False, False, 0)
 
@@ -1189,10 +1186,11 @@ class AppDetailsView(Viewport):
         # installed where widget
         self.installed_where_hbox = Gtk.HBox()
         self.installed_where_hbox.set_spacing(6)
-        self.installed_where_hbox.a11y = self.installed_where_hbox.get_accessible()
+        hbox_a11y = self.installed_where_hbox.get_accessible()
+        self.installed_where_hbox.a11y = hbox_a11y
         vb.pack_start(self.installed_where_hbox, False, False, 0)
 
-        # the hbox that hold the description on the left and the screenshot 
+        # the hbox that hold the description on the left and the screenshot
         # thumbnail on the right
         body_hb = Gtk.HBox()
         body_hb.set_spacing(12)
@@ -1240,7 +1238,7 @@ class AppDetailsView(Viewport):
         self.homepage_btn = Gtk.Label()
         self.homepage_btn.set_name("subtle-label")
         self.homepage_btn.connect('activate-link', self._on_homepage_clicked)
-        
+
         # support site
         self.support_btn = Gtk.Label()
         self.support_btn.set_name("subtle-label")
@@ -1275,10 +1273,12 @@ class AppDetailsView(Viewport):
             self.datadir, None, self.cache, self.db, self.icons, None)
         self.recommended_for_app_panel = RecommendationsPanelDetails(catview)
         self.recommended_for_app_panel.connect(
-            "application-activated", self._on_recommended_application_activated)
+            "application-activated",
+            self._on_recommended_application_activated)
         self.recommended_for_app_panel.show_all()
-        self.info_vb.pack_start(self.recommended_for_app_panel, False, False, 0)
-        
+        self.info_vb.pack_start(self.recommended_for_app_panel, False,
+            False, 0)
+
         # package info
         self.info_keys = []
 
@@ -1310,14 +1310,15 @@ class AppDetailsView(Viewport):
         # reviews cascade
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
-        self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
+        self.reviews.connect("submit-usefulness",
+            self._on_review_submit_usefulness)
         self.reviews.connect("modify-review", self._on_review_modify)
         self.reviews.connect("delete-review", self._on_review_delete)
         self.reviews.connect("more-reviews-clicked",
                              self._on_more_reviews_clicked)
-        self.reviews.connect("different-review-language-clicked", 
+        self.reviews.connect("different-review-language-clicked",
                              self._on_reviews_in_different_language_clicked)
-        self.reviews.connect("review-sort-changed", 
+        self.reviews.connect("review-sort-changed",
                              self._on_review_sort_method_changed)
         if get_distro().REVIEWS_SERVER:
             vb.pack_start(self.reviews, False, False, 0)
@@ -1325,15 +1326,14 @@ class AppDetailsView(Viewport):
         self.show_all()
 
         # signals!
-        self.connect('size-allocate', lambda w,a: w.queue_draw())
-        return
+        self.connect('size-allocate', lambda w, a: w.queue_draw())
 
     def _on_recommended_application_activated(self, recwidget, app):
         self.emit("different-application-selected", app)
 
     def _on_review_new(self, button):
         self._review_write_new()
-        
+
     def _on_review_modify(self, button, review_id):
         self._review_modify(review_id)
 
@@ -1347,7 +1347,7 @@ class AppDetailsView(Viewport):
         self._review_submit_usefulness(review_id, is_useful)
 
     def _update_title_markup(self, appname, summary):
-        # make title font size fixed as they should look good compared to the 
+        # make title font size fixed as they should look good compared to the
         # icon (also fixed).
         font_size = em(1.6) * Pango.SCALE
         markup = '<span font_size="%s"><b>%s</b></span>'
@@ -1355,7 +1355,6 @@ class AppDetailsView(Viewport):
         self.title.set_markup(markup)
         self.title.a11y.set_name(appname + '. ' + summary)
         self.subtitle.set_markup(summary)
-        return
 
     def _update_app_icon(self, app_details):
         pb = self._get_icon_as_pixbuf(app_details)
@@ -1363,13 +1362,12 @@ class AppDetailsView(Viewport):
 #        self._show_overlay = app_details.pkg_state == PkgStates.INSTALLED
         w, h = pb.get_width(), pb.get_height()
 
-        tw = self.APP_ICON_SIZE # target width
+        tw = self.APP_ICON_SIZE  # target width
         if pb.get_width() < tw:
             pb = pb.scale_simple(tw, tw, GdkPixbuf.InterpType.TILES)
 
         self.icon.set_from_pixbuf(pb)
         self.icon.set_size_request(self.APP_ICON_SIZE, self.APP_ICON_SIZE)
-        return
 
     def _update_layout_error_status(self, pkg_error):
         # if we have an error or if we need to enable a source
@@ -1390,7 +1388,6 @@ class AppDetailsView(Viewport):
             self.info_vb.show()
             for hbar in self._hbars:
                 hbar.show()
-        return
 
     def _update_app_description(self, app_details, appname):
         # format new app description
@@ -1401,9 +1398,8 @@ class AppDetailsView(Viewport):
 
         # a11y for description
         self.desc.description.a11y.set_name(description)
-        return
 
-    def _update_description_footer_links(self, app_details):        
+    def _update_description_footer_links(self, app_details):
         # show or hide the homepage button and set uri if homepage specified
         if app_details.website:
             self.homepage_btn.show()
@@ -1420,7 +1416,6 @@ class AppDetailsView(Viewport):
             self.support_btn.set_tooltip_text(app_details.supportsite)
         else:
             self.support_btn.hide()
-        return
 
     def _update_app_video(self, app_details):
         self.videoplayer.uri = app_details.video_url
@@ -1433,20 +1428,20 @@ class AppDetailsView(Viewport):
         # get screenshot urls and configure the ScreenshotView...
         if app_details.thumbnail and app_details.screenshot:
             self.screenshot.fetch_screenshots(app_details)
-        return
 
     def _update_weblive(self, app_details):
-        if self.weblive.client is None: return
+        if self.weblive.client is None:
+            return
         self.desktop_file = app_details.desktop_file
         # only enable test drive if we have a desktop file and exec line
         if (not self.weblive.ready or
-            not self.weblive.is_pkgname_available_on_server(app_details.pkgname) or
+            not self.weblive.is_pkgname_available_on_server(
+                app_details.pkgname) or
             not os.path.exists(self.desktop_file) or
             not get_exec_line_from_desktop(self.desktop_file)):
             self.test_drive.hide()
         else:
             self.test_drive.show()
-        return
 
     def _update_warning_bar(self, app_details):
         # generic error wins over HW issue
@@ -1462,7 +1457,7 @@ class AppDetailsView(Viewport):
                 app_details.hardware_requirements)
             if not app_details.region_requirements_satisfied:
                 if len(s) > 0:
-                    s += "\n"+REGION_WARNING_STRING
+                    s += "\n" + REGION_WARNING_STRING
                 else:
                     s = REGION_WARNING_STRING
             self.pkg_warningbar.label.set_text(s)
@@ -1494,7 +1489,6 @@ class AppDetailsView(Viewport):
             self.hardware_info.show()
         else:
             self.hardware_info.hide()
-        return
 
     def _update_addons(self, app_details):
         # refresh addons interface
@@ -1511,7 +1505,6 @@ class AppDetailsView(Viewport):
 
         # Update addons state bar
         self.addons_statusbar.configure()
-        return
 
     def _update_all(self, app_details, skip_update_addons=False):
         # reset view to top left
@@ -1570,7 +1563,6 @@ class AppDetailsView(Viewport):
 
         # async query zeitgeist and rnr
         self._update_usage_counter()
-        return
 
     def _update_minimal(self, app_details):
         self._update_app_icon(app_details)
@@ -1583,12 +1575,11 @@ class AppDetailsView(Viewport):
 
 #        # show where it is
         self._configure_where_is_it()
-        return
 
     def _add_where_is_it_commandline(self, pkgname):
         cmdfinder = CmdFinder(self.cache)
         cmds = cmdfinder.find_cmds_from_pkgname(pkgname)
-        if not cmds: 
+        if not cmds:
             return
         vb = Gtk.VBox()
         vb.set_spacing(12)
@@ -1604,8 +1595,8 @@ class AppDetailsView(Viewport):
         #~ title.set_size_request(self.get_allocation().width-24, -1)
         vb.pack_start(title, False, False, 0)
         cmds_str = ", ".join(cmds)
-        cmd_label = Gtk.Label(label=
-            '<span font_desc="monospace bold 9">%s</span>' % cmds_str)
+        cmd_label = Gtk.Label(
+            label='<span font_desc="monospace bold 9">%s</span>' % cmds_str)
         cmd_label.set_selectable(True)
         cmd_label.set_use_markup(True)
         cmd_label.set_alignment(0, 0.5)
@@ -1650,9 +1641,10 @@ class AppDetailsView(Viewport):
                 label_name.set_text(app_info.get_name())
 
             self.installed_where_hbox.pack_start(label_name, False, False, 0)
-            if i+1 < len(where):
-                right_arrow = Gtk.Arrow.new(Gtk.ArrowType.RIGHT, Gtk.ShadowType.NONE)
-                self.installed_where_hbox.pack_start(right_arrow, 
+            if i + 1 < len(where):
+                right_arrow = Gtk.Arrow.new(Gtk.ArrowType.RIGHT,
+                    Gtk.ShadowType.NONE)
+                self.installed_where_hbox.pack_start(right_arrow,
                                                          False, False, 0)
 
         # create our a11y text
@@ -1694,7 +1686,7 @@ class AppDetailsView(Viewport):
         # see if we have the location if its installed
         if self.app_details.pkg_state == PkgStates.INSTALLED:
             # first try the desktop file from the DB, then see if
-            # there is a local desktop file with the same name as 
+            # there is a local desktop file with the same name as
             # the package
             # try to show menu location if there is a desktop file, but
             # never show commandline programs for apps with a desktop file
@@ -1705,7 +1697,6 @@ class AppDetailsView(Viewport):
             # if there is no desktop file, show commandline
             else:
                 self._add_where_is_it_commandline(self.app_details.pkgname)
-        return
 
     # public API
     def show_app(self, app, force=False):
@@ -1714,8 +1705,8 @@ class AppDetailsView(Viewport):
             LOG.debug("no app selected")
             return
 
-        same_app = (self.app and 
-                    self.app.pkgname and 
+        same_app = (self.app and
+                    self.app.pkgname and
                     self.app.appname == app.appname and
                     self.app.pkgname == app.pkgname)
         #print 'SameApp:', same_app
@@ -1745,8 +1736,9 @@ class AppDetailsView(Viewport):
             # update all (but skip the addons calculation if this is a
             # DebFileApplication as this is not useful for this case and it
             # increases the view load time dramatically)
+            skip_update_addons = type(self.app) == DebFileApplication
             self._update_all(self.app_details,
-                             skip_update_addons=(type(self.app)==DebFileApplication))
+                             skip_update_addons=skip_update_addons)
 
         # this is a bit silly, but without it and self.title being selectable
         # gtk will select the entire title (which looks ugly). this grab works
@@ -1754,18 +1746,16 @@ class AppDetailsView(Viewport):
         self.pkg_statusbar.button.grab_focus()
 
         self.emit("selected", self.app)
-        return
 
     def refresh_app(self):
         self.show_app(self.app)
-
 
     # common code
     def _review_write_new(self):
         if (not self.app or
             not self.app.pkgname in self.cache or
             not self.cache[self.app.pkgname].candidate):
-            dialogs.error(None, 
+            dialogs.error(None,
                           _("Version unknown"),
                           _("The version of the application can not "
                             "be detected. Entering a review is not "
@@ -1778,7 +1768,7 @@ class AppDetailsView(Viewport):
 
         # FIXME: probably want to not display the ui if we can't review it
         if not origin:
-            dialogs.error(None, 
+            dialogs.error(None,
                         _("Origin unknown"),
                         _("The origin of the application can not "
                           "be detected. Entering a review is not "
@@ -1787,7 +1777,8 @@ class AppDetailsView(Viewport):
 
         if pkg.installed:
             version = pkg.installed.version
-        # call the loader to do call out the right helper and collect the result
+        # call the loader to do call out the right helper and collect the
+        # result
         parent_xid = ''
         #parent_xid = get_parent_xid(self)
         self.reviews.new_review.disable()
@@ -1796,7 +1787,7 @@ class AppDetailsView(Viewport):
             parent_xid, self.datadir,
             self._reviews_ready_callback,
             done_callback=self._submit_reviews_done_callback)
-                         
+
     def _review_report_abuse(self, review_id):
         parent_xid = ''
         #parent_xid = get_parent_xid(self)
@@ -1809,7 +1800,7 @@ class AppDetailsView(Viewport):
         self.review_loader.spawn_submit_usefulness_ui(
             review_id, is_useful, parent_xid, self.datadir,
             self._reviews_ready_callback)
-            
+
     def _review_modify(self, review_id):
         parent_xid = ''
         #parent_xid = get_parent_xid(self)
@@ -1834,11 +1825,12 @@ class AppDetailsView(Viewport):
         state = self.pkg_statusbar.pkg_state
 
         # handle purchase: install purchased has multiple steps
-        if (state == PkgStates.INSTALLING_PURCHASED and 
+        if (state == PkgStates.INSTALLING_PURCHASED and
             result and
             not result.pkgname):
-            self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING_PURCHASED)
-        elif (state == PkgStates.INSTALLING_PURCHASED and 
+            self.pkg_statusbar.configure(self.app_details,
+                PkgStates.INSTALLING_PURCHASED)
+        elif (state == PkgStates.INSTALLING_PURCHASED and
               result and
               result.pkgname):
             self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLED)
@@ -1846,7 +1838,8 @@ class AppDetailsView(Viewport):
             self.reviews.configure_reviews_ui()
         # normal states
         elif state == PkgStates.REMOVING:
-            self.pkg_statusbar.configure(self.app_details, PkgStates.UNINSTALLED)
+            self.pkg_statusbar.configure(self.app_details,
+                PkgStates.UNINSTALLED)
         elif state == PkgStates.INSTALLING:
             self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLED)
         elif state == PkgStates.UPGRADING:
@@ -1862,15 +1855,16 @@ class AppDetailsView(Viewport):
             # reset the reviews UI now that we have installed the package
             self.reviews.configure_reviews_ui()
         elif state == PkgStates.UNINSTALLED:
-            self.pkg_statusbar.configure(self.app_details, PkgStates.UNINSTALLED)
+            self.pkg_statusbar.configure(self.app_details,
+                PkgStates.UNINSTALLED)
         self.adjustment_value = None
-        
+
         if self.addons_statusbar.applying:
             self.addons_statusbar.applying = False
 
         return False
 
-    def _on_transaction_started(self, backend, pkgname, appname, trans_id, 
+    def _on_transaction_started(self, backend, pkgname, appname, trans_id,
                                 trans_type):
         if self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, AppActions.APPLY)
@@ -1879,32 +1873,32 @@ class AppDetailsView(Viewport):
         state = self.pkg_statusbar.pkg_state
         LOG.debug("_on_transaction_started %s" % state)
         if state == PkgStates.NEEDS_PURCHASE:
-            self.pkg_statusbar.configure(self.app_details, 
+            self.pkg_statusbar.configure(self.app_details,
                                          PkgStates.INSTALLING_PURCHASED)
         elif (state == PkgStates.UNINSTALLED or
               state == PkgStates.FORCE_VERSION):
-            self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING)
+            self.pkg_statusbar.configure(self.app_details,
+                PkgStates.INSTALLING)
         elif state == PkgStates.INSTALLED:
             self.pkg_statusbar.configure(self.app_details, PkgStates.REMOVING)
         elif state == PkgStates.UPGRADABLE:
             self.pkg_statusbar.configure(self.app_details, PkgStates.UPGRADING)
         elif state == PkgStates.REINSTALLABLE:
-            self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING)
+            self.pkg_statusbar.configure(self.app_details,
+                PkgStates.INSTALLING)
             # FIXME: is there a way to tell if we are installing/removing?
             # we will assume that it is being installed, but this means that
             # during removals we get the text "Installing.."
-            # self.pkg_statusbar.configure(self.app_details, PkgStates.REMOVING)
-        return
+            # self.pkg_statusbar.configure(self.app_details,
+            #     PkgStates.REMOVING)
 
     def _on_transaction_stopped(self, backend, result):
         self.pkg_statusbar.progress.hide()
         self._update_interface_on_trans_ended(result)
-        return
 
     def _on_transaction_finished(self, backend, result):
         self.pkg_statusbar.progress.hide()
         self._update_interface_on_trans_ended(result)
-        return
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if (self.app_details and
@@ -1915,11 +1909,10 @@ class AppDetailsView(Viewport):
                 self.pkg_statusbar.combo_multiple_versions.hide()
                 self.pkg_statusbar.progress.show()
             if pkgname in backend.pending_transactions:
-                self.pkg_statusbar.progress.set_fraction(progress/100.0)
+                self.pkg_statusbar.progress.set_fraction(progress / 100.0)
             if progress >= 100:
                 self.pkg_statusbar.progress.set_fraction(1)
                 self.adjustment_value = self.get_vadjustment().get_value()
-        return
 
     def get_app_icon_details(self):
         """ helper for unity dbus support to provide details about the
@@ -1941,7 +1934,7 @@ class AppDetailsView(Viewport):
             else:
                 icon_size = pb.get_height()
         return icon_size
-                
+
     def _get_app_icon_xy_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
             the application icon as it is displayed on-screen. if the icon's
@@ -1954,15 +1947,15 @@ class AppDetailsView(Viewport):
             parent = parent.get_parent()
         # get x, y relative to toplevel
         try:
-            (x,y) = self.icon.translate_coordinates(parent, 0, 0)
+            (x, y) = self.icon.translate_coordinates(parent, 0, 0)
         except Exception as e:
             LOG.warning("couldn't translate icon coordinates on-screen "
                         "for unity dbus message: %s" % e)
-            return (0,0)
+            return (0, 0)
         # get toplevel window position
         (px, py) = parent.get_position()
-        return (px+x, py+y)
-        
+        return (px + x, py + y)
+
     def _get_icon_as_pixbuf(self, app_details):
         if app_details.icon:
             if self.icons.has_icon(app_details.icon):
@@ -1978,9 +1971,10 @@ class AppDetailsView(Viewport):
                 LOG.debug("did not find the icon locally, must download it")
 
                 def on_image_download_complete(downloader, image_file_path):
-                    # when the download is complete, replace the icon in the 
+                    # when the download is complete, replace the icon in the
                     # view with the downloaded one
-                    logging.debug("_get_icon_as_pixbuf:image_downloaded() %s" % image_file_path)
+                    logging.debug("_get_icon_as_pixbuf:image_downloaded() %s" %
+                        image_file_path)
                     try:
                         pb = GdkPixbuf.Pixbuf.new_from_file(image_file_path)
                         # fixes crash in testsuite if window is destroyed
@@ -1989,15 +1983,17 @@ class AppDetailsView(Viewport):
                         if self.icon.get_property("visible"):
                             self.icon.set_from_pixbuf(pb)
                     except Exception as e:
-                        LOG.warning("couldn't load downloadable icon file '%s': %s" % (image_file_path, e))
-                    
+                        LOG.warning(
+                            "couldn't load downloadable icon file '%s': %s" %
+                            (image_file_path, e))
+
                 image_downloader = SimpleFileDownloader()
                 image_downloader.connect(
                     'file-download-complete', on_image_download_complete)
                 image_downloader.download_file(
                     app_details.icon_url, app_details.cached_icon_file_path)
         return self.icons.load_icon(Icons.MISSING_APP, self.APP_ICON_SIZE, 0)
-    
+
     def update_totalsize(self):
         if not self.totalsize_info.get_property('visible'):
             return False
@@ -2013,7 +2009,7 @@ class AppDetailsView(Viewport):
             self.addons_manager.addons_to_remove,
             self.app.archive_suite)
         total_download_size, total_install_size = res
-        if res==(0,0) and type(self.app)==DebFileApplication:
+        if res == (0, 0) and type(self.app) == DebFileApplication:
             total_install_size = self.app_details.installed_size
         if total_download_size > 0:
             download_size = GLib.format_size(total_download_size)
@@ -2032,22 +2028,21 @@ class AppDetailsView(Viewport):
         elif total_install_size < 0:
             remove_size = GLib.format_size(-total_install_size)
             label_string += _("%s to be freed") % (remove_size)
-        
+
         self.totalsize_info.set_value(label_string or _("Unknown"))
 #        self.totalsize_info.show_all()
         return False
 
     def set_section(self, section):
         self.section = section
-        return
-        
+
     def _update_usage_counter(self):
         """ try to get the usage counter from zeitgeist """
         def _zeitgeist_callback(counter):
             LOG.debug("zeitgeist usage: %s" % counter)
             if counter == 0:
                 # this probably means we just have no idea about it,
-                # so instead of saying "Used: never" we just return 
+                # so instead of saying "Used: never" we just return
                 # this can go away when zeitgeist captures more events
                 # --there are still cases when we really do want to hide this
                 self.usage.hide()
@@ -2055,7 +2050,7 @@ class AppDetailsView(Viewport):
             if counter <= 100:
                 label_string = gettext.ngettext("Used: one time",
                                                 "Used: %(amount)s times",
-                                                counter) % { 'amount' : counter, }
+                                                counter) % {'amount': counter}
             else:
                 label_string = _("Used: over 100 times")
             self.usage.set_text('<small>%s</small>' % label_string)
@@ -2070,6 +2065,7 @@ class AppDetailsView(Viewport):
         #     LOG.warning("could not update the usage counter: %s " % e)
         #     self.usage.hide()
 
+
 def get_test_window_appdetails():
 
     from softwarecenter.db.pkginfo import get_pkg_info
@@ -2082,7 +2078,7 @@ def get_test_window_appdetails():
     db = StoreDatabase(pathname, cache)
     db.open()
 
-    import softwarecenter.paths 
+    import softwarecenter.paths
     datadir = softwarecenter.paths.datadir
 
     from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
@@ -2090,7 +2086,7 @@ def get_test_window_appdetails():
 
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
-    
+
     # gui
     win = Gtk.Window()
     scroll = Gtk.ScrolledWindow()
@@ -2118,7 +2114,7 @@ def get_test_window_appdetails():
     scroll.add(view)
     scroll.show()
     win.add(scroll)
-    win.set_size_request(600,800)
+    win.set_size_request(600, 800)
     win.show()
     win.connect('destroy', Gtk.main_quit)
     win.set_data("view", view)
@@ -2132,7 +2128,7 @@ if __name__ == "__main__":
         else:
             view.show_app(Application("Movie Player", "totem"))
         return True
-    
+
     win = get_test_window_appdetails()
 
     # keep it spinning to test for re-draw issues and memleaks

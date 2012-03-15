@@ -30,7 +30,7 @@ LOG = logging.getLogger(__name__)
 
 
 class PendingPane(Gtk.ScrolledWindow, BasePane):
-    
+
     CANCEL_XPAD = StockEms.MEDIUM
     CANCEL_YPAD = StockEms.MEDIUM
 
@@ -64,14 +64,14 @@ class PendingPane(Gtk.ScrolledWindow, BasePane):
         tp.set_property("xpad", self.CANCEL_XPAD)
         tp.set_property("ypad", self.CANCEL_YPAD)
         tp.set_property("text", "")
-        column = Gtk.TreeViewColumn("Progress", tp, 
+        column = Gtk.TreeViewColumn("Progress", tp,
                                     value=PendingStore.COL_PROGRESS,
                                     pulse=PendingStore.COL_PULSE)
         column.set_min_width(200)
         self.tv.append_column(column)
         # cancel icon
         tpix = Gtk.CellRendererPixbuf()
-        column = Gtk.TreeViewColumn("Cancel", tpix, 
+        column = Gtk.TreeViewColumn("Cancel", tpix,
                                     stock_id=PendingStore.COL_CANCEL)
         self.tv.append_column(column)
         # fake columns that eats the extra space at the end
@@ -81,7 +81,7 @@ class PendingPane(Gtk.ScrolledWindow, BasePane):
         # add it
         store = PendingStore(icons)
         self.tv.set_model(store)
-        
+
     def _on_button_pressed(self, widget, event):
         """button press handler to capture clicks on the cancel button"""
         #print "_on_clicked: ", event
@@ -100,7 +100,7 @@ class PendingPane(Gtk.ScrolledWindow, BasePane):
         # not cancelable (no icon)
         model = self.tv.get_model()
         if model[path][PendingStore.COL_CANCEL] == "":
-            return 
+            return
         # get tid
         tid = model[path][PendingStore.COL_TID]
         trans = model._transactions_watcher.get_transaction(tid)
@@ -125,6 +125,7 @@ class PendingPane(Gtk.ScrolledWindow, BasePane):
     def get_callback_for_page(self, page_id, view_state):
         return None
 
+
 def get_test_window():
 
     from softwarecenter.testutils import get_test_gtk3_icon_cache
@@ -139,7 +140,7 @@ def get_test_window():
     win = Gtk.Window()
     win.add(scroll)
     view.grab_focus()
-    win.set_size_request(500,200)
+    win.set_size_request(500, 200)
     win.show_all()
     win.connect("destroy", Gtk.main_quit)
 

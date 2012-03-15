@@ -31,16 +31,17 @@ from softwarecenter.enums import Icons
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarepane import DisplayState
 
+
 class HistoryPane(Gtk.VBox, BasePane):
 
     __gsignals__ = {
-        "app-list-changed" : (GObject.SignalFlags.RUN_LAST,
-                              None, 
-                              (int, ),
-                             ),
-        "history-pane-created" : (GObject.SignalFlags.RUN_FIRST,
-                                  None,
-                                  ()),
+        "app-list-changed": (GObject.SignalFlags.RUN_LAST,
+                             None,
+                             (int, ),
+                            ),
+        "history-pane-created": (GObject.SignalFlags.RUN_FIRST,
+                                 None,
+                                 ()),
     }
 
     (COL_WHEN, COL_ACTION, COL_PKG) = range(3)
@@ -50,7 +51,7 @@ class HistoryPane(Gtk.VBox, BasePane):
 
     ICON_SIZE = 32
     PADDING = 6
-    
+
     # pages for the spinner notebook
     (PAGE_HISTORY_VIEW,
      PAGE_SPINNER) = range(2)
@@ -84,12 +85,14 @@ class HistoryPane(Gtk.VBox, BasePane):
         self.toolbar.set_style(Gtk.ToolbarStyle.TEXT)
         self.pack_start(self.toolbar, False, True, 0)
 
-        all_action = Gtk.RadioAction('filter_all', _('All Changes'), None, None, self.ALL)
+        all_action = Gtk.RadioAction('filter_all', _('All Changes'), None,
+            None, self.ALL)
         all_action.connect('changed', self.change_filter)
         all_button = all_action.create_tool_item()
         self.toolbar.insert(all_button, 0)
 
-        installs_action = Gtk.RadioAction('filter_installs', _('Installations'), None, None, self.INSTALLED)
+        installs_action = Gtk.RadioAction('filter_installs',
+            _('Installations'), None, None, self.INSTALLED)
         installs_action.join_group(all_action)
         installs_button = installs_action.create_tool_item()
         self.toolbar.insert(installs_button, 1)
@@ -118,11 +121,11 @@ class HistoryPane(Gtk.VBox, BasePane):
                                       Gtk.PolicyType.AUTOMATIC)
         self.history_view.show()
         self.history_view.add(self.view)
-        
+
         # make a spinner to display while history is loading
         self.spinner_notebook = SpinnerNotebook(
             self.history_view, _('Loading history'))
-        
+
         self.pack_start(self.spinner_notebook, True, True, 0)
 
         self.store = Gtk.TreeStore(*self.COL_TYPES)
@@ -132,7 +135,7 @@ class HistoryPane(Gtk.VBox, BasePane):
         self.view.set_model(self.store_filter)
         all_action.set_active(True)
         self.last = None
-        
+
         # to save (a lot of) time at startup we load history later, only when
         # it is selected to be viewed
         self.history = None
@@ -145,14 +148,14 @@ class HistoryPane(Gtk.VBox, BasePane):
         self.cell_text = Gtk.CellRendererText()
         self.column.pack_start(self.cell_text, True)
         self.column.set_cell_data_func(self.cell_text, self.render_cell_text)
-        
+
         # busy cursor
         self.busy_cursor = Gdk.Cursor.new(Gdk.CursorType.WATCH)
 
     def init_view(self):
         if self.history == None:
-            # if the history is not yet initialized we have to load and parse it
-            # show a spinner while we do that
+            # if the history is not yet initialized we have to load and parse
+            # it show a spinner while we do that
             self.realize()
             window = self.get_window()
             window.set_cursor(self.busy_cursor)
@@ -171,9 +174,8 @@ class HistoryPane(Gtk.VBox, BasePane):
         cr.set_source_rgba(color.red, color.green, color.blue, 0.5)
         cr.set_line_width(1)
         cr.move_to(0.5, a.height - 0.5)
-        cr.rel_line_to(a.width-1, 0)
+        cr.rel_line_to(a.width - 1, 0)
         cr.stroke()
-        return
 
     def _get_emblems(self, icons):
         from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
@@ -189,7 +191,6 @@ class HistoryPane(Gtk.VBox, BasePane):
         for i, emblem in enumerate(emblem_names):
             pb = icons.load_icon(emblem, self.ICON_SIZE, 0)
             self._emblems[i + 1] = pb
-        return
 
     def _set_actions_sensitive(self, sensitive):
         for action in self._actions_list:
@@ -198,11 +199,12 @@ class HistoryPane(Gtk.VBox, BasePane):
     def _reset_icon_cache(self, theme=None):
         self._app_icon_cache.clear()
         try:
-            missing = self.icons.load_icon(Icons.MISSING_APP, self.ICON_SIZE, 0)
+            missing = self.icons.load_icon(Icons.MISSING_APP, self.ICON_SIZE,
+                0)
         except GObject.GError:
             missing = None
         self._app_icon_cache[Icons.MISSING_APP] = missing
-        
+
     def load_and_parse_history(self):
         from softwarecenter.db.history import get_pkg_history
         self.history = get_pkg_history()
@@ -234,7 +236,7 @@ class HistoryPane(Gtk.VBox, BasePane):
                 date = when.date()
                 day = self.store.append(None, (date, self.ALL, None))
                 last_row = None
-            actions = {self.INSTALLED: trans.install, 
+            actions = {self.INSTALLED: trans.install,
                        self.REMOVED: trans.remove,
                        self.UPGRADED: trans.upgrade,
                       }
@@ -247,11 +249,11 @@ class HistoryPane(Gtk.VBox, BasePane):
 
     def get_current_page(self):
         # single page views can return None here
-        return None
+        pass
 
     def get_callback_for_page(self, page, state):
         # single page views can return None here
-        return None
+        pass
 
     def on_search_terms_changed(self, entry, terms):
         self.update_view()
@@ -277,20 +279,20 @@ class HistoryPane(Gtk.VBox, BasePane):
 
         # Compute the number of visible changes
         # don't do this atm - the spec doesn't mention that the history pane
-        # should have a status text and it gives us a noticable performance gain
-        # if we don't calculate this
+        # should have a status text and it gives us a noticable performance
+        # gain if we don't calculate this
 #        self.visible_changes = 0
  #       day = self.store_filter.get_iter_first()
   #      while day is not None:
    #         self.visible_changes += self.store_filter.iter_n_children(day)
     #        day = self.store_filter.iter_next(day)
-            
+
         # Expand the most recent day
         day = self.store.get_iter_first()
         if day is not None:
-	        path = self.store.get_path(day)
-	        self.view.expand_row(path, False)
-	        self.view.scroll_to_cell(path)
+            path = self.store.get_path(day)
+            self.view.expand_row(path, False)
+            self.view.scroll_to_cell(path)
 
 #        self.emit('app-list-changed', self.visible_changes)
 
@@ -327,7 +329,6 @@ class HistoryPane(Gtk.VBox, BasePane):
             action = store.get_value(iter, self.COL_ACTION)
             cell.set_property('pixbuf', self._emblems[action])
 
-
             #~ icon_name = Icons.MISSING_APP
             #~ for m in self.db.xapiandb.postlist("AP" + pkg):
                 #~ doc = self.db.xapiandb.get_document(m.docid)
@@ -339,11 +340,11 @@ class HistoryPane(Gtk.VBox, BasePane):
                 #~ icon = self._app_icon_cache[icon_name]
             #~ else:
                 #~ try:
-                    #~ icon = self.icons.load_icon(icon_name, self.ICON_SIZE, 0)
+                    #~ icon = self.icons.load_icon(icon_name, self.ICON_SIZE,
+                        #~ 0)
                 #~ except GObject.GError:
                     #~ icon = self._app_icon_cache[Icons.MISSING_APP]
                 #~ self._app_icon_cache[icon_name] = icon
-            
 
     def render_cell_text(self, column, cell, store, iter, user_data):
         when = store.get_value(iter, self.COL_WHEN)
@@ -352,15 +353,20 @@ class HistoryPane(Gtk.VBox, BasePane):
             pkg = store.get_value(iter, self.COL_PKG)
             subs = {'pkgname': pkg,
                     'color': '#8A8A8A',
-                    # Translators : time displayed in history, display hours (0-12), minutes and AM/PM. %H should be used instead of %I to display hours 0-24
+                    # Translators : time displayed in history, display hours
+                    # (0-12), minutes and AM/PM. %H should be used instead
+                    # of %I to display hours 0-24
                     'time': when.time().strftime(_('%I:%M %p')),
                    }
             if action == self.INSTALLED:
-                text = _('%(pkgname)s <span color="%(color)s">installed %(time)s</span>') % subs
+                text = _('%(pkgname)s <span color="%(color)s">'
+                    'installed %(time)s</span>') % subs
             elif action == self.REMOVED:
-                text = _('%(pkgname)s <span color="%(color)s">removed %(time)s</span>') % subs
+                text = _('%(pkgname)s <span color="%(color)s">'
+                    'removed %(time)s</span>') % subs
             elif action == self.UPGRADED:
-                text = _('%(pkgname)s <span color="%(color)s">updated %(time)s</span>') % subs
+                text = _('%(pkgname)s <span color="%(color)s">'
+                    'updated %(time)s</span>') % subs
         elif isinstance(when, datetime.date):
             today = datetime.date.today()
             monday = today - datetime.timedelta(days=today.weekday())
@@ -388,7 +394,7 @@ def get_test_window():
                                           )
     # needed because available pane will try to get it
     vm = get_test_gtk3_viewmanager()
-    vm # make pyflakes happy
+    vm  # make pyflakes happy
     db = get_test_db()
     cache = get_test_pkg_info()
     icons = get_test_gtk3_icon_cache()
@@ -409,4 +415,3 @@ def get_test_window():
 if __name__ == '__main__':
     win = get_test_window()
     Gtk.main()
-

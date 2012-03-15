@@ -33,7 +33,9 @@ LOG = logging.getLogger(__name__)
 #FIXME: These need to come from the main app
 ICON_SIZE = 24
 
-def deauthorize_computer(parent, datadir, db, icons, account_name, purchased_packages):
+
+def deauthorize_computer(parent, datadir, db, icons, account_name,
+    purchased_packages):
     """ Display a dialog to deauthorize the current computer for purchases
     """
     cache = db._aptcache
@@ -41,7 +43,7 @@ def deauthorize_computer(parent, datadir, db, icons, account_name, purchased_pac
 
     (primary, button_text) = distro.get_deauthorize_text(account_name,
                                                          purchased_packages)
-        
+
     # build the dialog
     glade_dialog = SimpleGtkbuilderDialog(datadir, domain="software-center")
     dialog = glade_dialog.dialog_deauthorize
@@ -54,24 +56,26 @@ def deauthorize_computer(parent, datadir, db, icons, account_name, purchased_pac
     if (icon_name is None or
         not icons.has_icon(icon_name)):
         icon_name = Icons.MISSING_APP
-    glade_dialog.image_icon.set_from_icon_name(icon_name, 
+    glade_dialog.image_icon.set_from_icon_name(icon_name,
                                                Gtk.IconSize.DIALOG)
 
     # set the texts
-    glade_dialog.label_deauthorize_primary.set_text("<span font_weight=\"bold\" font_size=\"large\">%s</span>" % primary)
+    glade_dialog.label_deauthorize_primary.set_text(
+        "<span font_weight=\"bold\" font_size=\"large\">%s</span>" % primary)
     glade_dialog.label_deauthorize_primary.set_use_markup(True)
     glade_dialog.button_deauthorize_do.set_label(button_text)
 
     # add the list of packages to remove, if there are any
     if len(purchased_packages) > 0:
-        view = PackageNamesView(_("Deauthorize"), cache, purchased_packages, icons, ICON_SIZE, db)
+        view = PackageNamesView(_("Deauthorize"), cache, purchased_packages,
+            icons, ICON_SIZE, db)
         view.set_headers_visible(False)
         # FIXME: work out how not to select?/focus?/activate? first item
         glade_dialog.scrolledwindow_purchased_packages.add(view)
         glade_dialog.scrolledwindow_purchased_packages.show_all()
     else:
         glade_dialog.viewport_purchased_packages.hide()
-        
+
     result = dialog.run()
     dialog.hide()
     if result == Gtk.ResponseType.ACCEPT:
@@ -80,7 +84,8 @@ def deauthorize_computer(parent, datadir, db, icons, account_name, purchased_pac
 
 
 if __name__ == "__main__":
-    import sys, os
+    import sys
+    import os
 
     if len(sys.argv) > 1:
         datadir = sys.argv[1]
@@ -120,7 +125,7 @@ if __name__ == "__main__":
             db.open()
     except xapian.DatabaseCorruptError as e:
         logging.exception("xapian open failed")
-        dialogs.error(None, 
+        dialogs.error(None,
                            _("Sorry, can not open the software database"),
                            _("Please re-install the 'software-center' "
                              "package."))
@@ -134,13 +139,12 @@ if __name__ == "__main__":
     purchased_packages.add('chromium-browser')
     purchased_packages.add('cheese')
     purchased_packages.add('aisleriot')
-    
+
     account_name = "max.fischer@rushmoreacademy.edu"
 
-    deauthorize_computer(None, 
-                         "./data", 
+    deauthorize_computer(None,
+                         "./data",
                          db,
                          icons,
                          account_name,
                          purchased_packages)
-

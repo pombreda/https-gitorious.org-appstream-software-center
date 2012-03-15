@@ -17,25 +17,25 @@ class PendingStore(Gtk.ListStore):
 
     # column names
     (COL_TID,
-     COL_ICON, 
-     COL_NAME, 
-     COL_STATUS, 
+     COL_ICON,
+     COL_NAME,
+     COL_STATUS,
      COL_PROGRESS,
      COL_PULSE,
      COL_CANCEL) = range(7)
 
     # column types
-    column_types = (str,             # COL_TID
+    column_types = (str,               # COL_TID
                     GdkPixbuf.Pixbuf,  # COL_ICON
-                    str,             # COL_NAME
-                    str,             # COL_STATUS
-                    float,           # COL_PROGRESS
-                    int,            # COL_PULSE
-                    str)             # COL_CANCEL
+                    str,               # COL_NAME
+                    str,               # COL_STATUS
+                    float,             # COL_PROGRESS
+                    int,               # COL_PULSE
+                    str)               # COL_CANCEL
 
     # icons
     PENDING_STORE_ICON_CANCEL = Gtk.STOCK_CANCEL
-    PENDING_STORE_ICON_NO_CANCEL = "" # Gtk.STOCK_YES
+    PENDING_STORE_ICON_NO_CANCEL = ""  # Gtk.STOCK_YES
 
     ICON_SIZE = 24
 
@@ -46,7 +46,7 @@ class PendingStore(Gtk.ListStore):
 
         self._transactions_watcher = get_transactions_watcher()
         self._transactions_watcher.connect("lowlevel-transactions-changed",
-                                           self._on_lowlevel_transactions_changed)
+            self._on_lowlevel_transactions_changed)
         # data
         self.icons = icons
         # the apt-daemon stuff
@@ -62,8 +62,10 @@ class PendingStore(Gtk.ListStore):
             del sig
         self._signals = []
 
-    def _on_lowlevel_transactions_changed(self, watcher, current_tid, pending_tids):
-        logging.debug("on_transaction_changed %s (%s)" % (current_tid, len(pending_tids)))
+    def _on_lowlevel_transactions_changed(self, watcher, current_tid,
+        pending_tids):
+        logging.debug("on_transaction_changed %s (%s)" % (current_tid,
+            len(pending_tids)))
         self.clear()
         for tid in [current_tid] + pending_tids:
             if not tid:
@@ -79,11 +81,13 @@ class PendingStore(Gtk.ListStore):
         # add pending purchases as pseudo transactions
         for pkgname in self.backend.pending_purchases:
             iconname = self.backend.pending_purchases[pkgname].iconname
-            icon = get_icon_from_theme(self.icons, iconname=iconname, iconsize=self.ICON_SIZE)
+            icon = get_icon_from_theme(self.icons, iconname=iconname,
+                iconsize=self.ICON_SIZE)
             appname = self.backend.pending_purchases[pkgname].appname
             status_text = self._render_status_text(
                 appname or pkgname, _(u'Installing purchase\u2026'))
-            self.append([pkgname, icon, pkgname, status_text, float(0), 1, None])
+            self.append([pkgname, icon, pkgname, status_text, float(0), 1,
+                None])
 
     def _pulse_purchase_helper(self):
         for item in self:
@@ -105,7 +109,7 @@ class PendingStore(Gtk.ListStore):
             trans.connect("status-changed", self._on_status_changed))
         self._signals.append(
             trans.connect(
-                "cancellable-changed",self._on_cancellable_changed))
+                "cancellable-changed", self._on_cancellable_changed))
 
         if "sc_appname" in trans.meta_data:
             appname = trans.meta_data["sc_appname"]
@@ -121,15 +125,16 @@ class PendingStore(Gtk.ListStore):
         except KeyError:
             icon = get_icon_from_theme(self.icons, iconsize=self.ICON_SIZE)
         else:
-            icon = get_icon_from_theme(self.icons, iconname=iconname, iconsize=self.ICON_SIZE)
+            icon = get_icon_from_theme(self.icons, iconname=iconname,
+                iconsize=self.ICON_SIZE)
         if trans.is_waiting():
             status = trans.status_details
         else:
             status = trans.get_status_description()
         status_text = self._render_status_text(appname, status)
         cancel_icon = self._get_cancel_icon(trans.cancellable)
-        self.append([trans.tid, icon, appname, status_text, float(trans.progress),
-                     -1, cancel_icon])
+        self.append([trans.tid, icon, appname, status_text,
+            float(trans.progress), -1, cancel_icon])
 
     def _on_cancellable_changed(self, trans, cancellable):
         #print "_on_allow_cancel: ", trans, allow_cancel
@@ -161,7 +166,8 @@ class PendingStore(Gtk.ListStore):
                     total_bytes_str = GLib.format_size(total_bytes)
                     status = _("Downloaded %s of %s") % \
                              (current_bytes_str, total_bytes_str)
-                    row[self.COL_STATUS] = self._render_status_text(name, status)
+                    row[self.COL_STATUS] = self._render_status_text(name,
+                        status)
 
     def _on_progress_changed(self, trans, progress):
         # print "_on_progress_changed: ", trans, progress
@@ -187,4 +193,3 @@ class PendingStore(Gtk.ListStore):
         if not name:
             name = ""
         return "%s\n<small>%s</small>" % (utf8(name), utf8(status))
-
