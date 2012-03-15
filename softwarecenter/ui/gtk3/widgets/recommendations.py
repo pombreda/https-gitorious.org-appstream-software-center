@@ -135,9 +135,9 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
                                     (),
                                    ),
         }
-        
+
     TURN_ON_RECOMMENDATIONS_TEXT = _(u"Turn On Recommendations")
-    RECOMMENDATIONS_OPT_IN_TEXT =  _(u"To make recommendations, "
+    RECOMMENDATIONS_OPT_IN_TEXT = _(u"To make recommendations, "
                  "Ubuntu Software Center "
                  "will occasionally send to Canonical an anonymous list "
                  "of software currently installed.")
@@ -178,7 +178,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
 
     def _on_opt_in_button_clicked(self, button):
         self.opt_in_to_recommendations_service()
-        
+
     def opt_in_to_recommendations_service(self):
         # we upload the user profile here, and only after this is finished
         # do we fire the request for recommendations and finally display
@@ -186,7 +186,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         # wants a progress bar, but we don't have access to real-time
         # progress info)
         self._upload_user_profile_and_get_recommendations()
-        
+
     def opt_out_of_recommendations_service(self):
         if self.recommended_for_you_content:
             self.recommended_for_you_content.destroy()
