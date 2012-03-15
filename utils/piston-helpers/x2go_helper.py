@@ -1,5 +1,11 @@
 #!/usr/bin/python -u
-import x2go, gevent, sys, fcntl, os, shlex
+import fcntl
+import gevent
+import os
+import shlex
+import sys
+import x2go
+
 
 def connect(server, port, login, password, session):
     print "PROGRESS: creating"
