@@ -51,14 +51,15 @@ def merge_authors_into_about_dialog():
                         gtkbuilder, flags=re.DOTALL)
     open(fname, "w").write(gtkbuilder)
 
+
 def merge_extras_ubuntu_com_channel_file():
     # update ubuntu-extras.list.in (this will not be part of debian as
     # its killed of in debian/rules on a non-ubuntu build)
     DISTROSERIES = platform.dist()[2]
     channelfile = "data/channels/Ubuntu/ubuntu-extras.list"
-    s=open(channelfile+".in").read()
+    s = open(channelfile + ".in").read()
     open(channelfile, "w").write(s.replace("#DISTROSERIES#", DISTROSERIES))
-    
+
 
 # update version.py
 line = open("debian/changelog").readline()
@@ -150,7 +151,7 @@ setup(name="software-center", version=VERSION,
                    ['debian/source_software-center.py']),
                   # extra software channels (can be distro specific)
                   ('/usr/share/app-install/channels/',
-                   glob.glob("data/channels/%s/*" % DISTRO) ),
+                   glob.glob("data/channels/%s/*" % DISTRO)),
                   ],
       cmdclass={"build": build_extra.build_extra,
                 "build_i18n": build_i18n.build_i18n,

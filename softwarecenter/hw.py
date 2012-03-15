@@ -19,55 +19,56 @@
 from gettext import gettext as _
 
 TAG_DESCRIPTION = {
-    'hardware::webcam' : _('webcam'),
-    'hardware::digicam' : _('digicam'),
-    'hardware::input:mouse' : _('mouse'),
-    'hardware::input:joystick' : _('joystick'),
-    'hardware::input:touchscreen' : _('touchscreen'),
-    'hardware::gps' : _('GPS'),
-    'hardware::laptop' : _('notebook computer'),
+    'hardware::webcam': _('webcam'),
+    'hardware::digicam': _('digicam'),
+    'hardware::input:mouse': _('mouse'),
+    'hardware::input:joystick': _('joystick'),
+    'hardware::input:touchscreen': _('touchscreen'),
+    'hardware::gps': _('GPS'),
+    'hardware::laptop': _('notebook computer'),
     'hardware::printer': _('printer'),
-    'hardware::scanner' : _('scanner'),
-    'hardware::storage:cd' : _('CD drive'),
-    'hardware::storage:cd-writer' : _('CD burner'),
-    'hardware::storage:dvd' : _('DVD drive'),
-    'hardware::storage:dvd-writer' : _('DVD burner'),
-    'hardware::storage:floppy' : _('floppy disk drive'),
-    'hardware::video:opengl' : _('OpenGL hardware acceleration'),
+    'hardware::scanner': _('scanner'),
+    'hardware::storage:cd': _('CD drive'),
+    'hardware::storage:cd-writer': _('CD burner'),
+    'hardware::storage:dvd': _('DVD drive'),
+    'hardware::storage:dvd-writer': _('DVD burner'),
+    'hardware::storage:floppy': _('floppy disk drive'),
+    'hardware::video:opengl': _('OpenGL hardware acceleration'),
 
 }
 
 TAG_MISSING_DESCRIPTION = {
-    'hardware::digicam' : _('This software requires a digital camera, but none '
+    'hardware::digicam': _('This software requires a digital camera, but none '
                            'are currently connected'),
-    'hardware::webcam' : _('This software requires a video camera, but none '
+    'hardware::webcam': _('This software requires a video camera, but none '
                            'are currently connected'),
-    'hardware::input:mouse' : _('This software requires a mouse, '
+    'hardware::input:mouse': _('This software requires a mouse, '
                                 'but none is currently setup.'),
-    'hardware::input:joystick' : _('This software requires a joystick, '
+    'hardware::input:joystick': _('This software requires a joystick, '
                                    'but none are currently connected.'),
-    'hardware::input:touchscreen' : _('This software requires a touchscreen, '
+    'hardware::input:touchscreen': _('This software requires a touchscreen, '
                                       'but the computer does not have one.'),
-    'hardware::gps' : _('This software requires a GPS, '
+    'hardware::gps': _('This software requires a GPS, '
                         'but the computer does not have one.'),
-    'hardware::laptop' : _('This software is for notebook computers.'),
+    'hardware::laptop': _('This software is for notebook computers.'),
     'hardware::printer': _('This software requires a printer, but none '
                            'are currently set up.'),
-    'hardware::scanner' : _('This software requires a scanner, but none are '
+    'hardware::scanner': _('This software requires a scanner, but none are '
                             'currently set up.'),
-    'hardware::stoarge:cd' : _('This software requires a CD drive, but none '
+    'hardware::stoarge:cd': _('This software requires a CD drive, but none '
                                'are currently connected.'),
-    'hardware::storage:cd-writer' : _('This software requires a CD burner, '
+    'hardware::storage:cd-writer': _('This software requires a CD burner, '
                                       'but none are currently connected.'),
-    'hardware::storage:dvd' : _('This software requires a DVD drive, but none '
+    'hardware::storage:dvd': _('This software requires a DVD drive, but none '
                                 'are currently connected.'),
-    'hardware::storage:dvd-writer' : _('This software requires a DVD burner, '
+    'hardware::storage:dvd-writer': _('This software requires a DVD burner, '
                                        'but none are currently connected.'),
-    'hardware::storage:floppy' : _('This software requires a floppy disk '
+    'hardware::storage:floppy': _('This software requires a floppy disk '
                                    'drive, but none are currently connected.'),
-    'hardware::video:opengl' : _('This computer does not have graphics fast '
+    'hardware::video:opengl': _('This computer does not have graphics fast '
                                  'enough for this software.'),
 }
+
 
 def get_hw_missing_long_description(tags):
     s = ""

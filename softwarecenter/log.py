@@ -26,6 +26,7 @@ from paths import SOFTWARE_CENTER_CACHE_DIR
 
 """ setup global logging for software-center """
 
+
 class NullFilterThatWarnsAboutRootLoggerUsage(logging.Filter):
     """ pass all messages through, but warn about messages that
         come from the root logger (and not from the softwarecenter root)
@@ -36,23 +37,28 @@ class NullFilterThatWarnsAboutRootLoggerUsage(logging.Filter):
             s = "logs to the root logger: '%s'" % str(fixme_msg)
             logging.getLogger("softwarecenter.fixme").warn(s)
         return 1
-	
+
+
 class OrFilter(logging.Filter):
     """ A filter that can have multiple filter strings and shows
         the message if any of the filter strings matches
     """
+
     def __init__(self):
         self.filters = []
+
     def filter(self, record):
-        for (fname,flen) in self.filters:
-            if (flen == 0 or 
-                fname == record.name or 
-                (len(record.name)>flen and record.name[flen] == ".")):
+        for (fname, flen) in self.filters:
+            if (flen == 0 or
+                fname == record.name or
+                (len(record.name) > flen and record.name[flen] == ".")):
                 return 1
         return 0
+
     def add(self, log_filter):
         """ add a log_filter string to the list of OR expressions """
         self.filters.append((log_filter, len(log_filter)))
+
 
 def add_filters_from_string(long_filter_str):
     """ take the string passed from e.g. the commandline and create
@@ -66,7 +72,7 @@ def add_filters_from_string(long_filter_str):
         filter_str = filter_str.strip("")
         if filter_str == "":
             return
-        if not (filter_str.startswith("sc") or 
+        if not (filter_str.startswith("sc") or
                 filter_str.startswith("softwarecenter")):
             filter_str = "sc.%s" % filter_str
         if filter_str.startswith("sc"):
@@ -76,10 +82,10 @@ def add_filters_from_string(long_filter_str):
     handler.addFilter(logfilter)
 
 
-
 # setup global software-center logging
 root = logging.getLogger()
-fmt = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s", None)
+fmt = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s", None)
 handler = logging.StreamHandler()
 handler.setFormatter(fmt)
 root.addHandler(handler)
@@ -92,7 +98,8 @@ logfile_path = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "software-center.log")
 
 # try to fix inaccessible s-c directory (#688682)
 if not os.access(SOFTWARE_CENTER_CACHE_DIR, os.W_OK):
-    logging.warn("found not writable '%s' dir, trying to fix" % SOFTWARE_CENTER_CACHE_DIR)
+    logging.warn("found not writable '%s' dir, trying to fix" %
+                 SOFTWARE_CENTER_CACHE_DIR)
     # if we have to do more renames, soemthing else is wrong and its
     # ok to crash later to learn about the problem
     for i in range(10):
@@ -110,12 +117,9 @@ if os.path.exists(logfile_path) and not os.access(logfile_path, os.W_OK):
     except:
         logging.exception("failed to fix non-writeable logfile")
 
-logfile_handler = logging.handlers.RotatingFileHandler(logfile_path,
-                                                       maxBytes=100*1000,
-                                                       backupCount=5)
+logfile_handler = logging.handlers.RotatingFileHandler(
+    logfile_path, maxBytes=100 * 1000, backupCount=5)
 logfile_handler.setLevel(logging.INFO)
 logfile_handler.setFormatter(fmt)
 root.addHandler(logfile_handler)
-
-
 root.setLevel(logging.INFO)
