@@ -79,3 +79,13 @@ def get_hw_missing_long_description(tags):
     if s:
         s = s[:-1]
     return s
+
+
+def get_hardware_support_for_tags(tags):
+    """ wrapper around the DebtagsAvailalbeHW to support adding our own 
+        private tag extension (like opengl-driver)
+    """
+    from debtagshw.debtagshw import DebtagsAvailableHW
+    hw = DebtagsAvailableHW()
+    support = hw.get_hardware_support_for_tags(tags)
+    return support

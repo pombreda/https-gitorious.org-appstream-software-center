@@ -821,21 +821,23 @@ class AppDetails(GObject.GObject):
     def hardware_requirements(self):
         result = {}
         try:
-            from debtagshw.debtagshw import DebtagsAvailableHW
-            hw = DebtagsAvailableHW()
-            result =  hw.get_hardware_support_for_tags(
-                self.tags)
+            from softwarecenter.hw import get_hardware_support_for_tags
+            result =  get_hardware_support_for_tags(self.tags)
         except ImportError:
             LOG.warn("failed to import debtagshw")
             return result
         return result
 
     def _unavailable_channel(self):
-        """ Check if the given doc refers to a channel that is currently not enabled """
+        """ Check if the given doc refers to a channel that is currently
+            not enabled
+        """
         return not is_channel_available(self.channelname)
 
     def _unavailable_component(self, component_to_check=None):
-        """ Check if the given doc refers to a component that is currently not enabled """
+        """ Check if the given doc refers to a component that is currently 
+            not enabled
+        """
         if component_to_check:
             component = component_to_check
         elif self.component:
