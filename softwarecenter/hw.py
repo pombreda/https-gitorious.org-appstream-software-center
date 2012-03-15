@@ -69,6 +69,10 @@ TAG_MISSING_DESCRIPTION = {
                                  'enough for this software.'),
 }
 
+def get_hw_short_description(tag):
+    s = TAG_DESCRIPTION.get(tag)
+    return s
+
 def get_hw_missing_long_description(tags):
     s = ""
     # build string
