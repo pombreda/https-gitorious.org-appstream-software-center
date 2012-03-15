@@ -38,6 +38,8 @@ LOG = logging.getLogger(__name__)
 
 
 _last_button = None
+
+
 class ViewSwitcher(Gtk.Box):
 
     ICON_SIZE = Gtk.IconSize.LARGE_TOOLBAR
@@ -45,6 +47,7 @@ class ViewSwitcher(Gtk.Box):
     def __init__(self, view_manager, datadir, db, cache, icons):
         # boring stuff
         self.view_manager = view_manager
+
         def on_view_changed(widget, view_id):
             self.view_buttons[view_id].set_active(True)
         self.view_manager.connect('view-changed', on_view_changed)
@@ -69,7 +72,6 @@ class ViewSwitcher(Gtk.Box):
         self._prev_view = None  # track the previous active section
         self._prev_item = None  # track the previous active menu-item
         self._handlers = []
-
 
         # order is important here!
         # first, the availablepane items
@@ -112,13 +114,14 @@ class ViewSwitcher(Gtk.Box):
         else:
             self.stop_icon_animation()
             pending_btn = self.view_buttons[ViewPages.PENDING]
-            from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
+            from softwarecenter.ui.gtk3.session.viewmanager import (
+                get_viewmanager,
+            )
             vm = get_viewmanager()
             if vm.get_active_view() == 'view-page-pending':
                 vm.nav_back()
                 vm.clear_forward_history()
             pending_btn.set_visible(False)
-        return
 
     def start_icon_animation(self):
         # the pending button ProgressImage is special, see:
@@ -135,9 +138,8 @@ class ViewSwitcher(Gtk.Box):
         image.set_transaction_count(count)
 
     def on_transaction_finished(self, backend, result):
-        if result.success: 
+        if result.success:
             self.on_channels_changed()
-        return
 
     def on_section_sel_clicked(self, button, event, view_id):
         # mvo: this check causes bug LP: #828675
@@ -166,7 +168,6 @@ class ViewSwitcher(Gtk.Box):
 
         self._prev_view = view_id
         GObject.idle_add(config_view)
-        return
 
     def on_get_available_channels(self, popup):
         return self.build_channel_list(popup, ViewPages.AVAILABLE)
@@ -179,7 +180,6 @@ class ViewSwitcher(Gtk.Box):
             # setting popup to None will cause a rebuild of the popup
             # menu the next time the selector is clicked
             sel.popup = None
-        return
 
     def append_section(self, view_id, label, icon):
         btn = SectionSelector(label, icon, self.ICON_SIZE)
@@ -196,7 +196,8 @@ class ViewSwitcher(Gtk.Box):
         # to the group, toggled & clicked gets emitted... causing
         # all panes to fully initialise on USC startup, which is
         # undesirable!
-        btn.connect("button-release-event", self.on_section_sel_clicked, view_id)
+        btn.connect("button-release-event", self.on_section_sel_clicked,
+            view_id)
         return btn
 
     def append_channel_selector(self, section_btn, view_id, build_func):
@@ -206,7 +207,8 @@ class ViewSwitcher(Gtk.Box):
         self.pack_start(sel, False, False, 0)
         return sel
 
-    def append_section_with_channel_sel(self, view_id, label, icon, build_func):
+    def append_section_with_channel_sel(self, view_id, label, icon,
+        build_func):
         btn = self.append_section(view_id, label, icon)
         btn.draw_hint_has_channel_selector = True
         sel = self.append_channel_selector(btn, view_id, build_func)
@@ -227,15 +229,16 @@ class ViewSwitcher(Gtk.Box):
         for i, channel in enumerate(channels):
             # only calling it with a explicit new() makes it a really
             # empty one, otherwise the following error is raised:
-            # """Attempting to add a widget with type GtkBox to a 
+            # """Attempting to add a widget with type GtkBox to a
             #    GtkCheckMenuItem, but as a GtkBin subclass a
-            #    GtkCheckMenuItem can only contain one widget at a time; 
+            #    GtkCheckMenuItem can only contain one widget at a time;
             #    it already contains a widget of type GtkAccelLabel """
 
             item = Gtk.MenuItem.new()
 
             label = Gtk.Label.new(channel.display_name)
-            image = Gtk.Image.new_from_icon_name(channel.icon, Gtk.IconSize.MENU)
+            image = Gtk.Image.new_from_icon_name(channel.icon,
+                Gtk.IconSize.MENU)
 
             box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.SMALL)
             box.pack_start(image, False, False, 0)
@@ -252,8 +255,7 @@ class ViewSwitcher(Gtk.Box):
                     view_id
                 )
             )
-            popup.attach(item, 0, 1, i, i+1)
-        return
+            popup.attach(item, 0, 1, i, i + 1)
 
     def on_channel_selected(self, item, event, channel, view_id):
         vm = self.view_manager
@@ -279,7 +281,6 @@ class ViewSwitcher(Gtk.Box):
             return False
 
         GObject.idle_add(config_view)
-        return
 
 
 def get_test_window_viewswitcher():
@@ -305,7 +306,7 @@ def get_test_window_viewswitcher():
     scroll.add_with_viewport(view)
 
     win.add(box)
-    win.set_size_request(400,200)
+    win.set_size_request(400, 200)
     win.connect("destroy", Gtk.main_quit)
     win.show_all()
     return win
@@ -316,6 +317,5 @@ if __name__ == "__main__":
 
     softwarecenter.paths.datadir = "./data"
     win = get_test_window_viewswitcher()
-
 
     Gtk.main()
