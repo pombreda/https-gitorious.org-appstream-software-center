@@ -146,10 +146,10 @@ class RecommendedForYouCategory(Category):
         self.subcategory = subcategory
         if subcategory:
             # this is the set of recommendations for a given subcategory
-            cat_title = u"Recommended for You in %s" % subcategory.name
+            cat_title = u"Recommended For You in %s" % subcategory.name
         else:
             # this is the full set of recommendations for e.g. the lobby view
-            cat_title = u"Recommended for You"
+            cat_title = u"Recommended For You"
         super(RecommendedForYouCategory, self).__init__(
                 cat_title,
                 _(cat_title),
