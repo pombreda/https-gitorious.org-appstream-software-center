@@ -140,6 +140,8 @@ class PackagekitInfo(PackageInfo):
             wanted_pkgs = list(set(wanted_pkgs))
 
         pfilter = 1 << packagekit.FilterEnum.NEWEST
+        # we never want source packages
+        pfilter |= 1 << packagekit.FilterEnum.NOT_SOURCE
         try:
             if wanted_pkgs and use_resolve:
                 pkgs = []
