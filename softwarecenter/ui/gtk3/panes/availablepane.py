@@ -225,12 +225,11 @@ class AvailablePane(SoftwarePane):
             window.set_cursor(None)
 
     def on_purchase_requested(self, appmanager, app, iconname, url):
-        self.purchase_view.initiate_purchase(app, iconname, url)
-        vm = get_viewmanager()
-        vm.display_page(
-            self, AvailablePane.Pages.PURCHASE, self.state,
-            self.display_purchase)
-        return
+        if self.purchase_view.initiate_purchase(app, iconname, url):
+            vm = get_viewmanager()
+            vm.display_page(
+                self, AvailablePane.Pages.PURCHASE, self.state,
+                self.display_purchase)
 
     def on_purchase_needs_spinner(self, appmanager, active):
         vm = get_viewmanager()

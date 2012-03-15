@@ -32,7 +32,10 @@ from gi.repository import WebKit as webkit
 from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
+from softwarecenter.ui.gtk3.dialogs import show_accept_tos_dialog
+from softwarecenter.config import get_config
 from softwarecenter.i18n import get_language
+from softwarecenter.ui.gtk3.utils import get_parent
 
 LOG = logging.getLogger(__name__)
 
@@ -184,6 +187,7 @@ h1 {
         self.wk = None
         self._wk_handlers_blocked = False
         self._oauth_token = None
+        self.config = get_config()
 
     def init_view(self):
         if self.wk is None:
@@ -201,11 +205,25 @@ h1 {
         # case they were blocked after a previous purchase was completed or canceled
         self._unblock_wk_handlers()
 
+    def _ask_for_tos_acceptance_if_needed(self):
+        if (not self.config.has_option("general", "accepted_tos") and
+            not self.config.getboolean("general", "accepted_tos")):
+            # show the dialog and ensure the user accepts it
+            res = show_accept_tos_dialog(get_parent(self))
+            if not res:
+                return False
+            self.config.set("general", "accepted_tos", "yes")
+            return True
+        return True
+
     def initiate_purchase(self, app, iconname, url=None, html=None):
         """
         initiates the purchase workflow inside the embedded webkit window
         for the item specified       
         """
+        if not self._ask_for_tos_acceptance_if_needed():
+            return False
+        
         self.init_view()
         self.app = app
         self.iconname = iconname
@@ -223,6 +241,7 @@ h1 {
         # only for debugging
         if os.environ.get("SOFTWARE_CENTER_DEBUG_BUY"):
             GObject.timeout_add_seconds(1, _generate_events, self)
+        return True
         
     def _on_new_window(self, view, frame, request, action, policy):
         LOG.debug("_on_new_window")
@@ -462,8 +481,8 @@ def get_test_window_purchaseview():
     #GObject.timeout_add_seconds(1, _generate_events, d)
     
     widget = PurchaseView()
-    widget.initiate_purchase(app=None, iconname=None, url=url)
-    #widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
+    from mock import Mock
+    widget.config = Mock()
 
     win = Gtk.Window()
     win.set_data("view", widget)
@@ -472,9 +491,15 @@ def get_test_window_purchaseview():
     win.set_position(Gtk.WindowPosition.CENTER)
     win.show_all()
     win.connect('destroy', Gtk.main_quit)
+
+    widget.initiate_purchase(app=None, iconname=None, url=url)
+    #widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
+
     return win
 
 if __name__ == "__main__":
+    import softwarecenter.paths
+    softwarecenter.paths.datadir = "./data"
     win = get_test_window_purchaseview()
     Gtk.main()
 

@@ -27,6 +27,17 @@ from softwarecenter.paths import ICON_PATH, SOFTWARE_CENTER_ICON_CACHE_DIR
 
 LOG = logging.getLogger(__name__)
 
+def get_parent(widget):
+    while widget.get_parent():
+        widget = widget.get_parent()
+    return widget
+
+def get_parent_xid(widget):
+    window = get_parent(widget).get_window()
+    #print dir(window)
+    if hasattr(window, 'xid'):
+        return window.xid
+    return 0    # cannot figure out how to get the xid of gdkwindow under pygi
 
 def point_in(rect, px, py):
     return (rect.x <= px <= rect.x + rect.width and
