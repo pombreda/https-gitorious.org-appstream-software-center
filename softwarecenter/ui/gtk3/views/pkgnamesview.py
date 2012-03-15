@@ -27,6 +27,7 @@ from softwarecenter.enums import Icons
 
 LOG = logging.getLogger(__name__)
 
+
 class PackageNamesView(Gtk.TreeView):
     """ A simple widget that presents a list of packages, with
         associated icons, in a treeview.  Note the for current
@@ -52,7 +53,7 @@ class PackageNamesView(Gtk.TreeView):
                 continue
             s = "%s \n<small>%s</small>" % (
                 cache[pkgname].installed.summary.capitalize(), pkgname)
-            
+
             app_details = Application("", pkgname).get_details(db)
             proposed_icon = app_details.icon
             if not proposed_icon or not icons.has_icon(proposed_icon):
@@ -65,11 +66,11 @@ class PackageNamesView(Gtk.TreeView):
                 LOG.warn("cant set icon for '%s' " % pkgname)
                 pb = icons.load_icon(Icons.MISSING_APP,
                                      icon_size,
-                                     Gtk.IconLookupFlags.GENERIC_FALLBACK) 
-                pb = pb.scale_simple(icon_size, 
+                                     Gtk.IconLookupFlags.GENERIC_FALLBACK)
+                pb = pb.scale_simple(icon_size,
                                      icon_size, GdkPixbuf.InterpType.BILINEAR)
             model.append([pb, s])
-            
+
         # finally, we don't allow selection, it's just a simple display list
         tree_selection = self.get_selection()
         tree_selection.set_mode(Gtk.SelectionMode.NONE)
@@ -87,19 +88,19 @@ def get_test_window_pkgnamesview():
     db = StoreDatabase(pathname, cache)
     db.open()
 
-    import softwarecenter.paths 
+    import softwarecenter.paths
     datadir = softwarecenter.paths.datadir
 
     from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
     icons = get_sc_icon_theme(datadir)
-    
+
     pkgs = ["apt", "software-center"]
     view = PackageNamesView("header", cache, pkgs, icons, 32, db)
     view.show()
 
     win = Gtk.Window()
     win.add(view)
-    win.set_size_request(600,400)
+    win.set_size_request(600, 400)
     win.show()
     win.connect('destroy', Gtk.main_quit)
     return win

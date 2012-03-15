@@ -4,12 +4,12 @@ from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.panes.viewswitcher import ViewSwitcher
 
+
 def _widget_set_margins(widget, top=0, bottom=0, left=0, right=0):
     widget.set_margin_top(top)
     widget.set_margin_bottom(bottom)
     widget.set_margin_left(left)
     widget.set_margin_right(right)
-    return
 
 
 class GlobalPane(Gtk.Toolbar):
@@ -20,10 +20,12 @@ class GlobalPane(Gtk.Toolbar):
         context.add_class(Gtk.STYLE_CLASS_PRIMARY_TOOLBAR)
 
         # add nav history back/forward buttons...
-        # note:  this is hacky, would be much nicer to make the custom self/right
-        # buttons in BackForwardButton to be Gtk.Activatable/Gtk.Widgets, then wire in the
-        # actions using e.g. self.navhistory_back_action.connect_proxy(self.back_forward.left),
-        # but couldn't seem to get this to work..so just wire things up directly
+        # note:  this is hacky, would be much nicer to make the custom
+        # self/right buttons in BackForwardButton to be
+        # Gtk.Activatable/Gtk.Widgets, then wire in the actions using e.g.
+        # self.navhistory_back_action.connect_proxy(self.back_forward.left),
+        # but couldn't seem to get this to work..so just wire things up
+        # directly
         vm = get_viewmanager()
         self.back_forward = vm.get_global_backforward()
         self.back_forward.set_vexpand(False)
@@ -31,14 +33,17 @@ class GlobalPane(Gtk.Toolbar):
 
         if self.get_direction() != Gtk.TextDirection.RTL:
             _widget_set_margins(self.back_forward,
-                                left=StockEms.MEDIUM, right=StockEms.MEDIUM+2)
+                                left=StockEms.MEDIUM,
+                                right=StockEms.MEDIUM + 2)
         else:
             _widget_set_margins(self.back_forward,
-                                right=StockEms.MEDIUM, left=StockEms.MEDIUM+2)
+                                right=StockEms.MEDIUM,
+                                left=StockEms.MEDIUM + 2)
         self._insert_as_tool_item(self.back_forward, 0)
 
         # this is what actually draws the All Software, Installed etc buttons
-        self.view_switcher = ViewSwitcher(view_manager, datadir, db, cache, icons)
+        self.view_switcher = ViewSwitcher(view_manager, datadir, db, cache,
+            icons)
         self._insert_as_tool_item(self.view_switcher, 1)
 
         item = Gtk.ToolItem()
@@ -58,7 +63,6 @@ class GlobalPane(Gtk.Toolbar):
             _widget_set_margins(self.searchentry, right=StockEms.MEDIUM)
         else:
             _widget_set_margins(self.searchentry, left=StockEms.MEDIUM)
-        return
 
     def _insert_as_tool_item(self, widget, pos):
         item = Gtk.ToolItem()
@@ -84,7 +88,7 @@ def get_test_window():
     p = GlobalPane(vm, datadir, db, cache, icons)
 
     win = Gtk.Window()
-    win.set_size_request(400,200)
+    win.set_size_request(400, 200)
     win.set_data("pane", p)
     win.connect("destroy", Gtk.main_quit)
     win.add(p)
@@ -94,5 +98,5 @@ def get_test_window():
 if __name__ == "__main__":
 
     win = get_test_window()
-    
+
     Gtk.main()

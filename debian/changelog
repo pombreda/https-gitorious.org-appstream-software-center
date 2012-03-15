@@ -4,8 +4,13 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~elachuni/software-center/pep8-test-part5,
     lp:~elachuni/software-center/pep8-test-part6,
     lp:~elachuni/software-center/pep8-test-part7,
-    lp:~elachuni/software-center/pep8-test-part8:
-    - pep8 fixes for many more files in ui.gtk3.widgets
+    lp:~elachuni/software-center/pep8-test-part8,
+    lp:~elachuni/software-center/pep8-test-part9,
+    lp:~elachuni/software-center/pep8-test-part10,
+    lp:~elachuni/software-center/pep8-test-part11,
+    lp:~elachuni/software-center/pep8-test-part12,
+    lp:~elachuni/software-center/pep8-test-part13:
+    - pep8 fixes for many more files in ui.gtk3.{*}
   * lp:~elachuni/software-center/unify-ussoc-envvar:
     - fix USSOC_SERVICE_URL env variable
   
@@ -14,7 +19,12 @@ software-center (5.1.13) UNRELEASED; urgency=low
     - Translate review sorting criteria
     - Fix the Recommendation spinner text translations
 
- -- Kiwinote <kiwinote@gmail.com>  Mon, 12 Mar 2012 17:54:18 +0000
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/small-sso-fixes:
+    - fix the clear_credentials() call if a token is no
+      longer valid
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 14 Mar 2012 22:49:32 -0400
 
 software-center (5.1.12) precise; urgency=low
 
