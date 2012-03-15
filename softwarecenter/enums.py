@@ -22,7 +22,8 @@ from gettext import gettext as _
 # pkgname of this app itself (used for "self-awareness", see spec)
 SOFTWARE_CENTER_PKGNAME = 'software-center'
 
-# name of the app in the keyring, untranslated, see bug #773214 for the rational
+# name of the app in the keyring, untranslated, see bug #773214 for the
+# rational
 SOFTWARE_CENTER_NAME_KEYRING = "Ubuntu Software Center"
 SOFTWARE_CENTER_SSO_DESCRIPTION = _(
     "To reinstall previous purchases, sign in to the "
@@ -31,12 +32,19 @@ SOFTWARE_CENTER_SSO_DESCRIPTION = _(
 
 # buy-something base url
 #BUY_SOMETHING_HOST = "http://localhost:8000/"
-BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_AGENT_HOST") or os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "https://software-center.ubuntu.com"
-BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_AGENT_HOST") or os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "http://software-center.ubuntu.com"
+BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_AGENT_HOST") or \
+ os.environ.get("SOFTWARE_CENTER_BUY_HOST") or \
+ "https://software-center.ubuntu.com"
+
+BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_AGENT_HOST") \
+    or os.environ.get("SOFTWARE_CENTER_BUY_HOST") or \
+    "http://software-center.ubuntu.com"
 
 # recommender
-RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or "https://rec.ubuntu.com"
-#RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or "https://rec.staging.ubuntu.com"
+RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or \
+    "https://rec.ubuntu.com"
+#RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or \
+#   "https://rec.staging.ubuntu.com"
 
 # for the sso login.  ussoc expects the USSOC_SERVICE_URL environment variable
 # to be a full path to the service root (including /api/1.0), not just the
@@ -54,13 +62,14 @@ DEFAULT_SEARCH_LIMIT = 10000
 # the server size "page" for ratings&reviews
 REVIEWS_BATCH_PAGE_SIZE = 10
 
+
 # the various "views" that the app has
 class ViewPages:
     AVAILABLE = "view-page-available"
     INSTALLED = "view-page-installed"
-    HISTORY =  "view-page-history"
+    HISTORY = "view-page-history"
     SEPARATOR_1 = "view-page-separator-1"
-    PENDING =  "view-page-pending"
+    PENDING = "view-page-pending"
     CHANNEL = "view-page-channel"
 
     # items considered "permanent", that is, if a item disappears
@@ -72,21 +81,24 @@ class ViewPages:
                        HISTORY
                       )
 
+
 # define ID values for the various buttons found in the navigation bar
 class NavButtons:
     CATEGORY = "category"
-    LIST     = "list"
-    SUBCAT   = "subcat"
-    DETAILS  = "details"
-    SEARCH   = "search"
+    LIST = "list"
+    SUBCAT = "subcat"
+    DETAILS = "details"
+    SEARCH = "search"
     PURCHASE = "purchase"
     PREV_PURCHASES = "prev-purchases"
+
 
 # define ID values for the action bar buttons
 class ActionButtons:
     INSTALL = "install"
     ADD_TO_LAUNCHER = "add_to_launcher"
     CANCEL_ADD_TO_LAUNCHER = "cancel_add_to_launcher"
+
 
 # icons
 class Icons:
@@ -98,6 +110,7 @@ class Icons:
     GENERIC_MISSING = "gtk-missing-image"
     INSTALLED_OVERLAY = "software-center-installed"
 
+
 # sorting
 class SortMethods:
     (UNSORTED,
@@ -107,9 +120,11 @@ class SortMethods:
      BY_TOP_RATED,
     ) = range(5)
 
+
 class ReviewSortMethods:
     REVIEW_SORT_METHODS = ['helpful', 'newest']
     REVIEW_SORT_LIST_ENTRIES = [_('Most helpful first'), _('Newest first')]
+
 
 # values used in the database
 class XapianValues:
@@ -144,9 +159,11 @@ class XapianValues:
     VERSION_INFO = 198
     SC_SUPPORTED_DISTROS = 199
 
+
 # fake channels
 PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
 AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME = "available-for-pay"
+
 
 # custom keys for the new-apps repository, correspond
 # control file custom fields:
@@ -157,6 +174,7 @@ class CustomKeys:
     SCREENSHOT_URLS = "Screenshot-Url"
     THUMBNAIL_URL = "Thumbnail-Url"
     CATEGORY = "Category"
+
 
 # pkg action state constants
 class PkgStates:
@@ -180,17 +198,20 @@ class PkgStates:
     FORCE_VERSION,
     # the package is not found in the DB or cache
     NOT_FOUND,
+    # its purchased but not found for the current series
+    PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES,
     # this *needs* to be last (for test_appdetails.py) and means
     # something went wrong and we don't have a state for this PKG
     UNKNOWN,
-    PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES,
     ) = range(17)
+
 
 # visibility of non applications in the search results
 class NonAppVisibility:
     (ALWAYS_VISIBLE,
      MAYBE_VISIBLE,
-     NEVER_VISIBLE) = range (3)
+     NEVER_VISIBLE) = range(3)
+
 
 # application actions
 class AppActions:
@@ -200,6 +221,7 @@ class AppActions:
     APPLY = "apply_changes"
     PURCHASE = "purchase"
 
+
 # transaction types
 class TransactionTypes:
     INSTALL = "install"
@@ -207,6 +229,7 @@ class TransactionTypes:
     UPGRADE = "upgrade"
     APPLY = "apply_changes"
     REPAIR = "repair_dependencies"
+
 
 # mouse event codes for back/forward buttons
 # TODO: consider whether we ought to get these values from gconf so that we
@@ -223,26 +246,22 @@ APP_INSTALL_PATH_DELIMITER = "__"
 TOP_RATED_CAROUSEL_LIMIT = 12
 
 from .version import VERSION, DISTRO, RELEASE, CODENAME
-USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION,
-                                                   DISTRO,
-                                                   RELEASE,
-                                                   CODENAME)
+USER_AGENT = "Software Center/%s (N;) %s/%s (%s)" % (
+    VERSION, DISTRO, RELEASE, CODENAME)
 
 # global backend switch, prefer aptdaemon, if that can not be found, use PK
 USE_PACKAGEKIT_BACKEND = False
 try:
     import aptdaemon
-    aptdaemon # pyflaks
+    aptdaemon  # pyflaks
     USE_PACKAGEKIT_BACKEND = False
 except ImportError:
     try:
         from gi.repository import PackageKitGlib
-        PackageKitGlib # pyflakes
+        PackageKitGlib  # pyflakes
         USE_PACKAGEKIT_BACKEND = True
     except ImportError:
         raise Exception("Need either aptdaemon or PackageKitGlib")
 # allow force via env (useful for testing)
 if "SOFTWARE_CENTER_FORCE_PACKAGEKIT" in os.environ:
     USE_PACKAGEKIT_BACKEND = True
-
-

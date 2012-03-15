@@ -56,7 +56,8 @@ from softwarecenter.utils import clear_token_from_ubuntu_sso
 from softwarecenter.backend.piston.ubuntusso_pristine import UbuntuSsoAPI
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.piston.scaclient import SoftwareCenterAgentAPI
-from softwarecenter.backend.piston.sreclient_pristine import SoftwareCenterRecommenderAPI
+from softwarecenter.backend.piston.sreclient_pristine import (
+    SoftwareCenterRecommenderAPI)
 
 # patch default_service_root to the one we use
 from softwarecenter.enums import UBUNTU_SSO_SERVICE
@@ -64,7 +65,8 @@ from softwarecenter.enums import UBUNTU_SSO_SERVICE
 UbuntuSsoAPI.default_service_root = UBUNTU_SSO_SERVICE
 
 from softwarecenter.enums import RECOMMENDER_HOST
-SoftwareCenterRecommenderAPI.default_service_root = RECOMMENDER_HOST+"/api/1.0"
+SoftwareCenterRecommenderAPI.default_service_root =  \
+    RECOMMENDER_HOST + "/api/1.0"
 
 
 RatingsAndReviewsAPI # pyflakes
@@ -73,6 +75,7 @@ SoftwareCenterAgentAPI # pyflakes
 SoftwareCenterRecommenderAPI # pyflakes
 
 from gettext import gettext as _
+
 
 # helper that is only used to verify that the token is ok
 # and trigger cleanup if not
@@ -91,10 +94,9 @@ class SSOLoginHelper(object):
 
     def verify_token_sync(self, token):
         LOG.debug("verify_token")
-        auth = piston_mini_client.auth.OAuthAuthorizer(token["token"],
-                                                       token["token_secret"],
-                                                       token["consumer_key"],
-                                                       token["consumer_secret"])
+        auth = piston_mini_client.auth.OAuthAuthorizer(
+            token["token"], token["token_secret"],
+            token["consumer_key"], token["consumer_secret"])
         api = UbuntuSsoAPI(auth=auth)
         try:
             res = api.whoami()
@@ -127,7 +129,6 @@ class SSOLoginHelper(object):
             # re-trigger login
             token = self.get_oauth_token_sync()
         return token
-
 
 
 LOG = logging.getLogger(__name__)
@@ -180,10 +181,9 @@ if __name__ == "__main__":
             sys.stderr.write("ERROR: can not obtain a oauth token\n")
             sys.exit(1)
 
-        auth = piston_mini_client.auth.OAuthAuthorizer(token["token"],
-                                                       token["token_secret"],
-                                                       token["consumer_key"],
-                                                       token["consumer_secret"])
+        auth = piston_mini_client.auth.OAuthAuthorizer(
+            token["token"], token["token_secret"],
+            token["consumer_key"], token["consumer_secret"])
         api = klass(cachedir=cachedir, auth=auth)
     else:
         api = klass(cachedir=cachedir)

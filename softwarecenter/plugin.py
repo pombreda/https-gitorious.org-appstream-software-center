@@ -26,14 +26,14 @@ LOG = logging.getLogger(__name__)
 
 from utils import ExecutionTime
 
+
 class Plugin(object):
 
     """Base class for plugins.
-    
     """
     def init_plugin(self):
         """ Init the plugin (UI, connect signals etc)
-           
+
         This should be overwriten by the individual plugins
         and should return as fast as possible. if some longer
         init is required, start a glib timer or a thread
@@ -43,12 +43,11 @@ class Plugin(object):
 class PluginManager(object):
 
     """Class to find and load plugins.
-    
+
     Plugins are stored in files named '*_plugin.py' in the list of
     directories given to the initializer.
-    
     """
-    
+
     def __init__(self, app, plugin_dirs):
         self._app = app
         if isinstance(plugin_dirs, basestring):
@@ -58,18 +57,16 @@ class PluginManager(object):
 
     def get_plugin_files(self):
         """Return all filenames in which plugins may be stored."""
-        
         names = []
         for dirname in self._plugin_dirs:
             if not os.path.exists(dirname):
                 LOG.debug("no dir '%s'" % dirname)
                 continue
-            basenames = [x for x in os.listdir(dirname) 
+            basenames = [x for x in os.listdir(dirname)
                             if x.endswith(".py")]
-            LOG.debug("Plugin modules in %s: %s" % 
+            LOG.debug("Plugin modules in %s: %s" %
                             (dirname, " ".join(basenames)))
             names += [os.path.join(dirname, x) for x in basenames]
-        
         return names
 
     def _find_plugins(self, module):
@@ -90,8 +87,8 @@ class PluginManager(object):
         try:
             module = imp.load_module(module_name, f, filename,
                                      (".py", "r", imp.PY_SOURCE))
-        except Exception as e: # pragma: no cover
-            LOG.warning("Failed to load plugin '%s' (%s)" % 
+        except Exception as e:  # pragma: no cover
+            LOG.warning("Failed to load plugin '%s' (%s)" %
                             (module_name, e))
             return None
         f.close()
@@ -110,7 +107,8 @@ class PluginManager(object):
             filenames = self.get_plugin_files()
             for filename in filenames:
                 if not os.path.exists(filename):
-                    LOG.warn("plugin '%s' does not exists, dangling symlink?" % filename)
+                    LOG.warn("plugin '%s' does not exists, dangling symlink?" %
+                             filename)
                     continue
                 with ExecutionTime("loading plugin: '%s'" % filename):
                     module = self._load_module(filename)

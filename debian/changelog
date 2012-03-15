@@ -25,6 +25,11 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~mvo/software-center/small-sso-fixes:
     - fix the clear_credentials() call if a token is no
       longer valid
+  * lp:~mvo/software-center/lp955005:
+    - don't display ratings for the case where an app
+      cannot be found (LP: #955005)
+  * lp:~mvo/software-center/opengl-driver-blacklist:
+    - add support for video driver blacklisting
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-lp955048:
@@ -32,8 +37,10 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-lp856559:
     - Clears the search entry field before doing a reinstall 
       previous purchases (LP: #856559)
+  * lp:~gary-lasker/software-center/recommendations-categories-view:
+    - display recommendations in the category views as well 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 14 Mar 2012 22:49:32 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 15 Mar 2012 18:24:03 -0400
 
 software-center (5.1.12) precise; urgency=low
 
