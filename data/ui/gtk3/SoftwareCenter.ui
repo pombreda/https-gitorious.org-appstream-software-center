@@ -224,7 +224,7 @@ Konstantin Datz - Icon
                 <property name="use_underline">True</property>
                 <signal name="activate" handler="on_menu_edit_activate" swapped="no"/>
                 <child type="submenu">
-                  <object class="GtkMenu" id="menu2">
+                  <object class="GtkMenu" id="menu_edit">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
@@ -353,7 +353,7 @@ Konstantin Datz - Icon
                       </object>
                     </child>
                     <child>
-                      <object class="GtkSeparatorMenuItem" id="separatormenuitem2">
+                      <object class="GtkSeparatorMenuItem" id="separator_software_sources">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                       </object>
