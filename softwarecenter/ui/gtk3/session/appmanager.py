@@ -31,10 +31,14 @@ from softwarecenter.db import DebFileApplication
 from softwarecenter.distro import get_current_arch, get_distro
 from softwarecenter.i18n import get_language
 from softwarecenter.ui.gtk3.dialogs import dependency_dialogs
-from softwarecenter.backend.transactionswatcher import TransactionFinishedResult
+from softwarecenter.backend.transactionswatcher import (
+    TransactionFinishedResult,
+)
 import softwarecenter.paths
 
 _appmanager = None  # the global AppManager instance
+
+
 def get_appmanager():
     """ get a existing appmanager instance (or None if none is created yet) """
     return _appmanager
@@ -43,10 +47,10 @@ def get_appmanager():
 class ApplicationManager(GObject.GObject):
 
     __gsignals__ = {
-         "purchase-requested" : (GObject.SignalFlags.RUN_LAST,
-                                 None,
-                                 (GObject.TYPE_PYOBJECT, str, str,)
-                                ),
+         "purchase-requested": (GObject.SignalFlags.RUN_LAST,
+                                None,
+                                (GObject.TYPE_PYOBJECT, str, str,)
+                               ),
     }
 
     def __init__(self, db, backend, icons):
@@ -72,25 +76,26 @@ class ApplicationManager(GObject.GObject):
            if action is "remove", must check if other dependencies have to be
            removed as well and show a dialog in that case
         """
-        #~ LOG.debug("on_application_action_requested: '%s' %s" % (app, action))
+        #~ LOG.debug("on_application_action_requested: '%s' %s"
+            #~ % (app, action))
         appdetails = app.get_details(self.db)
         if action == AppActions.REMOVE:
             if not dependency_dialogs.confirm_remove(
                         None, self.datadir, app, self.db, self.icons):
-                    # craft an instance of TransactionFinishedResult to send with the
-                    # transaction-stopped signal
+                    # craft an instance of TransactionFinishedResult to send
+                    # with the transaction-stopped signal
                     result = TransactionFinishedResult(None, False)
                     result.pkgname = app.pkgname
                     self.backend.emit("transaction-stopped", result)
                     return
         elif action == AppActions.INSTALL:
-            # If we are installing a package, check for dependencies that will 
+            # If we are installing a package, check for dependencies that will
             # also be removed and show a dialog for confirmation
             # generic removal text (fixing LP bug #554319)
             if not dependency_dialogs.confirm_install(
                         None, self.datadir, app, self.db, self.icons):
-                    # craft an instance of TransactionFinishedResult to send with the
-                    # transaction-stopped signal
+                    # craft an instance of TransactionFinishedResult to send
+                    # with the transaction-stopped signal
                     result = TransactionFinishedResult(None, False)
                     result.pkgname = app.pkgname
                     self.backend.emit("transaction-stopped", result)
@@ -100,8 +105,9 @@ class ApplicationManager(GObject.GObject):
         if (action == AppActions.UPGRADE and app.request and
             isinstance(app, DebFileApplication)):
             action = AppActions.INSTALL
- 
-        # action_func is one of:  "install", "remove", "upgrade", "apply_changes"
+
+        # action_func is one of:
+        #     "install", "remove", "upgrade", "apply_changes"
         action_func = getattr(self.backend, action)
         if action == AppActions.INSTALL:
             # the package.deb path name is in the request
@@ -117,7 +123,8 @@ class ApplicationManager(GObject.GObject):
                         addons_install=addons_install,
                         addons_remove=addons_remove)
         #~ else:
-            #~ LOG.error("Not a valid action in AptdaemonBackend: '%s'" % action)
+            #~ LOG.error("Not a valid action in AptdaemonBackend: '%s'" %
+                #~ action)
 
     # public interface
     def reload(self):
@@ -149,10 +156,10 @@ class ApplicationManager(GObject.GObject):
         lang = get_language()
         appdetails = app.get_details(self.db)
         url = self.distro.PURCHASE_APP_URL % (
-            lang, self.distro.get_codename(), urlencode(
-                {'archive_id' : appdetails.ppaname, 
-                'arch' : get_current_arch(),}
-            )
+            lang, self.distro.get_codename(), urlencode({
+                'archive_id': appdetails.ppaname,
+                'arch': get_current_arch()
+            })
         )
         self.emit("purchase-requested", app, appdetails.icon, url)
 
