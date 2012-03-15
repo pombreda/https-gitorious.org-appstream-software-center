@@ -18,7 +18,7 @@ class PackagePep8TestCase(unittest.TestCase):
                 softwarecenter.ui.gtk3.views,
                 softwarecenter.ui.gtk3.widgets,
                 softwarecenter.db.pkginfo_impl]
-    exclude = ['appdetailsview.py']
+    exclude = []
 
     def message(self, text):
         self.errors.append(text)
