@@ -572,19 +572,20 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.top_rated_frame.pack_start(self.top_rated, True, True, 0)
         self.vbox.pack_start(self.top_rated_frame, False, True, 0)
         return
-        
+
     def _update_recommended_for_you_in_cat_content(self, category):
         if (self.recommended_for_you_in_cat and
             self.recommended_for_you_in_cat.get_parent()):
             self.vbox.remove(self.recommended_for_you_in_cat)
-        self.recommended_for_you_in_cat = RecommendationsPanelCategory(self,
-                                                                       category)
+        self.recommended_for_you_in_cat = RecommendationsPanelCategory(
+                                                                    self,
+                                                                   category)
         # only show the panel in the categories view when the user
         # is opted in to the recommender service
         # FIXME: this is needed vs. a simple hide() on the widget because
         #        we do a show_all on the view
         if self.recommended_for_you_in_cat.recommender_agent.is_opted_in():
-            self.vbox.pack_start(self.recommended_for_you_in_cat, 
+            self.vbox.pack_start(self.recommended_for_you_in_cat,
                                         False, False, 0)
 
     def _update_subcat_departments(self, category, num_items):
@@ -664,8 +665,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self._append_subcat_departments()
         self._append_sub_top_rated()
         # NOTE that the recommended for you in category view is built and added
-        # in the _update_recommended_for_you_in_cat method (and so is not needed
-        # here)
+        # in the _update_recommended_for_you_in_cat method (and so is not
+        # needed here)
         self._append_appcount()
         self._built = True
         return
