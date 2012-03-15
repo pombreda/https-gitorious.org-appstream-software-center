@@ -36,12 +36,13 @@ from softwarecenter.i18n import get_language
 
 LOG = logging.getLogger(__name__)
 
+
 class LocaleAwareWebView(webkit.WebView):
-    
+
     def __init__(self):
         # actual webkit init
         webkit.WebView.__init__(self)
-        self.connect("resource-request-starting", 
+        self.connect("resource-request-starting",
                      self._on_resource_request_starting)
 
     def _on_resource_request_starting(self, view, frame, res, req, resp):
@@ -69,12 +70,13 @@ class ScrolledWebkitWindow(Gtk.VBox):
             self._add_progress_ui()
         # create main webkitview
         self.scroll = Gtk.ScrolledWindow()
-        self.scroll.set_policy(Gtk.PolicyType.AUTOMATIC, 
+        self.scroll.set_policy(Gtk.PolicyType.AUTOMATIC,
                                Gtk.PolicyType.AUTOMATIC)
         self.pack_start(self.scroll, True, True, 0)
         # embed the webkit view in a scrolled window
         self.scroll.add(self.webkit)
         self.show_all()
+
     def _add_progress_ui(self):
         # create toolbar box
         self.header = Gtk.HBox()
@@ -94,7 +96,9 @@ class ScrolledWebkitWindow(Gtk.VBox):
         self.pack_start(self.frame, False, False, 6)
         # connect the webkit stuff
         self.webkit.connect("notify::uri", self._on_uri_changed)
-        self.webkit.connect("notify::load-status", self._on_load_status_changed)
+        self.webkit.connect("notify::load-status",
+            self._on_load_status_changed)
+
     def _on_uri_changed(self, view, pspec):
         prop = pspec.name
         uri = view.get_property(prop)
@@ -108,6 +112,7 @@ class ScrolledWebkitWindow(Gtk.VBox):
             self.url.set_text("%s://%s" % (scheme, netloc))
         # start spinner when the uri changes
         #self.spinner.start()
+
     def _on_load_status_changed(self, view, pspec):
         prop = pspec.name
         status = view.get_property(prop)
@@ -119,14 +124,13 @@ class ScrolledWebkitWindow(Gtk.VBox):
             status == webkit.LoadStatus.FAILED):
             self.spinner.stop()
             self.spinner.hide()
-        
 
 
 class PurchaseView(Gtk.VBox):
-    """ 
-    View that displays the webkit-based UI for purchasing an item. 
     """
-    
+    View that displays the webkit-based UI for purchasing an item.
+    """
+
     LOADING_HTML = """
 <html>
 <head>
@@ -151,7 +155,8 @@ body {
   vertical-align: middle;
 }
 h1 {
-  background: url(file:///usr/share/software-center/images/spinner.gif) top center no-repeat;
+  background: url(file:///usr/share/software-center/images/spinner.gif) top \
+center no-repeat;
   padding-top: 48px; /* leaves room for the spinner above */
   font-size: 100%%;
   font-weight: normal;
@@ -164,19 +169,19 @@ h1 {
 """ % _("Connecting to payment service...")
 
     __gsignals__ = {
-         'purchase-succeeded' : (GObject.SignalFlags.RUN_LAST,
-                                 None,
-                                 ()),
-         'purchase-failed'    : (GObject.SignalFlags.RUN_LAST,
-                                 None,
-                                 ()),
-         'purchase-cancelled-by-user' : (GObject.SignalFlags.RUN_LAST,
-                                         None,
-                                         ()),
-         'purchase-needs-spinner' : (GObject.SignalFlags.RUN_LAST,
-                                      None,
-                                     (bool, )),
-                                     
+         'purchase-succeeded': (GObject.SignalFlags.RUN_LAST,
+                                None,
+                                ()),
+         'purchase-failed': (GObject.SignalFlags.RUN_LAST,
+                             None,
+                             ()),
+         'purchase-cancelled-by-user': (GObject.SignalFlags.RUN_LAST,
+                                        None,
+                                        ()),
+         'purchase-needs-spinner': (GObject.SignalFlags.RUN_LAST,
+                                     None,
+                                    (bool, )),
+
     }
 
     def __init__(self):
@@ -188,7 +193,8 @@ h1 {
     def init_view(self):
         if self.wk is None:
             self.wk = ScrolledWebkitWindow()
-            #self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
+            #self.wk.webkit.connect("new-window-policy-decision-requested",
+            #    self._on_new_window)
             self.wk.webkit.connect("create-web-view", self._on_create_web_view)
             self.wk.webkit.connect("close-web-view", self._on_close_web_view)
             self.wk.webkit.connect("console-message", self._on_console_message)
@@ -196,15 +202,17 @@ h1 {
             # a possible way to do IPC (script or title change)
             self.wk.webkit.connect("script-alert", self._on_script_alert)
             self.wk.webkit.connect("title-changed", self._on_title_changed)
-            self.wk.webkit.connect("notify::load-status", self._on_load_status_changed)
-        # unblock signal handlers if needed when showing the purchase webkit view in
-        # case they were blocked after a previous purchase was completed or canceled
+            self.wk.webkit.connect("notify::load-status",
+                self._on_load_status_changed)
+        # unblock signal handlers if needed when showing the purchase webkit
+        # view in case they were blocked after a previous purchase was
+        # completed or canceled
         self._unblock_wk_handlers()
 
     def initiate_purchase(self, app, iconname, url=None, html=None):
         """
         initiates the purchase workflow inside the embedded webkit window
-        for the item specified       
+        for the item specified
         """
         self.init_view()
         self.app = app
@@ -223,7 +231,7 @@ h1 {
         # only for debugging
         if os.environ.get("SOFTWARE_CENTER_DEBUG_BUY"):
             GObject.timeout_add_seconds(1, _generate_events, self)
-        
+
     def _on_new_window(self, view, frame, request, action, policy):
         LOG.debug("_on_new_window")
         import subprocess
@@ -234,7 +242,7 @@ h1 {
         win = view.get_data("win")
         win.destroy()
         return True
-        
+
     def _on_create_web_view(self, view, frame):
         win = Gtk.Window()
         win.set_size_request(400, 400)
@@ -261,7 +269,8 @@ h1 {
             pass
         for k in ["token_key", "token_secret", "consumer_secret"]:
             if k in message:
-                LOG.debug("skipping console message that contains sensitive data")
+                LOG.debug(
+                    "skipping console message that contains sensitive data")
                 return True
         LOG.debug("_on_console_message '%s'" % message)
         return False
@@ -312,7 +321,8 @@ h1 {
                 return
             # this is what the agent implements
             elif "failures" in res:
-                LOG.error("the server returned a error: '%s'" % res["failures"])
+                LOG.error("the server returned a error: '%s'" %
+                    res["failures"])
             # show a generic error, the "failures" string we get from the
             # server is way too technical to show, but we do log it
             self.emit("purchase-failed")
@@ -329,9 +339,9 @@ h1 {
             # add repo and key
             backend = get_install_backend()
             backend.add_repo_add_key_and_install_app(
-                deb_line, signing_key_id, self.app, self.iconname, 
+                deb_line, signing_key_id, self.app, self.iconname,
                 license_key, license_key_path, json.dumps(self._oauth_token))
-                                                                   
+
     def _block_wk_handlers(self):
         # we need to block webkit signal handlers when we hide the
         # purchase webkit view, this prevents e.g. handling of signals on
@@ -341,14 +351,15 @@ h1 {
             self.wk.webkit.handler_block_by_func(self._on_title_changed)
             self.wk.webkit.handler_block_by_func(self._on_load_status_changed)
             self._wk_handlers_blocked = True
-        
+
     def _unblock_wk_handlers(self):
         if self._wk_handlers_blocked:
             self.wk.webkit.handler_unblock_by_func(self._on_script_alert)
             self.wk.webkit.handler_unblock_by_func(self._on_title_changed)
-            self.wk.webkit.handler_unblock_by_func(self._on_load_status_changed)
+            self.wk.webkit.handler_unblock_by_func(
+                self._on_load_status_changed)
             self._wk_handlers_blocked = False
-        
+
 
 # just used for testing --------------------------------------------
 DUMMY_HTML = """
@@ -361,11 +372,11 @@ DUMMY_HTML = """
 <body>
  <script type="text/javascript">
   function changeTitle(title) { document.title = title; }
-  function success() { changeTitle('{ "successful" : true, \
-                                      "deb_line" : "deb https://user:pass@private-ppa.launchpad.net/mvo/ubuntu lucid main", \
-                                      "package_name" : "2vcard", \
-                                      "application_name" : "The 2vcard app", \
-                                      "signing_key_id" : "1024R/0EB12F05"\
+  function success() { changeTitle('{"successful": true, "deb_line": \
+    "deb https://user:pass@private-ppa.launchpad.net/mvo/ubuntu lucid main", \
+   "package_name": "2vcard", \
+   "application_name": "The 2vcard app", \
+   "signing_key_id": "1024R/0EB12F05"\
                                     }') }
   function cancel() { changeTitle('{ "successful" : false }') }
  </script>
@@ -375,11 +386,11 @@ DUMMY_HTML = """
  <p>
  <input type="entry">
  </p>
- <input type="button" name="test_button2" 
+ <input type="button" name="test_button2"
         value="Cancel"
       onclick='cancel()'
  />
- <input type="button" name="test_button" 
+ <input type="button" name="test_button"
         value="Buy now"
       onclick='success()'
  />
@@ -387,30 +398,31 @@ DUMMY_HTML = """
 </html>
     """
 
+
 # synthetic key event generation
 def _send_keys(view, s):
     print("_send_keys %s" % s)
-    MAPPING = { '@'     : 'at',
-                '.'     : 'period',
-                '\t'    : 'Tab',
-                '\n'    : 'Return',
-                '?'     : 'question',
-                '\a'    : 'Down',  # fake 
-                ' '     : 'space',
-                '\v'    : 'Page_Down', # fake
+    MAPPING = {'@': 'at',
+               '.': 'period',
+               '\t': 'Tab',
+               '\n': 'Return',
+               '?': 'question',
+               '\a': 'Down',  # fake
+               ' ': 'space',
+               '\v': 'Page_Down',  # fake
               }
-    
+
     for key in s:
         event = Gdk.Event(Gdk.KEY_PRESS)
         event.window = view.window
         if key.isdigit():
-            key = "_"+key
+            key = "_" + key
         if hasattr(Gdk, key):
             event.keyval = getattr(Gdk, key)
         else:
             event.keyval = getattr(Gdk, MAPPING[key])
         Gtk.main_do_event(event)
-  
+
 
 # \a means down key - its a just a fake to get it working
 LOGIN = os.environ.get("SOFTWARE_CENTER_LOGIN") or "michael.vogt@ubuntu.com"
@@ -419,12 +431,14 @@ LOGIN = os.environ.get("SOFTWARE_CENTER_LOGIN") or "michael.vogt@ubuntu.com"
 PAYMENT_DETAILS = "\tstreet1\tstreet2\tcity\tstate\t1234\t\a\t\a\a\t"\
                   "ACCEPTED\t4111111111111111\t1234\t\a\t\a\a\t\t\t \v"
 # state-name, window title, keys
-STATES = [ ('login', 'Log in', LOGIN+"\t"),
-           ('confirm-sso', 'Authenticate to', '\n'),
-           ('enter-payment', 'Confirm Payment Details', PAYMENT_DETAILS),
-           ('confirm-payment', 'title-the-same-as-before', '\t\n'),
-           ('end-state', 'no-title', ''),
+STATES = [('login', 'Log in', LOGIN + "\t"),
+          ('confirm-sso', 'Authenticate to', '\n'),
+          ('enter-payment', 'Confirm Payment Details', PAYMENT_DETAILS),
+          ('confirm-payment', 'title-the-same-as-before', '\t\n'),
+          ('end-state', 'no-title', ''),
          ]
+
+
 def _generate_events(view):
     global STATES
 
@@ -440,19 +454,20 @@ def _generate_events(view):
 
     return True
 
-#     # for debugging only    
+#     # for debugging only
 #    def _on_key_press(dialog, event):
 #        print event, event.keyval
+
 
 def get_test_window_purchaseview():
     #url = "http://www.animiertegifs.de/java-scripts/alertbox.php"
     url = "http://www.ubuntu.cohtml=DUMMY_m"
     #d = PurchaseDialog(app=None, url="http://spiegel.de")
     from softwarecenter.enums import BUY_SOMETHING_HOST
-    url = BUY_SOMETHING_HOST+"/subscriptions/en/ubuntu/maverick/+new/?%s" % ( 
+    url = BUY_SOMETHING_HOST + "/subscriptions/en/ubuntu/maverick/+new/?%s" % (
         urllib.urlencode({
-                'archive_id' : "mvo/private-test", 
-                'arch' : "i386",
+                'archive_id': "mvo/private-test",
+                'arch': "i386",
                 }))
     # use cmdline if available
     if len(sys.argv) > 1:
@@ -460,7 +475,7 @@ def get_test_window_purchaseview():
     # useful for debugging
     #d.connect("key-press-event", _on_key_press)
     #GObject.timeout_add_seconds(1, _generate_events, d)
-    
+
     widget = PurchaseView()
     widget.initiate_purchase(app=None, iconname=None, url=url)
     #widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
@@ -477,4 +492,3 @@ def get_test_window_purchaseview():
 if __name__ == "__main__":
     win = get_test_window_purchaseview()
     Gtk.main()
-
