@@ -10,11 +10,13 @@ import os
 import time
 import sys
 
+
 class ExpungeCache(object):
+
     def __init__(self, dirs, args):
         self.dirs = dirs
         # days to keep data in the cache (0 == disabled)
-        self.keep_time = 60*60*24* args.by_days
+        self.keep_time = 60 * 60 * 24 * args.by_days
         self.keep_only_http200 = args.by_unsuccessful_http_states
         self.dry_run = args.dry_run
 

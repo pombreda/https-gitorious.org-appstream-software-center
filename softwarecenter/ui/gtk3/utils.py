@@ -27,10 +27,12 @@ from softwarecenter.paths import ICON_PATH, SOFTWARE_CENTER_ICON_CACHE_DIR
 
 LOG = logging.getLogger(__name__)
 
+
 def get_parent(widget):
     while widget.get_parent():
         widget = widget.get_parent()
     return widget
+
 
 def get_parent_xid(widget):
     window = get_parent(widget).get_window()
@@ -39,9 +41,11 @@ def get_parent_xid(widget):
         return window.xid
     return 0    # cannot figure out how to get the xid of gdkwindow under pygi
 
+
 def point_in(rect, px, py):
     return (rect.x <= px <= rect.x + rect.width and
             rect.y <= py <= rect.y + rect.height)
+
 
 def init_sc_css_provider(toplevel, settings, screen, datadir):
     context = toplevel.get_style_context()
@@ -52,7 +56,7 @@ def init_sc_css_provider(toplevel, settings, screen, datadir):
         # style provider
         if toplevel._css_provider._theme_name == theme_name:
             return
-        else: # clean up old css provider if exixts
+        else:  # clean up old css provider if exixts
             context.remove_provider_for_screen(screen, toplevel._css_provider)
 
     # munge css path for theme-name
@@ -68,9 +72,10 @@ def init_sc_css_provider(toplevel, settings, screen, datadir):
         # check fallback exists as well... if not return None but warn
         # its not the end of the world if there is no fallback, just some
         # styling will be derived from the plain ol' Gtk theme
-        msg = "Could not set software-center CSS provider. File '%s' does not exist!"
+        msg = ("Could not set software-center CSS provider. File '%s' does "
+            "not exist!")
         LOG.warn(msg % css_path)
-        return None
+        return
 
     # things seem ok, now set the css provider for softwarecenter
     msg = "Softwarecenter style provider for %s Gtk theme: %s"
@@ -84,18 +89,19 @@ def init_sc_css_provider(toplevel, settings, screen, datadir):
     context.add_provider_for_screen(screen, provider, 800)
     return css_path
 
+
 def get_sc_icon_theme(datadir):
     # additional icons come from app-install-data
     icons = Gtk.IconTheme.get_default()
     icons.append_search_path(ICON_PATH)
-    icons.append_search_path(os.path.join(datadir,"icons"))
-    icons.append_search_path(os.path.join(datadir,"emblems"))
+    icons.append_search_path(os.path.join(datadir, "icons"))
+    icons.append_search_path(os.path.join(datadir, "emblems"))
 
     # uninstalled run
     if os.path.exists('./data/app-stream/icons'):
         icons.append_search_path('./data/app-stream/icons')
 
-    # add the humanity icon theme to the iconpath, as not all icon 
+    # add the humanity icon theme to the iconpath, as not all icon
     # themes contain all the icons we need
     # this *shouldn't* lead to any performance regressions
     path = '/usr/share/icons/Humanity'
@@ -118,4 +124,3 @@ def get_sc_icon_theme(datadir):
         os.makedirs(icon_cache_dir)
     icons.append_search_path(icon_cache_dir)
     return icons
-

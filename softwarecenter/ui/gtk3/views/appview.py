@@ -29,7 +29,8 @@ from softwarecenter.ui.gtk3.widgets.apptreeview import AppTreeView
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.utils import ExecutionTime
 
-LOG=logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
+
 
 class AppView(Gtk.VBox):
 
@@ -38,16 +39,16 @@ class AppView(Gtk.VBox):
                                 None,
                                 (GObject.TYPE_PYOBJECT, ),
                                 ),
-        "application-activated" : (GObject.SignalFlags.RUN_LAST,
-                                   None,
-                                   (GObject.TYPE_PYOBJECT, ),
-                                  ),
-        "application-selected" : (GObject.SignalFlags.RUN_LAST,
-                                   None,
-                                   (GObject.TYPE_PYOBJECT, ),
-                                  ),
+        "application-activated": (GObject.SignalFlags.RUN_LAST,
+                                  None,
+                                  (GObject.TYPE_PYOBJECT, ),
+                                 ),
+        "application-selected": (GObject.SignalFlags.RUN_LAST,
+                                  None,
+                                  (GObject.TYPE_PYOBJECT, ),
+                                 ),
         }
-    
+
     (INSTALLED_MODE, AVAILABLE_MODE, DIFF_MODE) = range(3)
 
     _SORT_METHOD_INDEX = (SortMethods.BY_ALPHABET,
@@ -97,14 +98,13 @@ class AppView(Gtk.VBox):
         self._handler = self.sort_methods_combobox.connect(
                                     "changed",
                                     self.on_sort_method_changed)
-        return
 
     #~ def on_draw(self, w, cr):
         #~ cr.set_source_rgb(1,1,1)
         #~ cr.paint()
 
     def _append_appcount(self, appcount, mode=AVAILABLE_MODE):
-#~ 
+#~
         #~ if mode == self.INSTALLED_MODE:
             #~ text = gettext.ngettext("%(amount)s item installed",
                                     #~ "%(amount)s items installed",
@@ -112,12 +112,12 @@ class AppView(Gtk.VBox):
         #~ elif mode == self.DIFF_MODE:
             #~ text = gettext.ngettext("%(amount)s item",
                                     #~ "%(amount)s items",
-                                    #~ appcount) % { 'amount' : appcount, }        
+                                    #~ appcount) % { 'amount' : appcount, }
         #~ else:
             #~ text = gettext.ngettext("%(amount)s item available",
                                     #~ "%(amount)s items available",
                                     #~ appcount) % { 'amount' : appcount, }
-#~ 
+#~
         #~ if not self.appcount:
             #~ self.appcount = Gtk.Label()
             #~ self.appcount.set_alignment(0.5, 0.5)
@@ -127,13 +127,12 @@ class AppView(Gtk.VBox):
             #~ self.vbox.pack_start(self.appcount, False, False, 0)
         #~ self.appcount.set_text(text)
         #~ self.appcount.show()
-        return
+        pass
 
     def on_sort_method_changed(self, *args):
         self.user_defined_sort_method = True
         self.vadj = 0.0
         self.emit("sort-method-changed", self.sort_methods_combobox)
-        return
 
     def _get_sort_methods_combobox(self):
         combo = Gtk.ComboBoxText.new()
@@ -151,25 +150,21 @@ class AppView(Gtk.VBox):
         if self._get_combo_children() == 4:
             return
         self.sort_methods_combobox.append_text(_("By Relevance"))
-        return
 
     def _use_combobox_without_sort_by_search_ranking(self):
         if self._get_combo_children() == 3:
             return
         self.sort_methods_combobox.remove(self._SORT_BY_SEARCH_RANKING)
         self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
-        return
 
     def set_sort_method_with_no_signal(self, sort_method):
         combo = self.sort_methods_combobox
         combo.handler_block(self._handler)
         combo.set_active(sort_method)
         combo.handler_unblock(self._handler)
-        return
 
     def set_allow_user_sorting(self, do_allow):
         self.sort_methods_combobox.set_visible(do_allow)
-        return
 
     def set_header_labels(self, first_line, second_line):
         if second_line:
@@ -180,7 +175,6 @@ class AppView(Gtk.VBox):
 
     def set_model(self, model):
         self.tree_view.set_model(model)
-        return
 
     def display_matches(self, matches, is_search=False):
         # FIXME: installedpane handles display of the trees intimately,
@@ -210,7 +204,6 @@ class AppView(Gtk.VBox):
 
         self.tree_view_scroll.get_vadjustment().set_lower(self.vadj)
         self.tree_view_scroll.get_vadjustment().set_value(self.vadj)
-        return
 
     def clear_model(self):
         return self.tree_view.clear_model()
@@ -218,7 +211,7 @@ class AppView(Gtk.VBox):
     def get_sort_mode(self):
         active_index = self.sort_methods_combobox.get_active()
         return self._SORT_METHOD_INDEX[active_index]
-        
+
     def get_app_icon_details(self):
         """ helper for unity dbus support to provide details about the
             application icon as it is displayed on-screen
@@ -239,7 +232,7 @@ class AppView(Gtk.VBox):
             else:
                 icon_size = pb.get_height()
         return icon_size
-                
+
     def _get_app_icon_xy_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
             the application icon as it is displayed on-screen
@@ -251,15 +244,13 @@ class AppView(Gtk.VBox):
         # get toplevel window position
         (px, py) = parent.get_position()
         # and return the coordinate values
-        return (px+self.tree_view.selected_row_renderer.icon_x_offset,
-                py+self.tree_view.selected_row_renderer.icon_y_offset)
-
-
-
+        return (px + self.tree_view.selected_row_renderer.icon_x_offset,
+                py + self.tree_view.selected_row_renderer.icon_y_offset)
 
 
 # ----------------------------------------------- testcode
 from softwarecenter.enums import NonAppVisibility
+
 
 def get_query_from_search_entry(search_term):
     import xapian
@@ -268,6 +259,7 @@ def get_query_from_search_entry(search_term):
     parser = xapian.QueryParser()
     user_query = parser.parse_query(search_term)
     return user_query
+
 
 def on_entry_changed(widget, data):
 
@@ -278,8 +270,8 @@ def on_entry_changed(widget, data):
         with ExecutionTime("total time"):
             with ExecutionTime("enquire.set_query()"):
                 enquirer.set_query(get_query_from_search_entry(new_text),
-                                  limit=100*1000,
-                                  nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE)
+                    limit=100 * 1000,
+                    nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE)
 
             store = view.tree_view.get_model()
             with ExecutionTime("store.clear()"):
@@ -293,9 +285,10 @@ def on_entry_changed(widget, data):
                     Gtk.main_iteration()
         return
 
-    if widget.stamp: 
+    if widget.stamp:
         GObject.source_remove(widget.stamp)
     widget.stamp = GObject.timeout_add(250, _work)
+
 
 def get_test_window():
     import softwarecenter.log

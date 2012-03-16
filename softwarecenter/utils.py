@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import dbus
 import gettext
 from gi.repository import GObject
 from gi.repository import Gio
@@ -31,7 +32,7 @@ import xml.sax.saxutils
 # py3 compat
 try:
     from urllib.parse import urlsplit
-    urlsplit # pyflakes
+    urlsplit  # pyflakes
 except ImportError:
     from urlparse import urlsplit
 
@@ -44,13 +45,15 @@ from gettext import gettext as _
 
 # define additional entities for the unescape method, needed
 # because only '&amp;', '&lt;', and '&gt;' are included by default
-ESCAPE_ENTITIES = {"&apos;":"'",
-                   '&quot;':'"'}
-                   
+ESCAPE_ENTITIES = {"&apos;": "'",
+                   '&quot;': '"'}
+
 LOG = logging.getLogger(__name__)
+
 
 class UnimplementedError(Exception):
     pass
+
 
 class ExecutionTime(object):
     """
@@ -62,13 +65,16 @@ class ExecutionTime(object):
     def __init__(self, info="", with_traceback=False):
         self.info = info
         self.with_traceback = with_traceback
+
     def __enter__(self):
         self.now = time.time()
+
     def __exit__(self, type, value, stack):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
         if self.with_traceback:
             log_traceback("populate model from query: '%s' (threaded: %s)")
+
 
 def utf8(s):
     """
@@ -89,7 +95,7 @@ def log_traceback(info):
     """
     logger = logging.getLogger("softwarecenter.traceback")
     logger.debug("%s: %s" % (info, "".join(traceback.format_stack())))
-    
+
 
 def wait_for_apt_cache_ready(f):
     """ decorator that ensures that self.cache is ready using a
@@ -97,10 +103,10 @@ def wait_for_apt_cache_ready(f):
     """
     def wrapper(*args, **kwargs):
         self = args[0]
-        # check if the cache is ready and 
+        # check if the cache is ready and
         window = None
         if hasattr(self, "app_view"):
-            window =  self.app_view.get_window()
+            window = self.app_view.get_window()
         if not self.cache.ready:
             if window:
                 window.set_cursor(self.busy_cursor)
@@ -112,6 +118,7 @@ def wait_for_apt_cache_ready(f):
         f(*args, **kwargs)
         return False
     return wrapper
+
 
 def normalize_package_description(desc):
     """ this takes a package description and normalizes it
@@ -147,7 +154,7 @@ def normalize_package_description(desc):
         # check if in a enumeration
         if part[:2] in BULLETS:
             in_blist = True
-            norm_description += "\n" + indent*' ' + "* " + part[2:]
+            norm_description += "\n" + indent * ' ' + "* " + part[2:]
         elif in_blist and indent > 0:
             norm_description += " " + part
         elif part.endswith('.') or part.endswith(':'):
@@ -162,11 +169,12 @@ def normalize_package_description(desc):
             norm_description += part
     return norm_description.strip()
 
+
 def get_title_from_html(html):
     """ takes a html string and returns the document title,
         if the document has no title it uses the first h1
         (but only if that has no further html tags)
-        
+
         returns "" if it can't find anything or can't parse the html
     """
     import xml.etree.ElementTree
@@ -182,17 +190,19 @@ def get_title_from_html(html):
     all_h1 = root.findall(".//h1")
     if all_h1:
         h1 = all_h1[0]
-        # we don't support any sub html in the h1 when 
+        # we don't support any sub html in the h1 when
         if len(h1) == 0:
             return h1.text
     return ""
+
 
 def htmlize_package_description(desc):
     html = ""
     inside_li = False
     for part in normalize_package_description(desc).split("\n"):
         stripped_part = part.strip()
-        if not stripped_part: continue
+        if not stripped_part:
+            continue
         if stripped_part.startswith("* "):
             if not inside_li:
                 html += "<ul>"
@@ -220,6 +230,7 @@ def get_http_proxy_string_from_libproxy(url):
     else:
         return proxy
 
+
 def get_http_proxy_string_from_gsettings():
     """Helper that gets the http proxy from gsettings
 
@@ -240,30 +251,34 @@ def get_http_proxy_string_from_gsettings():
                 authentication = "%s:%s@" % (user, password)
             host = settings.get_string("host")
             port = settings.get_int("port")
-            http_proxy = "http://%s%s:%s/" %  (authentication, host, port)
+            http_proxy = "http://%s%s:%s/" % (authentication, host, port)
             if host:
                 return http_proxy
     except Exception:
         logging.exception("failed to get proxy from gconf")
 
+
 def encode_for_xml(unicode_data, encoding="ascii"):
     """ encode a given string for xml """
     return unicode_data.encode(encoding, 'xmlcharrefreplace')
 
+
 def decode_xml_char_reference(s):
-    """ takes a string like 
-        'Search&#x2026;' 
+    """ takes a string like
+        'Search&#x2026;'
         and converts it to
         'Search...'
     """
     p = re.compile("\&\#x(\d\d\d\d);")
     return p.sub(r"\u\1", s).decode("unicode-escape")
-    
+
+
 def unescape(text):
     """
     unescapes the given text
     """
     return xml.sax.saxutils.unescape(text, ESCAPE_ENTITIES)
+
 
 def uri_to_filename(uri):
     try:
@@ -274,6 +289,7 @@ def uri_to_filename(uri):
         uri = re.sub(p1, "", uri)
         return uri.replace("/", "_")
 
+
 def human_readable_name_from_ppa_uri(ppa_uri):
     """ takes a PPA uri and returns a human readable name for it """
     name = urlsplit(ppa_uri).path
@@ -281,14 +297,16 @@ def human_readable_name_from_ppa_uri(ppa_uri):
         return name[0:-len("/ubuntu")]
     return name
 
+
 def sources_filename_from_ppa_entry(entry):
-    """ 
+    """
     takes a PPA SourceEntry and returns a filename suitable for sources.list.d
     """
     import apt_pkg
     name = "%s.list" % apt_pkg.URItoFileName(entry.uri)
     return name
-    
+
+
 def obfuscate_private_ppa_details(text):
     """
     hides any private PPA details that may be found in the given text
@@ -304,6 +322,7 @@ def obfuscate_private_ppa_details(text):
                 result = result.replace(url_parts.password, "hidden")
     return result
 
+
 def release_filename_in_lists_from_deb_line(debline):
     """
     takes a debline and returns the filename of the Release file
@@ -313,12 +332,12 @@ def release_filename_in_lists_from_deb_line(debline):
     entry = aptsources.sourceslist.SourceEntry(debline)
     name = "%s_dists_%s_Release" % (uri_to_filename(entry.uri), entry.dist)
     return name
-    
+
+
 def is_unity_running():
     """
     return True if Unity is currently running
     """
-    import dbus
     unity_running = False
     try:
         bus = dbus.SessionBus()
@@ -326,22 +345,27 @@ def is_unity_running():
     except:
         LOG.exception("could not check for Unity dbus service")
     return unity_running
-    
-def get_icon_from_theme(icons, iconname=None, iconsize=Icons.APP_ICON_SIZE, missingicon=Icons.MISSING_APP):
+
+
+def get_icon_from_theme(icons, iconname=None, iconsize=Icons.APP_ICON_SIZE,
+                        missingicon=Icons.MISSING_APP):
     """
     return the icon in the theme that corresponds to the given iconname
-    """    
+    """
     if not iconname:
         iconname = missingicon
     try:
         icon = icons.load_icon(iconname, iconsize, 0)
     except Exception as e:
-        LOG.warning(utf8("could not load icon '%s', displaying missing icon instead: %s "
-                        ) % (utf8(iconname), utf8(e.message)))
+        LOG.warning(utf8("could not load icon '%s', displaying missing "\
+                         "icon instead: %s ") % (
+                utf8(iconname), utf8(e.message)))
         icon = icons.load_icon(missingicon, iconsize, 0)
     return icon
-    
-def get_file_path_from_iconname(icons, iconname=None, iconsize=Icons.APP_ICON_SIZE):
+
+
+def get_file_path_from_iconname(icons, iconname=None,
+                                iconsize=Icons.APP_ICON_SIZE):
     """
     return the file path of the icon in the theme that corresponds to the
     given iconname, or None if it cannot be determined
@@ -357,40 +381,55 @@ def get_file_path_from_iconname(icons, iconname=None, iconsize=Icons.APP_ICON_SI
         icon_file_path = icon_info.get_filename()
         icon_info.free()
         return icon_file_path
-        
-def convert_desktop_file_to_installed_location(app_install_data_file_path, pkgname):
+
+
+def convert_desktop_file_to_installed_location(app_install_data_file_path,
+                                               pkgname):
     """ returns the installed desktop file path that corresponds to the
         given app-install-data file path, and will also check directly for
         the desktop file that corresponds to a given pkgname.
     """
     if app_install_data_file_path and pkgname:
         # "normal" case
-        installed_desktop_file_path = app_install_data_file_path.replace("app-install/desktop/"
-                                                                         + pkgname + ":",
-                                                                         "applications/")
+        installed_desktop_file_path = app_install_data_file_path.replace(
+            "app-install/desktop/" + pkgname + ":", "applications/")
         if os.path.exists(installed_desktop_file_path):
-            return installed_desktop_file_path  
+            return installed_desktop_file_path
         # next, try case where a subdirectory is encoded in the app-install
         # desktop filename, e.g. kde4_soundkonverter.desktop
-        installed_desktop_file_path = installed_desktop_file_path.replace(APP_INSTALL_PATH_DELIMITER, "/")
+        installed_desktop_file_path = installed_desktop_file_path.replace(
+            APP_INSTALL_PATH_DELIMITER, "/")
         if os.path.exists(installed_desktop_file_path):
             return installed_desktop_file_path
-    # lastly, just try checking directly for the desktop file based on the pkgname itself
+    # lastly, just try checking directly for the desktop file based on the
+    # pkgname itself
     if pkgname:
-        installed_desktop_file_path =  "/usr/share/applications/%s.desktop" % pkgname
+        installed_desktop_file_path = "/usr/share/applications/%s.desktop" %\
+            pkgname
         if os.path.exists(installed_desktop_file_path):
             return installed_desktop_file_path
-    LOG.warn("Could not determine the installed desktop file path for app-install desktop file: '%s'" % app_install_data_file_path)
+    LOG.warn("Could not determine the installed desktop file path for "
+             "app-install desktop file: '%s'" % app_install_data_file_path)
     return ""
 
+
 def clear_token_from_ubuntu_sso(appname):
-    """ send a dbus signal to the com.ubuntu.sso service to clear 
+    """ send a dbus signal to the com.ubuntu.sso service to clear
         the credentials for the given appname, e.g. _("Ubuntu Software Center")
     """
-    import dbus
+    from ubuntu_sso import (
+        DBUS_BUS_NAME,
+        DBUS_CREDENTIALS_IFACE,
+        DBUS_CREDENTIALS_PATH,
+        )
     bus = dbus.SessionBus()
-    proxy = bus.get_object('com.ubuntu.sso', '/com/ubuntu/sso/credentials')
+    obj = bus.get_object(bus_name=DBUS_BUS_NAME,
+                         object_path=DBUS_CREDENTIALS_PATH,
+                         follow_name_owner_changes=True)
+    proxy = dbus.Interface(object=obj,
+                           dbus_interface=DBUS_CREDENTIALS_IFACE)
     proxy.clear_credentials(appname, {})
+
 
 def get_nice_date_string(cur_t):
     """ return a "nice" human readable date, like "2 minutes ago"  """
@@ -401,30 +440,27 @@ def get_nice_date_string(cur_t):
     secs = dt.seconds
 
     if days < 1:
-
         if secs < 120:   # less than 2 minute ago
             s = _('a few minutes ago')   # dont be fussy
 
         elif secs < 3600:   # less than an hour ago
             s = gettext.ngettext("%(min)i minute ago",
                                  "%(min)i minutes ago",
-                                 (secs/60)) % { 'min' : (secs/60) }
+                                 (secs / 60)) % {'min': (secs / 60)}
 
         else:   # less than a day ago
             s = gettext.ngettext("%(hours)i hour ago",
                                  "%(hours)i hours ago",
-                                 (secs/3600)) % { 'hours' : (secs/3600) }
-
-    elif days <= 5: # less than a week ago
+                                 (secs / 3600)) % {'hours': (secs / 3600)}
+    elif days <= 5:  # less than a week ago
         s = gettext.ngettext("%(days)i day ago",
                              "%(days)i days ago",
-                             days) % { 'days' : days }
-
+                             days) % {'days': days}
     else:   # any timedelta greater than 5 days old
         # YYYY-MM-DD
         s = cur_t.isoformat().split('T')[0]
-
     return s
+
 
 def _get_from_desktop_file(desktop_file, key):
     import ConfigParser
@@ -435,22 +471,26 @@ def _get_from_desktop_file(desktop_file, key):
     except ConfigParser.NoOptionError:
         return None
 
+
 def get_exec_line_from_desktop(desktop_file):
     return _get_from_desktop_file(desktop_file, "Exec")
 
+
 def is_no_display_desktop_file(desktop_file):
-    nd =  _get_from_desktop_file(desktop_file, "NoDisplay")
+    nd = _get_from_desktop_file(desktop_file, "NoDisplay")
     # desktop spec says the booleans are always either "true" or "false
     if nd == "true":
         return True
     return False
 
+
 def get_nice_size(n_bytes):
-    nice_size = lambda s:[(s%1024**i and "%.1f"%(s/1024.0**i) or \
-        str(s/1024**i))+x.strip() for i,x in enumerate(' KMGTPEZY') \
-        if s<1024**(i+1) or i==8][0]
+    nice_size = lambda s: [(s % 1024 ** i and "%.1f" % (s / 1024.0 ** i) or \
+        str(s / 1024 ** i)) + x.strip() for i, x in enumerate(' KMGTPEZY') \
+        if s < 1024 ** (i + 1) or i == 8][0]
     return nice_size(n_bytes)
-            
+
+
 def save_person_to_config(username):
     """ save the specified username value for Ubuntu SSO to the config file
     """
@@ -464,11 +504,12 @@ def save_person_to_config(username):
         config.set("reviews", "username", username)
         config.write()
         # refresh usefulness cache in the background once we know
-        # the person 
+        # the person
         from backend.reviews import UsefulnessCache
         UsefulnessCache(True)
     return
-            
+
+
 def get_person_from_config():
     """ get the username value for Ubuntu SSO from the config file
     """
@@ -477,63 +518,69 @@ def get_person_from_config():
         return cfg.get("reviews", "username")
     return None
 
+
 def pnormaldist(qn):
-    '''Inverse normal distribution, based on the Ruby statistics2.pnormaldist'''
+    """
+    Inverse normal distribution, based on the Ruby statistics2.pnormaldist
+    """
     b = [1.570796288, 0.03706987906, -0.8364353589e-3,
          -0.2250947176e-3, 0.6841218299e-5, 0.5824238515e-5,
          -0.104527497e-5, 0.8360937017e-7, -0.3231081277e-8,
          0.3657763036e-10, 0.6936233982e-12]
-        
+
     if qn < 0 or qn > 1:
         raise ValueError("qn must be between 0.0 and 1.0")
     if qn == 0.5:
         return 0.0
-    
+
     w1 = qn
     if qn > 0.5:
         w1 = 1.0 - w1
     w3 = -math.log(4.0 * w1 * (1.0 - w1))
     w1 = b[0]
-    for i in range (1,11):
+    for i in range(1, 11):
         w1 = w1 + (b[i] * math.pow(w3, i))
-        
+
     if qn > 0.5:
-        return math.sqrt(w1*w3)
+        return math.sqrt(w1 * w3)
     else:
-        return -math.sqrt(w1*w3)
+        return -math.sqrt(w1 * w3)
+
 
 def wilson_score(pos, n, power=0.2):
     if n == 0:
         return 0
-    z = pnormaldist(1-power/2)
+    z = pnormaldist(1 - power / 2)
     phat = 1.0 * pos / n
-    return (phat + z*z/(2*n) - z * math.sqrt((phat*(1-phat)+z*z/(4*n))/n))/(1+z*z/n)
+    return (phat + z * z / (2 * n) - z * math.sqrt(
+            (phat * (1 - phat) + z * z / (4 * n)) / n)) / (1 + z * z / n)
+
 
 def calc_dr(ratings, power=0.1):
     '''Calculate the dampened rating for an app given its collective ratings'''
     if not len(ratings) == 5:
         raise AttributeError('ratings argument must be a list of 5 integers')
-   
+
     tot_ratings = 0
-    for i in range (0,5):
+    for i in range(0, 5):
         tot_ratings = ratings[i] + tot_ratings
-      
+
     sum_scores = 0.0
-    for i in range (0,5):
+    for i in range(0, 5):
         ws = wilson_score(ratings[i], tot_ratings, power)
-        sum_scores = sum_scores + float((i+1)-3) * ws
-   
+        sum_scores = sum_scores + float((i + 1) - 3) * ws
     return sum_scores + 3
+
 
 # we need this because some iconnames have already split off the extension
 # (the desktop file standard suggests this) but still have a "." in the name.
 # From other sources we get icons with a full extension so a simple splitext()
 # is not good enough
 def split_icon_ext(iconname):
-    """ return the basename of a icon if it matches a known icon 
+    """ return the basename of a icon if it matches a known icon
         extenstion like tiff, gif, jpg, svg, png, xpm, ico
     """
-    SUPPORTED_EXTENSIONS = [".tiff", ".tif", ".gif", ".jpg", ".jpeg", ".svg", 
+    SUPPORTED_EXTENSIONS = [".tiff", ".tif", ".gif", ".jpg", ".jpeg", ".svg",
                             ".png", ".xpm", ".ico"]
     basename, ext = os.path.splitext(iconname)
     if ext.lower() in SUPPORTED_EXTENSIONS:
@@ -546,26 +593,31 @@ def mangle_paths_if_running_in_local_checkout():
     # we are running in a local checkout, make life as easy as possible
     # for this
     if os.path.exists("./data/ui/gtk3/SoftwareCenter.ui"):
-        logging.getLogger("softwarecenter").info("Using data (UI, xapian) from current dir")
+        logging.getLogger("softwarecenter").info(
+            "Using data (UI, xapian) from current dir")
         # set pythonpath for the various helpers
-        if os.environ.get("PYTHONPATH",""):
-            os.environ["PYTHONPATH"]=os.path.abspath(".") + ":" + os.environ.get("PYTHONPATH","")
+        if os.environ.get("PYTHONPATH", ""):
+            os.environ["PYTHONPATH"] = os.path.abspath(".") + ":" +\
+                os.environ.get("PYTHONPATH", "")
         else:
-            os.environ["PYTHONPATH"]=os.path.abspath(".")
+            os.environ["PYTHONPATH"] = os.path.abspath(".")
         datadir = "./data"
         xapian_base_path = datadir
         # set new global datadir
         softwarecenter.paths.datadir = datadir
         # also alter the app-install path
-        path =  "%s/desktop/software-center.menu" % softwarecenter.paths.APP_INSTALL_PATH
+        path = "%s/desktop/software-center.menu" % \
+            softwarecenter.paths.APP_INSTALL_PATH
         if not os.path.exists(path):
             softwarecenter.paths.APP_INSTALL_PATH = './build/share/app-install'
-            logging.warn("using local APP_INSTALL_PATH: %s" % softwarecenter.paths.APP_INSTALL_PATH)
+            logging.warn("using local APP_INSTALL_PATH: %s" %\
+                             softwarecenter.paths.APP_INSTALL_PATH)
     else:
         datadir = softwarecenter.paths.datadir
         xapian_base_path = softwarecenter.paths.XAPIAN_BASE_PATH
     return (datadir, xapian_base_path)
-    
+
+
 def get_uuid():
     import uuid
     return str(uuid.uuid4())
@@ -576,18 +628,18 @@ class SimpleFileDownloader(GObject.GObject):
     LOG = logging.getLogger("softwarecenter.simplefiledownloader")
 
     __gsignals__ = {
-        "file-url-reachable"      : (GObject.SIGNAL_RUN_LAST,
-                                     GObject.TYPE_NONE,
-                                     (bool,),),
+        "file-url-reachable": (GObject.SIGNAL_RUN_LAST,
+                               GObject.TYPE_NONE,
+                               (bool,),),
 
-        "file-download-complete"  : (GObject.SIGNAL_RUN_LAST,
-                                     GObject.TYPE_NONE,
-                                     (str,),),
+        "file-download-complete": (GObject.SIGNAL_RUN_LAST,
+                                   GObject.TYPE_NONE,
+                                   (str,),),
 
-        "error"                   : (GObject.SIGNAL_RUN_LAST,
-                                     GObject.TYPE_NONE,
-                                     (GObject.TYPE_PYOBJECT,
-                                      GObject.TYPE_PYOBJECT,),),
+        "error": (GObject.SIGNAL_RUN_LAST,
+                  GObject.TYPE_NONE,
+                  (GObject.TYPE_PYOBJECT,
+                   GObject.TYPE_PYOBJECT,),),
         }
 
     def __init__(self):
@@ -597,7 +649,7 @@ class SimpleFileDownloader(GObject.GObject):
 
     def download_file(self, url, dest_file_path=None, use_cache=False,
                       simple_quoting_for_webkit=False):
-        """ Download a url and emit the file-download-complete 
+        """ Download a url and emit the file-download-complete
             once the file is there. Note that calling this twice
             will cancel the previous pending operation.
             If dest_file_path is given, download to that specific
@@ -652,19 +704,20 @@ class SimpleFileDownloader(GObject.GObject):
 
         f = Gio.File.new_for_uri(url)
         # first check if the url is reachable
-        f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, 0, 0, 
+        f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, 0, 0,
                            self._cancellable,
                            self._check_url_reachable_and_then_download_cb,
                            None)
-                           
-    def _check_url_reachable_and_then_download_cb(self, f, result, user_data=None):
+
+    def _check_url_reachable_and_then_download_cb(self, f, result,
+                                                  user_data=None):
         self.LOG.debug("_check_url_reachable_and_then_download_cb: %s" % f)
         try:
             info = f.query_info_finish(result)
             etag = info.get_etag()
             self.emit('file-url-reachable', True)
             self.LOG.debug("file reachable %s %s %s" % (self.url,
-                                                        info, 
+                                                        info,
                                                         etag))
             # url is reachable, now download the file
             f.load_contents_async(
@@ -677,7 +730,7 @@ class SimpleFileDownloader(GObject.GObject):
 
     def _file_download_complete_cb(self, f, result, path=None):
         self.LOG.debug("file download completed %s" % self.dest_file_path)
-        # The result from the download is actually a tuple with three 
+        # The result from the download is actually a tuple with three
         # elements (content, size, etag?)
         # The first element is the actual content so let's grab that
         try:
@@ -723,7 +776,8 @@ def make_string_from_list(base_str, item_list):
 from softwarecenter.db.pkginfo import get_pkg_info
 # do not call here get_pkg_info, since package switch may not have been set
 # instead use an anonymous function delay
-upstream_version_compare = lambda v1, v2: get_pkg_info().upstream_version_compare(v1, v2)
+upstream_version_compare = lambda v1, v2: \
+    get_pkg_info().upstream_version_compare(v1, v2)
 upstream_version = lambda v: get_pkg_info().upstream_version(v)
 version_compare = lambda v1, v2: get_pkg_info().version_compare(v1, v2)
 

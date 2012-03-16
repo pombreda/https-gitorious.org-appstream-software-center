@@ -78,15 +78,16 @@ class DisplayState(object):
         self.filter = None
         self.previous_purchases_query = None
         self.vadjustment = 0.0
-        return
 
     def __setattr__(self, name, val):
         attrs = self._attrs
         if name not in attrs:
-            raise AttributeError("The attr name \"%s\" is not permitted" % name)
+            raise AttributeError("The attr name \"%s\" is not permitted" %
+                name)
             Gtk.main_quit()
         if not isinstance(val, attrs[name]):
-            msg = "Attribute %s expects %s, got %s" % (name, attrs[name], type(val))
+            msg = "Attribute %s expects %s, got %s" % (name, attrs[name],
+                type(val))
             raise TypeError(msg)
             Gtk.main_quit()
         return object.__setattr__(self, name, val)
@@ -124,7 +125,7 @@ class DisplayState(object):
         self.limit = 0
         #~ self.filter = None
         self.vadjustment = 0.0
-        return
+
 
 class SoftwarePane(Gtk.VBox, BasePane):
     """ Common base class for AvailablePane and InstalledPane"""
@@ -136,10 +137,10 @@ class SoftwarePane(Gtk.VBox, BasePane):
         SPINNER = 2
 
     __gsignals__ = {
-        "app-list-changed" : (GObject.SignalFlags.RUN_LAST,
-                              None, 
-                              (int,),
-                             ),
+        "app-list-changed": (GObject.SignalFlags.RUN_LAST,
+                             None,
+                             (int,),
+                            ),
     }
     PADDING = 6
 
@@ -148,7 +149,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         Gtk.VBox.__init__(self)
         BasePane.__init__(self)
 
-        # other classes we need        
+        # other classes we need
         self.enquirer = AppEnquire(cache, db)
         self._query_complete_handler = self.enquirer.connect(
                             "query-complete", self.on_query_complete)
@@ -189,7 +190,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
         # cursor
         self.busy_cursor = Gdk.Cursor.new(Gdk.CursorType.WATCH)
-        
+
         # views to be created in init_view
         self.app_view = None
         self.app_details_view = None
@@ -200,7 +201,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         SoftwarePane.  Note that this method is intended to be called by
         the subclass itself at the start of its own init_view() implementation.
         """
-        # common UI elements (applist and appdetails) 
+        # common UI elements (applist and appdetails)
         # its the job of the Child class to put it into a good location
         # list
         self.box_app_list = Gtk.VBox()
@@ -211,23 +212,24 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
         self.app_view = AppView(self.db, self.cache,
                                 self.icons, self.show_ratings)
-        self.app_view.connect("sort-method-changed", self.on_app_view_sort_method_changed)
+        self.app_view.connect("sort-method-changed",
+            self.on_app_view_sort_method_changed)
 
         self.init_atk_name(self.app_view, "app_view")
         self.box_app_list.pack_start(self.app_view, True, True, 0)
-        self.app_view.connect("application-selected", 
+        self.app_view.connect("application-selected",
                               self.on_application_selected)
-        self.app_view.connect("application-activated", 
+        self.app_view.connect("application-activated",
                               self.on_application_activated)
-                                             
+
         # details
         self.scroll_details = Gtk.ScrolledWindow()
-        self.scroll_details.set_policy(Gtk.PolicyType.AUTOMATIC, 
+        self.scroll_details.set_policy(Gtk.PolicyType.AUTOMATIC,
                                         Gtk.PolicyType.AUTOMATIC)
-        self.app_details_view = AppDetailsView(self.db, 
+        self.app_details_view = AppDetailsView(self.db,
                                                self.distro,
-                                               self.icons, 
-                                               self.cache, 
+                                               self.icons,
+                                               self.cache,
                                                self.datadir)
         self.app_details_view.connect(
             "different-application-selected", self.on_application_activated)
@@ -246,7 +248,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         """ init the atk name for a given gtk widget based on parent-pane
             and variable name (used for the mago tests)
         """
-        name =  self.__class__.__name__ + "." + name
+        name = self.__class__.__name__ + "." + name
         Atk.Object.set_name(widget.get_accessible(), name)
 
     def on_cache_ready(self, cache):
@@ -254,7 +256,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         LOG.debug("on_cache_ready")
         # it only makes sense to refresh if there is something to
         # refresh, otherwise we create a bunch of (not yet needed)
-        # AppStore objects on startup when the cache sends its 
+        # AppStore objects on startup when the cache sends its
         # initial "cache-ready" signal
         model = self.app_view.tree_view.get_model()
         if model is None:
@@ -270,7 +272,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.state.application = app
 
         vm = get_viewmanager()
-        vm.display_page(self, SoftwarePane.Pages.DETAILS, self.state, self.display_details_page)
+        vm.display_page(self, SoftwarePane.Pages.DETAILS, self.state,
+            self.display_details_page)
 
     def show_app(self, app):
         self.on_application_activated(None, app)
@@ -288,7 +291,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.app_view.display_matches(enquirer.matches,
                                       self._is_in_search_mode())
         self.hide_appview_spinner()
-        return
 
     def on_app_view_sort_method_changed(self, app_view, combo):
         if app_view.get_sort_mode() == self.enquirer.sortmode:
@@ -298,7 +300,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
         app_view.clear_model()
         query = self.get_query()
         self._refresh_apps_with_apt_cache(query)
-        return
 
     def _is_in_search_mode(self):
         return (self.state.search_term and
@@ -311,7 +312,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         if not self.state.search_term:
             self.action_bar.clear()
         self.spinner_notebook.show_spinner()
-        
+
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
         LOG.debug("hide_appview_spinner")
@@ -320,11 +321,9 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def set_section(self, section):
         self.section = section
         self.app_details_view.set_section(section)
-        return
 
     def section_sync(self):
         self.app_details_view.set_section(self.section)
-        return
 
     def on_app_list_changed(self, pane, length):
         """internal helper that keeps the the action bar up-to-date by
@@ -333,12 +332,10 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
         self.show_nonapps_if_required(len(self.enquirer.matches))
         self.search_aid.update_search_help(self.state)
-        return
 
     def hide_nonapps(self):
         """ hide non-applications control in the action bar """
         self.action_bar.unset_label()
-        return
 
     def show_nonapps_if_required(self, length):
         """
@@ -360,7 +357,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
             return
 
         LOG.debug("nonapps_visible value=%s (always visible: %s)" % (
-                self.nonapps_visible, 
+                self.nonapps_visible,
                 self.nonapps_visible == NonAppVisibility.ALWAYS_VISIBLE))
 
         self.action_bar.unset_label()
@@ -370,13 +367,13 @@ class SoftwarePane(Gtk.VBox, BasePane):
             # In most/all languages you will want the whole string as a link
             label = gettext.ngettext("_Hide %(amount)i technical item_",
                                      "_Hide %(amount)i technical items_",
-                                     n_pkgs) % { 'amount': n_pkgs, }
+                                     n_pkgs) % {'amount': n_pkgs}
             self.action_bar.set_label(
-                        label, link_result=self._hide_nonapp_pkgs) 
+                        label, link_result=self._hide_nonapp_pkgs)
         else:
             label = gettext.ngettext("_Show %(amount)i technical item_",
                                      "_Show %(amount)i technical items_",
-                                     n_pkgs) % { 'amount': n_pkgs, }
+                                     n_pkgs) % {'amount': n_pkgs}
             self.action_bar.set_label(
                         label, link_result=self._show_nonapp_pkgs)
 
@@ -388,7 +385,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
             self.unset_current_category()
             self.refresh_apps()
         elif uri.startswith("search-parent:"):
-            self.apps_subcategory = None;
+            self.apps_subcategory = None
             self.refresh_apps()
         elif uri.startswith("search-unsupported:"):
             self.apps_filter.set_supported_only(False)
@@ -424,7 +421,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
             return channel_query
         # ... otherwise show all
         return xapian.Query("")
-        
+
     def refresh_apps(self, query=None):
         """refresh the applist and update the navigation bar """
         LOG.debug("refresh_apps")
@@ -461,7 +458,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                 exact=self.is_custom_list(),
                                 nonapps_visible=self.nonapps_visible,
                                 filter=self.state.filter)
-        return
 
     def display_details_page(self, page, view_state):
         self.app_details_view.show_app(view_state.application)
@@ -486,11 +482,11 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def get_sort_mode(self):
         # if the category sets a custom sort order, that wins, this
         # is required for top-rated and whats-new
-        if (self.state.category and 
+        if (self.state.category and
             self.state.category.sortmode != SortMethods.BY_ALPHABET):
             return self.state.category.sortmode
         # searches are always by ranking unless the user decided differently
-        if (self._is_in_search_mode() and 
+        if (self._is_in_search_mode() and
             not self.app_view.user_defined_sort_method):
             return SortMethods.BY_SEARCH_RANKING
         # use the appview combo
@@ -520,15 +516,15 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def is_category_view_showing(self):
         " stub implementation "
         pass
-        
+
     def is_applist_view_showing(self):
         " stub implementation "
         pass
-        
+
     def is_app_details_view_showing(self):
         " stub implementation "
         pass
-        
+
     def get_current_app(self):
         " stub implementation "
         pass

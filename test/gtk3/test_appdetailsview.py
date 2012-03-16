@@ -51,7 +51,7 @@ class TestAppdetailsView(unittest.TestCase):
         do_events()
         self.assertTrue(self.view.videoplayer.get_property("visible"))
     
-    def test_page_pkgstatusbar(self):
+    def test_page_pkgstates(self):
         # show app 
         app = Application("", "abiword")
         self.view.show_app(app)
@@ -68,7 +68,7 @@ class TestAppdetailsView(unittest.TestCase):
         mock_details._error_not_found = "error not found"
         mock_details.price = "1.00"
         mock_details.pkgname = "abiword"
-        mock_details.error = ""
+        mock_details.error = "error-text"
         self.view.app_details = mock_details
 
         # the states and what labels we expect in the pkgstatusbar
@@ -79,18 +79,25 @@ class TestAppdetailsView(unittest.TestCase):
             PkgStates.NEEDS_PURCHASE : ('US$ 1.00', u'Buy\u2026'),
             PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED : ('Purchased on 2011-11-20', 'Install'),
         }
+        # this describes if a button is visible or invisible
+        button_invisible = [ PkgStates.ERROR,
+                             PkgStates.NOT_FOUND,
+                             PkgStates.INSTALLING_PURCHASED,
+                             PkgStates.PURCHASED_BUT_NOT_AVAILABLE_FOR_SERIES,
+                             PkgStates.UNKNOWN,
+                           ]
 
-        # show a app through the various states
+        # show a app through the various states and test if the right ui
+        # elements are visible and have the right text
         for var in vars(PkgStates):
-            # FIXME: this just ensures we are not crashing, also
-            # add functional tests to ensure on error we show
-            # the right info etc
             state = getattr(PkgStates, var)
             mock_details.pkg_state = state
             # reset app to ensure its shown again
             self.view.app = None
             # show it
             self.view.show_app(mock_app)
+            #do_events()
+            # check button label
             if state in pkg_states_to_labels:
                 label, button_label = pkg_states_to_labels[state]
                 self.assertEqual(
@@ -99,6 +106,19 @@ class TestAppdetailsView(unittest.TestCase):
                 self.assertEqual(
                     self.view.pkg_statusbar.get_button_label().decode("utf-8"),
                     button_label)
+            # check if button should be there or not
+            if state in button_invisible:
+                self.assertFalse(
+                    self.view.pkg_statusbar.button.get_property("visible"),
+                    "button visible error for state %s" % state)
+            else:
+                self.assertTrue(
+                    self.view.pkg_statusbar.button.get_property("visible"),
+                    "button visible error for state %s" % state)
+            # regression test for #955005
+            if state == PkgStates.NOT_FOUND:
+                self.assertFalse(self.view.review_stats.get_property("visible"))
+                self.assertFalse(self.view.reviews.get_property("visible"))
 
     def test_app_icon_loading(self):
         # get icon
@@ -565,6 +585,6 @@ class AppRecommendationsTestCase(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    #import logging
-    #logging.basicConfig(level=logging.DEBUG)
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
     unittest.main()

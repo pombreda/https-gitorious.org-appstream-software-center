@@ -37,7 +37,8 @@ from softwarecenter.ui.gtk3.widgets.viewport import Viewport
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, FramedBox, FlowableGrid)
 from softwarecenter.ui.gtk3.widgets.recommendations import (
-                                        RecommendationsPanelLobby)
+                                        RecommendationsPanelLobby,
+                                        RecommendationsPanelCategory)
 from softwarecenter.ui.gtk3.widgets.exhibits import (
                                         ExhibitBanner, FeaturedExhibit)
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
@@ -55,31 +56,33 @@ from softwarecenter.distro import get_distro
 from softwarecenter.backend.scagent import SoftwareCenterAgent
 from softwarecenter.backend.reviews import get_review_loader
 
-LOG=logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 _asset_cache = {}
+
+
 class CategoriesViewGtk(Viewport, CategoriesParser):
 
     __gsignals__ = {
-        "category-selected" : (GObject.SignalFlags.RUN_LAST,
-                               None, 
-                               (GObject.TYPE_PYOBJECT, ),
-                              ),
-                              
-        "application-selected" : (GObject.SignalFlags.RUN_LAST,
+        "category-selected": (GObject.SignalFlags.RUN_LAST,
+                              None,
+                              (GObject.TYPE_PYOBJECT, ),
+                             ),
+
+        "application-selected": (GObject.SignalFlags.RUN_LAST,
+                                 None,
+                                 (GObject.TYPE_PYOBJECT, ),
+                                ),
+
+        "application-activated": (GObject.SignalFlags.RUN_LAST,
                                   None,
                                   (GObject.TYPE_PYOBJECT, ),
                                  ),
 
-        "application-activated" : (GObject.SignalFlags.RUN_LAST,
-                                   None,
-                                   (GObject.TYPE_PYOBJECT, ),
-                                  ),
-                                  
-        "show-category-applist" : (GObject.SignalFlags.RUN_LAST,
-                                   None,
-                                   (),)
+        "show-category-applist": (GObject.SignalFlags.RUN_LAST,
+                                  None,
+                                  (),)
         }
 
     SPACING = PADDING = 3
@@ -88,17 +91,17 @@ class CategoriesViewGtk(Viewport, CategoriesParser):
     STIPPLE = os.path.join(softwarecenter.paths.datadir,
                            "ui/gtk3/art/stipple.png")
 
-    def __init__(self, 
+    def __init__(self,
                  datadir,
-                 desktopdir, 
+                 desktopdir,
                  cache,
                  db,
                  icons,
-                 apps_filter=None, # FIXME: kill this, its not needed anymore?
+                 apps_filter=None,  # FIXME: kill this, its not needed anymore?
                  apps_limit=0):
 
         """ init the widget, takes
-        
+
         datadir - the base directory of the app-store data
         desktopdir - the dir where the applications.menu file can be found
         db - a Database object
@@ -172,7 +175,8 @@ class CategoriesViewGtk(Viewport, CategoriesParser):
 
     def _cache_art_assets(self):
         global _asset_cache
-        if _asset_cache: return _asset_cache
+        if _asset_cache:
+            return _asset_cache
         assets = _asset_cache
         # cache the bg pattern
         surf = cairo.ImageSurface.create_from_png(self.STIPPLE)
@@ -189,7 +193,6 @@ class CategoriesViewGtk(Viewport, CategoriesParser):
             return False
 
         GObject.timeout_add(50, timeout_emit)
-        return
 
     def on_category_clicked(self, btn, cat):
         """emit the category-selected signal when a category was clicked"""
@@ -198,7 +201,6 @@ class CategoriesViewGtk(Viewport, CategoriesParser):
             return False
 
         GObject.timeout_add(50, timeout_emit)
-        return
 
     def build(self, desktopdir):
         pass
@@ -206,14 +208,14 @@ class CategoriesViewGtk(Viewport, CategoriesParser):
     def do_draw(self, cr):
         cr.set_source(_asset_cache["stipple"])
         cr.paint_with_alpha(0.5)
-        for child in self: self.propagate_draw(child, cr)
-        return
+        for child in self:
+            self.propagate_draw(child, cr)
 
     def set_section(self, section):
         self.section = section
 
     def refresh_apps(self):
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class LobbyViewGtk(CategoriesViewGtk):
@@ -251,7 +253,8 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         self.top_hbox = Gtk.HBox(spacing=StockEms.SMALL)
         top_hbox_alignment = Gtk.Alignment()
-        top_hbox_alignment.set_padding(0, 0, StockEms.MEDIUM-2, StockEms.MEDIUM-2)
+        top_hbox_alignment.set_padding(0, 0, StockEms.MEDIUM - 2,
+            StockEms.MEDIUM - 2)
         top_hbox_alignment.add(self.top_hbox)
         self.vbox.pack_start(top_hbox_alignment, False, False, 0)
 
@@ -271,33 +274,33 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     #~ def _append_top_of_the_pops(self):
         #~ self.totp_hbox = Gtk.HBox(spacing=self.SPACING)
-#~ 
+#~
         #~ alignment = Gtk.Alignment()
         #~ alignment.set_padding(0, 0, self.PADDING, self.PADDING)
         #~ alignment.add(self.totp_hbox)
-#~ 
+#~
         #~ frame = FramedHeaderBox()
         #~ frame.header_implements_more_button()
         #~ frame.set_header_label(_("Most Popular"))
-#~ 
+#~
         #~ label = Gtk.Label.new("Soda pop!!!")
         #~ label.set_name("placeholder")
         #~ label.set_size_request(-1, 200)
-#~ 
+#~
         #~ frame.add(label)
         #~ self.totp_hbox.add(frame)
-#~ 
+#~
         #~ frame = FramedHeaderBox()
         #~ frame.header_implements_more_button()
         #~ frame.set_header_label(_("Top Rated"))
-#~ 
+#~
         #~ label = Gtk.Label.new("Demos ftw(?)")
         #~ label.set_name("placeholder")
         #~ label.set_size_request(-1, 200)
-#~ 
+#~
         #~ frame.add(label)
         #~ self.totp_hbox.add(frame)
-#~ 
+#~
         #~ self.vbox.pack_start(alignment, False, False, 0)
         #~ return
 
@@ -306,17 +309,17 @@ class LobbyViewGtk(CategoriesViewGtk):
         #~ frame.set_header_expand(False)
         #~ frame.set_header_position(HeaderPosition.LEFT)
         #~ frame.set_header_label(_("Latest Demo Videos"))
-#~ 
+#~
         #~ label = Gtk.Label.new("Videos go here")
         #~ label.set_name("placeholder")
         #~ label.set_size_request(-1, 200)
-#~ 
+#~
         #~ frame.add(label)
-#~ 
+#~
         #~ alignment = Gtk.Alignment()
         #~ alignment.set_padding(0, 0, self.PADDING, self.PADDING)
         #~ alignment.add(frame)
-#~ 
+#~
         #~ self.vbox.pack_start(alignment, False, False, 0)
         #~ return
 
@@ -343,18 +346,19 @@ class LobbyViewGtk(CategoriesViewGtk):
         # query using the agent
         scagent = SoftwareCenterAgent()
         scagent.connect(
-            "exhibits", lambda sca,l: exhibit_banner.set_exhibits(l))
+            "exhibits", lambda sca, l: exhibit_banner.set_exhibits(l))
         scagent.query_exhibits()
 
         a = Gtk.Alignment()
-        a.set_padding(0,StockEms.SMALL,0,0)
+        a.set_padding(0, StockEms.SMALL, 0, 0)
         a.add(exhibit_banner)
 
         self.vbox.pack_start(a, False, False, 0)
         return
 
     def _append_departments(self):
-        # set the departments section to use the label markup we have just defined
+        # set the departments section to use the label markup we have just
+        # defined
         cat_vbox = FramedBox(Gtk.Orientation.VERTICAL)
         self.top_hbox.pack_start(cat_vbox, False, False, 0)
 
@@ -363,7 +367,8 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         mrkup = "<small>%s</small>"
         for cat in sorted_cats:
-            if 'carousel-only' in cat.flags: continue
+            if 'carousel-only' in cat.flags:
+                continue
             category_name = mrkup % GObject.markup_escape_text(cat.name)
             label = LabelTile(category_name, None)
             label.label.set_margin_left(StockEms.SMALL)
@@ -400,8 +405,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         # only display the 'More' LinkButton if we have top_rated content
         if top_rated_cat is not None:
             self.top_rated_frame.header_implements_more_button()
-            self.top_rated_frame.more.connect('clicked', 
-                               self.on_category_clicked, top_rated_cat) 
+            self.top_rated_frame.more.connect('clicked',
+                               self.on_category_clicked, top_rated_cat)
         return
 
     def _update_whats_new_content(self):
@@ -409,7 +414,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.whats_new.remove_all()
         # get top_rated category and docs
         whats_new_cat = get_category_by_name(
-            self.categories,  u"What\u2019s New") # untranslated name
+            self.categories, u"What\u2019s New")  # untranslated name
         if whats_new_cat:
             docs = whats_new_cat.get_documents(self.db)
             self._add_tiles_to_flowgrid(docs, self.whats_new, 8)
@@ -428,33 +433,33 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.right_column.pack_start(self.whats_new_frame, True, True, 0)
             self.whats_new_frame.header_implements_more_button()
             self.whats_new_frame.more.connect(
-                'clicked', self.on_category_clicked, whats_new_cat) 
-        return
-        
+                'clicked', self.on_category_clicked, whats_new_cat)
+
     def _update_recommended_for_you_content(self):
         if (self.recommended_for_you_panel and
             self.recommended_for_you_panel.get_parent()):
             self.bottom_hbox.remove(self.recommended_for_you_panel)
         self.recommended_for_you_panel = RecommendationsPanelLobby(self)
-        self.bottom_hbox.pack_start(self.recommended_for_you_panel, 
+        self.bottom_hbox.pack_start(self.recommended_for_you_panel,
                                     True, True, 0)
-                                    
+
     def _append_recommended_for_you(self):
         # TODO: This space will initially contain an opt-in screen, and this
         #       will update to the tile view of recommended apps when ready
         #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
         self.bottom_hbox = Gtk.HBox(spacing=StockEms.SMALL)
         bottom_hbox_alignment = Gtk.Alignment()
-        bottom_hbox_alignment.set_padding(0, 0, StockEms.MEDIUM-2, StockEms.MEDIUM-2)
+        bottom_hbox_alignment.set_padding(0, 0, StockEms.MEDIUM - 2,
+            StockEms.MEDIUM - 2)
         bottom_hbox_alignment.add(self.bottom_hbox)
         self.vbox.pack_start(bottom_hbox_alignment, False, False, 0)
-        
-        # TODO: During development, place the "Recommended for You" panel
+
+        # TODO: During development, place the "Recommended For You" panel
         #       at the bottom, but swap this with the Top Rated panel once
         #       the recommended for you pieces are done and deployed
         #       see https://wiki.ubuntu.com/SoftwareCenter#Home_screen
         self.recommended_for_you_panel = RecommendationsPanelLobby(self)
-        self.bottom_hbox.pack_start(self.recommended_for_you_panel, 
+        self.bottom_hbox.pack_start(self.recommended_for_you_panel,
                                     True, True, 0)
 
     def _update_appcount(self):
@@ -468,7 +473,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         length = enq.get_estimated_matches_count(query)
         text = gettext.ngettext("%(amount)s item", "%(amount)s items", length
-                                ) % { 'amount' : length, }
+                                ) % {'amount': length}
         self.appcount.set_text(text)
 
     def _append_appcount(self):
@@ -499,13 +504,14 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._update_appcount()
         return
 
-    # stubs for the time being, we may reuse them if we get dynamic content 
+    # stubs for the time being, we may reuse them if we get dynamic content
     # again
     def stop_carousels(self):
         pass
 
     def start_carousels(self):
         pass
+
 
 class SubCategoryViewGtk(CategoriesViewGtk):
 
@@ -525,12 +531,12 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.current_category = None
         self.departments = None
         self.top_rated = None
-        self.recommended_for_you = None
+        self.recommended_for_you_in_cat = None
         self.appcount = None
 
         # widgetry
-        self.vbox.set_margin_left(StockEms.MEDIUM-2)
-        self.vbox.set_margin_right(StockEms.MEDIUM-2)
+        self.vbox.set_margin_left(StockEms.MEDIUM - 2)
+        self.vbox.set_margin_right(StockEms.MEDIUM - 2)
         self.vbox.set_margin_top(StockEms.MEDIUM)
         return
 
@@ -544,15 +550,17 @@ class SubCategoryViewGtk(CategoriesViewGtk):
                                nonblocking_load=False)
         return self.enquire.get_documents()
 
-    @wait_for_apt_cache_ready # be consistent with new apps
+    @wait_for_apt_cache_ready  # be consistent with new apps
     def _update_sub_top_rated_content(self, category):
         self.top_rated.remove_all()
         # FIXME: should this be m = "%s %s" % (_(gettext text), header text) ??
-	# TRANSLATORS: %s is a category name, like Internet or Development Tools
-        m = _('Top Rated %(category)s') % { 'category' : GObject.markup_escape_text(self.header)}
+        # TRANSLATORS: %s is a category name, like Internet or Development
+        # Tools
+        m = _('Top Rated %(category)s') % {
+            'category': GObject.markup_escape_text(self.header)}
         self.top_rated_frame.set_header_label(m)
         docs = self._get_sub_top_rated_content(category)
-        self._add_tiles_to_flowgrid(docs, self.top_rated, 
+        self._add_tiles_to_flowgrid(docs, self.top_rated,
                                     TOP_RATED_CAROUSEL_LIMIT)
         return
 
@@ -565,12 +573,28 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.vbox.pack_start(self.top_rated_frame, False, True, 0)
         return
 
+    def _update_recommended_for_you_in_cat_content(self, category):
+        if (self.recommended_for_you_in_cat and
+            self.recommended_for_you_in_cat.get_parent()):
+            self.vbox.remove(self.recommended_for_you_in_cat)
+        self.recommended_for_you_in_cat = RecommendationsPanelCategory(
+                                                                    self,
+                                                                   category)
+        # only show the panel in the categories view when the user
+        # is opted in to the recommender service
+        # FIXME: this is needed vs. a simple hide() on the widget because
+        #        we do a show_all on the view
+        if self.recommended_for_you_in_cat.recommender_agent.is_opted_in():
+            self.vbox.pack_start(self.recommended_for_you_in_cat,
+                                        False, False, 0)
+
     def _update_subcat_departments(self, category, num_items):
         self.departments.remove_all()
 
         # set the subcat header
         m = "<b><big>%s</big></b>"
-        self.subcat_label.set_markup(m % GObject.markup_escape_text(self.header))
+        self.subcat_label.set_markup(m % GObject.markup_escape_text(
+            self.header))
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories)
@@ -580,14 +604,14 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             # add the subcategory if and only if it is non-empty
             enquire.set_query(cat.query)
 
-            if len(enquire.get_mset(0,1)):
+            if len(enquire.get_mset(0, 1)):
                 tile = CategoryTile(cat.name, cat.iconname)
                 tile.connect('clicked', self.on_category_clicked, cat)
                 self.departments.add_child(tile)
 
         # partialy work around a (quite rare) corner case
         if num_items == 0:
-            enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
+            enquire.set_query(xapian.Query(xapian.Query.OP_AND,
                                 category.query,
                                 xapian.Query("ATapplication")))
             # assuming that we only want apps is not always correct ^^^
@@ -595,7 +619,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             num_items = tmp_matches.get_matches_estimated()
 
         # append an additional button to show all of the items in the category
-        all_cat = Category("All", _("All"), "category-show-all", category.query)
+        all_cat = Category("All", _("All"), "category-show-all",
+            category.query)
         name = GObject.markup_escape_text('%s %s' % (_("All"), num_items))
         tile = CategoryTile(name, "category-show-all")
         tile.connect('clicked', self.on_category_clicked, all_cat)
@@ -622,7 +647,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
     def _update_appcount(self, appcount):
         text = gettext.ngettext("%(amount)s item available",
                                 "%(amount)s items available",
-                                appcount) % { 'amount' : appcount, }
+                                appcount) % {'amount': appcount}
         self.appcount.set_text(text)
         return
 
@@ -639,6 +664,9 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # changing order of methods changes order that they appear in the page
         self._append_subcat_departments()
         self._append_sub_top_rated()
+        # NOTE that the recommended for you in category view is built and added
+        # in the _update_recommended_for_you_in_cat method (and so is not
+        # needed here)
         self._append_appcount()
         self._built = True
         return
@@ -646,6 +674,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
     def _update_subcat_view(self, category, num_items=0):
         num_items = self._update_subcat_departments(category, num_items)
         self._update_sub_top_rated_content(category)
+        self._update_recommended_for_you_in_cat_content(category)
         self._update_appcount(num_items)
         self.show_all()
         return
@@ -660,7 +689,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.header = root_category.name
         self.categories = root_category.subcategories
 
-        if not self._built: self._build_subcat_view()
+        if not self._built:
+            self._build_subcat_view()
         self._update_subcat_view(root_category, num_items)
 
         GObject.idle_add(self.queue_draw)
@@ -673,7 +703,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             return
         self._supported_only = supported_only
 
-        if not self._built: self._build_subcat_view()
+        if not self._built:
+            self._build_subcat_view()
         self._update_subcat_view(self.current_category)
         GObject.idle_add(self.queue_draw)
         return
@@ -683,10 +714,12 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         #self.set_subcategory(self.root_category)
         #return
 
+
 def get_test_window_catview():
 
     def on_category_selected(view, cat):
-        print("on_category_selected %s %s" % view, cat)
+        print "on_category_selected view: ", view
+        print "on_category_selected cat: ", cat
 
     from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
@@ -711,7 +744,7 @@ def get_test_window_catview():
 
     # gui
     win = Gtk.Window()
-    n = Gtk.Notebook()
+    notebook = Gtk.Notebook()
 
     from softwarecenter.paths import APP_INSTALL_PATH
     view = LobbyViewGtk(datadir, APP_INSTALL_PATH,
@@ -720,7 +753,7 @@ def get_test_window_catview():
 
     scroll = Gtk.ScrolledWindow()
     scroll.add(view)
-    n.append_page(scroll, Gtk.Label(label="Lobby"))
+    notebook.append_page(scroll, Gtk.Label(label="Lobby"))
 
     # find a cat in the LobbyView that has subcategories
     subcat_cat = None
@@ -737,14 +770,15 @@ def get_test_window_catview():
 
     scroll = Gtk.ScrolledWindow()
     scroll.add(view)
-    n.append_page(scroll, Gtk.Label(label="Subcats"))
+    notebook.append_page(scroll, Gtk.Label(label="Subcats"))
 
-    win.add(n)
-    win.set_size_request(800,800)
+    win.add(notebook)
+    win.set_size_request(800, 800)
     win.show_all()
     win.connect('destroy', Gtk.main_quit)
     return win
-    
+
+
 def get_test_catview():
 
     def on_category_selected(view, cat):
@@ -784,5 +818,3 @@ if __name__ == "__main__":
 
     # run it
     Gtk.main()
-
-

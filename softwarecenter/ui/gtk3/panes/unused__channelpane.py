@@ -37,6 +37,7 @@ import softwarecenter.ui.gtk3.dialogs as dialogs
 
 LOG = logging.getLogger(__name__)
 
+
 class ChannelPane(SoftwarePane):
     """Widget that represents the channel pane for display of
        individual channels (PPAs, partner repositories, etc.)
@@ -47,10 +48,10 @@ class ChannelPane(SoftwarePane):
     (PAGE_APPLIST,
      PAGE_APP_DETAILS,
      PAGE_APP_PURCHASE) = range(3)
-     
-    __gsignals__ = {'channel-pane-created':(GObject.SignalFlags.RUN_FIRST,
-                                            None,
-                                            ())}
+
+    __gsignals__ = {'channel-pane-created': (GObject.SignalFlags.RUN_FIRST,
+                                             None,
+                                             ())}
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
@@ -66,11 +67,14 @@ class ChannelPane(SoftwarePane):
     def init_view(self):
         if not self.view_initialized:
             SoftwarePane.init_view(self)
-            self.notebook.append_page(self.box_app_list, Gtk.Label(label="channel"))
+            self.notebook.append_page(self.box_app_list,
+                Gtk.Label(label="channel"))
             # details
-            self.notebook.append_page(self.scroll_details, Gtk.Label(label="details"))
+            self.notebook.append_page(self.scroll_details,
+                Gtk.Label(label="details"))
             # purchase view
-            self.notebook.append_page(self.purchase_view, Gtk.Label(label="purchase"))
+            self.notebook.append_page(self.purchase_view,
+                Gtk.Label(label="purchase"))
             # now we are initialized
             self.emit("channel-pane-created")
             self.show_all()
@@ -82,7 +86,7 @@ class ChannelPane(SoftwarePane):
         self.navigation_bar.remove_ids(NavButtons.PURCHASE)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
-        
+
     def _clear_search(self):
         # remove the details and clear the search
         self.searchentry.clear()
@@ -109,7 +113,7 @@ class ChannelPane(SoftwarePane):
             dialog.set_title("")
             dialog.set_markup("<big><b>%s</b></big>" % _("Add channel"))
             dialog.format_secondary_text(_("The selected channel is not yet "
-                                           "added. Do you want to add it now?"))
+                "added. Do you want to add it now?"))
             dialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
                                Gtk.STOCK_ADD, Gtk.ResponseType.YES)
             res = dialog.run()
@@ -130,7 +134,7 @@ class ChannelPane(SoftwarePane):
             self.apps_filter.set_installed_only(True)
         # switch to applist, this will clear searches too
         self.display_list()
-        
+
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
         LOG.debug("on_search_terms_changed: '%s'" % terms)
@@ -139,7 +143,7 @@ class ChannelPane(SoftwarePane):
             self._clear_search()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
-        
+
     def on_db_reopen(self, db):
         LOG.debug("got db-reopen signal")
         self.refresh_apps()
@@ -154,7 +158,7 @@ class ChannelPane(SoftwarePane):
         if not button.get_active():
             return
         self.display_list()
-    
+
     def display_list(self):
         self._clear_search()
         self._show_channel_overview()
@@ -168,7 +172,7 @@ class ChannelPane(SoftwarePane):
         if not button.get_active():
             return
         self.display_details()
-    
+
     def display_details(self):
         self.navigation_bar.remove_ids(NavButtons.PURCHASE)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
@@ -176,20 +180,21 @@ class ChannelPane(SoftwarePane):
         self.action_bar.clear()
         # we want to re-enable the buy button if this is an app for purchase
         # FIXME:  hacky, find a better approach
-        if self.app_details_view.pkg_statusbar.button.get_label() == _(u'Buy\u2026'):
-            self.app_details_view.pkg_statusbar.button.set_sensitive(True)
-        
+        button = self.app_details_view.pkg_statusbar.button
+        if button.get_label() == _(u'Buy\u2026'):
+            button.set_sensitive(True)
+
     def on_navigation_purchase(self, button, part):
         """callback when the navigation button with id 'purchase' is clicked"""
         if not button.get_active():
             return
         self.display_purchase()
-        
+
     def display_purchase(self):
         self.notebook.set_current_page(self.PAGE_APP_PURCHASE)
         self.searchentry.hide()
         self.action_bar.clear()
-        
+
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         LOG.debug("on_application_selected: '%s'" % app)
@@ -204,7 +209,7 @@ class ChannelPane(SoftwarePane):
             length = len(self.app_view.get_model())
             self.emit("app-list-changed", length)
         self.searchentry.show()
-    
+
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
         # no status text in the details page
@@ -219,34 +224,34 @@ class ChannelPane(SoftwarePane):
             if len(self.searchentry.get_text()) > 0:
                 return gettext.ngettext("%(amount)s matching item",
                                         "%(amount)s matching items",
-                                        length) % { 'amount' : length, }
+                                        length) % {'amount': length}
             else:
                 return gettext.ngettext("%(amount)s item installed",
                                         "%(amount)s items installed",
-                                        length) % { 'amount' : length, }
+                                        length) % {'amount': length}
         else:
             if len(self.searchentry.get_text()) > 0:
                 return gettext.ngettext("%(amount)s matching item",
                                         "%(amount)s matching items",
-                                        length) % { 'amount' : length, }
+                                        length) % {'amount': length}
             else:
                 return gettext.ngettext("%(amount)s item available",
                                         "%(amount)s items available",
-                                        length) % { 'amount' : length, }
-                                    
+                                        length) % {'amount': length}
+
     def get_current_app(self):
         """return the current active application object applicable
            to the context"""
         return self.current_appview_selection
-        
+
     def is_category_view_showing(self):
         # there is no category view in the channel pane
         return False
-        
+
     def is_applist_view_showing(self):
         """Return True if we are in the applist view """
         return self.notebook.get_current_page() == self.PAGE_APPLIST
-        
+
     def is_app_details_view_showing(self):
         """Return True if we are in the app_details view """
         return self.notebook.get_current_page() == self.PAGE_APP_DETAILS
@@ -288,13 +293,12 @@ if __name__ == "__main__":
             db.open()
     except xapian.DatabaseCorruptError as e:
         logging.exception("xapian open failed")
-        dialogs.error(None, 
+        dialogs.error(None,
                       _("Sorry, can not open the software database"),
                       _("Please re-install the 'software-center' "
                         "package."))
         # FIXME: force rebuild by providing a dbus service for this
         sys.exit(1)
-
 
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
@@ -310,4 +314,3 @@ if __name__ == "__main__":
     win.connect("destroy", Gtk.main_quit)
 
     Gtk.main()
-
