@@ -9,6 +9,8 @@ setup_test_env()
 # Only test these two packages for now:
 import softwarecenter.backend.reviews
 import softwarecenter.backend.oneconfhandler
+import softwarecenter.backend.piston
+import softwarecenter.backend.installbackend_impl
 import softwarecenter.db
 import softwarecenter.ui
 import softwarecenter.distro
@@ -16,6 +18,8 @@ import softwarecenter.distro
 class PackagePep8TestCase(unittest.TestCase):
     maxDiff = None
     packages = [softwarecenter.ui,
+                softwarecenter.backend.piston,
+                softwarecenter.backend.installbackend_impl,
                 softwarecenter.backend.reviews,
                 softwarecenter.backend.oneconfhandler,
                 softwarecenter.db,
