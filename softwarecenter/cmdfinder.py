@@ -22,19 +22,20 @@ from __future__ import absolute_import
 import os
 import logging
 
-LOG=logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
+
 
 class CmdFinder(object):
     """ helper class that can find binaries in packages """
 
     # standard ubuntu PATH
-    PATH = [ "/usr/local/sbin",
-             "/usr/local/bin",
-             "/usr/sbin",
-             "/usr/bin",
-             "/sbin",
-             "/bin",
-             "/usr/games"
+    PATH = ["/usr/local/sbin",
+            "/usr/local/bin",
+            "/usr/sbin",
+            "/usr/bin",
+            "/sbin",
+            "/bin",
+            "/usr/games",
            ]
 
     def __init__(self, cache):
@@ -44,7 +45,7 @@ class CmdFinder(object):
     def _is_exec(self, f):
         return (os.path.dirname(f) in self.PATH and
                 os.path.exists(f) and
-                not os.path.isdir(f) and 
+                not os.path.isdir(f) and
                 os.access(f, os.X_OK))
 
     def _get_exec_candidates(self, pkg):
@@ -70,15 +71,3 @@ class CmdFinder(object):
         cmds = self._get_exec_candidates(pkg)
         cmds += self._find_alternatives_for_cmds(cmds)
         return sorted([os.path.basename(p) for p in cmds])
-
-#~ 
-#~ class CmdFinderWidget(gtk.VBox, CmdFinder):
-#~ 
-    #~ def __init__(self, cache):
-        #~ CmdFinder.__init__(self, cache)
-        #~ return
-#~ 
-    #~ def cmds_from_pkgname(self, pkgname):
-        #~ cmds = CmdFinder.cmds_from_pkgname(self, pkgname)
-        
-

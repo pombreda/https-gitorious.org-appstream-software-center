@@ -77,7 +77,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         self.subcategory = subcategory
         if self.subcategory:
             self.set_header_label(
-                       _(u"Recommended for You in %s") % self.subcategory.name)
+                       _(u"Recommended For You in %s") % self.subcategory.name)
         self.recommended_for_you_content = None
         if self.recommender_agent.is_opted_in():
             self._update_recommended_for_you_content()
@@ -145,7 +145,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
     def __init__(self, catview):
         RecommendationsPanel.__init__(self, catview)
         self.subcategory = None
-        self.set_header_label(_(u"Recommended for You"))
+        self.set_header_label(_(u"Recommended For You"))
         self.recommended_for_you_content = None
         if self.recommender_agent.is_opted_in():
             self._update_recommended_for_you_content()

@@ -20,8 +20,9 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
+
 class Transaction(object):
-    """ Represents an pkg transaction 
+    """ Represents an pkg transaction
 
 o    Attributes:
     - 'start_date': the start date/time of the transaction as datetime
@@ -29,23 +30,29 @@ o    Attributes:
         contain the list of packagenames affected by this action
     """
 
-    PKGACTIONS=["Install", "Upgrade", "Downgrade", "Remove", "Purge"]
+    PKGACTIONS = ["Install", "Upgrade", "Downgrade", "Remove", "Purge"]
 
     def __init__(self):
         pass
 
     def __len__(self):
-        count=0
+        count = 0
         for k in self.PKGACTIONS:
             count += len(getattr(self, k.lower()))
         return count
+
     def __repr__(self):
-        return ('<Transaction: start_date:%s install:%s upgrade:%s downgrade:%s remove:%s purge:%s' % (self.start_date, self.install, self.upgrade, self.downgrade, self.remove, self.purge))
+        return ('<Transaction: start_date:%s install:%s upgrade:%s '
+            'downgrade:%s remove:%s purge:%s' % (self.start_date,
+            self.install, self.upgrade, self.downgrade, self.remove,
+            self.purge))
+
     def __cmp__(self, other):
         return cmp(self.start_date, other.start_date)
-               
+
+
 class PackageHistory(object):
-    """ Represents the history of the transactions """    
+    """ Represents the history of the transactions """
 
     def __init__(self, use_cache=True):
         pass
@@ -62,17 +69,19 @@ class PackageHistory(object):
         return []
 
     # FIXME: this should be a gobect signal
-    def set_on_update(self,update_callback):
+    def set_on_update(self, update_callback):
         """ callback when a update is ready """
         pass
 
     def get_installed_date(self, pkg_name):
         """Return the date that the given package name got instaled """
-        return None
+        pass
 
 
 # make it a singleton
 pkg_history = None
+
+
 def get_pkg_history():
     """ get the global PackageHistory() singleton object """
     global pkg_history

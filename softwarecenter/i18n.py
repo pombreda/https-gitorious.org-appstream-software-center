@@ -25,8 +25,9 @@ LOG = logging.getLogger(__name__)
 FALLBACK = "en"
 # those languages need the full language-code, the other ones
 # can be abbreved
-FULL = ["pt_BR", 
+FULL = ["pt_BR",
         "zh_CN", "zh_TW"]
+
 
 def init_locale():
     try:
@@ -52,11 +53,13 @@ def get_languages():
         return [get_language()]
     return langs
 
+
 def get_language():
     """Helper that returns the current language
     """
     try:
-        language = locale.getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
+        language = locale.getdefaultlocale(
+            ('LANGUAGE', 'LANG', 'LC_CTYPE', 'LC_ALL'))[0]
     except Exception as e:
         LOG.warn("Failed to get language: '%s'" % e)
         language = "C"
@@ -67,11 +70,12 @@ def get_language():
         return language
     return language.split("_")[0]
 
+
 def langcode_to_name(langcode):
     import xml.etree.ElementTree
     from gettext import dgettext
     for iso in ["iso_639_3", "iso_639"]:
-        path = os.path.join("/usr/share/xml/iso-codes/", iso+".xml")
+        path = os.path.join("/usr/share/xml/iso-codes/", iso + ".xml")
         if os.path.exists(path):
             root = xml.etree.ElementTree.parse(path)
             xpath = ".//%s_entry[@part1_code='%s']" % (iso, langcode)
@@ -79,4 +83,3 @@ def langcode_to_name(langcode):
             if match is not None:
                 return dgettext(iso, match.attrib["name"])
     return langcode
-

@@ -69,10 +69,10 @@ if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("", "--datadir", default=default_datadir)
 
-    logfile_path = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "reviews-helper.log")
-    logfile_handler = logging.handlers.RotatingFileHandler(logfile_path,
-                                                           maxBytes=100*1000,
-                                                           backupCount=5)
+    logfile_path = os.path.join(
+        SOFTWARE_CENTER_CACHE_DIR, "reviews-helper.log")
+    logfile_handler = logging.handlers.RotatingFileHandler(
+        logfile_path, maxBytes = 100 * 1000, backupCount = 5)
     logfile_handler.setLevel(logging.INFO)
     logging.getLogger().addHandler(logfile_handler)
     logging.getLogger().addHandler(logging.StreamHandler())
@@ -103,9 +103,9 @@ if __name__ == "__main__":
 
         if not (options.pkgname and options.version):
             parser.error(_("Missing arguments"))
-    
+
         if options.debug:
-            logging.basicConfig(level=logging.DEBUG)                        
+            logging.basicConfig(level=logging.DEBUG)
 
         # personality
         logging.debug("submit_review mode")
@@ -113,13 +113,12 @@ if __name__ == "__main__":
         # initialize and run
         theapp = Application(options.appname, options.pkgname)
         review_app = SubmitReviewsApp(datadir=options.datadir,
-                                      app=theapp, 
+                                      app=theapp,
                                       parent_xid=options.parent_xid,
                                       iconname=options.iconname,
                                       origin=options.origin,
                                       version=options.version)
         review_app.run()
-
 
     # run "report" personality
     if "report_review" in sys.argv[0]:
@@ -134,7 +133,7 @@ if __name__ == "__main__":
 
         if not (options.review_id):
             parser.error(_("Missing review-id arguments"))
-    
+
         if options.debug:
             logging.basicConfig(level=logging.DEBUG)                        
 

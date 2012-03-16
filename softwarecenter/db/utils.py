@@ -18,18 +18,20 @@
 
 import xapian
 
+
 def get_query_for_pkgnames(pkgnames):
     """ return a xapian query that matches exactly the list of pkgnames """
     query = xapian.Query()
     for pkgname in pkgnames:
         query = xapian.Query(xapian.Query.OP_OR,
                              query,
-                             xapian.Query("XP"+pkgname))
+                             xapian.Query("XP" + pkgname))
         query = xapian.Query(xapian.Query.OP_OR,
                              query,
-                             xapian.Query("AP"+pkgname))
+                             xapian.Query("AP" + pkgname))
     return query
-    
+
+
 def get_installed_apps_list(db):
     """ return a list of installed applications """
     apps = set()
@@ -41,11 +43,12 @@ def get_installed_apps_list(db):
                 apps.add(db.get_application(doc))
     return apps
 
+
 def get_installed_package_list():
     """ return a set of all of the currently installed packages """
     from softwarecenter.db.pkginfo import get_pkg_info
     installed_pkgs = set()
-    cache=get_pkg_info()
+    cache = get_pkg_info()
     for pkg in cache:
         if pkg.is_installed:
             installed_pkgs.add(pkg.name)
