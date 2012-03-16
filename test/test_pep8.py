@@ -9,13 +9,15 @@ setup_test_env()
 # Only test these two packages for now:
 import softwarecenter.db
 import softwarecenter.ui
+import softwarecenter.distro
 
 class PackagePep8TestCase(unittest.TestCase):
     maxDiff = None
     packages = [softwarecenter.ui,
                 softwarecenter.db,
+                softwarecenter.distro,
                ]
-    exclude = ['application.py', 'appfilter.py']
+    exclude = []
 
     def message(self, text):
         self.errors.append(text)
