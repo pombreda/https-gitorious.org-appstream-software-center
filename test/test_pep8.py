@@ -7,6 +7,8 @@ from testutils import setup_test_env
 setup_test_env()
 
 # Only test these two packages for now:
+import softwarecenter.backend.reviews
+import softwarecenter.backend.oneconfhandler
 import softwarecenter.db
 import softwarecenter.ui
 import softwarecenter.distro
@@ -14,6 +16,8 @@ import softwarecenter.distro
 class PackagePep8TestCase(unittest.TestCase):
     maxDiff = None
     packages = [softwarecenter.ui,
+                softwarecenter.backend.reviews,
+                softwarecenter.backend.oneconfhandler,
                 softwarecenter.db,
                 softwarecenter.distro,
                ]

@@ -36,7 +36,7 @@ from gi.repository import GObject
 # py3 compat
 try:
     import cPickle as pickle
-    pickle # pyflakes
+    pickle  # pyflakes
 except ImportError:
     import pickle
 
@@ -58,51 +58,56 @@ from softwarecenter.backend.spawn_helper import SpawnHelper
 
 LOG = logging.getLogger(__name__)
 
+
 class ReviewStats(object):
     def __init__(self, app):
         self.app = app
         self.ratings_average = None
         self.ratings_total = 0
-        self.rating_spread = [0,0,0,0,0]
+        self.rating_spread = [0, 0, 0, 0, 0]
         self.dampened_rating = 3.00
+
     def __repr__(self):
-        return ("<ReviewStats '%s' ratings_average='%s' ratings_total='%s'" 
-                " rating_spread='%s' dampened_rating='%s'>" % 
-                (self.app, self.ratings_average, self.ratings_total, 
+        return ("<ReviewStats '%s' ratings_average='%s' ratings_total='%s'"
+                " rating_spread='%s' dampened_rating='%s'>" %
+                (self.app, self.ratings_average, self.ratings_total,
                 self.rating_spread, self.dampened_rating))
-    
+
 
 class UsefulnessCache(object):
 
     USEFULNESS_CACHE = {}
-    
+
     def __init__(self, try_server=False):
         fname = "usefulness.p"
         self.USEFULNESS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
-                                                    fname)
-        
+                                                  fname)
+
         self._retrieve_votes_from_cache()
-        #Only try to get votes from the server if required, otherwise just use cache
+        # Only try to get votes from the server if required, otherwise
+        # just use cache
         if try_server:
             self._retrieve_votes_from_server()
-    
+
     def _retrieve_votes_from_cache(self):
         if os.path.exists(self.USEFULNESS_CACHE_FILE):
             try:
-                self.USEFULNESS_CACHE = pickle.load(open(self.USEFULNESS_CACHE_FILE))
+                self.USEFULNESS_CACHE = pickle.load(
+                    open(self.USEFULNESS_CACHE_FILE))
             except:
                 LOG.exception("usefulness cache load fallback failure")
-                os.rename(self.USEFULNESS_CACHE_FILE, self.USEFULNESS_CACHE_FILE+".fail")
-        return
-    
+                os.rename(self.USEFULNESS_CACHE_FILE,
+                    self.USEFULNESS_CACHE_FILE + ".fail")
+
     def _retrieve_votes_from_server(self):
         LOG.debug("_retrieve_votes_from_server started")
         user = get_person_from_config()
-        
+
         if not user:
-            LOG.warn("Could not get usefulness from server, no username in config file")
+            LOG.warn("Could not get usefulness from server, no username "
+                "in config file")
             return False
-        
+
         # run the command and add watcher
         spawn_helper = SpawnHelper()
         spawn_helper.connect("data-available", self._on_usefulness_data)
@@ -116,8 +121,9 @@ class UsefulnessCache(object):
         for result in results:
             self.USEFULNESS_CACHE[str(result['review_id'])] = result['useful']
         if not self.save_usefulness_cache_file():
-            LOG.warn("Read usefulness results from server but failed to write to cache")
-    
+            LOG.warn("Read usefulness results from server but failed to "
+                "write to cache")
+
     def save_usefulness_cache_file(self):
         """write the dict out to cache file"""
         cachedir = SOFTWARE_CENTER_CACHE_DIR
@@ -129,19 +135,22 @@ class UsefulnessCache(object):
             return True
         except:
             return False
-    
+
     def add_usefulness_vote(self, review_id, useful):
-        """pass a review id and useful boolean vote and save it into the dict, then try to save to cache file"""
+        """pass a review id and useful boolean vote and save it into the
+           dict, then try to save to cache file
+        """
         self.USEFULNESS_CACHE[str(review_id)] = useful
         if self.save_usefulness_cache_file():
             return True
         return False
-    
+
     def check_for_usefulness(self, review_id):
-        """pass a review id and get a True/False useful back or None if the review_id is not in the dict"""
+        """pass a review id and get a True/False useful back or None if the
+           review_id is not in the dict
+        """
         return self.USEFULNESS_CACHE.get(str(review_id))
-    
-    
+
 
 class Review(object):
     """A individual review object """
@@ -163,20 +172,23 @@ class Review(object):
         self.version = ""
         self.usefulness_total = 0
         self.usefulness_favorable = 0
-        # this will be set if tryint to submit usefulness for this review failed
+        # this will be set if tryint to submit usefulness for this review
+        # failed
         self.usefulness_submit_error = False
         self.delete_error = False
         self.modify_error = False
+
     def __repr__(self):
         return "[Review id=%s review_text='%s' reviewer_username='%s']" % (
             self.id, self.review_text, self.reviewer_username)
+
     def __cmp__(self, other):
         # first compare version, high version number first
         vc = upstream_version_compare(self.version, other.version)
         if vc != 0:
             return vc
         # then wilson score
-        uc = cmp(wilson_score(self.usefulness_favorable, 
+        uc = cmp(wilson_score(self.usefulness_favorable,
                               self.usefulness_total),
                  wilson_score(other.usefulness_favorable,
                               other.usefulness_total))
@@ -184,9 +196,10 @@ class Review(object):
             return uc
         # last is date
         t1 = datetime.datetime.strptime(self.date_created, '%Y-%m-%d %H:%M:%S')
-        t2 = datetime.datetime.strptime(other.date_created, '%Y-%m-%d %H:%M:%S')
+        t2 = datetime.datetime.strptime(other.date_created,
+            '%Y-%m-%d %H:%M:%S')
         return cmp(t1, t2)
-        
+
     @classmethod
     def from_piston_mini_client(cls, other):
         """ converts the rnrclieent reviews we get into
@@ -209,14 +222,15 @@ class Review(object):
             setattr(review, k, v)
         return review
 
+
 class ReviewLoader(GObject.GObject):
     """A loader that returns a review object list"""
 
     __gsignals__ = {
-        "refresh-review-stats-finished" : (GObject.SIGNAL_RUN_LAST,
-                                           GObject.TYPE_NONE, 
-                                           (GObject.TYPE_PYOBJECT,),
-                                          ),
+        "refresh-review-stats-finished": (GObject.SIGNAL_RUN_LAST,
+                                          GObject.TYPE_NONE,
+                                          (GObject.TYPE_PYOBJECT,),
+                                         ),
     }
 
     # cache the ReviewStats
@@ -236,19 +250,21 @@ class ReviewLoader(GObject.GObject):
         self.REVIEW_STATS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
                                                     fname)
         self.REVIEW_STATS_BSDDB_FILE = "%s__%s.%s.db" % (
-            self.REVIEW_STATS_CACHE_FILE, 
-            bdb.DB_VERSION_MAJOR, 
+            self.REVIEW_STATS_CACHE_FILE,
+            bdb.DB_VERSION_MAJOR,
             bdb.DB_VERSION_MINOR)
 
         self.language = get_language()
         if os.path.exists(self.REVIEW_STATS_CACHE_FILE):
             try:
-                self.REVIEW_STATS_CACHE = pickle.load(open(self.REVIEW_STATS_CACHE_FILE))
+                self.REVIEW_STATS_CACHE = pickle.load(
+                    open(self.REVIEW_STATS_CACHE_FILE))
                 self._cache_version_old = self._missing_histogram_in_cache()
             except:
                 LOG.exception("review stats cache load failure")
-                os.rename(self.REVIEW_STATS_CACHE_FILE, self.REVIEW_STATS_CACHE_FILE+".fail")
-    
+                os.rename(self.REVIEW_STATS_CACHE_FILE,
+                    self.REVIEW_STATS_CACHE_FILE + ".fail")
+
     def _missing_histogram_in_cache(self):
         '''iterate through review stats to see if it has been fully reloaded
            with new histogram data from server update'''
@@ -260,7 +276,7 @@ class ReviewLoader(GObject.GObject):
 
     def get_reviews(self, application, callback, page=1, language=None,
                     sort=0, relaxed=False):
-        """run callback f(app, review_list) 
+        """run callback f(app, review_list)
            with list of review objects for the given
            db.database.Application object
         """
@@ -282,7 +298,6 @@ class ReviewLoader(GObject.GObject):
                 return self.REVIEW_STATS_CACHE[application]
         except ValueError:
             pass
-        return None
 
     def refresh_review_stats(self, callback):
         """ get the review statists and call callback when its there """
@@ -322,7 +337,7 @@ class ReviewLoader(GObject.GObject):
         """ write out the full REVIEWS_STATS_CACHE as a pickle """
         pickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
-                                       
+
     def _dump_bsddbm_for_unity(self, outfile, outdir):
         """ write out the subset that unity needs of the REVIEW_STATS_CACHE
             as a C friendly (using struct) bsddb
@@ -330,59 +345,59 @@ class ReviewLoader(GObject.GObject):
         env = bdb.DBEnv()
         if not os.path.exists(outdir):
             os.makedirs(outdir)
-        env.open (outdir,
-                  bdb.DB_CREATE | bdb.DB_INIT_CDB | bdb.DB_INIT_MPOOL |
-                  bdb.DB_NOMMAP, # be gentle on e.g. nfs mounts
-                  0600)
-        db = bdb.DB (env)
-        db.open (outfile,
-                 dbtype=bdb.DB_HASH,
-                 mode=0600,
-                 flags=bdb.DB_CREATE)
+        env.open(outdir,
+                 bdb.DB_CREATE | bdb.DB_INIT_CDB | bdb.DB_INIT_MPOOL |
+                 bdb.DB_NOMMAP,  # be gentle on e.g. nfs mounts
+                 0600)
+        db = bdb.DB(env)
+        db.open(outfile,
+                dbtype=bdb.DB_HASH,
+                mode=0600,
+                flags=bdb.DB_CREATE)
         for (app, stats) in self.REVIEW_STATS_CACHE.iteritems():
             # pkgname is ascii by policy, so its fine to use str() here
-            db[str(app.pkgname)] = struct.pack('iii', 
+            db[str(app.pkgname)] = struct.pack('iii',
                                                stats.ratings_average or 0,
                                                stats.ratings_total,
                                                stats.dampened_rating)
-        db.close ()
-        env.close ()
-    
+        db.close()
+        env.close()
+
     def get_top_rated_apps(self, quantity=12, category=None):
         """Returns a list of the packages with the highest 'rating' based on
            the dampened rating calculated from the ReviewStats rating spread.
            Also optionally takes a category (string) to filter by"""
 
         cache = self.REVIEW_STATS_CACHE
-        
+
         if category:
             applist = self._get_apps_for_category(category)
             cache = self._filter_cache_with_applist(cache, applist)
-        
+
         #create a list of tuples with (Application,dampened_rating)
         dr_list = []
         for item in cache.items():
-            if hasattr(item[1],'dampened_rating'):
+            if hasattr(item[1], 'dampened_rating'):
                 dr_list.append((item[0], item[1].dampened_rating))
             else:
                 dr_list.append((item[0], 3.00))
-        
+
         #sorted the list descending by dampened rating
         sorted_dr_list = sorted(dr_list, key=operator.itemgetter(1),
                                 reverse=True)
-        
+
         #return the quantity requested or as much as we can
         if quantity < len(sorted_dr_list):
             return_qty = quantity
         else:
             return_qty = len(sorted_dr_list)
-        
+
         top_rated = []
-        for i in range (0,return_qty):
+        for i in range(0, return_qty):
             top_rated.append(sorted_dr_list[i][0])
-        
+
         return top_rated
-    
+
     def _filter_cache_with_applist(self, cache, applist):
         """Take the review cache and filter it to only include the apps that
            also appear in the applist passed in"""
@@ -391,25 +406,25 @@ class ReviewLoader(GObject.GObject):
             if key.pkgname in applist:
                 filtered_cache[key] = cache[key]
         return filtered_cache
-    
+
     def _get_apps_for_category(self, category):
         query = get_query_for_category(self.db, category)
         if not query:
             LOG.warn("_get_apps_for_category: received invalid category")
             return []
-        
+
         pathname = os.path.join(XAPIAN_BASE_PATH, "xapian")
         db = StoreDatabase(pathname, self.cache)
         db.open()
         docs = db.get_docs_from_query(query)
-        
+
         #from the db docs, return a list of pkgnames
         applist = []
         for doc in docs:
             applist.append(db.get_pkgname(doc))
         return applist
 
-    def spawn_write_new_review_ui(self, translated_app, version, iconname, 
+    def spawn_write_new_review_ui(self, translated_app, version, iconname,
                                   origin, parent_xid, datadir, callback):
         """Spawn the UI for writing a new review and adds it automatically
         to the reviews DB.
@@ -424,7 +439,8 @@ class ReviewLoader(GObject.GObject):
         """
         pass
 
-    def spawn_submit_usefulness_ui(self, review_id, is_useful, parent_xid, datadir, callback):
+    def spawn_submit_usefulness_ui(self, review_id, is_useful, parent_xid,
+        datadir, callback):
         """Spawn a helper to submit a usefulness vote."""
         pass
 
@@ -432,14 +448,16 @@ class ReviewLoader(GObject.GObject):
         """Spawn a helper to delete a review."""
         pass
 
-    def spawn_modify_review_ui(self, parent_xid, iconname, datadir, review_id, callback):
+    def spawn_modify_review_ui(self, parent_xid, iconname, datadir, review_id,
+        callback):
         """Spawn a helper to modify a review."""
         pass
 
 
 class ReviewLoaderFake(ReviewLoader):
 
-    USERS = ["Joe Doll", "John Foo", "Cat Lala", "Foo Grumpf", "Bar Tender", "Baz Lightyear"]
+    USERS = ["Joe Doll", "John Foo", "Cat Lala", "Foo Grumpf", "Bar Tender",
+        "Baz Lightyear"]
     SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
     IPSUM = "no ipsum\n\nstill no ipsum"
 
@@ -447,12 +465,16 @@ class ReviewLoaderFake(ReviewLoader):
         ReviewLoader.__init__(self, cache, db)
         self._review_stats_cache = {}
         self._reviews_cache = {}
+
     def _random_person(self):
         return random.choice(self.USERS)
+
     def _random_text(self):
         return random.choice(self.LOREM.split("\n\n"))
+
     def _random_summary(self):
         return random.choice(self.SUMMARIES)
+
     def get_reviews(self, application, callback, page=1, language=None,
         sort=0, relaxed=False):
         if not application in self._review_stats_cache:
@@ -462,43 +484,48 @@ class ReviewLoaderFake(ReviewLoader):
             reviews = []
             for i in range(0, stats.ratings_total):
                 review = Review(application)
-                review.id = random.randint(1,50000)
+                review.id = random.randint(1, 50000)
                 # FIXME: instead of random, try to match the avg_rating
-                review.rating = random.randint(1,5)
+                review.rating = random.randint(1, 5)
                 review.summary = self._random_summary()
                 review.date_created = time.strftime("%Y-%m-%d %H:%M:%S")
                 review.reviewer_username = self._random_person()
-                review.review_text = self._random_text().replace("\n","")
+                review.review_text = self._random_text().replace("\n", "")
                 review.usefulness_total = random.randint(1, 20)
                 review.usefulness_favorable = random.randint(1, 20)
                 reviews.append(review)
             self._reviews_cache[application] = reviews
         reviews = self._reviews_cache[application]
         callback(application, reviews)
+
     def get_review_stats(self, application):
         if not application in self._review_stats_cache:
             stat = ReviewStats(application)
-            stat.ratings_average = random.randint(1,5)
-            stat.ratings_total = random.randint(1,20)
+            stat.ratings_average = random.randint(1, 5)
+            stat.ratings_total = random.randint(1, 20)
             self._review_stats_cache[application] = stat
         return self._review_stats_cache[application]
+
     def refresh_review_stats(self, callback):
         review_stats = []
         callback(review_stats)
+
 
 class ReviewLoaderFortune(ReviewLoaderFake):
     def __init__(self, cache, db):
         ReviewLoaderFake.__init__(self, cache, db)
         self.LOREM = ""
         for i in range(10):
-            out = subprocess.Popen(["fortune"], stdout=subprocess.PIPE).communicate()[0]
+            out = subprocess.Popen(["fortune"],
+                stdout=subprocess.PIPE).communicate()[0]
             self.LOREM += "\n\n%s" % out
+
 
 class ReviewLoaderTechspeak(ReviewLoaderFake):
     """ a test review loader that does not do any network io
         and returns random review texts
     """
-    LOREM=u"""This package is using cloud based technology that will
+    LOREM = u"""This package is using cloud based technology that will
 make it suitable in a distributed environment where soup and xml-rpc
 are used. The backend is written in C++ but the frontend code will
 utilize dynamic languages lika LUA to provide a execution environment
@@ -547,6 +574,7 @@ experience, offering beautifully rendered advertisements straight to
 your finger tips. This has limitless possibilities and will permeate
 every facet of your life.  Believe the hype."""
 
+
 class ReviewLoaderIpsum(ReviewLoaderFake):
     """ a test review loader that does not do any network io
         and returns random lorem ipsum review texts
@@ -554,7 +582,8 @@ class ReviewLoaderIpsum(ReviewLoaderFake):
     #This text is under public domain
     #Lorem ipsum
     #Cicero
-    LOREM=u"""lorem ipsum "dolor" äöü sit amet consetetur sadipscing elitr sed diam nonumy
+    LOREM = u"""lorem ipsum "dolor" äöü sit amet consetetur sadipscing elitr
+sed diam nonumy
 eirmod tempor invidunt ut labore et dolore magna aliquyam erat sed diam
 voluptua at vero eos et accusam et justo duo dolores et ea rebum stet clita
 kasd gubergren no sea takimata sanctus est lorem ipsum dolor sit amet lorem
@@ -632,7 +661,7 @@ class ReviewLoaderNull(ReviewLoader):
         callback(application, [])
 
     def get_review_stats(self, application):
-        return None
+        pass
 
     def refresh_review_stats(self, callback):
         review_stats = []
@@ -640,8 +669,10 @@ class ReviewLoaderNull(ReviewLoader):
 
 
 review_loader = None
+
+
 def get_review_loader(cache, db=None):
-    """ 
+    """
     factory that returns a reviews loader singelton
     """
     global review_loader
@@ -666,6 +697,7 @@ if __name__ == "__main__":
     def callback(app, reviews):
         print "app callback:"
         print app, reviews
+
     def stats_callback(stats):
         print "stats callback:"
         print stats
@@ -675,14 +707,16 @@ if __name__ == "__main__":
     cache = get_pkg_info()
     cache.open()
 
-    db = StoreDatabase(XAPIAN_BASE_PATH+"/xapian", cache)
+    db = StoreDatabase(XAPIAN_BASE_PATH + "/xapian", cache)
     db.open()
 
     # rnrclient loader
     app = Application("ACE", "unace")
     #app = Application("", "2vcard")
 
-    from softwarecenter.backend.reviews.rnr import ReviewLoaderSpawningRNRClient
+    from softwarecenter.backend.reviews.rnr import (
+        ReviewLoaderSpawningRNRClient
+    )
     loader = ReviewLoaderSpawningRNRClient(cache, db)
     print loader.refresh_review_stats(stats_callback)
     print loader.get_reviews(app, callback)
@@ -694,7 +728,7 @@ if __name__ == "__main__":
     main.run()
 
     # default loader
-    app = Application("","2vcard")
+    app = Application("", "2vcard")
     loader = get_review_loader(cache, db)
     loader.refresh_review_stats(stats_callback)
     loader.get_reviews(app, callback)
