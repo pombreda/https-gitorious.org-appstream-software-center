@@ -20,7 +20,9 @@
 
 # singleton
 oneconf_handler = None
-def get_oneconf_handler(oneconfviewpickler = None):
+
+
+def get_oneconf_handler(oneconfviewpickler=None):
     global oneconf_handler
     try:
         from softwarecenter.backend.oneconfhandler.core import OneConfHandler
@@ -30,10 +32,11 @@ def get_oneconf_handler(oneconfviewpickler = None):
         oneconf_handler = OneConfHandler(oneconfviewpickler)
     return oneconf_handler
 
+
 def is_oneconf_available():
     try:
         from softwarecenter.backend.oneconfhandler.core import OneConfHandler
-        OneConfHandler # pyflakes
+        OneConfHandler  # pyflakes
         return True
     except ImportError:
         pass
