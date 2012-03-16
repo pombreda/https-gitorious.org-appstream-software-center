@@ -244,28 +244,33 @@ def get_http_proxy_string_from_libproxy(url):
 def get_http_proxy_string_from_gsettings():
     """Helper that gets the http proxy from gsettings
 
-    Returns: string with http://auth:pw@proxy:port/ or None
+    May raise a exception if there is no schema for the proxy
+    (e.g. on non-gnome systems)
+
+    Returns: string with http://auth:pw@proxy:port/, None
     """
-    try:
-        # check if this is actually available and usable. if not
-        # well ... it segfaults (thanks pygi)
-        key = "org.gnome.system.proxy.http"
-        if not key in Gio.Settings.list_schemas():
-            return None
-        settings = Gio.Settings.new(key)
-        if settings.get_boolean("enabled"):
-            authentication = ""
-            if settings.get_boolean("use-authentication"):
-                user = settings.get_string("authentication-user")
-                password = settings.get_string("authentication-password")
-                authentication = "%s:%s@" % (user, password)
-            host = settings.get_string("host")
-            port = settings.get_int("port")
-            http_proxy = "http://%s%s:%s/" % (authentication, host, port)
-            if host:
-                return http_proxy
-    except Exception:
-        logging.exception("failed to get proxy from gconf")
+    # check if this is actually available and usable. if not
+    # well ... it segfaults (thanks pygi)
+    key = "org.gnome.system.proxy.http"
+    if not key in Gio.Settings.list_schemas():
+        raise ValueError, "no key '%s'" % key
+    settings = Gio.Settings.new(key)
+    if settings.get_string("host"):
+        authentication = ""
+        if settings.get_boolean("use-authentication"):
+            user = settings.get_string("authentication-user")
+            password = settings.get_string("authentication-password")
+            authentication = "%s:%s@" % (user, password)
+        host = settings.get_string("host")
+        port = settings.get_int("port")
+        # strip leading http (if there is one)
+        if host.startswith("http://"):
+            host = host[len("http://"):]
+        http_proxy = "http://%s%s:%s/" % (authentication, host, port)
+        if host:
+            return http_proxy
+    # no proxy
+    return None
 
 
 def encode_for_xml(unicode_data, encoding="ascii"):
