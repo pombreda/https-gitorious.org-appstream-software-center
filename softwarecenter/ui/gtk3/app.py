@@ -512,7 +512,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # reset the recommender UUID to indicate it
         self.recommender_uuid = ""
         self._update_recommendations_menuitem(opted_in=False)
-        
+
     def _update_recommendations_menuitem(self, opted_in):
         recommendations_menuitem = self.builder.get_object(
                                             "menuitem_recommendations")
@@ -771,9 +771,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if not self.scagent:
             from softwarecenter.backend.scagent import SoftwareCenterAgent
             self.scagent = SoftwareCenterAgent()
-            self.scagent.connect("available-for-me", 
+            self.scagent.connect("available-for-me",
                                  self._available_for_me_result)
-            
+
     def on_menuitem_recommendations_activate(self, menu_item):
         rec_panel = self.available_pane.cat_view.recommended_for_you_panel
         if rec_panel.recommender_agent.is_opted_in():
@@ -785,7 +785,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             opt_in_dialog.set_title("")
             icon_name = "softwarecenter"
             if self.icons.has_icon(icon_name):
-                icon = Gtk.Image.new_from_icon_name(icon_name, 
+                icon = Gtk.Image.new_from_icon_name(icon_name,
                                                     Gtk.IconSize.DIALOG)
                 opt_in_dialog.set_image(icon)
                 icon.show()
