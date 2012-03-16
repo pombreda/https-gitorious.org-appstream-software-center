@@ -201,8 +201,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # Disable software-properties if it does not exist
         if not os.path.exists("/usr/bin/software-properties-gtk"):
-            sources = self.builder.get_object("menuitem_software_sources")
-            sources.set_sensitive(False)
+            edit_menu = self.builder.get_object("menu_edit")
+            edit_separator = self.builder.get_object("separator_software_sources")
+            edit_menu.remove(edit_separator)
+            edit_sources = self.builder.get_object("menuitem_software_sources")
+            edit_menu.remove(edit_sources)
 
         with ExecutionTime("opening the pkginfo"):
             # a main iteration friendly apt cache

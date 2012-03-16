@@ -577,7 +577,7 @@ def mangle_paths_if_running_in_local_checkout():
         path =  "%s/desktop/software-center.menu" % softwarecenter.paths.APP_INSTALL_PATH
         if not os.path.exists(path):
             softwarecenter.paths.APP_INSTALL_PATH = './build/share/app-install'
-            logging.warn("using local APP_INSTALL_PATH: %s" % softwarecenter.paths.APP_INSTALL_PATH)
+            logging.getLogger("softwarecenter").warn("using local APP_INSTALL_PATH: %s" % softwarecenter.paths.APP_INSTALL_PATH)
     else:
         datadir = softwarecenter.paths.datadir
         xapian_base_path = softwarecenter.paths.XAPIAN_BASE_PATH
