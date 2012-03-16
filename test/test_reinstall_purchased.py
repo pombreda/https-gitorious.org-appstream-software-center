@@ -250,14 +250,14 @@ class SCAPurchasedApplicationParserTestCase(unittest.TestCase):
         parser = self._make_application_parser()
 
         expected_results = {
-             "Deb-Line": "deb https://username:random3atoken@"
+             "X-AppInstall-Deb-Line": "deb https://username:random3atoken@"
                          "private-ppa.launchpad.net/commercial-ppa-uploaders"
                          "/photobomb/ubuntu quintessential main",
-             "Deb-Line-Orig": 
+             "X-AppInstall-Deb-Line-Orig": 
                          "deb https://username:random3atoken@"
                          "private-ppa.launchpad.net/commercial-ppa-uploaders"
                          "/photobomb/ubuntu natty main",
-             "Purchased-Date": "2011-09-16 06:37:52",
+             "X-AppInstall-Purchased-Date": "2011-09-16 06:37:52",
             }
         for key in expected_results:
             result = parser.get_desktop(key)
