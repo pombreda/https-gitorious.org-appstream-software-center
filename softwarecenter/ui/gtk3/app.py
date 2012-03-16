@@ -478,7 +478,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def _setup_proxy(self, setting=None, key=None):
         try:
             proxy = get_http_proxy_string_from_gsettings()
-            print "***", proxy
+            LOG.info("setting up proxy '%s'" % proxy)
             if proxy:
                 os.environ["http_proxy"] = proxy
             else:
