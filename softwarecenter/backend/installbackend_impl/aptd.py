@@ -766,6 +766,14 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                             utf8(alternative_action))
         return res
 
+    def _get_app_and_icon_and_deb_from_trans(self, trans):
+        meta_copy = trans.meta_data.copy()
+        app = Application(meta_copy.pop("sc_appname", None),
+                          meta_copy.pop("sc_pkgname"))
+        iconname = meta_copy.pop("sc_iconname", None)
+        filename = meta_copy.pop("sc_filename", "")
+        return app, iconname, filename, meta_copy
+
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
         self._logger.debug("_on_transaction_finished: %s %s %s" % (
@@ -773,21 +781,33 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
 
         # show error
         if enum == enums.EXIT_FAILED:
-            # Handle invalid packages separately
-            if (trans.error and 
-                trans.error.code == enums.ERROR_INVALID_PACKAGE_FILE):
-                action = _("_Ignore and install")
-                res = self._show_transaction_failed_dialog(trans, enum, action)
-                if res == "yes":
-                    # Reinject the transaction
-                    meta_copy = trans.meta_data.copy()
-                    app = Application(meta_copy.pop("sc_appname", None),
-                                      meta_copy.pop("sc_pkgname"))
-                    iconname = meta_copy.pop("sc_iconname", None)
-                    filename = meta_copy.pop("sc_filename")
-                    self.install(app, iconname, filename, [], [],
-                                 metadata=meta_copy, force=True)
-                    return
+            if trans.error:
+                # Handle invalid packages separately
+                if trans.error.code == enums.ERROR_INVALID_PACKAGE_FILE:
+                    action = _("_Ignore and install")
+                    res = self._show_transaction_failed_dialog(
+                        trans, enum, action)
+                    if res == "yes":
+                        # Reinject the transaction
+                        app, iconname, filename, meta_copy = \
+                            self._get_app_and_icon_and_deb_from_trans(trans)
+                        self.install(app, iconname, filename, [], [],
+                                     metadata=meta_copy, force=True)
+                        return
+                # on unauthenticated errors, try a "repair" using the 
+                # reload functionatlity
+                elif trans.error.code == enums.ERROR_PACKAGE_UNAUTHENTICATED:
+                    action = _("Repair")
+                    res = self._show_transaction_failed_dialog(
+                        trans, enum, action)
+                    if res == "yes":
+                        app, iconname, filename, meta_copy = \
+                            self._get_app_and_icon_and_deb_from_trans(trans)
+                        self.reload()
+                        self.install(app, iconname, filename, [], [],
+                                     metadata=meta_copy)
+                        return
+
             elif not "sc_add_repo_and_install_ignore_errors" in trans.meta_data:
                 self._show_transaction_failed_dialog(trans, enum)
 

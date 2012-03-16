@@ -30,6 +30,18 @@ software-center (5.1.13) UNRELEASED; urgency=low
       cannot be found (LP: #955005)
   * lp:~mvo/software-center/opengl-driver-blacklist:
     - add support for video driver blacklisting
+  * lp:~mvo/software-center/lp856559:
+    - fix case where the search term is not always
+      cleared in the search entry (LP: #856559)
+  * lp:~mvo/software-center/misc-fixes:
+    - when a package can not be authenticated, do not fail
+      (hard) but instead offer to "repair" the situation using
+      a "reload" and try the install again (LP: #876278)
+    - do not crash in if os.makedirs has a race condition
+      (LP: #956680)
+    - fix the proxy handling with 12.04 as the "enabled" property
+      is deprecated now. it will also not mess with the proxy
+      environment on non-gnome systems (LP: #742564) 
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-lp955048:
@@ -40,7 +52,7 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/recommendations-categories-view:
     - display recommendations in the category views as well 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 15 Mar 2012 18:24:03 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 16 Mar 2012 13:38:28 -0400
 
 software-center (5.1.12) precise; urgency=low
 
