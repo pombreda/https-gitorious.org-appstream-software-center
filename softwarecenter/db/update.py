@@ -292,13 +292,15 @@ class SCAPurchasedApplicationParser(SCAApplicationParser):
 
     def get_desktop(self, key, translated=True):
         if self._subscription_has_option_desktop(key):
-            if key.startswith('Deb-Line'):
+            DEB_LINE_KEY = 'X-AppInstall-Deb-Line'
+            if key.startswith(DEB_LINE_KEY):
                 debline_orig = getattr(
-                    self.sca_subscription, self._apply_mapping('Deb-Line'))
-                if key == 'Deb-Line-Orig':
+                    self.sca_subscription, self._apply_mapping(DEB_LINE_KEY))
+                if key == 'X-AppInstall-Deb-Line-Orig':
                     return debline_orig
                 else:
-                    return self.update_debline(debline_orig)
+                    deb_line = self.update_debline(debline_orig)
+                    return deb_line
 
             return getattr(self.sca_subscription, self._apply_mapping(key))
         return super(SCAPurchasedApplicationParser, self).get_desktop(key)

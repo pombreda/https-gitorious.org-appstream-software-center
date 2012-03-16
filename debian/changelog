@@ -42,6 +42,9 @@ software-center (5.1.13) UNRELEASED; urgency=low
     - fix the proxy handling with 12.04 as the "enabled" property
       is deprecated now. it will also not mess with the proxy
       environment on non-gnome systems (LP: #742564) 
+  * lp:~mvo/software-center/lp780812:
+    - ensure that the distroseries is updated in the sources
+      deb line when updating a purchased item (LP: #780812)
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-lp955048:
@@ -52,7 +55,7 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/recommendations-categories-view:
     - display recommendations in the category views as well 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 16 Mar 2012 13:38:28 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 16 Mar 2012 15:01:56 -0400
 
 software-center (5.1.12) precise; urgency=low
 
