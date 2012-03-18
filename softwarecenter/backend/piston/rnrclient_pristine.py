@@ -29,6 +29,7 @@ class ReviewRequest(PistonSerializable):
         'rating', 'language', 'origin', 'distroseries', 'arch_tag')
     app_name = ''
 
+
 class ReviewsStats(PistonResponseObject):
     """A ratings summary for a package/app.
 
@@ -82,7 +83,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     @validate('days', int, required=False)
     @returns_list_of(ReviewsStats)
     def review_stats(self, origin='any', distroseries='any', days=None,
-        valid_days=(1,3,7)):
+        valid_days=(1, 3, 7)):
         """Fetch ratings for a particular distroseries"""
         url = 'review-stats/{0}/{1}/'.format(origin, distroseries)
         if days is not None:
@@ -115,7 +116,7 @@ class RatingsAndReviewsAPI(PistonAPI):
             appname = quote_plus(';' + appname)
         return self._get('reviews/filter/%s/%s/%s/%s/%s%s/page/%s/%s/' % (
             language, origin, distroseries, version, packagename,
-            appname, page, sort), 
+            appname, page, sort),
             scheme=PUBLIC_API_SCHEME)
 
     @validate('review_id', int)
@@ -183,6 +184,10 @@ class RatingsAndReviewsAPI(PistonAPI):
     @returns(ReviewDetails)
     def modify_review(self, review_id, rating, summary, review_text):
         """Modify an existing review"""
-        data = {'rating':rating, 'summary':summary, 'review_text':review_text}
+        data = {
+            'rating': rating,
+            'summary': summary,
+            'review_text': review_text
+        }
         return self._put('/reviews/modify/%s/' % review_id, data=data,
         scheme=AUTHENTICATED_API_SCHEME)

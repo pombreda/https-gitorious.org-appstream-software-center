@@ -476,11 +476,18 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self._gsettings.connect("changed", self._setup_proxy)
 
     def _setup_proxy(self, setting=None, key=None):
-        proxy = get_http_proxy_string_from_gsettings()
-        if proxy:
-            os.environ["http_proxy"] = proxy
-        elif "http_proxy" in os.environ:
-            del os.environ["http_proxy"]
+        try:
+            proxy = get_http_proxy_string_from_gsettings()
+            LOG.info("setting up proxy '%s'" % proxy)
+            if proxy:
+                os.environ["http_proxy"] = proxy
+            else:
+                del os.environ["http_proxy"]
+        except Exception as e:
+            # if no gnome settings are installed, do not mess with
+            # http_proxy
+            LOG.warn("could not get proxy settings '%s'" % e)
+            pass
 
     # callbacks
     def on_realize(self, widget):
