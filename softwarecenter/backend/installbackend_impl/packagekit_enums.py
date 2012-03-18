@@ -18,9 +18,11 @@
 
 from gi.repository import PackageKitGlib as packagekit
 
+
 # this requires packagekit 0.7.2 or better
-def status_enum_to_localised_text (status):
+def status_enum_to_localised_text(status):
     return packagekit.info_enum_to_localised_present(status)
 
-def role_enum_to_localised_present (role):
+
+def role_enum_to_localised_present(role):
     return packagekit.role_enum_to_localised_present(role)
