@@ -28,13 +28,12 @@ from softwarecenter.enums import (SOFTWARE_CENTER_NAME_KEYRING,
 from softwarecenter.utils import clear_token_from_ubuntu_sso
 
 
-
 class SSOLoginHelper(object):
     def __init__(self, xid=0):
         self.oauth = None
         self.xid = xid
         self.loop = GObject.MainLoop(GObject.main_context_default())
-    
+
     def _login_successful(self, sso_backend, oauth_result):
         self.oauth = oauth_result
         # FIXME: actually verify the token against ubuntu SSO
@@ -44,6 +43,7 @@ class SSOLoginHelper(object):
         def _whoami_done(sso, me):
             self._whoami = me
             self.loop.quit()
+
         def _whoami_error(sso, err):
             #print "ERRR", err
             self.loop.quit()
@@ -74,7 +74,7 @@ class SSOLoginHelper(object):
     def get_oauth_token_sync(self):
         self.oauth = None
         sso = get_sso_backend(
-            self.xid, 
+            self.xid,
             SOFTWARE_CENTER_NAME_KEYRING,
             _(SOFTWARE_CENTER_SSO_DESCRIPTION))
         sso.connect("login-successful", self._login_successful)

@@ -24,10 +24,12 @@ from gi.repository import GObject
 from gi.repository import PackageKitGlib as packagekit
 
 from softwarecenter.enums import TransactionTypes
-from softwarecenter.backend.transactionswatcher import (BaseTransactionsWatcher,
-                                                        BaseTransaction,
-                                                        TransactionFinishedResult,
-                                                        TransactionProgress)
+from softwarecenter.backend.transactionswatcher import (
+    BaseTransactionsWatcher,
+    BaseTransaction,
+    TransactionFinishedResult,
+    TransactionProgress
+)
 from softwarecenter.backend.installbackend import InstallBackend
 from softwarecenter.backend.installbackend_impl import packagekit_enums
 
@@ -36,9 +38,10 @@ from softwarecenter.db.pkginfo import get_pkg_info
 
 LOG = logging.getLogger("softwarecenter.backend.packagekit")
 
+
 class PackagekitTransaction(BaseTransaction):
     _meta_data = {}
-    
+
     def __init__(self, trans):
         """ trans -- a PkProgress object """
         GObject.GObject.__init__(self)
@@ -50,18 +53,26 @@ class PackagekitTransaction(BaseTransaction):
         because PK DBus exposes only a generic Changed, without
         specifying the property changed
         """
-        self._trans.connect('notify::role', self._emit, 'role-changed', 'role')
-        self._trans.connect('notify::status', self._emit, 'status-changed', 'status')
-        self._trans.connect('notify::percentage', self._emit, 'progress-changed', 'percentage')
-        #self._trans.connect('notify::subpercentage', self._emit, 'progress-changed', 'subpercentage') # SC UI does not support subprogress
-        self._trans.connect('notify::percentage', self._emit, 'progress-changed', 'percentage')
-        self._trans.connect('notify::allow-cancel', self._emit, 'cancellable-changed', 'allow-cancel')
+        self._trans.connect('notify::role', self._emit,
+            'role-changed', 'role')
+        self._trans.connect('notify::status', self._emit,
+            'status-changed', 'status')
+        self._trans.connect('notify::percentage', self._emit,
+            'progress-changed', 'percentage')
+        # SC UI does not support subprogress:
+        #self._trans.connect('notify::subpercentage', self._emit,
+        #    'progress-changed', 'subpercentage')
+        self._trans.connect('notify::percentage', self._emit,
+            'progress-changed', 'percentage')
+        self._trans.connect('notify::allow-cancel', self._emit,
+            'cancellable-changed', 'allow-cancel')
 
         # connect the delete:
-        proxy = dbus.SystemBus().get_object('org.freedesktop.PackageKit', self.tid)
+        proxy = dbus.SystemBus().get_object('org.freedesktop.PackageKit',
+            self.tid)
         trans = dbus.Interface(proxy, 'org.freedesktop.PackageKit.Transaction')
         trans.connect_to_signal("Destroy", self._remove)
-        
+
     def _emit(self, *args):
         prop, what = args[-1], args[-2]
         self.emit(what, self._trans.get_property(prop))
@@ -69,25 +80,31 @@ class PackagekitTransaction(BaseTransaction):
     @property
     def tid(self):
         return self._trans.get_property('transaction-id')
+
     @property
     def status_details(self):
-        return self.get_status_description() # FIXME
+        return self.get_status_description()  # FIXME
+
     @property
     def meta_data(self):
         return self._meta_data
+
     @property
     def cancellable(self):
         return self._trans.get_property('allow-cancel')
+
     @property
     def progress(self):
         return self._trans.get_property('percentage')
 
     def get_role_description(self, role=None):
         role = role if role is not None else self._trans.get_property('role')
-        return self.meta_data.get('sc_appname', packagekit_enums.role_enum_to_localised_present(role))
+        return self.meta_data.get('sc_appname',
+            packagekit_enums.role_enum_to_localised_present(role))
 
     def get_status_description(self, status=None):
-        status = status if status is not None else self._trans.get_property('status')
+        if status is None:
+            status = self._trans.get_property('status')
 
         return packagekit_enums.status_enum_to_localised_text(status)
 
@@ -107,7 +124,8 @@ class PackagekitTransaction(BaseTransaction):
                status <= packagekit.StatusEnum.DOWNLOAD_UPDATEINFO)
 
     def cancel(self):
-        proxy = dbus.SystemBus().get_object('org.freedesktop.PackageKit', self.tid)
+        proxy = dbus.SystemBus().get_object('org.freedesktop.PackageKit',
+            self.tid)
         trans = dbus.Interface(proxy, 'org.freedesktop.PackageKit.Transaction')
         trans.Cancel()
 
@@ -120,6 +138,7 @@ class PackagekitTransaction(BaseTransaction):
             del PackagekitTransactionsWatcher._tlist[self.tid]
             LOG.debug("Delete transaction %s" % self.tid)
 
+
 class PackagekitTransactionsWatcher(BaseTransactionsWatcher):
     _tlist = {}
 
@@ -128,9 +147,10 @@ class PackagekitTransactionsWatcher(BaseTransactionsWatcher):
         self.client = packagekit.Client()
 
         bus = dbus.SystemBus()
-        proxy = bus.get_object('org.freedesktop.PackageKit', '/org/freedesktop/PackageKit')
+        proxy = bus.get_object('org.freedesktop.PackageKit',
+            '/org/freedesktop/PackageKit')
         daemon = dbus.Interface(proxy, 'org.freedesktop.PackageKit')
-        daemon.connect_to_signal("TransactionListChanged", 
+        daemon.connect_to_signal("TransactionListChanged",
                                      self._on_transactions_changed)
         queued = daemon.GetTransactionList()
         self._on_transactions_changed(queued)
@@ -161,29 +181,30 @@ class PackagekitTransactionsWatcher(BaseTransactionsWatcher):
             return trans
         return PackagekitTransactionsWatcher._tlist[tid]
 
+
 class PackagekitBackend(GObject.GObject, InstallBackend):
-    
-    __gsignals__ = {'transaction-started':(GObject.SIGNAL_RUN_FIRST,
+
+    __gsignals__ = {'transaction-started': (GObject.SIGNAL_RUN_FIRST,
                                             GObject.TYPE_NONE,
-                                            (str,str,str,str)),
+                                            (str, str, str, str)),
                     # emits a TransactionFinished object
-                    'transaction-finished':(GObject.SIGNAL_RUN_FIRST,
-                                            GObject.TYPE_NONE,
-                                            (GObject.TYPE_PYOBJECT, )),
-                    'transaction-stopped':(GObject.SIGNAL_RUN_FIRST,
+                    'transaction-finished': (GObject.SIGNAL_RUN_FIRST,
+                                             GObject.TYPE_NONE,
+                                             (GObject.TYPE_PYOBJECT, )),
+                    'transaction-stopped': (GObject.SIGNAL_RUN_FIRST,
                                             GObject.TYPE_NONE,
                                             (GObject.TYPE_PYOBJECT,)),
-                    'transactions-changed':(GObject.SIGNAL_RUN_FIRST,
-                                            GObject.TYPE_NONE,
-                                            (GObject.TYPE_PYOBJECT, )),
-                    'transaction-progress-changed':(GObject.SIGNAL_RUN_FIRST,
-                                                    GObject.TYPE_NONE,
-                                                    (str,int,)),
+                    'transactions-changed': (GObject.SIGNAL_RUN_FIRST,
+                                             GObject.TYPE_NONE,
+                                             (GObject.TYPE_PYOBJECT, )),
+                    'transaction-progress-changed': (GObject.SIGNAL_RUN_FIRST,
+                                                     GObject.TYPE_NONE,
+                                                     (str, int,)),
                     # the number/names of the available channels changed
                     # FIXME: not emitted.
-                    'channels-changed':(GObject.SIGNAL_RUN_FIRST,
-                                        GObject.TYPE_NONE,
-                                        (bool,)),
+                    'channels-changed': (GObject.SIGNAL_RUN_FIRST,
+                                         GObject.TYPE_NONE,
+                                         (bool,)),
                     }
 
     def __init__(self):
@@ -192,7 +213,7 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
 
         # transaction details for setting as meta
         self.new_pkgname, self.new_appname, self.new_iconname = '', '', ''
-        
+
         # this is public exposed
         self.pending_transactions = {}
 
@@ -202,11 +223,12 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
 
         self._transactions_watcher = PackagekitTransactionsWatcher()
         self._transactions_watcher.connect('lowlevel-transactions-changed',
-                                self._on_lowlevel_transactions_changed)        
+                                self._on_lowlevel_transactions_changed)
 
     def upgrade(self, pkgname, appname, iconname, addons_install=[],
                 addons_remove=[], metadata=None):
-        pass # FIXME implement it
+        pass  # FIXME implement it
+
     def remove(self, app, iconname, addons_install=[],
                 addons_remove=[], metadata=None):
         self.remove_multiple((app,), (iconname,),
@@ -220,26 +242,29 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         appnames = [app.appname for app in apps]
 
         # keep track of pkg, app and icon for setting them as meta
-        self.new_pkgname, self.new_appname, self.new_iconname = pkgnames[0], appnames[0], iconnames[0]
+        self.new_pkgname = pkgnames[0]
+        self.new_appname = appnames[0]
+        self.new_iconname = iconnames[0]
 
         # temporary hack
         pkgnames = self._fix_pkgnames(pkgnames)
 
         self.client.remove_packages_async(pkgnames,
-                    False, # allow deps
-                    False, # autoremove
-                    None, # cancellable
+                    False,  # allow deps
+                    False,  # autoremove
+                    None,  # cancellable
                     self._on_progress_changed,
-                    None, # progress data
-                    self._on_remove_ready, # callback ready
-                    None # callback data
+                    None,  # progress data
+                    self._on_remove_ready,  # callback ready
+                    None  # callback data
         )
-        self.emit("transaction-started", pkgnames[0], appnames[0], 0, TransactionTypes.REMOVE)
+        self.emit("transaction-started", pkgnames[0], appnames[0], 0,
+            TransactionTypes.REMOVE)
 
     def install(self, app, iconname, filename=None,
                 addons_install=[], addons_remove=[], metadata=None):
         if filename is not None:
-            LOG.error("Filename not implemented") # FIXME
+            LOG.error("Filename not implemented")  # FIXME
         else:
             self.install_multiple((app,), (iconname,),
                  addons_install, addons_remove, metadata
@@ -252,7 +277,9 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         appnames = [app.appname for app in apps]
 
         # keep track of pkg, app and icon for setting them as meta
-        self.new_pkgname, self.new_appname, self.new_iconname = pkgnames[0], appnames[0], iconnames[0]
+        self.new_pkgname = pkgnames[0]
+        self.new_appname = appnames[0]
+        self.new_iconname = iconnames[0]
 
         # temporary hack
         pkgnames = self._fix_pkgnames(pkgnames)
@@ -263,19 +290,21 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         # PackageKit from installing untrusted packages
         # (in general, all enabled repos should have GPG signatures,
         # which is enough for being marked "trusted", but still)
-        self.client.install_packages_async(True, # only trusted
+        self.client.install_packages_async(True,  # only trusted
                     pkgnames,
-                    None, # cancellable
+                    None,  # cancellable
                     self._on_progress_changed,
-                    None, # progress data
-                    self._on_install_ready, # GAsyncReadyCallback
+                    None,  # progress data
+                    self._on_install_ready,  # GAsyncReadyCallback
                     None  # ready data
         )
-        self.emit("transaction-started", pkgnames[0], appnames[0], 0, TransactionTypes.INSTALL)
+        self.emit("transaction-started", pkgnames[0], appnames[0], 0,
+            TransactionTypes.INSTALL)
 
     def apply_changes(self, pkgname, appname, iconname,
         addons_install=[], addons_remove=[], metadata=None):
         pass
+
     def reload(self, sources_list=None, metadata=None):
         """ reload package list """
         pass
@@ -313,15 +342,19 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
             if self.new_pkgname not in self.pending_transactions:
                 self.pending_transactions[self.new_pkgname] = trans
 
-        #LOG.debug("Progress update %s %s %s %s" % (status, ptype, progress.get_property('transaction-id'),progress.get_property('status')))
+        # LOG.debug("Progress update %s %s %s %s" %
+        #     (status, ptype, progress.get_property('transaction-id'),
+        #     progress.get_property('status')))
 
         if status == packagekit.StatusEnum.FINISHED:
             LOG.debug("Transaction finished %s" % tid)
-            self.emit("transaction-finished", TransactionFinishedResult(trans, True))
+            self.emit("transaction-finished",
+                TransactionFinishedResult(trans, True))
 
         if status == packagekit.StatusEnum.CANCEL:
             LOG.debug("Transaction canceled %s" % tid)
-            self.emit("transaction-stopped", TransactionFinishedResult(trans, True))
+            self.emit("transaction-stopped",
+                TransactionFinishedResult(trans, True))
 
         if ptype == packagekit.ProgressType.PACKAGE:
             # this should be done better
@@ -348,7 +381,8 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
             trans = self._transactions_watcher.get_transaction(tid)
             trans_progress = TransactionProgress(trans)
             try:
-                self.pending_transactions[trans_progress.pkgname] = trans_progress
+                self.pending_transactions[
+                    trans_progress.pkgname] = trans_progress
             except:
                 self.pending_transactions[trans.tid] = trans_progress
 
@@ -375,7 +409,7 @@ if __name__ == "__main__":
 
     loop = dbus.mainloop.glib.DBusGMainLoop()
     dbus.set_default_main_loop(loop)
-    
+
     backend = PackagekitBackend()
     pkginfo = get_pkg_info()
     if pkginfo[package].is_installed:
@@ -387,4 +421,3 @@ if __name__ == "__main__":
     from gi.repository import Gtk
     Gtk.main()
     #print backend._fix_pkgnames(('cheese',))
-
