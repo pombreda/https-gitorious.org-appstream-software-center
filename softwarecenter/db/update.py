@@ -568,7 +568,9 @@ def update_from_single_appstream_file(db, cache, filename):
             pkgname_node = appinfo.find('pkgname')
             if pkgname_node is not None:
                 needed.append(pkgname_node.text)
-        cache.prefill_cache(wanted_pkgs=needed, prefill_descriptions=True)
+        # We need information about all packages and about newest package
+        cache.prefill_cache(wanted_pkgs=needed, prefill_descriptions=False, only_newest=False)
+        cache.prefill_cache(wanted_pkgs=needed, prefill_descriptions=True, only_newest=True)
 
     for appinfo in root.iter("application"):
         parser = AppStreamXMLParser(appinfo, filename)
