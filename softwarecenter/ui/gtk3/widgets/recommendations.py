@@ -269,6 +269,29 @@ class RecommendationsPanelDetails(RecommendationsPanel):
     def _hide_app_recommendations_panel(self):
         # and hide the pane
         self.hide()
+        
+        
+class RecommendationsOptInDialog(Gtk.MessageDialog):
+    """
+    Dialog to display the recommendations opt-in message when opt-in is
+    initiated from the menu.
+    """
+    def __init__(self, icons):
+        Gtk.MessageDialog.__init__(self, flags=Gtk.DialogFlags.MODAL,
+                                   type=Gtk.MessageType.INFO)
+        self.set_title("")
+        icon_name = "softwarecenter"
+        if icons.has_icon(icon_name):
+            icon = Gtk.Image.new_from_icon_name(icon_name,
+                                                Gtk.IconSize.DIALOG)
+            self.set_image(icon)
+            icon.show()
+        self.format_secondary_text(
+                        RecommendationsPanelLobby.RECOMMENDATIONS_OPT_IN_TEXT)
+        self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        self.add_button(RecommendationsPanelLobby.TURN_ON_RECOMMENDATIONS_TEXT,
+                                 Gtk.ResponseType.YES)
+        self.set_default_response(Gtk.ResponseType.YES)
 
 
 # test helpers

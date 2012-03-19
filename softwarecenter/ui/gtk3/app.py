@@ -89,6 +89,8 @@ from softwarecenter.ui.gtk3.session.appmanager import (ApplicationManager,
                                                        get_appmanager)
 from softwarecenter.ui.gtk3.session.viewmanager import (
     ViewManager, get_viewmanager)
+from softwarecenter.ui.gtk3.widgets.recommendations import (
+    RecommendationsOptInDialog)
 
 from softwarecenter.config import get_config
 from softwarecenter.backend import get_install_backend
@@ -787,21 +789,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             rec_panel.opt_out_of_recommendations_service()
         else:
             # build and show the opt-in dialog
-            opt_in_dialog = Gtk.MessageDialog(flags=Gtk.DialogFlags.MODAL,
-                                              type=Gtk.MessageType.INFO)
-            opt_in_dialog.set_title("")
-            icon_name = "softwarecenter"
-            if self.icons.has_icon(icon_name):
-                icon = Gtk.Image.new_from_icon_name(icon_name,
-                                                    Gtk.IconSize.DIALOG)
-                opt_in_dialog.set_image(icon)
-                icon.show()
-            opt_in_dialog.format_secondary_text(
-                                rec_panel.RECOMMENDATIONS_OPT_IN_TEXT)
-            opt_in_dialog.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
-            opt_in_dialog.add_button(rec_panel.TURN_ON_RECOMMENDATIONS_TEXT,
-                                     Gtk.ResponseType.YES)
-            opt_in_dialog.set_default_response(Gtk.ResponseType.YES)
+            opt_in_dialog = RecommendationsOptInDialog(self.icons)
             res = opt_in_dialog.run()
             opt_in_dialog.destroy()
             if res == Gtk.ResponseType.YES:
