@@ -269,8 +269,8 @@ class RecommendationsPanelDetails(RecommendationsPanel):
     def _hide_app_recommendations_panel(self):
         # and hide the pane
         self.hide()
-        
-        
+
+
 class RecommendationsOptInDialog(Gtk.MessageDialog):
     """
     Dialog to display the recommendations opt-in message when opt-in is
@@ -295,17 +295,18 @@ class RecommendationsOptInDialog(Gtk.MessageDialog):
 
 
 # test helpers
-def get_test_window():
+def get_test_window(panel_type="lobby"):
     import softwarecenter.log
     softwarecenter.log.root.setLevel(level=logging.DEBUG)
     fmt = logging.Formatter("%(name)s - %(message)s", None)
     softwarecenter.log.handler.setFormatter(fmt)
 
-    # this is *way* to complicated we should *not* need a CatView
+    # this is *way* too complicated we should *not* need a CatView
     # here! see FIXME in RecommendationsPanel.__init__()
     from softwarecenter.ui.gtk3.views.catview_gtk import CategoriesViewGtk
     from softwarecenter.testutils import (
-        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache)
+        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache,
+        get_test_categories)
     cache = get_test_pkg_info()
     db = get_test_db()
     icons = get_test_gtk3_icon_cache()
@@ -315,7 +316,13 @@ def get_test_window():
                                 db,
                                 icons)
 
-    view = RecommendationsPanelLobby(catview)
+    if panel_type is "lobby":
+        view = RecommendationsPanelLobby(catview)
+    elif panel_type is "category":
+        cats = get_test_categories(db)
+        view = RecommendationsPanelCategory(catview, cats[0])
+    else: # panel_type is "details":
+        view = RecommendationsPanelDetails(catview)
 
     win = Gtk.Window()
     win.connect("destroy", lambda x: Gtk.main_quit())
