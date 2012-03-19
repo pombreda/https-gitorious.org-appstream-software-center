@@ -430,6 +430,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
         if query is None:
             query = self.get_query()
 
+        if not self.app_view:
+            return
         self.app_view.clear_model()
         self.search_aid.reset()
         self.show_appview_spinner()
