@@ -567,6 +567,7 @@ class FramedHeaderBox(FramedBox):
     def remove_more_button(self):
         if hasattr(self, "more"):
             self.header.remove(self.more)
+            del self.more
 
     def render_header(self, cr, a, border_radius, assets):
 
