@@ -190,6 +190,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
     def opt_out_of_recommendations_service(self):
         if self.recommended_for_you_content:
             self.recommended_for_you_content.destroy()
+        self.recommender_agent.recommender_uuid = ""
         self._show_opt_in_view()
         self.remove_more_button()
         self.show_all()
