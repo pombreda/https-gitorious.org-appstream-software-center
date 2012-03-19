@@ -33,24 +33,24 @@ from spawn_helper import SpawnHelper
 
 LOG = logging.getLogger(__name__)
 
+
 class UbuntuSSOAPI(GObject.GObject):
     """ Ubuntu SSO interface using the oauth token from the keyring """
 
     __gsignals__ = {
-        "whoami" : (GObject.SIGNAL_RUN_LAST,
-                    GObject.TYPE_NONE, 
-                    (GObject.TYPE_PYOBJECT,),
-                    ),
-        "error" : (GObject.SIGNAL_RUN_LAST,
-                    GObject.TYPE_NONE, 
-                    (GObject.TYPE_PYOBJECT,),
-                    ),
-
+        "whoami": (GObject.SIGNAL_RUN_LAST,
+                   GObject.TYPE_NONE,
+                   (GObject.TYPE_PYOBJECT,),
+                   ),
+        "error": (GObject.SIGNAL_RUN_LAST,
+                  GObject.TYPE_NONE,
+                  (GObject.TYPE_PYOBJECT,),
+                  ),
         }
-       
+
     def __init__(self):
         GObject.GObject.__init__(self)
-        
+
     def _on_whoami_data(self, spawner, piston_whoami):
         self.emit("whoami", piston_whoami)
 
@@ -66,6 +66,7 @@ class UbuntuSSOAPI(GObject.GObject):
         spawner.needs_auth = True
         spawner.run_generic_piston_helper("UbuntuSsoAPI", "whoami")
 
+
 class UbuntuSSOAPIFake(UbuntuSSOAPI):
 
     def __init__(self):
@@ -76,26 +77,28 @@ class UbuntuSSOAPIFake(UbuntuSSOAPI):
     def whoami(self):
         if self._fake_settings.get_setting('whoami_response') == "whoami":
             self.emit("whoami", self._create_whoami_response())
-        elif self._fake_settings.get_setting('whoami_response') == "error": 
+        elif self._fake_settings.get_setting('whoami_response') == "error":
             self.emit("error", self._make_error())
-    
+
     def _create_whoami_response(self):
-        username = self._fake_settings.get_setting('whoami_username') or "anyuser"
+        username = (self._fake_settings.get_setting('whoami_username') or
+            "anyuser")
         response = {
-                    u'username': username.decode('utf-8'), 
-                    u'preferred_email': u'user@email.com', 
-                    u'displayname': u'Fake User', 
-                    u'unverified_emails': [], 
-                    u'verified_emails': [], 
+                    u'username': username.decode('utf-8'),
+                    u'preferred_email': u'user@email.com',
+                    u'displayname': u'Fake User',
+                    u'unverified_emails': [],
+                    u'verified_emails': [],
                     u'openid_identifier': u'fnerkWt'
                    }
         return response
-    
+
     def _make_error():
         return 'HTTP Error 401: Unauthorized'
 
+
 def get_ubuntu_sso_backend():
-    """ 
+    """
     factory that returns an ubuntu sso loader singelton
     """
     if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
@@ -109,8 +112,12 @@ def get_ubuntu_sso_backend():
 # test code
 def _login_success(lp, token):
     print "success", lp, token
+
+
 def _login_failed(lp):
     print "fail", lp
+
+
 def _login_need_user_and_password(sso):
     import sys
     sys.stdout.write("user: ")
@@ -126,9 +133,11 @@ if __name__ == "__main__":
     def _whoami(sso, result):
         print "res: ", result
         Gtk.main_quit()
+
     def _error(sso, result):
         print "err: ", result
         Gtk.main_quit()
+
     def _dbus_maybe_login_successful(ssologin, oauth_result):
         print "got token, verify it now"
         sso = UbuntuSSOAPI()
@@ -145,5 +154,3 @@ if __name__ == "__main__":
     backend.connect("login-successful", _dbus_maybe_login_successful)
     backend.login_or_register()
     Gtk.main()
-
-

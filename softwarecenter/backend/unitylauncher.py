@@ -21,6 +21,7 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
+
 class UnityLauncherInfo(object):
     """ Simple class to keep track of application details needed for
         Unity launcher integration
@@ -42,19 +43,20 @@ class UnityLauncherInfo(object):
         self.icon_size = icon_size
         self.app_install_desktop_file_path = app_install_desktop_file_path
         self.trans_id = trans_id
-        
+
+
 class UnityLauncher(object):
     """ Implements the integration between Software Center and the Unity
         launcher
     """
-     
+
     def send_application_to_launcher(self, pkgname, launcher_info):
         """ send a dbus message to the Unity launcher service to initiate
             the add to launcher functionality for the specified application
-        """ 
-        LOG.debug("sending dbus signal to Unity launcher for application: ", 
+        """
+        LOG.debug("sending dbus signal to Unity launcher for application: ",
                   launcher_info.name)
-        LOG.debug("  launcher_info.icon_file_path: ", 
+        LOG.debug("  launcher_info.icon_file_path: ",
                      launcher_info.icon_file_path)
         LOG.debug("  launcher_info.app_install_desktop_file_path: ",
                      launcher_info.app_install_desktop_file_path)

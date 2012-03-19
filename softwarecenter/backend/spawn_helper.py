@@ -22,7 +22,7 @@
 # py3 compat
 try:
     import cPickle as pickle
-    pickle # pyflakes
+    pickle  # pyflakes
 except ImportError:
     import pickle
 
@@ -37,21 +37,22 @@ from gi.repository import GObject
 
 LOG = logging.getLogger(__name__)
 
+
 class SpawnHelper(GObject.GObject):
-    
+
     __gsignals__ = {
-        "data-available" : (GObject.SIGNAL_RUN_LAST,
-                            GObject.TYPE_NONE, 
-                            (GObject.TYPE_PYOBJECT,),
-                            ),
-        "exited" : (GObject.SIGNAL_RUN_LAST,
-                    GObject.TYPE_NONE, 
-                    (int,),
-                    ),
-        "error" : (GObject.SIGNAL_RUN_LAST,
-                   GObject.TYPE_NONE, 
-                   (str,),
-                  ),
+        "data-available": (GObject.SIGNAL_RUN_LAST,
+                           GObject.TYPE_NONE,
+                           (GObject.TYPE_PYOBJECT,),
+                           ),
+        "exited": (GObject.SIGNAL_RUN_LAST,
+                   GObject.TYPE_NONE,
+                   (int,),
+                   ),
+        "error": (GObject.SIGNAL_RUN_LAST,
+                  GObject.TYPE_NONE,
+                  (str,),
+                 ),
         }
 
     def __init__(self, format="pickle"):
@@ -87,7 +88,7 @@ class SpawnHelper(GObject.GObject):
     def run(self, cmd):
         self._cmd = cmd
         (pid, stdin, stdout, stderr) = GObject.spawn_async(
-            cmd, flags = GObject.SPAWN_DO_NOT_REAP_CHILD, 
+            cmd, flags=GObject.SPAWN_DO_NOT_REAP_CHILD,
             standard_output=True, standard_error=True)
         LOG.debug("running: '%s' as pid: '%s'" % (cmd, pid))
         self._child_watch = GObject.child_watch_add(
@@ -104,7 +105,7 @@ class SpawnHelper(GObject.GObject):
         else:
             LOG.warn("exit code %s from helper for '%s'" % (res, self._cmd))
             # check stderr
-            err = os.read(stderr, 4*1024)
+            err = os.read(stderr, 4 * 1024)
             self._stderr = err
             if err:
                 LOG.warn("got error from helper: '%s'" % err)
@@ -122,7 +123,8 @@ class SpawnHelper(GObject.GObject):
         data = ""
         while True:
             s = os.read(stdout, 1024)
-            if not s: break
+            if not s:
+                break
             data += s
         os.close(stdout)
         self._stdout = data
