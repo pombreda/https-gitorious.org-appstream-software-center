@@ -55,6 +55,10 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~mvo/software-center/recommendations-opt-out:
     - fix double-results when opting-in and back out of of
       the recommendations service repeatedly
+  * lp:~mvo/software-center/tos-dialog:
+    - display a terms-of-service dialog before the first purchase
+  * lp:~mvo/software-center/lp957599:
+    - add a new unit test test_spawn_helper.py
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-lp955048:
@@ -73,7 +77,7 @@ software-center (5.1.13) UNRELEASED; urgency=low
     - This branch clears out most of the unused code/files
       that can be found in the sc codebase
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 19 Mar 2012 16:44:05 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 19 Mar 2012 17:15:23 -0400
 
 software-center (5.1.12) precise; urgency=low
 

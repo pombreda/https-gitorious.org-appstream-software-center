@@ -198,8 +198,10 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.show_all()
         self.emit("recommendations-opt-out")
         try:
-            self.recommender_agent.disconnect_by_func(self._on_profile_submitted)
-            self.recommender_agent.disconnect_by_func(self._on_profile_submitted_error)
+            self.recommender_agent.disconnect_by_func(
+                self._on_profile_submitted)
+            self.recommender_agent.disconnect_by_func(
+                self._on_profile_submitted_error)
         except TypeError:
             pass
 
