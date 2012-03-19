@@ -361,20 +361,25 @@ class PackagekitInfo(PackageInfo):
  
     def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
         LOG.debug("package_one %s", pkgname) #, self._cache.keys()
-        if (pkgname in self._cache_pkg.keys()) and cache:
-            return self._cache_pkg[pkgname]
-        ps = self._get_packages(pkgname, pfilter)
+        ps = self._get_packages(pkgname, pfilter, cache)
         if not ps:
             # also keep it in not found, to prevent further calls of resolve
             if pkgname not in self._notfound_cache_pkg:
                 LOG.debug("blacklisted %s", pkgname)
                 self._notfound_cache_pkg.append(pkgname)
             return None
-        self._cache_pkg[pkgname] = ps[0]
+
         return ps[0]
 
-    def _get_packages(self, pkgname, pfilter=packagekit.FilterEnum.NONE):
+    def _get_packages(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
         """ resolve a package name into a PkPackage object or return None """
+        LOG.debug("packages %s", pkgname) #, self._cache.keys()
+
+        cache_pkg_filter = self._cache_pkg
+
+        if cache and cache_pkg_filter is not None and (pkgname in cache_pkg_filter.keys()):
+            return [ cache_pkg_filter[pkgname] ]
+
         pfilter = 1 << pfilter
         # we never want source packages
         pfilter |= 1 << packagekit.FilterEnum.NOT_SOURCE
@@ -389,6 +394,10 @@ class PackagekitInfo(PackageInfo):
             return []
 
         pkgs = result.get_package_array()
+
+        if cache_pkg_filter is not None:
+            cache_pkg_filter[pkgname] = pkgs[0]
+
         return pkgs
 
     def _get_repolist(self, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
