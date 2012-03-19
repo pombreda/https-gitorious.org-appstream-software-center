@@ -143,23 +143,27 @@ class PackagekitInfo(PackageInfo):
         # we never want source packages
         pfilter |= 1 << packagekit.FilterEnum.NOT_SOURCE
         try:
-            if wanted_pkgs and use_resolve:
-                pkgs = []
-                # FIXME: 100 is not a random value, it's the default value of
-                # MaximumItemsToResolve in /etc/PackageKit.conf.
-                # If the configuration is changed to a lower value, this will
-                # fail badly...
-                for i in xrange(0, len(wanted_pkgs), 100):
+        if wanted_pkgs and use_resolve:
+            pkgs = []
+            # FIXME: 100 is not a random value, it's the default value of
+            # MaximumItemsToResolve in /etc/PackageKit.conf.
+            # If the configuration is changed to a lower value, this will
+            # fail badly...
+            for i in xrange(0, len(wanted_pkgs), 100):
+                try:
                     result = self.client.resolve(pfilter, wanted_pkgs[i:i+100], None, self._on_progress_changed, None)
                     newpkgs = result.get_package_array()
                     pkgs.extend(newpkgs)
+                except GObject.GError as e:
+                    LOG.info('Error while prefilling cache: %s' % e)
 
-            else:
+        else:
+            try:
                 result = self.client.get_packages(pfilter, None, self._on_progress_changed, None)
                 pkgs = result.get_package_array()
-        except GObject.GError as e:
-            LOG.info('Cannot prefill cache: %s' % e)
-            return
+            except GObject.GError as e:
+                LOG.info('Cannot prefill cache: %s' % e)
+                return
 
         batch = []
 
