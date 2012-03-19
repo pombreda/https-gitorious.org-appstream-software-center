@@ -62,7 +62,6 @@ softwarecenter/ui/gtk3/widgets/searchaid.py
 softwarecenter/ui/gtk3/widgets/searchentry.py
 softwarecenter/ui/gtk3/widgets/stars.py
 softwarecenter/ui/gtk3/widgets/thumbnail.py
-softwarecenter/ui/gtk3/widgets/unused__pathbar.py
 softwarecenter/ui/gtk3/widgets/videoplayer.py
 softwarecenter/ui/gtk3/widgets/weblivedialog.py
 softwarecenter/ui/gtk3/widgets/recommendations.py
