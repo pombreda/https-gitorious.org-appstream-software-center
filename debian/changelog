@@ -52,6 +52,9 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp780812:
     - ensure that the distroseries is updated in the sources
       deb line when updating a purchased item (LP: #780812)
+  * lp:~mvo/software-center/recommendations-opt-out:
+    - fix double-results when opting-in and back out of of
+      the recommendations service repeatedly
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-lp955048:
@@ -69,7 +72,7 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * This branch clears out most of the unused code/files
     that can be found in the sc codebase
 
- -- Kiwinote <kiwinote@gmail.com>  Mon, 19 Mar 2012 15:29:24 +0000
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 19 Mar 2012 16:42:41 -0400
 
 software-center (5.1.12) precise; urgency=low
 
