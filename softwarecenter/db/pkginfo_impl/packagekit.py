@@ -64,6 +64,7 @@ class PkOrigin:
             self.component = 'main'
         self.site = ''
 
+
 class PackagekitVersion(_Version):
     def __init__(self, package, pkginfo):
         self.package = package
@@ -76,30 +77,38 @@ class PackagekitVersion(_Version):
 
     @property
     def downloadable(self):
-        return True #FIXME: check for an equivalent
+        return True  # FIXME: check for an equivalent
+
     @property
     def summary(self):
         return self.package.get_property('summary')
+
     @property
     def size(self):
         return self.pkginfo.get_size(self.package.get_name())
+
     @property
     def installed_size(self):
-        """ In packagekit, installed_size can be fetched only for installed packages,
-        and is stored in the same 'size' property as the package size """
+        """In packagekit, installed_size can be fetched only for installed
+        packages, and is stored in the same 'size' property as the package
+        size"""
         return self.pkginfo.get_installed_size(self.package.get_name())
+
     @property
     def version(self):
         return self.package.get_version()
+
     @property
     def origins(self):
         return self.pkginfo.get_origins(self.package.get_name())
+
 
 def make_locale_string():
     loc = locale.getlocale(locale.LC_MESSAGES)
     if loc[1]:
         return loc[0] + '.' + loc[1]
     return loc[0]
+
 
 class PackagekitInfo(PackageInfo):
     USE_CACHE = True
@@ -331,7 +340,7 @@ class PackagekitInfo(PackageInfo):
             return []
         return [p.get_name() for p in res.get_package_array() if (p.get_name() != pkg.name) and p.get_info() == packagekit.InfoEnum.INSTALLED]
 
-    def get_total_size_on_install(self, pkgname, 
+    def get_total_size_on_install(self, pkgname,
                                   addons_install=None, addons_remove=None,
                                   archive_suite=None):
         """ Returns a tuple (download_size, installed_size)
@@ -339,7 +348,7 @@ class PackagekitInfo(PackageInfo):
         plus addons change.
         """
         # FIXME: support archive_suite here too
-        
+
         # FIXME: PackageKit reports only one size at a time
         if self.is_installed(pkgname):
             return (0, self.get_size(pkgname))
@@ -377,7 +386,7 @@ class PackagekitInfo(PackageInfo):
         packageid = pkgs[0].get_property('package-id')
         self._cache_details[packageid] = pkgs[0]
         return pkgs[0]
- 
+
     def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
         LOG.debug("package_one %s", pkgname) #, self._cache.keys()
         ps = self._get_packages(pkgname, pfilter, cache)
@@ -459,7 +468,7 @@ class PackagekitInfo(PackageInfo):
     def _on_progress_changed(self, progress, ptype, data=None):
         pass
 
-if __name__=="__main__":
+if __name__ == "__main__":
     pi = PackagekitInfo()
 
     print "Firefox, installed ", pi.is_installed('firefox')

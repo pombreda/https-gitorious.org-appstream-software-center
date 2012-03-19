@@ -33,7 +33,7 @@ class openSUSE(Distro):
     SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-with-version/%(pkgname)s/%(version)s"
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-with-version/%(pkgname)s/%(version)s"
     SCREENSHOT_JSON_URL = "http://screenshots.ubuntu.com/json/package/%s"
-    
+
     # reviews
     ### FIXME: we'll want this at some point
     REVIEWS_SERVER = ""
@@ -45,7 +45,7 @@ class openSUSE(Distro):
 
     def get_app_description(self):
         return _("Lets you choose from thousands of applications available.")
-    
+
     def get_distro_channel_name(self):
         """ The name in the Release file """
         return "openSUSE"
