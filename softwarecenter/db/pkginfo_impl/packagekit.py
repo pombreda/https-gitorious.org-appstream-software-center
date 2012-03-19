@@ -136,13 +136,14 @@ class PackagekitInfo(PackageInfo):
             self._cache_details[packageid] = detail
 
     def prefill_cache(self, wanted_pkgs = None, prefill_descriptions = False, use_resolve = True):
+        cache = {}
+
         if wanted_pkgs:
             wanted_pkgs = list(set(wanted_pkgs))
 
         pfilter = 1 << packagekit.FilterEnum.NEWEST
         # we never want source packages
         pfilter |= 1 << packagekit.FilterEnum.NOT_SOURCE
-        try:
         if wanted_pkgs and use_resolve:
             pkgs = []
             # FIXME: 100 is not a random value, it's the default value of
@@ -171,17 +172,21 @@ class PackagekitInfo(PackageInfo):
             name = pkg.get_name()
             if wanted_pkgs and name not in wanted_pkgs:
                 continue
-            if self._cache_pkg.has_key(name):
-                continue
-            self._cache_pkg[name] = pkg
-
-            if prefill_descriptions:
-                batch.append(pkg)
+            try:
+                value = cache[name]
+                value.append(pkg)
+                cache[name] = value
+            except KeyError:
+                cache[name] = [ pkg ]
+                if prefill_descriptions:
+                    batch.append(pkg)
 
             if len(batch) == 1000:
                 self._prefill_descriptions_helper(batch)
                 batch = []
         self._prefill_descriptions_helper(batch)
+
+        self._cache_pkg = cache
 
     def is_installed(self, pkgname):
         p = self._get_one_package(pkgname)
@@ -256,7 +261,7 @@ class PackagekitInfo(PackageInfo):
         # don't use the cache, we use NOT_INSTALLED (which is possibly wrong
         # too?)
         if cache and (pkgname in self._cache_pkg.keys()):
-            pkgs = [ self._cache_pkg[pkgname] ]
+            pkgs = self._cache_pkg[pkgname]
         else:
             pkgs = self._get_packages(pkgname, pfilter=packagekit.FilterEnum.NOT_INSTALLED)
 
@@ -388,7 +393,7 @@ class PackagekitInfo(PackageInfo):
             cache_pkg_filter = None
 
         if cache and cache_pkg_filter is not None and (pkgname in cache_pkg_filter.keys()):
-            return [ cache_pkg_filter[pkgname] ]
+            return cache_pkg_filter[pkgname]
 
         pfilter = 1 << pfilter
         # we never want source packages
@@ -406,7 +411,7 @@ class PackagekitInfo(PackageInfo):
         pkgs = result.get_package_array()
 
         if cache_pkg_filter is not None:
-            cache_pkg_filter[pkgname] = pkgs[0]
+            cache_pkg_filter[pkgname] = pkgs
 
         return pkgs
 
