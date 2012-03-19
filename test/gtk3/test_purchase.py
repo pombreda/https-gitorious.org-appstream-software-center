@@ -5,7 +5,7 @@ import unittest
 
 from mock import Mock,patch
 
-from testutils import setup_test_env, do_events
+from testutils import setup_test_env
 setup_test_env()
 
 from softwarecenter.testutils import do_events

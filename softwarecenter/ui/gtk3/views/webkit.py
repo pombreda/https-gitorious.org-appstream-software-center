@@ -24,6 +24,7 @@ import urlparse
 
 from softwarecenter.i18n import get_language
 
+
 class LocaleAwareWebView(webkit.WebView):
 
     def __init__(self):

@@ -24,12 +24,9 @@ from gi.repository import WebKit
 
 from gettext import gettext as _
 
-import softwarecenter.paths
-from softwarecenter.ui.gtk3.dialogs import SimpleGtkbuilderDialog
+from softwarecenter.ui.gtk3.views.webkit import ScrolledWebkitWindow
 from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
 
-# FIXME: move this into a widget
-from softwarecenter.ui.gtk3.views.webkit import ScrolledWebkitWindow
 
 class DialogTos(Gtk.Dialog):
 
@@ -58,18 +55,19 @@ class DialogTos(Gtk.Dialog):
         wb = ScrolledWebkitWindow()
         wb.show_all()
         self.webkit = wb.webkit
-        self.webkit.connect("notify::load-status", self._on_load_status_changed)
+        self.webkit.connect(
+            "notify::load-status", self._on_load_status_changed)
         # content
         content = self.get_content_area()
         self.spinner = SpinnerNotebook(wb)
         self.spinner.show_all()
         content.pack_start(self.spinner, True, True, 0)
-    
+
     def run(self):
         self.spinner.show_spinner()
         self.webkit.load_uri("http://apps.ubuntu.com/cat/tos")
         return Gtk.Dialog.run(self)
-        
+
     def _on_load_status_changed(self, view, pspec):
         prop = pspec.name
         status = view.get_property(prop)

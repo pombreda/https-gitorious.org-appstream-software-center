@@ -40,6 +40,7 @@ from softwarecenter.ui.gtk3.views.webkit import ScrolledWebkitWindow
 
 LOG = logging.getLogger(__name__)
 
+
 class PurchaseView(Gtk.VBox):
     """
     View that displays the webkit-based UI for purchasing an item.
@@ -125,7 +126,7 @@ center no-repeat;
         self._unblock_wk_handlers()
 
     def _ask_for_tos_acceptance_if_needed(self):
-	try:
+        try:
             accepted_tos = self.config.getboolean("general", "accepted_tos")
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             accepted_tos = False

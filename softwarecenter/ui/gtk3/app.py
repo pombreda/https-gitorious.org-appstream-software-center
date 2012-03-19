@@ -1067,7 +1067,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             ["yelp", "ghelp:software-center"], flags=GObject.SPAWN_SEARCH_PATH)
 
     def on_menuitem_tos_activate(self, menuitem):
-        import webbrowser
         webbrowser.open_new_tab(SOFTWARE_CENTER_TOS_LINK)
 
     def on_menuitem_developer_activate(self, menuitem):
