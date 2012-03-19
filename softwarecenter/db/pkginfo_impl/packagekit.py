@@ -108,7 +108,7 @@ class PackagekitInfo(PackageInfo):
         super(PackagekitInfo, self).__init__()
         self.client = packagekit.Client()
         self.client.set_locale(make_locale_string())
-        self._cache_pkg = {} # temporary hack for decent testing
+        self._cache_pkg_filter_none = {} # temporary hack for decent testing
         self._cache_details = {} # temporary hack for decent testing
         self._notfound_cache_pkg = []
         self._repocache = {}
@@ -186,7 +186,7 @@ class PackagekitInfo(PackageInfo):
                 batch = []
         self._prefill_descriptions_helper(batch)
 
-        self._cache_pkg = cache
+        self._cache_pkg_filter_none = cache
 
     def is_installed(self, pkgname):
         for p in self._get_packages(pkgname):
@@ -261,8 +261,8 @@ class PackagekitInfo(PackageInfo):
         # FIXME: this is wrong, as cache is not about NOT_INSTALLED; and if we
         # don't use the cache, we use NOT_INSTALLED (which is possibly wrong
         # too?)
-        if cache and (pkgname in self._cache_pkg.keys()):
-            pkgs = self._cache_pkg[pkgname]
+        if cache and (pkgname in self._cache_pkg_filter_none.keys()):
+            pkgs = self._cache_pkg_filter_none[pkgname]
         else:
             pkgs = self._get_packages(pkgname, pfilter=packagekit.FilterEnum.NOT_INSTALLED)
 
@@ -389,7 +389,7 @@ class PackagekitInfo(PackageInfo):
         LOG.debug("packages %s", pkgname) #, self._cache.keys()
 
         if pfilter in (packagekit.FilterEnum.NONE, packagekit.FilterEnum.NOT_SOURCE):
-            cache_pkg_filter = self._cache_pkg
+            cache_pkg_filter = self._cache_pkg_filter_none
         else:
             cache_pkg_filter = None
 
@@ -434,13 +434,13 @@ class PackagekitInfo(PackageInfo):
         # This is used after finishing a transaction, so that we always
         # have the latest package information
         LOG.debug("[reset_cache] name: %s", name)
-        if name and (name in self._cache_pkg.keys()):
-            del self._cache_pkg[name]
+        if name and (name in self._cache_pkg_filter_none.keys()):
+            del self._cache_pkg_filter_none[name]
         elif name and (name in self._cache_details.keys()):
             del self._cache_details[name]
         else:
             # delete all
-            self._cache_pkg = {}
+            self._cache_pkg_filter_none = {}
             self._cache_details = {}
         # appdetails gets refreshed:
         self.emit('cache-ready')
