@@ -39,6 +39,7 @@ softwarecenter/distro/SUSELINUX.py
 softwarecenter/ui/gtk3/app.py
 softwarecenter/ui/gtk3/review_gui_helper.py
 softwarecenter/ui/gtk3/dialogs/__init__.py
+softwarecenter/ui/gtk3/dialogs/dialog_tos.py
 softwarecenter/ui/gtk3/dialogs/deauthorize_dialog.py
 softwarecenter/ui/gtk3/dialogs/dependency_dialogs.py
 softwarecenter/ui/gtk3/models/appstore2.py
@@ -55,6 +56,7 @@ softwarecenter/ui/gtk3/views/appdetailsview.py
 softwarecenter/ui/gtk3/views/appview.py
 softwarecenter/ui/gtk3/views/catview_gtk.py
 softwarecenter/ui/gtk3/views/purchaseview.py
+softwarecenter/ui/gtk3/views/webkit.py
 softwarecenter/ui/gtk3/widgets/apptreeview.py
 softwarecenter/ui/gtk3/widgets/backforward.py
 softwarecenter/ui/gtk3/widgets/buttons.py

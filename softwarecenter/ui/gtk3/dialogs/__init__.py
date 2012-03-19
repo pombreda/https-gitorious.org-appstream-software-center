@@ -44,13 +44,10 @@ _DIALOG = None
 
 
 def show_accept_tos_dialog(parent):
-    datadir = softwarecenter.paths.datadir
-    glade_dialog = SimpleGtkbuilderDialog(datadir, domain="software-center")
-    dialog = glade_dialog.dialog_accept_tos
     global _DIALOG
+    from dialog_tos import DialogTos
+    dialog = DialogTos(parent)
     _DIALOG = dialog
-    dialog.set_default_size(380, -1)
-    dialog.set_transient_for(parent)
     result = dialog.run()
     dialog.destroy()
     if result == Gtk.ResponseType.YES:
