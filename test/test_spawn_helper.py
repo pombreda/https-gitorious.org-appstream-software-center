@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import unittest
-from mock import Mock,patch
+from mock import patch
 
 from testutils import setup_test_env
 setup_test_env()
