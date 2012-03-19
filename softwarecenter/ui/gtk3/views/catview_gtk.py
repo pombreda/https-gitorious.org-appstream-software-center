@@ -51,6 +51,7 @@ from softwarecenter.db.categories import (Category,
                                           CategoriesParser,
                                           get_category_by_name,
                                           categories_sorted_by_name)
+from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.utils import get_query_for_pkgnames
 from softwarecenter.distro import get_distro
 from softwarecenter.backend.scagent import SoftwareCenterAgent
@@ -158,6 +159,12 @@ class CategoriesViewGtk(Viewport, CategoriesParser):
            flowgrid = the FlowableGrid to add tiles to
            amount = number of tiles to add from start of doc range'''
         amount = min(len(docs), amount)
+
+        cache = get_pkg_info()
+        if hasattr(cache, 'prefill_cache'):
+            prefill_pkgnames = [ self.db.get_pkgname(doc) for doc in docs[0:amount] ]
+            cache.prefill_cache(wanted_pkgs = prefill_pkgnames, only_newest=True)
+
         for doc in docs[0:amount]:
             tile = FeaturedTile(self.properties_helper, doc)
             tile.connect('clicked', self.on_app_clicked,
@@ -721,7 +728,6 @@ def get_test_window_catview():
         print "on_category_selected view: ", view
         print "on_category_selected cat: ", cat
 
-    from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
     cache.open()
 
@@ -784,7 +790,6 @@ def get_test_catview():
     def on_category_selected(view, cat):
         print("on_category_selected %s %s" % view, cat)
 
-    from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
     cache.open()
 
