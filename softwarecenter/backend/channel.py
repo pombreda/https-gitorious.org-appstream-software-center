@@ -24,12 +24,13 @@ from gettext import gettext as _
 
 from softwarecenter.distro import get_distro
 
-from softwarecenter.enums import (SortMethods, 
+from softwarecenter.enums import (SortMethods,
                                   Icons,
                                   ViewPages,
                                  )
 
 LOG = logging.getLogger(__name__)
+
 
 class ChannelsManager(object):
     def __init__(self, db, **kwargs):
@@ -52,10 +53,11 @@ class ChannelsManager(object):
     # private
     def _get_channels_from_db(self, installed_only=False):
         """
-        (internal) implements 'channels()' and 'channels_installed_only()' properties
+        (internal) implements 'channels()' and 'channels_installed_only()'
+        properties
         """
         distro_channel_origin = self.distro.get_distro_channel_name()
-        
+
         # gather the set of software channels and order them
         other_channel_list = []
         cached_origins = []
@@ -64,12 +66,13 @@ class ChannelsManager(object):
                 continue
             channel_name = channel_iter.term[3:]
             channel_origin = ""
-            
+
             # get origin information for this channel
             m = self.db.xapiandb.postlist_begin(channel_iter.term)
             doc = self.db.xapiandb.get_document(m.get_docid())
             for term_iter in doc.termlist():
-                if term_iter.term.startswith("XOO") and len(term_iter.term) > 3: 
+                if (term_iter.term.startswith("XOO") and
+                    len(term_iter.term) > 3):
                     channel_origin = term_iter.term[3:]
                     break
             LOG.debug("channel_name: %s" % channel_name)
@@ -77,7 +80,7 @@ class ChannelsManager(object):
             if channel_origin not in cached_origins:
                 other_channel_list.append((channel_name, channel_origin))
                 cached_origins.append(channel_origin)
-        
+
         dist_channel = None
         other_channels = []
         unknown_channel = []
@@ -85,26 +88,30 @@ class ChannelsManager(object):
 
         for (channel_name, channel_origin) in other_channel_list:
             if not channel_name:
-                unknown_channel.append(SoftwareChannel(channel_name,
-                                                       channel_origin,
-                                                       None,
-                                                       installed_only=installed_only))
+                unknown_channel.append(SoftwareChannel(
+                    channel_name,
+                    channel_origin,
+                    None,
+                    installed_only=installed_only))
             elif channel_origin == distro_channel_origin:
-                dist_channel = (SoftwareChannel(channel_name,
-                                                channel_origin,
-                                                None,
-                                                installed_only=installed_only))
+                dist_channel = (SoftwareChannel(
+                    channel_name,
+                    channel_origin,
+                    None,
+                    installed_only=installed_only))
             elif channel_name == "notdownloadable":
                 if installed_only:
-                    local_channel = SoftwareChannel(channel_name,
-                                                    None,
-                                                    None,
-                                                    installed_only=installed_only)
+                    local_channel = SoftwareChannel(
+                        channel_name,
+                        None,
+                        None,
+                        installed_only=installed_only)
             else:
-                other_channels.append(SoftwareChannel(channel_name,
-                                                      channel_origin,
-                                                      None,
-                                                      installed_only=installed_only))
+                other_channels.append(SoftwareChannel(
+                    channel_name,
+                    channel_origin,
+                    None,
+                    installed_only=installed_only))
 
         # set them in order
         channels = []
@@ -122,13 +129,14 @@ class ChannelsManager(object):
                 channel._channel_view_id = ViewPages.AVAILABLE
         return channels
 
+
 class SoftwareChannel(object):
     """
     class to represent a software channel
     """
-    
+
     ICON_SIZE = 24
-    
+
     def __init__(self, channel_name, channel_origin, channel_component,
                  source_entry=None, installed_only=False,
                  channel_icon=None, channel_query=None,
@@ -148,13 +156,16 @@ class SoftwareChannel(object):
         # distro specific stuff
         self.distro = get_distro()
         # configure the channel
-        self._channel_display_name = self._get_display_name_for_channel(channel_name, channel_origin, channel_component)
+        self._channel_display_name = self._get_display_name_for_channel(
+            channel_name, channel_origin, channel_component)
         if channel_icon is None:
-            self._channel_icon = self._get_icon_for_channel(channel_name, channel_origin, channel_component)
+            self._channel_icon = self._get_icon_for_channel(
+                channel_name, channel_origin, channel_component)
         else:
             self._channel_icon = channel_icon
         if channel_query is None:
-            self._channel_query = self._get_channel_query_for_channel(channel_name, channel_origin, channel_component)
+            self._channel_query = self._get_channel_query_for_channel(
+                channel_name, channel_origin, channel_component)
         else:
             self._channel_query = channel_query
         # a sources.list entry attached to the channel (this is currently
@@ -162,36 +173,36 @@ class SoftwareChannel(object):
         self._source_entry = source_entry
         # when the channel needs to be added to the systems sources.list
         self.needs_adding = False
-        
+
     @property
     def name(self):
         """
         return the channel name as represented in the xapian database
         """
         return self._channel_name
-       
-    @property 
+
+    @property
     def origin(self):
         """
         return the channel origin as represented in the xapian database
         """
         return self._channel_origin
-    
-    @property    
+
+    @property
     def component(self):
         """
         return the channel component as represented in the xapian database
         """
         return self._channel_component
-    
-    @property   
+
+    @property
     def display_name(self):
         """
         return the display name for the corresponding channel for use in the UI
         """
         return self._channel_display_name
-    
-    @property    
+
+    @property
     def icon(self):
         """
         return the icon that corresponds to each channel based
@@ -205,18 +216,19 @@ class SoftwareChannel(object):
         return the xapian query to be used with this software channel
         """
         return self._channel_query
-    
-    @property    
+
+    @property
     def sort_mode(self):
         """
         return the sort mode for this software channel
         """
         return self._channel_sort_mode
-        
+
     # TODO:  implement __cmp__ so that sort for channels is encapsulated
     #        here as well
 
-    def _get_display_name_for_channel(self, channel_name, channel_origin, channel_component):
+    def _get_display_name_for_channel(self, channel_name, channel_origin,
+        channel_component):
         if channel_component == "partner":
             channel_display_name = _("Canonical Partners")
         elif not channel_origin:
@@ -232,8 +244,9 @@ class SoftwareChannel(object):
         else:
             return channel_name
         return channel_display_name
-    
-    def _get_icon_for_channel(self, channel_name, channel_origin, channel_component):
+
+    def _get_icon_for_channel(self, channel_name, channel_origin,
+        channel_component):
         if channel_component == "partner":
             channel_icon = "partner"
         elif not channel_name:
@@ -253,16 +266,17 @@ class SoftwareChannel(object):
         else:
             channel_icon = "unknown-channel"
         return channel_icon
-    
-    def _get_channel_query_for_channel(self, channel_name, channel_origin, channel_component):
-    
+
+    def _get_channel_query_for_channel(self, channel_name, channel_origin,
+        channel_component):
+
         if channel_component == "partner":
             q1 = xapian.Query("XOCpartner")
             q2 = xapian.Query("AH%s-partner" % self.distro.get_codename())
             channel_query = xapian.Query(xapian.Query.OP_OR, q1, q2)
         # show only apps when displaying the new apps archive
         elif channel_name == "Application Review Board PPA":
-            channel_query = xapian.Query(xapian.Query.OP_AND, 
+            channel_query = xapian.Query(xapian.Query.OP_AND,
                                          xapian.Query("XOL" + channel_name),
                                          xapian.Query("ATapplication"))
         elif channel_origin:
@@ -292,14 +306,14 @@ class AllChannel(SoftwareChannel):
             self, channel_name, "all", None,
             installed_only=installed_only,
             channel_icon=Icons.FALLBACK)
-        return
 
     # overrides
-    def _get_display_name_for_channel(self, channel_name, channel_origin, channel_component):
+    def _get_display_name_for_channel(self, channel_name, channel_origin,
+        channel_component):
         return channel_name
 
     def _get_channel_query_for_channel(self, *args):
-        return None
+        pass
 
 
 class AllAvailableChannel(AllChannel):
@@ -313,28 +327,34 @@ class AllInstalledChannel(AllChannel):
     def __init__(self):
         AllChannel.__init__(self, _("All Installed"), True)
 
+
 # singleton
 channels_manager = None
+
+
 def get_channels_manager(db):
     global channels_manager
     if channels_manager is None:
         from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
         if not USE_PACKAGEKIT_BACKEND:
-            from softwarecenter.backend.channel_impl.aptchannels import AptChannelsManager
+            from softwarecenter.backend.channel_impl.aptchannels import (
+                AptChannelsManager)
             channels_manager = AptChannelsManager(db)
         else:
             channels_manager = ChannelsManager(db)
     return channels_manager
 
+
 def is_channel_available(channelname):
-    from softwarecenter.backend.channel_impl.aptchannels import AptChannelsManager
+    from softwarecenter.backend.channel_impl.aptchannels import (
+        AptChannelsManager)
     return AptChannelsManager.channel_available(channelname)
 
 if __name__ == "__main__":
     distro = get_distro()
-    channel = SoftwareChannel(distro.get_distro_channel_name(), 
+    channel = SoftwareChannel(distro.get_distro_channel_name(),
                               None, None)
     print(channel)
-    channel = SoftwareChannel(distro.get_distro_channel_name(), None, "partner")
+    channel = SoftwareChannel(distro.get_distro_channel_name(), None,
+        "partner")
     print(channel)
-

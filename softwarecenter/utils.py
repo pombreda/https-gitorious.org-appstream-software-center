@@ -253,7 +253,7 @@ def get_http_proxy_string_from_gsettings():
     # well ... it segfaults (thanks pygi)
     key = "org.gnome.system.proxy.http"
     if not key in Gio.Settings.list_schemas():
-        raise ValueError, "no key '%s'" % key
+        raise ValueError("no key '%s'" % key)
     settings = Gio.Settings.new(key)
     if settings.get_string("host"):
         authentication = ""

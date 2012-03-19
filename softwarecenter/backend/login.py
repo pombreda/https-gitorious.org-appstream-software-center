@@ -21,31 +21,33 @@
 
 from gi.repository import GObject
 
+
 class LoginBackend(GObject.GObject):
 
     NEW_ACCOUNT_URL = None
     FORGOT_PASSWORD_URL = None
 
     __gsignals__ = {
-        "login-successful" : (GObject.SIGNAL_RUN_LAST,
-                             GObject.TYPE_NONE, 
+        "login-successful": (GObject.SIGNAL_RUN_LAST,
+                             GObject.TYPE_NONE,
                              (GObject.TYPE_PYOBJECT,),
                             ),
-        "login-failed" : (GObject.SIGNAL_RUN_LAST,
-                          GObject.TYPE_NONE, 
-                          (),
-                         ),
-        "login-canceled" : (GObject.SIGNAL_RUN_LAST,
-                          GObject.TYPE_NONE, 
-                          (),
-                         ),
-        "need-username-password" : (GObject.SIGNAL_RUN_LAST,
-                                    GObject.TYPE_NONE, 
-                                    (),
-                                   ),
+        "login-failed": (GObject.SIGNAL_RUN_LAST,
+                         GObject.TYPE_NONE,
+                         (),
+                        ),
+        "login-canceled": (GObject.SIGNAL_RUN_LAST,
+                           GObject.TYPE_NONE,
+                           (),
+                          ),
+        "need-username-password": (GObject.SIGNAL_RUN_LAST,
+                                   GObject.TYPE_NONE,
+                                   (),
+                                  ),
         }
 
     def login(self, username=None, password=None):
         raise NotImplemented
+
     def cancel_login(self):
         self.emit("login-canceled")

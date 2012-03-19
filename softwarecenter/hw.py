@@ -79,9 +79,11 @@ TAG_MISSING_DESCRIPTION = {
                                    u'computer is using.'),
 }
 
+
 def get_hw_short_description(tag):
     s = TAG_DESCRIPTION.get(tag)
     return utf8(s)
+
 
 def get_hw_missing_long_description(tags):
     s = ""
@@ -94,7 +96,7 @@ def get_hw_missing_long_description(tags):
             else:
                 # deal with generic tags
                 prefix, sep, postfix = tag.rpartition(":")
-                descr =  TAG_MISSING_DESCRIPTION.get(prefix+sep)
+                descr = TAG_MISSING_DESCRIPTION.get(prefix + sep)
                 descr = descr % postfix
                 if descr:
                     s += "%s\n" % descr
@@ -116,8 +118,9 @@ def get_private_extensions_hardware_support_for_tags(tags):
                 res[tag] = debtagshw.enums.HardwareSupported.YES
     return res
 
+
 def get_hardware_support_for_tags(tags):
-    """ wrapper around the DebtagsAvailalbeHW to support adding our own 
+    """ wrapper around the DebtagsAvailalbeHW to support adding our own
         private tag extension (like opengl-driver)
     """
     from debtagshw.debtagshw import DebtagsAvailableHW
