@@ -203,6 +203,9 @@ class AppRecommendationsCategory(Category):
                                                             % msg)
         self.emit("recommender-agent-error", msg)
 
+# Global cache to avoid parsing the same menu file again and again
+menu_cache = {}
+
 class CategoriesParser(object):
     """ 
     Parser that is able to read the categories from a menu file
@@ -213,7 +216,11 @@ class CategoriesParser(object):
         # build the string substituion support
         self._build_string_template_dict()
 
-    def parse_applications_menu(self, datadir):
+    def parse_applications_menu(self, datadir, use_cache=True):
+        if use_cache and menu_cache.has_key(datadir):
+            LOG.debug("Using cache for applications menu")
+            return menu_cache[datadir]
+
         """ parse a application menu and return a list of Category objects """
         categories = []
         # we support multiple menu files and menu drop ins
@@ -239,9 +246,12 @@ class CategoriesParser(object):
             self._build_unallocated_queries(cat.subcategories)
         self._build_unallocated_queries(categories)
 
+        menu_cache[datadir] = categories
+
         # debug print
         for cat in categories:
             LOG.debug("%s %s %s" % (cat.name, cat.iconname, cat.query))
+
         return categories
 
     def _build_string_template_dict(self):
