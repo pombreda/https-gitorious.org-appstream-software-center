@@ -405,19 +405,26 @@ class AppStreamXMLParser(AppInfoParserBase):
                 return child.text
         if translated:
             return self._parse_value(key, False)
+        else:
+            return None
 
     def _parse_with_lists(self, key):
         l = []
         for listroot in self.appinfo_xml.iter(key):
             for child in listroot.iter(self.LISTS[key]):
-                l.append(child.text)
+                if child.text is not None:
+                    l.append(child.text)
         return ",".join(l)
 
     def has_option_desktop(self, key):
         if key in self.STATIC_DATA:
             return True
         key = self._apply_mapping(key)
-        return not self.appinfo_xml.find(key) is None
+        if key in self.LISTS:
+            return not self.appinfo_xml.find(key) is None
+        else:
+            # Parse to ignore empty .text
+            return self._parse_value(key, False) is not None
 
     @property
     def desktopf(self):
