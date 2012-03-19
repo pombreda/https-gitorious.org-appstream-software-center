@@ -91,7 +91,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         # add the new stuff
         self.recommended_for_you_content = FlowableGrid()
         self.add(self.recommended_for_you_content)
-        self.spinner_notebook.show_spinner(_("Receiving recommendations…"))
+        self.spinner_notebook.show_spinner(_(u"Receiving recommendations…"))
         # get the recommendations from the recommender agent
         self.recommended_for_you_cat = RecommendedForYouCategory(
                                             subcategory=self.subcategory)
@@ -136,6 +136,12 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
                                    ),
         }
 
+    TURN_ON_RECOMMENDATIONS_TEXT = _(u"Turn On Recommendations")
+    RECOMMENDATIONS_OPT_IN_TEXT = _(u"To make recommendations, "
+                 "Ubuntu Software Center "
+                 "will occasionally send to Canonical an anonymous list "
+                 "of software currently installed.")
+
     def __init__(self, catview):
         RecommendationsPanel.__init__(self, catview)
         self.subcategory = None
@@ -156,7 +162,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.add(self.recommended_for_you_content)
 
         # opt in button
-        button = Gtk.Button(_("Turn On Recommendations"))
+        button = Gtk.Button(_(self.TURN_ON_RECOMMENDATIONS_TEXT))
         button.connect("clicked", self._on_opt_in_button_clicked)
         hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL)
         hbox.pack_start(button, False, False, 0)
@@ -164,21 +170,33 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.opt_in_button = button  # for tests
 
         # opt in text
-        text = _("To make recommendations, Ubuntu Software Center "
-                 "will occasionally send to Canonical an anonymous list "
-                 "of software currently installed.")
+        text = _(self.RECOMMENDATIONS_OPT_IN_TEXT)
         label = Gtk.Label(text)
         label.set_alignment(0, 0.5)
         label.set_line_wrap(True)
         vbox.pack_start(label, False, False, 0)
 
     def _on_opt_in_button_clicked(self, button):
+        self.opt_in_to_recommendations_service()
+
+    def opt_in_to_recommendations_service(self):
         # we upload the user profile here, and only after this is finished
         # do we fire the request for recommendations and finally display
         # them here -- a spinner is shown for this process (the spec
         # wants a progress bar, but we don't have access to real-time
         # progress info)
         self._upload_user_profile_and_get_recommendations()
+
+    def opt_out_of_recommendations_service(self):
+        # tell the backend that the user has opted out
+        self.recommender_agent.opt_out()
+        # update the UI
+        if self.recommended_for_you_content:
+            self.recommended_for_you_content.destroy()
+        self._show_opt_in_view()
+        self.remove_more_button()
+        self.show_all()
+        self.emit("recommendations-opt-out")
 
     def _upload_user_profile_and_get_recommendations(self):
         # initiate upload of the user profile here
@@ -256,18 +274,43 @@ class RecommendationsPanelDetails(RecommendationsPanel):
         self.hide()
 
 
+class RecommendationsOptInDialog(Gtk.MessageDialog):
+    """
+    Dialog to display the recommendations opt-in message when opt-in is
+    initiated from the menu.
+    """
+    def __init__(self, icons):
+        Gtk.MessageDialog.__init__(self, flags=Gtk.DialogFlags.MODAL,
+                                   type=Gtk.MessageType.INFO)
+        self.set_title("")
+        icon_name = "softwarecenter"
+        if icons.has_icon(icon_name):
+            icon = Gtk.Image.new_from_icon_name(icon_name,
+                                                Gtk.IconSize.DIALOG)
+            self.set_image(icon)
+            icon.show()
+        self.format_secondary_text(
+            _(RecommendationsPanelLobby.RECOMMENDATIONS_OPT_IN_TEXT))
+        self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        self.add_button(
+            _(RecommendationsPanelLobby.TURN_ON_RECOMMENDATIONS_TEXT),
+            Gtk.ResponseType.YES)
+        self.set_default_response(Gtk.ResponseType.YES)
+
+
 # test helpers
-def get_test_window():
+def get_test_window(panel_type="lobby"):
     import softwarecenter.log
     softwarecenter.log.root.setLevel(level=logging.DEBUG)
     fmt = logging.Formatter("%(name)s - %(message)s", None)
     softwarecenter.log.handler.setFormatter(fmt)
 
-    # this is *way* to complicated we should *not* need a CatView
+    # this is *way* too complicated we should *not* need a CatView
     # here! see FIXME in RecommendationsPanel.__init__()
     from softwarecenter.ui.gtk3.views.catview_gtk import CategoriesViewGtk
     from softwarecenter.testutils import (
-        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache)
+        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache,
+        get_test_categories)
     cache = get_test_pkg_info()
     db = get_test_db()
     icons = get_test_gtk3_icon_cache()
@@ -277,7 +320,13 @@ def get_test_window():
                                 db,
                                 icons)
 
-    view = RecommendationsPanelLobby(catview)
+    if panel_type is "lobby":
+        view = RecommendationsPanelLobby(catview)
+    elif panel_type is "category":
+        cats = get_test_categories(db)
+        view = RecommendationsPanelCategory(catview, cats[0])
+    else: # panel_type is "details":
+        view = RecommendationsPanelDetails(catview)
 
     win = Gtk.Window()
     win.connect("destroy", lambda x: Gtk.main_quit())
