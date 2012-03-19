@@ -185,7 +185,10 @@ class RecommenderAgent(GObject.GObject):
             return True
         else:
             return False
-            
+
+    def opt_out(self):
+        self.recommender_uuid = ""
+
     def _on_server_status_data(self, spawner, piston_server_status):
         self.emit("server-status", piston_server_status)
         
