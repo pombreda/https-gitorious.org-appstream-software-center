@@ -197,6 +197,13 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.remove_more_button()
         self.show_all()
         self.emit("recommendations-opt-out")
+        try:
+            self.recommender_agent.disconnect_by_func(
+                self._on_profile_submitted)
+            self.recommender_agent.disconnect_by_func(
+                self._on_profile_submitted_error)
+        except TypeError:
+            pass
 
     def _upload_user_profile_and_get_recommendations(self):
         # initiate upload of the user profile here
@@ -325,7 +332,7 @@ def get_test_window(panel_type="lobby"):
     elif panel_type is "category":
         cats = get_test_categories(db)
         view = RecommendationsPanelCategory(catview, cats[0])
-    else: # panel_type is "details":
+    else:  # panel_type is "details":
         view = RecommendationsPanelDetails(catview)
 
     win = Gtk.Window()

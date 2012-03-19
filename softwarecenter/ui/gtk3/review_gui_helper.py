@@ -48,7 +48,7 @@ from softwarecenter.backend.ubuntusso import get_ubuntu_sso_backend
 import piston_mini_client
 
 from softwarecenter.paths import SOFTWARE_CENTER_CONFIG_DIR
-from softwarecenter.enums import Icons
+from softwarecenter.enums import Icons, SOFTWARE_CENTER_NAME_KEYRING
 from softwarecenter.config import get_config
 from softwarecenter.distro import get_distro, get_current_arch
 from softwarecenter.backend.login_sso import get_sso_backend
@@ -379,9 +379,6 @@ class BaseApp(SimpleGtkbuilderApp):
         SimpleGtkbuilderApp.__init__(
             self, os.path.join(datadir, "ui/gtk3", uifile), "software-center")
         # generic data
-        # see bug #773214 for the rational
-        #self.appname = _("Ubuntu Software Center")
-        self.appname = "Ubuntu Software Center"
         self.token = None
         self.display_name = None
         self._login_successful = False
@@ -453,7 +450,7 @@ class BaseApp(SimpleGtkbuilderApp):
         help_text = _("To review software or to report abuse you need to "
                       "sign in to a Ubuntu Single Sign-On account.")
         self.sso = get_sso_backend(login_window_xid,
-                                       self.appname, help_text)
+                                   SOFTWARE_CENTER_NAME_KEYRING, help_text)
         self.sso.connect("login-successful", self._maybe_login_successful)
         self.sso.connect("login-canceled", self._login_canceled)
         if show_register:
