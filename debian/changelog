@@ -16,8 +16,9 @@ software-center (5.1.13) UNRELEASED; urgency=low
     lp:~elachuni/software-center/pep8-test-part17,
     lp:~elachuni/software-center/pep8-test-part18,
     lp:~elachuni/software-center/pep8-test-part19,
-    lp:~elachuni/software-center/pep8-test-part20:
-    - many, many pep8 fixes
+    lp:~elachuni/software-center/pep8-test-part20,
+    lp:~elachuni/software-center/pep8-test-part21:
+    - many, many, many pep8 fixes
   * lp:~elachuni/software-center/unify-ussoc-envvar:
     - fix USSOC_SERVICE_URL env variable
   
