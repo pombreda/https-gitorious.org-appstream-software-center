@@ -351,6 +351,8 @@ class AppStreamXMLParser(AppInfoParserBase):
     STATIC_DATA = { 'Type' : 'Application',
                   }
 
+    locale = getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
+
     def __init__(self, appinfo_xml, xmlfile):
         self.appinfo_xml = appinfo_xml
         self.xmlfile = xmlfile
@@ -369,12 +371,11 @@ class AppStreamXMLParser(AppInfoParserBase):
             return []
         return self._get_desktop_list("MimeType", split_str=',')
     def _parse_value(self, key, translated):
-        locale = getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
         for child in self.appinfo_xml.iter(key):
             if translated:
-                if child.get("lang") == locale:
+                if child.get("lang") == self.locale:
                     return child.text
-                if child.get("lang") == locale.split('_')[0]:
+                if child.get("lang") == self.locale.split('_')[0]:
                     return child.text
                 continue
             elif not child.get("lang"):
