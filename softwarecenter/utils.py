@@ -218,16 +218,6 @@ def htmlize_package_description(desc):
     return html
 
 
-def get_parent_xid(widget):
-    while widget.get_parent():
-        widget = widget.get_parent()
-    window = widget.get_window()
-    #print dir(window)
-    if hasattr(window, 'xid'):
-        return window.xid
-    return 0    # cannot figure out how to get the xid of gdkwindow under pygi
-
-
 def get_http_proxy_string_from_libproxy(url):
     """Helper that uses libproxy to get the http proxy for the given url """
     import libproxy

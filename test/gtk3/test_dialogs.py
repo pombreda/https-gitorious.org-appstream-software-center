@@ -33,6 +33,12 @@ class TestDialogs(unittest.TestCase):
         res = softwarecenter.ui.gtk3.dialogs.error(
             parent=None, primary="primary", secondary="secondary")
         self.assertEqual(res, False)
+
+    def test_accept_tos_dialog(self):
+        GObject.timeout_add(TIMEOUT, self._close_dialog)
+        res = softwarecenter.ui.gtk3.dialogs.show_accept_tos_dialog(
+            parent=None)
+        self.assertEqual(res, False)
         
     # helper
     def _close_dialog(self):

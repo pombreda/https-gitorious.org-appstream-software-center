@@ -59,6 +59,7 @@ from softwarecenter.enums import (Icons,
                                   DB_SCHEMA_VERSION,
                                   MOUSE_EVENT_FORWARD_BUTTON,
                                   MOUSE_EVENT_BACK_BUTTON,
+                                  SOFTWARE_CENTER_TOS_LINK,
                                   SOFTWARE_CENTER_NAME_KEYRING)
 from softwarecenter.utils import (clear_token_from_ubuntu_sso,
                                   get_http_proxy_string_from_gsettings,
@@ -1097,10 +1098,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.aboutdialog.show()
 
     def on_menuitem_help_activate(self, menuitem):
-        # run yelp
-        p = subprocess.Popen(["yelp", "ghelp:software-center"])
-        # collect the exit status (otherwise we leave zombies)
-        GObject.timeout_add_seconds(1, lambda p: p.poll() == None, p)
+        # run browser
+        (pid, stdin, stdout, stderr) = GObject.spawn_async(
+            ["yelp", "ghelp:software-center"], flags=GObject.SPAWN_SEARCH_PATH)
+
+    def on_menuitem_tos_activate(self, menuitem):
+        webbrowser.open_new_tab(SOFTWARE_CENTER_TOS_LINK)
 
     def on_menuitem_developer_activate(self, menuitem):
         webbrowser.open(self.distro.DEVELOPER_URL)
