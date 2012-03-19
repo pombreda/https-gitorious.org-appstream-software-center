@@ -36,6 +36,7 @@ from fake_review_settings import FakeReviewSettings, network_delay
 
 LOG = logging.getLogger(__name__)
 
+
 class LoginBackendDbusSSO(LoginBackend):
 
     def __init__(self, window_id, appname, help_text):
@@ -45,11 +46,11 @@ class LoginBackendDbusSSO(LoginBackend):
         self.bus = dbus.SessionBus()
         self.proxy = self.bus.get_object(
             'com.ubuntu.sso', '/com/ubuntu/sso/credentials')
-        self.proxy.connect_to_signal("CredentialsFound", 
+        self.proxy.connect_to_signal("CredentialsFound",
                                      self._on_credentials_found)
-        self.proxy.connect_to_signal("CredentialsError", 
+        self.proxy.connect_to_signal("CredentialsError",
                                      self._on_credentials_error)
-        self.proxy.connect_to_signal("AuthorizationDenied", 
+        self.proxy.connect_to_signal("AuthorizationDenied",
                                      self._on_authorization_denied)
         self._window_id = window_id
         self._credentials = None
@@ -66,7 +67,7 @@ class LoginBackendDbusSSO(LoginBackend):
         LOG.debug("login()")
         self._credentials = None
         self.proxy.login(self.appname, self._get_params())
-        
+
     def login_or_register(self):
         LOG.debug("login_or_register()")
         self._credentials = None
@@ -82,7 +83,6 @@ class LoginBackendDbusSSO(LoginBackend):
         if self._credentials != credentials:
             self.emit("login-successful", credentials)
         self._credentials = credentials
-        
 
     def _on_credentials_error(self, app_name, error, detailed_error=""):
         LOG.error("_on_credentails_error for %s: %s (%s)" % (
@@ -107,55 +107,62 @@ class LoginBackendDbusSSOFake(LoginBackend):
         self.help_text = help_text
         self._window_id = window_id
         self._fake_settings = FakeReviewSettings()
-    
+
     @network_delay
     def login(self, username=None, password=None):
         response = self._fake_settings.get_setting('login_response')
-            
+
         if response == "successful":
             self.emit("login-successful", self._return_credentials())
         elif response == "failed":
             self.emit("login-failed")
         elif response == "denied":
             self.cancel_login()
-        
+
         return
-    
+
     def login_or_register(self):
         #fake functionality for this is no different to fake login()
         self.login()
         return
-                
+
     def _random_unicode_string(self, length):
         retval = ''
-        for i in range(0,length):
+        for i in range(0, length):
             retval = retval + random.choice(string.letters + string.digits)
         return retval.decode('utf-8')
- 
+
     def _return_credentials(self):
-        c =  dbus.Dictionary(
+        c = dbus.Dictionary(
             {
-              dbus.String(u'consumer_secret'): dbus.String(self._random_unicode_string(30)),
-              dbus.String(u'token') : dbus.String(self._random_unicode_string(50)),
-              dbus.String(u'consumer_key') : dbus.String(self._random_unicode_string(7)),
-              dbus.String(u'name') : dbus.String('Ubuntu Software Center @ ' + self._random_unicode_string(6)),
-              dbus.String(u'token_secret') : dbus.String(self._random_unicode_string(50))
-             }, 
+              dbus.String(u'consumer_secret'): dbus.String(
+                self._random_unicode_string(30)),
+              dbus.String(u'token'): dbus.String(
+                self._random_unicode_string(50)),
+              dbus.String(u'consumer_key'): dbus.String(
+                self._random_unicode_string(7)),
+              dbus.String(u'name'): dbus.String('Ubuntu Software Center @ ' +
+                self._random_unicode_string(6)),
+              dbus.String(u'token_secret'): dbus.String(
+                self._random_unicode_string(50))
+             },
              signature=dbus.Signature('ss')
              )
         return c
 
+
 def get_sso_backend(window_id, appname, help_text):
-    """ 
+    """
     factory that returns an sso loader singelton
     """
     if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
         sso_class = LoginBackendDbusSSOFake(window_id, appname, help_text)
-        LOG.warn('Using fake login SSO functionality. Only meant for testing purposes')
+        LOG.warn('Using fake login SSO functionality. Only meant for '
+            'testing purposes')
     else:
         sso_class = LoginBackendDbusSSO(window_id, appname, help_text)
     return sso_class
-   
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 

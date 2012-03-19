@@ -35,7 +35,7 @@ from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 # py3 compat
 try:
     from queue import Queue
-    Queue # pyflakes
+    Queue  # pyflakes
 except ImportError:
     from Queue import Queue
 
@@ -55,16 +55,18 @@ LOGIN_STATE_SUCCESS_PENDING = "success-pending"
 LOGIN_STATE_AUTH_FAILURE = "auth-fail"
 LOGIN_STATE_USER_CANCEL = "user-cancel"
 
+
 class UserCancelException(Exception):
     """ user pressed cancel """
     pass
+
 
 class LaunchpadlibWorker(threading.Thread):
     """The launchpadlib worker thread - it does not touch the UI
        and only communicates via the following:
 
        "login_state" - the current LOGIN_STATE_* value
-       
+
        To input reviews call "queue_review()"
        When no longer needed, call "shutdown()"
     """
@@ -128,7 +130,7 @@ class LaunchpadlibWorker(threading.Thread):
         try:
             self._launchpad = Launchpad.login_with(
                 'software-center', SERVICE_ROOT, cachedir,
-                allow_access_levels = access_level,
+                allow_access_levels=access_level,
                 authorizer_class=AuthorizeRequestTokenFromThread)
             self.display_name = self._launchpad.me.display_name
         except Exception as e:
@@ -141,7 +143,8 @@ class LaunchpadlibWorker(threading.Thread):
             (service_root, launchpadlib_dir, cache_path,
              service_root_dir) = Launchpad._get_paths(SERVICE_ROOT, cachedir)
             credentials_path = os.path.join(service_root_dir, 'credentials')
-            consumer_credentials_path = os.path.join(credentials_path, 'software-center')
+            consumer_credentials_path = os.path.join(credentials_path,
+                'software-center')
             # ---
             if os.path.exists(consumer_credentials_path):
                 os.remove(consumer_credentials_path)
@@ -150,11 +153,12 @@ class LaunchpadlibWorker(threading.Thread):
         self.login_state = LOGIN_STATE_SUCCESS
         self._logger.debug("/done %s" % self._launchpad)
 
+
 class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
     """ Internal helper that updates the login_state of
         the modul global lp_worker_thread object
     """
-    def __init__ (self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(AuthorizeRequestTokenFromThread, self).__init__(*args, **kwargs)
         self._logger = logging.getLogger("softwarecenter.backend")
 
@@ -167,7 +171,7 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
         return o
 
     def input_username(self, cached_username, suggested_message):
-        self._logger.debug( "input_username: %s" %self.lp_worker.login_state)
+        self._logger.debug("input_username: %s" % self.lp_worker.login_state)
         # otherwise go into ASK state
         if not self.lp_worker.login_state in (LOGIN_STATE_ASK_USER_AND_PASS,
                                               LOGIN_STATE_AUTH_FAILURE,
@@ -185,7 +189,8 @@ class AuthorizeRequestTokenFromThread(RequestTokenAuthorizationEngine):
         return self.lp_worker.login_username
 
     def input_password(self, suggested_message):
-        self._logger.debug( "Input password size %s" % len(self.lp_worker.login_password))
+        self._logger.debug("Input password size %s" %
+            len(self.lp_worker.login_password))
         return self.lp_worker.login_password
 
     def input_access_level(self, available_levels, suggested_message,
@@ -217,7 +222,7 @@ class GLaunchpad(LoginBackend):
     """
 
     NEW_ACCOUNT_URL = "https://login.launchpad.net/+standalone-login"
-    FORGOT_PASSWORD_URL =  "https://login.launchpad.net/+standalone-login"
+    FORGOT_PASSWORD_URL = "https://login.launchpad.net/+standalone-login"
 
     def __init__(self):
         LoginBackend.__init__(self)
@@ -238,13 +243,13 @@ class GLaunchpad(LoginBackend):
         lp_worker_thread.shutdown()
 
     def enter_username_password(self, user, password):
-        """ 
+        """
         provider username and password, ususally used when the
         need-username-password signal was send
         """
         lp_worker_thread.login_username = user
         lp_worker_thread.login_password = password
-        lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS        
+        lp_worker_thread.login_state = LOGIN_STATE_HAS_USER_AND_PASS
 
     def login(self, username=None, password=None):
         if username and password:
@@ -254,17 +259,17 @@ class GLaunchpad(LoginBackend):
 
     def cancel_login(self):
         lp_worker_thread.login_state = LOGIN_STATE_USER_CANCEL
-    
+
     def get_subscribed_archives(self):
         """ return list of sources.list entries """
         urls = lp_worker_thread._launchpad.me.getArchiveSubscriptionURLs()
         return self._format_archive_subscription_urls_as_deb_lines(urls)
-    
+
     def _format_archive_subscription_urls_as_deb_lines(self, urls):
         deb_lines = ["deb %s %s main" % (url, self.distro.get_codename()) \
                      for url in urls]
         return deb_lines
-    
+
     def get_subscribed_archives_async(self, callback):
         """ get the available subscribed archives and run 'callback' when
             they become availalbe
@@ -300,10 +305,16 @@ def _login_success(lp):
     print ("success %s" % lp)
     print(lp.get_subscribed_archives())
     print(lp.get_subscribed_archives_async(_result_callback))
+
+
 def _login_failed(lp):
     print ("fail %s" % lp)
+
+
 def _result_callback(result_list):
     print("_result_callback %s" % result_list)
+
+
 def _login_need_user_and_password(lp):
     import sys
     sys.stdout.write("user: ")

@@ -29,27 +29,28 @@ from softwarecenter.distro import get_distro, get_current_arch
 
 LOG = logging.getLogger(__name__)
 
+
 class SoftwareCenterAgent(GObject.GObject):
 
     __gsignals__ = {
-        "available-for-me" : (GObject.SIGNAL_RUN_LAST,
-                              GObject.TYPE_NONE, 
-                              (GObject.TYPE_PYOBJECT,),
-                             ),
-        "available" : (GObject.SIGNAL_RUN_LAST,
-                              GObject.TYPE_NONE, 
-                              (GObject.TYPE_PYOBJECT,),
-                             ),
-        "exhibits" : (GObject.SIGNAL_RUN_LAST,
-                              GObject.TYPE_NONE, 
-                              (GObject.TYPE_PYOBJECT,),
-                             ),
-        "error" : (GObject.SIGNAL_RUN_LAST,
-                   GObject.TYPE_NONE, 
-                   (str,),
-                  ),
+        "available-for-me": (GObject.SIGNAL_RUN_LAST,
+                             GObject.TYPE_NONE,
+                             (GObject.TYPE_PYOBJECT,),
+                            ),
+        "available": (GObject.SIGNAL_RUN_LAST,
+                      GObject.TYPE_NONE,
+                      (GObject.TYPE_PYOBJECT,),
+                     ),
+        "exhibits": (GObject.SIGNAL_RUN_LAST,
+                     GObject.TYPE_NONE,
+                     (GObject.TYPE_PYOBJECT,),
+                    ),
+        "error": (GObject.SIGNAL_RUN_LAST,
+                  GObject.TYPE_NONE,
+                  (str,),
+                 ),
         }
-    
+
     def __init__(self, ignore_cache=False, xid=None):
         GObject.GObject.__init__(self)
         self.distro = get_distro()
@@ -103,7 +104,8 @@ class SoftwareCenterAgent(GObject.GObject):
             "SoftwareCenterAgentAPI", "subscriptions_for_me",
             complete_only=True)
 
-    def _on_query_available_for_me_data(self, spawner, piston_available_for_me):
+    def _on_query_available_for_me_data(self, spawner,
+        piston_available_for_me):
         self.emit("available-for-me", piston_available_for_me)
 
     def query_exhibits(self):
@@ -113,7 +115,7 @@ class SoftwareCenterAgent(GObject.GObject):
         spawner.connect("data-available", self._on_exhibits_data_available)
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
         spawner.run_generic_piston_helper(
-            "SoftwareCenterAgentAPI", "exhibits", 
+            "SoftwareCenterAgentAPI", "exhibits",
             lang=get_language(), series=self.distro.get_codename())
 
     def _on_exhibits_data_available(self, spawner, exhibits):
@@ -123,18 +125,22 @@ class SoftwareCenterAgent(GObject.GObject):
             if not hasattr(exhibit, "title_translated"):
                 if exhibit.html:
                     from softwarecenter.utils import get_title_from_html
-                    exhibit.title_translated = get_title_from_html(exhibit.html)
+                    exhibit.title_translated = get_title_from_html(
+                        exhibit.html)
                 else:
                     exhibit.title_translated = ""
         self.emit("exhibits", exhibits)
-        
+
 if __name__ == "__main__":
     def _available(agent, available):
         print ("_available: %s" % available)
+
     def _available_for_me(agent, available_for_me):
         print ("_availalbe_for_me: %s" % available_for_me)
+
     def _exhibits(agent, exhibits):
         print ("exhibits: " % exhibits)
+
     def _error(agent, msg):
         print ("got a error" % msg)
         #gtk.main_quit()

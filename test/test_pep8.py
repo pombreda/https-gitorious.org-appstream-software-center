@@ -19,9 +19,10 @@ class PackagePep8TestCase(unittest.TestCase):
                 softwarecenter.db,
                 softwarecenter.distro,
                ]
-    exclude = ['scagent.py', 'recagent.py', 'login_sso.py', 'login.py',
-        'launchpad.py', 'installbackend.py', 'fake_review_settings.py',
-        'channel.py']
+    exclude = []
+    #~ 'scagent.py', 'recagent.py', 'login_sso.py', 'login.py',
+        #~ 'launchpad.py', 'installbackend.py', 'fake_review_settings.py',
+        #~ 'channel.py']
 
     def message(self, text):
         self.errors.append(text)
