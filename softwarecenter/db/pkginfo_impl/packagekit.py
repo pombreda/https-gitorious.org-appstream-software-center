@@ -136,15 +136,17 @@ class PackagekitInfo(PackageInfo):
             packageid = detail.get_property('package-id')
             self._cache_details[packageid] = detail
 
-    def prefill_cache(self, wanted_pkgs = None, prefill_descriptions = False, use_resolve = True):
+    def prefill_cache(self, wanted_pkgs = None, prefill_descriptions = False, use_resolve = True, only_newest = False):
         cache = {}
 
         if wanted_pkgs:
             wanted_pkgs = list(set(wanted_pkgs))
 
-        pfilter = 1 << packagekit.FilterEnum.NEWEST
         # we never want source packages
-        pfilter |= 1 << packagekit.FilterEnum.NOT_SOURCE
+        pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
+        if only_newest:
+            pfilter |= 1 << packagekit.FilterEnum.NEWEST
+
         if wanted_pkgs and use_resolve:
             pkgs = []
             # FIXME: 100 is not a random value, it's the default value of
@@ -187,7 +189,10 @@ class PackagekitInfo(PackageInfo):
                 batch = []
         self._prefill_descriptions_helper(batch)
 
-        self._cache_pkg_filter_none = cache
+        if only_newest:
+            self._cache_pkg_filter_newest = cache
+        else:
+            self._cache_pkg_filter_none = cache
 
     def is_installed(self, pkgname):
         for p in self._get_packages(pkgname):
