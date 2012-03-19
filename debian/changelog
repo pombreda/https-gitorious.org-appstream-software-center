@@ -65,6 +65,10 @@ software-center (5.1.13) UNRELEASED; urgency=low
     - implements the recommendations opt-out feature as specified
       in the SoftwareCenter spec
 
+  [ Kiwinote ]
+  * This branch clears out most of the unused code/files
+    that can be found in the sc codebase
+
  -- Kiwinote <kiwinote@gmail.com>  Mon, 19 Mar 2012 15:29:24 +0000
 
 software-center (5.1.12) precise; urgency=low

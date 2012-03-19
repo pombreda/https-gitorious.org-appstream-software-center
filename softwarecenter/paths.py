@@ -57,8 +57,6 @@ SOFTWARE_CENTER_PLUGIN_DIRS = [
 # FIXME: use relative paths here
 INSTALLED_ICON = \
  "/usr/share/software-center/icons/software-center-installed.png"
-IMAGE_LOADING = \
- "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
 
 # xapian pathes
 XAPIAN_BASE_PATH = "/var/cache/software-center"

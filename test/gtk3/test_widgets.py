@@ -72,10 +72,10 @@ class TestWidgets(unittest.TestCase):
 
     def test_show_image_dialog(self):
         from softwarecenter.ui.gtk3.widgets.imagedialog import SimpleShowImageDialog
-        if os.path.exists("../../data/images/arrows.png"):
-            f = "../../data/images/arrows.png"
+        if os.path.exists("../../data/default_banner/fallback.png"):
+            f = "../../data/default_banner/fallback.png"
         else:
-            f = "../data/images/arrows.png"
+            f = "../data/default_banner/fallback.png"
         pix = GdkPixbuf.Pixbuf.new_from_file(f)
         d = SimpleShowImageDialog("test caption", pix)
         GObject.timeout_add(TIMEOUT, lambda: d.destroy())

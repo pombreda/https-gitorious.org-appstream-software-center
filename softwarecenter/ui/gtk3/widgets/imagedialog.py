@@ -76,5 +76,5 @@ if __name__ == "__main__":
     # pixbuf
     d = SimpleShowImageDialog("Synaptic Screenshot",
         GdkPixbuf.Pixbuf.new_from_file(
-        "/usr/share/software-center/images/arrows.png"))
+        "/usr/share/software-center/default_banner/fallback.png"))
     d.run()
