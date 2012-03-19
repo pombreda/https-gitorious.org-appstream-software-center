@@ -90,6 +90,8 @@ from softwarecenter.ui.gtk3.session.appmanager import (ApplicationManager,
                                                        get_appmanager)
 from softwarecenter.ui.gtk3.session.viewmanager import (
     ViewManager, get_viewmanager)
+from softwarecenter.ui.gtk3.widgets.recommendations import (
+    RecommendationsOptInDialog)
 
 from softwarecenter.config import get_config
 from softwarecenter.backend import get_install_backend
@@ -378,14 +380,14 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # Adapt menu entries
         supported_menuitem = self.builder.get_object(
-            "menuitem_view_supported_only")
+                "menuitem_view_supported_only")
         supported_menuitem.set_label(self.distro.get_supported_filter_name())
         file_menu = self.builder.get_object("menu1")
 
         if not self.distro.DEVELOPER_URL:
             help_menu = self.builder.get_object("menu_help")
             developer_separator = self.builder.get_object(
-                "separator_developer")
+                    "separator_developer")
             help_menu.remove(developer_separator)
             developer_menuitem = self.builder.get_object("menuitem_developer")
             help_menu.remove(developer_menuitem)
@@ -505,6 +507,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def on_available_pane_created(self, widget):
         self.available_pane.searchentry.grab_focus()
+        rec_panel = self.available_pane.cat_view.recommended_for_you_panel
+        self._update_recommendations_menuitem(
+                        opted_in=rec_panel.recommender_agent.is_opted_in())
         # connect a signal to monitor the recommendations opt-in state and
         # persist the recommendations uuid on an opt-in
         self.available_pane.cat_view.recommended_for_you_panel.connect(
@@ -517,13 +522,25 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     #~ def on_installed_pane_created(self, widget):
         #~ pass
 
-    def _on_recommendations_opt_in(self, agent, recommender_uuid):
+    def _on_recommendations_opt_in(self, rec_panel, recommender_uuid):
         self.recommender_uuid = recommender_uuid
+        self._update_recommendations_menuitem(opted_in=True)
 
-    def _on_recommendations_opt_out(self):
+    def _on_recommendations_opt_out(self, rec_panel):
         # if the user opts back out of the recommender service, we
-        # reset the UUID to indicate it
+        # reset the recommender UUID to indicate it
         self.recommender_uuid = ""
+        self._update_recommendations_menuitem(opted_in=False)
+
+    def _update_recommendations_menuitem(self, opted_in):
+        recommendations_menuitem = self.builder.get_object(
+                                            "menuitem_recommendations")
+        if opted_in:
+            recommendations_menuitem.set_label(
+                                            _(u"Turn Off Recommendations"))
+        else:
+            recommendations_menuitem.set_label(
+                                            _(u"Turn On Recommendations..."))
 
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" %
@@ -774,7 +791,19 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             from softwarecenter.backend.scagent import SoftwareCenterAgent
             self.scagent = SoftwareCenterAgent()
             self.scagent.connect("available-for-me",
-                self._available_for_me_result)
+                                 self._available_for_me_result)
+
+    def on_menuitem_recommendations_activate(self, menu_item):
+        rec_panel = self.available_pane.cat_view.recommended_for_you_panel
+        if rec_panel.recommender_agent.is_opted_in():
+            rec_panel.opt_out_of_recommendations_service()
+        else:
+            # build and show the opt-in dialog
+            opt_in_dialog = RecommendationsOptInDialog(self.icons)
+            res = opt_in_dialog.run()
+            opt_in_dialog.destroy()
+            if res == Gtk.ResponseType.YES:
+                rec_panel.opt_in_to_recommendations_service()
 
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
         self.view_manager.set_active_view(ViewPages.AVAILABLE)
@@ -783,7 +812,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if self.available_for_me_query:
             # we already have the list of available items, so just show it
             self.available_pane.on_previous_purchases_activated(
-                self.available_for_me_query)
+                    self.available_for_me_query)
         else:
             # fetch the list of available items and show it
             self._create_scagent_if_needed()

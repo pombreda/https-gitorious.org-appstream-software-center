@@ -158,12 +158,6 @@ Konstantin Datz - Icon
                       </object>
                     </child>
                     <child>
-                      <object class="GtkSeparatorMenuItem" id="separator_login">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                      </object>
-                    </child>
-                    <child>
                       <object class="GtkMenuItem" id="menuitem_reinstall_purchases">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -452,6 +446,22 @@ Konstantin Datz - Icon
                         <property name="label" translatable="yes">_New Applications in Launcher</property>
                         <property name="use_underline">True</property>
                         <signal name="toggled" handler="on_menuitem_add_to_launcher_toggled" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="separator_recommendations_opt_in">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="menuitem_recommendations">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="label" translatable="yes">Turn On Recommendations...</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_menuitem_recommendations_activate" swapped="no"/>
                       </object>
                     </child>
                   </object>

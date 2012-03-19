@@ -61,6 +61,9 @@ software-center (5.1.13) UNRELEASED; urgency=low
       previous purchases (LP: #856559)
   * lp:~gary-lasker/software-center/recommendations-categories-view:
     - display recommendations in the category views as well 
+  * lp:~gary-lasker/software-center/recommendations-opt-out:
+    - implements the recommendations opt-out feature as specified
+      in the SoftwareCenter spec
 
  -- Kiwinote <kiwinote@gmail.com>  Mon, 19 Mar 2012 15:29:24 +0000
 

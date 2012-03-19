@@ -586,7 +586,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             self.vbox.remove(self.recommended_for_you_in_cat)
         self.recommended_for_you_in_cat = RecommendationsPanelCategory(
                                                                     self,
-                                                                   category)
+                                                                    category)
         # only show the panel in the categories view when the user
         # is opted in to the recommender service
         # FIXME: this is needed vs. a simple hide() on the widget because
