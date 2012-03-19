@@ -189,10 +189,10 @@ class PackagekitInfo(PackageInfo):
         self._cache_pkg = cache
 
     def is_installed(self, pkgname):
-        p = self._get_one_package(pkgname)
-        if not p:
-            return False
-        return p.get_info() == packagekit.InfoEnum.INSTALLED
+        for p in self._get_packages(pkgname):
+            if p.get_info() == packagekit.InfoEnum.INSTALLED:
+                return True
+        return False
 
     def is_upgradable(self, pkgname):
         # FIXME: how is this done via PK ?
@@ -203,9 +203,10 @@ class PackagekitInfo(PackageInfo):
         return True
 
     def get_installed(self, pkgname):
-        p = self._get_one_package(pkgname)
-        if p.get_info() == packagekit.InfoEnum.INSTALLED:
-            return PackagekitVersion(p, self) if p else None
+        for p in self._get_packages(pkgname):
+            if p.get_info() == packagekit.InfoEnum.INSTALLED:
+                return PackagekitVersion(p, self)
+        return None
 
     def get_candidate(self, pkgname):
         p = self._get_one_package(pkgname, pfilter=packagekit.FilterEnum.NEWEST)
