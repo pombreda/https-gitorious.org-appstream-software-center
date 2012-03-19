@@ -109,6 +109,7 @@ class PackagekitInfo(PackageInfo):
         self.client = packagekit.Client()
         self.client.set_locale(make_locale_string())
         self._cache_pkg_filter_none = {} # temporary hack for decent testing
+        self._cache_pkg_filter_newest = {} # temporary hack for decent testing
         self._cache_details = {} # temporary hack for decent testing
         self._notfound_cache_pkg = []
         self._repocache = {}
@@ -390,6 +391,8 @@ class PackagekitInfo(PackageInfo):
 
         if pfilter in (packagekit.FilterEnum.NONE, packagekit.FilterEnum.NOT_SOURCE):
             cache_pkg_filter = self._cache_pkg_filter_none
+        elif pfilter in (packagekit.FilterEnum.NEWEST,):
+            cache_pkg_filter = self._cache_pkg_filter_newest
         else:
             cache_pkg_filter = None
 
@@ -436,11 +439,14 @@ class PackagekitInfo(PackageInfo):
         LOG.debug("[reset_cache] name: %s", name)
         if name and (name in self._cache_pkg_filter_none.keys()):
             del self._cache_pkg_filter_none[name]
-        elif name and (name in self._cache_details.keys()):
+        if name and (name in self._cache_pkg_filter_newest.keys()):
+            del self._cache_pkg_filter_newest[name]
+        if name and (name in self._cache_details.keys()):
             del self._cache_details[name]
         else:
             # delete all
             self._cache_pkg_filter_none = {}
+            self._cache_pkg_filter_newest = {}
             self._cache_details = {}
         # appdetails gets refreshed:
         self.emit('cache-ready')
