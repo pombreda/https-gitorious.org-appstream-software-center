@@ -230,7 +230,7 @@ def make_recommender_agent_recommend_me_dict():
             },
             {
                 u'package_name': u'mangler'
-            }, 
+            },
             {
                 u'package_name': u'nexuiz'
             },
@@ -254,7 +254,7 @@ def make_recommender_agent_recommend_me_dict():
             },
             {
                 u'package_name': u'psi'
-            }, 
+            },
             {
                 u'package_name': u'midori'
             }
@@ -282,7 +282,6 @@ def make_recommender_profile_upload_data():
                 u'phlipple',
                 u'psi',
                 u'midori'
-                
             ]
         }
     ]
