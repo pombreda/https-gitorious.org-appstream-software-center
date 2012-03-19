@@ -286,11 +286,11 @@ class PackagekitInfo(PackageInfo):
     def get_packages_removed_on_remove(self, pkg):
         """ Returns a package names list of reverse dependencies
         which will be removed if the package is removed."""
-        p = self._get_one_package(pkg.name)
+        p = self.get_installed(pkg.name)
         if not p:
             return []
         autoremove = False
-        res = self.client.simulate_remove_packages((p.get_id(),), 
+        res = self.client.simulate_remove_packages((p.package.get_id(),),
                                             autoremove, None,
                                             self._on_progress_changed, None,
         )
@@ -301,10 +301,10 @@ class PackagekitInfo(PackageInfo):
     def get_packages_removed_on_install(self, pkg):
         """ Returns a package names list of dependencies
         which will be removed if the package is installed."""
-        p = self._get_one_package(pkg.name)
+        p = self.get_candidate(pkg.name)
         if not p:
             return []
-        res = self.client.simulate_install_packages((p.get_id(),), 
+        res = self.client.simulate_install_packages((p.package.get_id(),),
                                             None,
                                             self._on_progress_changed, None,
         )
