@@ -375,7 +375,10 @@ class PackagekitInfo(PackageInfo):
         """ resolve a package name into a PkPackage object or return None """
         LOG.debug("packages %s", pkgname) #, self._cache.keys()
 
-        cache_pkg_filter = self._cache_pkg
+        if pfilter in (packagekit.FilterEnum.NONE, packagekit.FilterEnum.NOT_SOURCE):
+            cache_pkg_filter = self._cache_pkg
+        else:
+            cache_pkg_filter = None
 
         if cache and cache_pkg_filter is not None and (pkgname in cache_pkg_filter.keys()):
             return [ cache_pkg_filter[pkgname] ]
