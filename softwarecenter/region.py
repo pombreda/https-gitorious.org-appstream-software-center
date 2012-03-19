@@ -24,7 +24,10 @@ DBusGMainLoop(set_as_default=True)
 import locale
 import logging
 import os
-import xml.etree.ElementTree
+try:
+    from lxml import etree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
 from gettext import dgettext
 from gettext import gettext as _
 
@@ -46,7 +49,7 @@ def get_region_name(countrycode):
         for iso in ["iso_3166", "iso_3166_2"]:
             path = os.path.join("/usr/share/xml/iso-codes/", iso+".xml")
             if os.path.exists(path):
-                root = xml.etree.ElementTree.parse(path)
+                root = ET.parse(path)
                 xpath = ".//%s_entry[@alpha_2_code='%s']" % (iso, countrycode)
                 match = root.find(xpath)
                 if match is not None:

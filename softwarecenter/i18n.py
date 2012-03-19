@@ -68,12 +68,15 @@ def get_language():
     return language.split("_")[0]
 
 def langcode_to_name(langcode):
-    import xml.etree.ElementTree
+    try:
+        from lxml import etree as ET
+    except ImportError:
+        import xml.etree.ElementTree as ET
     from gettext import dgettext
     for iso in ["iso_639_3", "iso_639"]:
         path = os.path.join("/usr/share/xml/iso-codes/", iso+".xml")
         if os.path.exists(path):
-            root = xml.etree.ElementTree.parse(path)
+            root = ET.parse(path)
             xpath = ".//%s_entry[@part1_code='%s']" % (iso, langcode)
             match = root.find(xpath)
             if match is not None:
