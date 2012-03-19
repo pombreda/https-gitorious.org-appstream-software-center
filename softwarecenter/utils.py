@@ -75,6 +75,37 @@ class ExecutionTime(object):
         if self.with_traceback:
             log_traceback("populate model from query: '%s' (threaded: %s)")
 
+class PerfTiming(object):
+
+    init = 0
+    steps = {}
+    last_step_id = 0
+
+    @classmethod
+    def init(cls):
+        cls.init = time.time()
+
+    @classmethod
+    def start(cls, label):
+        cls.last_step_id += 1
+        cls.steps[cls.last_step_id] = (time.time(), label)
+        return cls.last_step_id
+
+    @classmethod
+    def step(cls, step_id, label):
+        (step_start, step_label) = cls.steps[step_id]
+        now = time.time()
+        print "%s (%s): %s (since startup: %s)" % (step_label, label, now - step_start, now - cls.init)
+
+    @classmethod
+    def stop(cls, step_id):
+        (step_start, step_label) = cls.steps.pop(step_id)
+        now = time.time()
+        print "%s: %s (since startup: %s)" % (step_label, now - step_start, now - cls.init)
+
+    @classmethod
+    def time(cls, label):
+        print "%s: %s" % (label, time.time() - cls.init)
 
 def utf8(s):
     """
