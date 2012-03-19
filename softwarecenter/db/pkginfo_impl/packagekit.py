@@ -248,7 +248,10 @@ class PackagekitInfo(PackageInfo):
 
     def get_origins(self, pkgname, cache=USE_CACHE):
         self._get_repolist()
-        if (pkgname in self._cache_pkg.keys()) and cache:
+        # FIXME: this is wrong, as cache is not about NOT_INSTALLED; and if we
+        # don't use the cache, we use NOT_INSTALLED (which is possibly wrong
+        # too?)
+        if cache and (pkgname in self._cache_pkg.keys()):
             pkgs = [ self._cache_pkg[pkgname] ]
         else:
             pkgs = self._get_packages(pkgname, pfilter=packagekit.FilterEnum.NOT_INSTALLED)
@@ -344,7 +347,7 @@ class PackagekitInfo(PackageInfo):
     """ private methods """
     def _get_package_details(self, packageid, cache=USE_CACHE):
         LOG.debug("package_details %s", packageid) #, self._cache.keys()
-        if (packageid in self._cache_details.keys()) and cache:
+        if cache and (packageid in self._cache_details.keys()):
             return self._cache_details[packageid]
 
         try:
