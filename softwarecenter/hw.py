@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gettext import gettext as _
+from softwarecenter.utils import utf8
 
 # private extension over the debtagshw stuff
 OPENGL_DRIVER_BLACKLIST_TAG = "x-hardware::opengl-driver-blacklist:"
@@ -74,13 +75,13 @@ TAG_MISSING_DESCRIPTION = {
                                  'enough for this software.'),
     # private extension
     OPENGL_DRIVER_BLACKLIST_TAG: _(u'This software does not work with the '
-                                   '\u201c%s\u201D graphics driver this '
-                                   'computer is using.'),
+                                   u'\u201c%s\u201D graphics driver this '
+                                   u'computer is using.'),
 }
 
 def get_hw_short_description(tag):
     s = TAG_DESCRIPTION.get(tag)
-    return s
+    return utf8(s)
 
 def get_hw_missing_long_description(tags):
     s = ""
@@ -100,7 +101,7 @@ def get_hw_missing_long_description(tags):
     # ensure that the last \n is gone
     if s:
         s = s[:-1]
-    return s
+    return utf8(s)
 
 
 def get_private_extensions_hardware_support_for_tags(tags):
