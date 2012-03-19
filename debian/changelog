@@ -9,8 +9,17 @@ software-center (5.1.13) UNRELEASED; urgency=low
     lp:~elachuni/software-center/pep8-test-part10,
     lp:~elachuni/software-center/pep8-test-part11,
     lp:~elachuni/software-center/pep8-test-part12,
-    lp:~elachuni/software-center/pep8-test-part13:
-    - pep8 fixes for many more files in ui.gtk3.{*}
+    lp:~elachuni/software-center/pep8-test-part13,
+    lp:~elachuni/software-center/pep8-test-part14,
+    lp:~elachuni/software-center/pep8-test-part15,
+    lp:~elachuni/software-center/pep8-test-part16,
+    lp:~elachuni/software-center/pep8-test-part17,
+    lp:~elachuni/software-center/pep8-test-part18,
+    lp:~elachuni/software-center/pep8-test-part19,
+    lp:~elachuni/software-center/pep8-test-part20,
+    lp:~elachuni/software-center/pep8-test-part21,
+    lp:~elachuni/software-center/pep8-test-part22:
+    - many, many, many pep8 fixes
   * lp:~elachuni/software-center/unify-ussoc-envvar:
     - fix USSOC_SERVICE_URL env variable
   
@@ -23,8 +32,37 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~mvo/software-center/small-sso-fixes:
     - fix the clear_credentials() call if a token is no
       longer valid
+  * lp:~mvo/software-center/lp955005:
+    - don't display ratings for the case where an app
+      cannot be found (LP: #955005)
+  * lp:~mvo/software-center/opengl-driver-blacklist:
+    - add support for video driver blacklisting
+  * lp:~mvo/software-center/lp856559:
+    - fix case where the search term is not always
+      cleared in the search entry (LP: #856559)
+  * lp:~mvo/software-center/misc-fixes:
+    - when a package can not be authenticated, do not fail
+      (hard) but instead offer to "repair" the situation using
+      a "reload" and try the install again (LP: #876278)
+    - do not crash in if os.makedirs has a race condition
+      (LP: #956680)
+    - fix the proxy handling with 12.04 as the "enabled" property
+      is deprecated now. it will also not mess with the proxy
+      environment on non-gnome systems (LP: #742564) 
+  * lp:~mvo/software-center/lp780812:
+    - ensure that the distroseries is updated in the sources
+      deb line when updating a purchased item (LP: #780812)
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/fix-lp955048:
+    - String fix for the "Recommended For You" panel. LP: #955048
+  * lp:~gary-lasker/software-center/fix-lp856559:
+    - Clears the search entry field before doing a reinstall 
+      previous purchases (LP: #856559)
+  * lp:~gary-lasker/software-center/recommendations-categories-view:
+    - display recommendations in the category views as well 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 14 Mar 2012 22:49:32 -0400
+ -- Kiwinote <kiwinote@gmail.com>  Mon, 19 Mar 2012 15:29:24 +0000
 
 software-center (5.1.12) precise; urgency=low
 

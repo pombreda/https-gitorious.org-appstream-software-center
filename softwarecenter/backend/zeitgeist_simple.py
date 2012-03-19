@@ -30,6 +30,7 @@ except ImportError:
 else:
     ZEITGEIST_AVAILABLE = True
 
+
 class SoftwareCenterZeitgeist():
     """ simple wrapper around zeitgeist """
 
@@ -39,7 +40,7 @@ class SoftwareCenterZeitgeist():
         except Exception as e:
             logging.warn("can not get zeitgeist client: '%s'" % e)
             self.zg_client = None
-        
+
     def get_usage_counter(self, application, callback, timerange=None):
         """Request the usage count as integer for the given application.
            When the request is there, "callback" is called. A optional
@@ -54,7 +55,7 @@ class SoftwareCenterZeitgeist():
             callback(0)
             return
         # the app we are looking for
-        application = "application://"+application.split("/")[-1]
+        application = "application://" + application.split("/")[-1]
         # the event_templates
         e1 = Event.new_for_values(
             actor=application, interpretation=Interpretation.MODIFY_EVENT.uri)
@@ -63,11 +64,11 @@ class SoftwareCenterZeitgeist():
         # run it
         self.zg_client.find_event_ids_for_templates(
             [e1, e2], _callback, timerange=timerange, num_events=0)
-       
+
     def get_popular_mimetypes(self, callback, num=3):
         """ get the "num" (default to 3) most popular mimetypes based
             on the last 1000 events that zeitgeist recorded and
-            call "callback" with [(count1, "mime1"), (count2, "mime2"), ...] 
+            call "callback" with [(count1, "mime1"), (count2, "mime2"), ...]
             as arguement
         """
         def _callback(events):
@@ -87,7 +88,7 @@ class SoftwareCenterZeitgeist():
             # convert to result and sort
             for k, v in mimetypes.items():
                 results.append([v, k])
-            results.sort(reverse = True)
+            results.sort(reverse=True)
             # tell the client about it
             callback(results[:num])
         # no zeitgeist
@@ -97,12 +98,14 @@ class SoftwareCenterZeitgeist():
         # FIXME: investigate how result_type MostRecentEvents or
         #        MostRecentSubjects would affect the results
         self.zg_client.find_events_for_templates(
-            [], _callback, num_events=1000, 
+            [], _callback, num_events=1000,
             result_type=ResultType.MostRecentEvents)
+
 
 class SoftwareCenterZeitgeistDummy():
     def get_usage_counter(self, application, callback, timerange=None):
         callback(0)
+
     def get_popular_mimetypes(self, callback):
         callback([])
 
@@ -121,15 +124,15 @@ if __name__ == "__main__":
 
     # yesterday gedit
     end = time.time()
-    start = end - 24*60*60
+    start = end - 24 * 60 * 60
     zeitgeist_singleton.get_usage_counter("gedit.desktop", _callback_counter,
                                           timerange=[start, end])
-    
+
     # most popular
     def _callback_popular(mimetypes):
         print("test _callback: ")
         for tuple in mimetypes:
-        	print(tuple)
+            print(tuple)
     zeitgeist_singleton.get_popular_mimetypes(_callback_popular)
 
     from gi.repository import Gtk

@@ -31,6 +31,7 @@ from softwarecenter.enums import BUY_SOMETHING_HOST
 
 LOG = logging.getLogger(__name__)
 
+
 class Ubuntu(Debian):
 
     # see __init__.py description
@@ -43,22 +44,28 @@ class Ubuntu(Debian):
     IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
 
     # screenshot handling
-    SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-with-version/%(pkgname)s/%(version)s"
-    SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-with-version/%(pkgname)s/%(version)s"
+    SCREENSHOT_THUMB_URL = ("http://screenshots.ubuntu.com/"
+        "thumbnail-with-version/%(pkgname)s/%(version)s")
+    SCREENSHOT_LARGE_URL = ("http://screenshots.ubuntu.com/"
+        "screenshot-with-version/%(pkgname)s/%(version)s")
 
     # the json description of the available screenshots
     SCREENSHOT_JSON_URL = "http://screenshots.ubuntu.com/json/package/%s"
 
     # purchase subscription
-    PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/%s/ubuntu/%s/+new/?%s"
+    PURCHASE_APP_URL = (BUY_SOMETHING_HOST + "/subscriptions/%s/ubuntu/%s/"
+        "+new/?%s")
 
     # reviews
-    REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://reviews.ubuntu.com/reviews/api/1.0"
-    REVIEWS_URL = REVIEWS_SERVER + "/reviews/filter/%(language)s/%(origin)s/%(distroseries)s/%(version)s/%(pkgname)s%(appname)s/"
+    REVIEWS_SERVER = (os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or
+        "http://reviews.ubuntu.com/reviews/api/1.0")
+    REVIEWS_URL = (REVIEWS_SERVER + "/reviews/filter/%(language)s/%(origin)s/"
+        "%(distroseries)s/%(version)s/%(pkgname)s%(appname)s/")
 
-    #REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/review-stats/"
+    #REVIEW_STATS_URL = (REVIEWS_SERVER + "/reviews/api/1.0/%(language)s/"
+    #    "%(origin)s/%(distroseries)s/review-stats/")
     # FIXME: does that make sense?!?
-    REVIEW_STATS_URL = REVIEWS_SERVER+"/review-stats"
+    REVIEW_STATS_URL = REVIEWS_SERVER + "/review-stats"
 
     # Starting point for Ubuntu app developers
     DEVELOPER_URL = "http://developer.ubuntu.com/"
@@ -69,8 +76,9 @@ class Ubuntu(Debian):
         return _("Ubuntu Software Center")
 
     def get_app_description(self):
-        return _("Lets you choose from thousands of applications available for Ubuntu.")
-    
+        return _("Lets you choose from thousands of applications available "
+            "for Ubuntu.")
+
     def get_distro_channel_name(self):
         """ The name in the Release file """
         return "Ubuntu"
@@ -89,7 +97,8 @@ class Ubuntu(Debian):
             if cache[m].section == "metapackages":
                 primary = _("If you uninstall %s, future updates will not "
                               "include new items in <b>%s</b> set. "
-                              "Are you sure you want to continue?") % (appname, cache[m].installed.summary)
+                              "Are you sure you want to continue?") % (appname,
+                              cache[m].installed.summary)
                 button_text = _("Remove Anyway")
                 depends = []
                 break
@@ -112,9 +121,10 @@ class Ubuntu(Debian):
         elif component == "restricted":
             return _("Proprietary")
         else:
-            # commercial apps provide license info via the software-center-agent,
-            # but if a given commercial app does not provide this for some reason,
-            # default to a license type of "Unknown"
+            # commercial apps provide license info via the
+            # software-center-agent, but if a given commercial app does not
+            # provide this for some reason, default to a license type of
+            # "Unknown"
             return _("Unknown")
 
     def is_supported(self, cache, doc, pkgname):
@@ -122,8 +132,8 @@ class Ubuntu(Debian):
         # section. Looking up in the cache seems just as fast/slow.
         if pkgname in cache and cache[pkgname].candidate:
             for origin in cache[pkgname].candidate.origins:
-                if (origin.origin == "Ubuntu" and 
-                    origin.trusted and 
+                if (origin.origin == "Ubuntu" and
+                    origin.trusted and
                     (origin.component == "main" or
                      origin.component == "restricted")):
                     return True
@@ -131,25 +141,26 @@ class Ubuntu(Debian):
 
     def get_supported_query(self):
         import xapian
-        query1 = xapian.Query("XOL"+"Ubuntu")
-        query2a = xapian.Query("XOC"+"main")
-        query2b = xapian.Query("XOC"+"restricted")
+        query1 = xapian.Query("XOL" + "Ubuntu")
+        query2a = xapian.Query("XOC" + "main")
+        query2b = xapian.Query("XOC" + "restricted")
         query2 = xapian.Query(xapian.Query.OP_OR, query2a, query2b)
         return xapian.Query(xapian.Query.OP_AND, query1, query2)
 
     def get_supported_filter_name(self):
         return _("Canonical-Maintained Software")
 
-    def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
+    def get_maintenance_status(self, cache, appname, pkgname, component,
+        channelname):
         # try to figure out the support dates of the release and make
         # sure to look only for stuff in "Ubuntu" and "distro_codename"
-        # (to exclude stuff in ubuntu-updates for the support time 
+        # (to exclude stuff in ubuntu-updates for the support time
         # calculation because the "Release" file time for that gets
         # updated regularly)
         if not hasattr(cache, '_cache') or not pkgname:
             return
-        releasef = get_release_filename_for_pkg(cache._cache, pkgname, 
-                                                "Ubuntu", 
+        releasef = get_release_filename_for_pkg(cache._cache, pkgname,
+                                                "Ubuntu",
                                                 self.get_codename())
         time_t = get_release_date_from_release_file(releasef)
         # check the release date and show support information
@@ -167,23 +178,27 @@ class Ubuntu(Debian):
             # see if we have a "Supported" entry in the pkg record
             if (pkgname in cache and
                 cache[pkgname].candidate):
-                support_time = cache._cache[pkgname].candidate.record.get("Supported")
+                support_time = cache._cache[pkgname].candidate.record.get(
+                    "Supported")
                 if support_time:
                     if support_time.endswith("y"):
-                        support_month = 12*int(support_time.strip("y"))
+                        support_month = 12 * int(support_time.strip("y"))
                     elif support_time.endswith("m"):
                         support_month = int(support_time.strip("m"))
                     else:
-                        LOG.warning("unsupported 'Supported' string '%s'" % support_time)
+                        LOG.warning("unsupported 'Supported' string '%s'" %
+                            support_time)
 
             # mvo: we do not define the end date very precisely
             #      currently this is why it will just display a end
             #      range
             # print release_date, support_month
-            (support_end_year, support_end_month) = get_maintenance_end_date(release_date, support_month)
-            support_end_month_str = locale.nl_langinfo(getattr(locale,"MON_%d" % support_end_month))
+            (support_end_year, support_end_month) = get_maintenance_end_date(
+                release_date, support_month)
+            support_end_month_str = locale.nl_langinfo(
+                getattr(locale, "MON_%d" % support_end_month))
              # check if the support has ended
-            support_ended = (now.year >= support_end_year and 
+            support_ended = (now.year >= support_end_year and
                              now.month > support_end_month)
             if component == "main":
                 if support_ended:
@@ -194,9 +209,10 @@ class Ubuntu(Debian):
                 else:
                     return _("Canonical provides critical updates for "
                              "%(appname)s until %(support_end_month_str)s "
-                             "%(support_end_year)s.") % {'appname' : appname,
-                                                         'support_end_month_str' : support_end_month_str,
-                                                         'support_end_year' : support_end_year}
+                             "%(support_end_year)s.") % {
+                                'appname': appname,
+                                'support_end_month_str': support_end_month_str,
+                                'support_end_year': support_end_year}
             elif component == "restricted":
                 if support_ended:
                     return _("Canonical does no longer provide "
@@ -207,10 +223,12 @@ class Ubuntu(Debian):
                     return _("Canonical provides critical updates supplied "
                              "by the developers of %(appname)s until "
                              "%(support_end_month_str)s "
-                             "%(support_end_year)s.") % {'appname' : appname,
-                                                         'support_end_month_str' : support_end_month_str,
-                                                         'support_end_year' : support_end_year}
-               
+                             "%(support_end_year)s.") % {
+                                'appname': appname,
+                                'support_end_month_str': support_end_month_str,
+                                'support_end_year': support_end_year,
+                            }
+
         # if we couldn't determine a support date, use a generic maintenance
         # string without the date
         if (channelname or
@@ -225,8 +243,8 @@ class Ubuntu(Debian):
             return _("Canonical does not provide updates for %s. "
                      "Some updates may be provided by the "
                      "Ubuntu community.") % appname
-        #return _("Application %s has an unknown maintenance status.") % appname
-        return
+        #return (_("Application %s has an unknown maintenance status.") %
+        #    appname)
 
     def get_downloadable_icon_url(self, full_archive_url, icon_filename):
         """
@@ -252,12 +270,16 @@ class Ubuntu(Debian):
             downloadable_icon_url.append(icon_filename)
             return "".join(downloadable_icon_url)
         else:
-            #raise ValueError, "we currently support downloadable icons in ppa's only"
-            LOG.warning("downloadable icon is not supported for archive: '%s'" % full_archive_url)
+            #raise ValueError("we currently support downloadable icons in "
+            #    "ppa's only")
+            LOG.warning("downloadable icon is not supported for archive: '%s'"
+                % full_archive_url)
             return ''
 
 if __name__ == "__main__":
     import apt
     cache = apt.Cache()
-    print cache.get_maintenance_status(cache, "synaptic app", "synaptic", "main", None)
-    print cache.get_maintenance_status(cache, "3dchess app", "3dchess", "universe", None)
+    print cache.get_maintenance_status(cache, "synaptic app", "synaptic",
+        "main", None)
+    print cache.get_maintenance_status(cache, "3dchess app", "3dchess",
+        "universe", None)

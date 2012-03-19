@@ -37,6 +37,7 @@ from softwarecenter.region import get_region_cached, REGIONTAG
 
 LOG = logging.getLogger(__name__)
 
+
 # this is a very lean class as its used in the main listview
 # and there are a lot of application objects in memory
 class Application(object):
@@ -74,9 +75,11 @@ class Application(object):
         if self.appname:
             return self.appname
         return self.pkgname
+
     @property
     def popcon(self):
         return self._popcon
+
     # get a AppDetails object for this Applications
     def get_details(self, db):
         """ return a new AppDetails object for this application """
@@ -90,7 +93,8 @@ class Application(object):
             doc = db.get_xapian_document(self.appname, self.pkgname)
         except IndexError:
             return self
-        untranslated_application = doc.get_value(XapianValues.APPNAME_UNTRANSLATED)
+        untranslated_application = doc.get_value(
+            XapianValues.APPNAME_UNTRANSLATED)
         uapp = Application(untranslated_application, self.pkgname)
         return uapp
 
@@ -108,11 +112,12 @@ class Application(object):
                 return appname
             else:
                 return db.get_summary(doc)
+
     @staticmethod
     def get_display_summary(db, doc):
         """ Return the application summary as it should be displayed in the UI
-            If the appname is defined, return the application summary, else return
-            the application's pkgname (per the spec)
+            If the appname is defined, return the application summary, else
+            return the application's pkgname (per the spec)
         """
         if doc:
             if db.get_appname(doc):
@@ -123,12 +128,17 @@ class Application(object):
     # special methods
     def __hash__(self):
         return ("%s:%s" % (self.appname, self.pkgname)).__hash__()
+
     def __cmp__(self, other):
         return self.apps_cmp(self, other)
+
     def __str__(self):
         return utf8("%s,%s") % (utf8(self.appname), utf8(self.pkgname))
+
     def __repr__(self):
-        return "[Application: appname=%s pkgname=%s]" % (self.appname, self.pkgname)
+        return "[Application: appname=%s pkgname=%s]" % (self.appname,
+            self.pkgname)
+
     @staticmethod
     def apps_cmp(x, y):
         """ sort method for the applications """
@@ -143,16 +153,17 @@ class Application(object):
         else:
             return cmp(x.pkgname, y.pkgname)
 
+
 # the details
 class AppDetails(GObject.GObject):
     """ The details for a Application. This contains all the information
         we have available like website etc
     """
 
-    __gsignals__ = {"screenshots-available" : (GObject.SIGNAL_RUN_FIRST,
-                                               GObject.TYPE_NONE,
-                                               (GObject.TYPE_PYOBJECT,),
-                                              ),
+    __gsignals__ = {"screenshots-available": (GObject.SIGNAL_RUN_FIRST,
+                                              GObject.TYPE_NONE,
+                                              (GObject.TYPE_PYOBJECT,),
+                                             ),
                     }
 
     def __init__(self, db, doc=None, application=None):
@@ -214,7 +225,9 @@ class AppDetails(GObject.GObject):
                     not channel_matches and
                     not section_matches):
                     self._error = _("Not found")
-                    self._error_not_found = utf8(_(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.")) % utf8(self.pkgname)
+                    self._error_not_found = utf8(_(u"There isn\u2019t a "
+                        "software package called \u201c%s\u201D in your "
+                        "current software sources.")) % utf8(self.pkgname)
 
     def same_app(self, other):
         return self.pkgname == other.pkgname
@@ -241,7 +254,6 @@ class AppDetails(GObject.GObject):
         raise ValueError("pkg '%s' has not archive_suite '%s'" % (
                 pkg, archive_suite))
 
-
     @property
     def channelname(self):
         if self._doc:
@@ -251,7 +263,8 @@ class AppDetails(GObject.GObject):
                 return channel
         else:
             # check if we have an apturl request to enable a channel
-            channel_matches = re.findall(r'channel=([0-9a-z,-]*)', self._app.request)
+            channel_matches = re.findall(r'channel=([0-9a-z,-]*)',
+                self._app.request)
             if channel_matches:
                 channel = channel_matches[0]
                 channelfile = APP_INSTALL_CHANNELS_PATH + channel + ".list"
@@ -268,7 +281,7 @@ class AppDetails(GObject.GObject):
     def eulafile(self):
         channel = self.channelname
         if channel:
-            eulafile =  APP_INSTALL_CHANNELS_PATH + channel + ".eula"
+            eulafile = APP_INSTALL_CHANNELS_PATH + channel + ".eula"
             if os.path.exists(eulafile):
                 return eulafile
 
@@ -292,11 +305,14 @@ class AppDetails(GObject.GObject):
             return comp
         # then apturl requests
         else:
-            section_matches = re.findall(r'section=([a-z]+)', self._app.request)
+            section_matches = re.findall(r'section=([a-z]+)',
+                self._app.request)
             if section_matches:
                 valid_section_matches = []
                 for section_match in section_matches:
-                    if self._unavailable_component(component_to_check=section_match) and valid_section_matches.count(section_match) == 0:
+                    if (self._unavailable_component(
+                        component_to_check=section_match) and
+                        valid_section_matches.count(section_match) == 0):
                         valid_section_matches.append(section_match)
                 if valid_section_matches:
                     return ('&').join(valid_section_matches)
@@ -305,6 +321,7 @@ class AppDetails(GObject.GObject):
     def desktop_file(self):
         if self._doc:
             return self._doc.get_value(XapianValues.DESKTOP_FILE)
+
     @property
     def description(self):
         if self._pkg:
@@ -328,8 +345,10 @@ class AppDetails(GObject.GObject):
             return self._error
         # this may have changed since we inited the appdetails
         elif self.pkg_state == PkgStates.NOT_FOUND:
-            self._error =  _("Not found")
-            self._error_not_found = utf8(_(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.")) % utf8(self.pkgname)
+            self._error = _("Not found")
+            self._error_not_found = utf8(_(u"There isn\u2019t a software "
+                "package called \u201c%s\u201D in your current software "
+                "sources.")) % utf8(self.pkgname)
             return self._error_not_found
 
     @property
@@ -354,7 +373,8 @@ class AppDetails(GObject.GObject):
     @property
     def cached_icon_file_path(self):
         if self._doc:
-            return os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, self._db.get_iconname(self._doc))
+            return os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
+                self._db.get_iconname(self._doc))
 
     @property
     def installation_date(self):
@@ -416,8 +436,8 @@ class AppDetails(GObject.GObject):
     @property
     def display_summary(self):
         """ Return the application summary as it should be displayed in the UI
-            If the appname is defined, return the application summary, else return
-            the application's pkgname (per the spec)
+            If the appname is defined, return the application summary, else
+            return the application's pkgname (per the spec)
         """
         if self._doc:
             return Application.get_display_summary(self._db, self._doc)
@@ -456,7 +476,7 @@ class AppDetails(GObject.GObject):
         #   not-automatic channels (like experimental/backports)
         if self._pkg:
             if self._pkg.installed and self._app.archive_suite:
-                archive_suites = [origin.archive 
+                archive_suites = [origin.archive
                                   for origin in self._pkg.installed.origins]
                 if not self._app.archive_suite in archive_suites:
                     return PkgStates.FORCE_VERSION
@@ -477,8 +497,10 @@ class AppDetails(GObject.GObject):
                 if self._unavailable_channel():
                     return PkgStates.NEEDS_SOURCE
                 else:
-                    self._error =  _("Not found")
-                    self._error_not_found = utf8(_(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.")) % utf8(self.pkgname)
+                    self._error = _("Not found")
+                    self._error_not_found = utf8(_(u"There isn\u2019t a "
+                        "software package called \u201c%s\u201D in your "
+                        "current software sources.")) % utf8(self.pkgname)
                     return PkgStates.NOT_FOUND
             else:
                 if self.price:
@@ -505,10 +527,13 @@ class AppDetails(GObject.GObject):
                 if self.component:
                     components = self.component.split('&')
                     for component in components:
-                        if component and self._unavailable_component(component_to_check=component):
+                        if component and self._unavailable_component(
+                            component_to_check=component):
                             return PkgStates.NEEDS_SOURCE
-                self._error =  _("Not found")
-                self._error_not_found = utf8(_(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.")) % utf8(self.pkgname)
+                self._error = _("Not found")
+                self._error_not_found = utf8(_(u"There isn\u2019t a software "
+                    "package called \u201c%s\u201D in your current software "
+                    "sources.")) % utf8(self.pkgname)
                 return PkgStates.NOT_FOUND
         return PkgStates.UNKNOWN
 
@@ -520,7 +545,8 @@ class AppDetails(GObject.GObject):
     @property
     def supported_distros(self):
         if self._doc:
-            supported_series = self._doc.get_value(XapianValues.SC_SUPPORTED_DISTROS)
+            supported_series = self._doc.get_value(
+                XapianValues.SC_SUPPORTED_DISTROS)
             if not supported_series:
                 return {}
 
@@ -552,8 +578,10 @@ class AppDetails(GObject.GObject):
             if screenshot_url:
                 return screenshot_url.split(",")[0]
         # else use the default
-        return self._distro.SCREENSHOT_LARGE_URL % { 'pkgname' : self.pkgname,
-                                                     'version' : self.version or 0 }
+        return self._distro.SCREENSHOT_LARGE_URL % {
+            'pkgname': self.pkgname,
+            'version': self.version or 0,
+        }
 
     @property
     def screenshots(self):
@@ -561,10 +589,11 @@ class AppDetails(GObject.GObject):
             "query_multiple_screenshos" was run before and emited the signal
         """
         if not self._screenshot_list:
-            return [ {'small_image_url': self.thumbnail,
-                      'large_image_url': self.screenshot,
-                      'version': self.version},
-                   ]
+            return [{
+                'small_image_url': self.thumbnail,
+                'large_image_url': self.screenshot,
+                'version': self.version,
+            }]
         return self._screenshot_list
 
     @property
@@ -583,17 +612,18 @@ class AppDetails(GObject.GObject):
             screenshot_url = self._doc.get_value(XapianValues.SCREENSHOT_URLS)
             if screenshot_url and len(screenshot_url.split(",")) > 1:
                 for screenshot in screenshot_url.split(","):
-                    screenshot_list.append({'small_image_url' : screenshot,
-                                            'large_image_url' : screenshot,
-                                            'version' : self.version,
-                                            })
+                    screenshot_list.append({
+                        'small_image_url': screenshot,
+                        'large_image_url': screenshot,
+                        'version': self.version,
+                    })
         return screenshot_list
 
     def query_multiple_screenshots(self):
         """ query if multiple screenshots for the given app are available
             and if so, emit "screenshots-available" signal
         """
-        # get screenshot list from the db, if that is empty thats fine, 
+        # get screenshot list from the db, if that is empty thats fine,
         # and we will query the screenshot server
         if not self._screenshot_list:
             self._screenshot_list = self._get_multiple_screenshots_from_db()
@@ -612,7 +642,7 @@ class AppDetails(GObject.GObject):
             LOG.exception("failed to load content")
 
     def _sort_screenshots_by_best_version(self, screenshot_list):
-        """ take a screenshot result dict from screenshots.debian.org 
+        """ take a screenshot result dict from screenshots.debian.org
             and sort it
         """
         from softwarecenter.utils import version_compare
@@ -624,9 +654,9 @@ class AppDetails(GObject.GObject):
                 screenshot_list.remove(item)
         # now sort from high to low
         return sorted(
-            screenshot_list, 
-            cmp=lambda a,b: version_compare(a["version"] or '', 
-                                            b["version"] or ''),
+            screenshot_list,
+            cmp=lambda a, b: version_compare(a["version"] or '',
+                                             b["version"] or ''),
             reverse=True)
 
     def _gio_screenshots_json_download_complete_cb(self, source, result, path):
@@ -649,7 +679,6 @@ class AppDetails(GObject.GObject):
         self._screenshot_list = self._sort_screenshots_by_best_version(
             screenshot_list)
         self.emit("screenshots-available", self._screenshot_list)
-        return
 
     @property
     def summary(self):
@@ -671,8 +700,10 @@ class AppDetails(GObject.GObject):
             if self._doc.get_value(XapianValues.THUMBNAIL_URL):
                 return self._doc.get_value(XapianValues.THUMBNAIL_URL)
         # else use the default
-        return self._distro.SCREENSHOT_THUMB_URL % { 'pkgname' : self.pkgname,
-                                                     'version' : self.version or 0}
+        return self._distro.SCREENSHOT_THUMB_URL % {
+            'pkgname': self.pkgname,
+            'version': self.version or 0,
+        }
 
     @property
     def video_url(self):
@@ -681,9 +712,10 @@ class AppDetails(GObject.GObject):
             if self._doc.get_value(XapianValues.VIDEO_URL):
                 return self._doc.get_value(XapianValues.VIDEO_URL)
         # else use the video server
-        #return self._distro.VIDEO_URL % { 'pkgname' : self.pkgname,
-        #                                  'version' : self.version or 0}
-        return None
+        #return self._distro.VIDEO_URL % {
+        #    'pkgname' : self.pkgname,
+        #    'version' : self.version or 0,
+        #}
 
     @property
     def version(self):
@@ -745,7 +777,8 @@ class AppDetails(GObject.GObject):
         # apturl minver matches
         if not self.pkg_state == PkgStates.INSTALLED:
             if self._app.request:
-                minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._app.request)
+                minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*',
+                    self._app.request)
                 if minver_matches and self.version:
                     minver = minver_matches[0][7:]
                     from softwarecenter.utils import version_compare
@@ -763,10 +796,11 @@ class AppDetails(GObject.GObject):
                 sources = source_to_enable.split('&')
                 sources_length = len(sources)
                 if sources_length == 1:
-                    warning = _("Available from the \"%s\" source.") % sources[0]
+                    warning = (_("Available from the \"%s\" source.") %
+                        sources[0])
                 elif sources_length > 1:
-                    # Translators: the visible string is constructed concatenating
-                    # the following 3 strings like this:
+                    # Translators: the visible string is constructed
+                    # concatenating the following 3 strings like this:
                     # Available from the following sources: %s, ... %s, %s.
                     warning = _("Available from the following sources: ")
                     # Cycle through all, but the last
@@ -805,7 +839,7 @@ class AppDetails(GObject.GObject):
             if tag.startswith(REGIONTAG):
                 # we found a region tag, now the region must match
                 res = False
-            if tag == REGIONTAG+my_region:
+            if tag == REGIONTAG + my_region:
                 # we have the right region
                 return True
         return res
@@ -821,27 +855,29 @@ class AppDetails(GObject.GObject):
     def hardware_requirements(self):
         result = {}
         try:
-            from debtagshw.debtagshw import DebtagsAvailableHW
-            hw = DebtagsAvailableHW()
-            result =  hw.get_hardware_support_for_tags(
-                self.tags)
+            from softwarecenter.hw import get_hardware_support_for_tags
+            result = get_hardware_support_for_tags(self.tags)
         except ImportError:
             LOG.warn("failed to import debtagshw")
             return result
         return result
 
     def _unavailable_channel(self):
-        """ Check if the given doc refers to a channel that is currently not enabled """
+        """ Check if the given doc refers to a channel that is currently
+            not enabled
+        """
         return not is_channel_available(self.channelname)
 
     def _unavailable_component(self, component_to_check=None):
-        """ Check if the given doc refers to a component that is currently not enabled """
+        """ Check if the given doc refers to a component that is currently
+            not enabled
+        """
         if component_to_check:
             component = component_to_check
         elif self.component:
             component = self.component
         else:
-            component =  self._doc.get_value(XapianValues.ARCHIVE_SECTION)
+            component = self._doc.get_value(XapianValues.ARCHIVE_SECTION)
         if not component:
             return False
         distro_codename = self._distro.get_codename()
@@ -868,7 +904,8 @@ class AppDetails(GObject.GObject):
         details.append("   installation_date: %s" % self.installation_date)
         details.append("       purchase_date: %s" % self.purchase_date)
         details.append("             license: %s" % self.license)
-        details.append("         license_key: %s" % self.license_key[0:3] + len(self.license_key)*"*")
+        details.append("         license_key: %s" % self.license_key[0:3] +
+            len(self.license_key) * "*")
         details.append("    license_key_path: %s" % self.license_key_path)
         details.append("      date_published: %s" % self.date_published)
         details.append("  maintenance_status: %s" % self.maintenance_status)

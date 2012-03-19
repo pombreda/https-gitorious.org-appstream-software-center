@@ -22,13 +22,14 @@ import os
 from softwarecenter.distro import Distro
 from gettext import gettext as _
 
+
 class Fedora(Distro):
     DISTROSERIES = [
-        'Beefy Miracle', 
-        'Verne', 
-        'Lovelock', 
-        'Laughlin', 
-        'Leonidas', 
+        'Beefy Miracle',
+        'Verne',
+        'Lovelock',
+        'Laughlin',
+        'Leonidas',
         'Constantine',
     ]
 
@@ -37,18 +38,22 @@ class Fedora(Distro):
 
     # screenshot handling
     # FIXME - fedora should get its own proxy eventually
-    SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-with-version/%(pkgname)s/%(version)s"
-    SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-with-version/%(pkgname)s/%(version)s"
+    SCREENSHOT_THUMB_URL = ("http://screenshots.ubuntu.com/"
+        "thumbnail-with-version/%(pkgname)s/%(version)s")
+    SCREENSHOT_LARGE_URL = ("http://screenshots.ubuntu.com/"
+        "screenshot-with-version/%(pkgname)s/%(version)s")
     SCREENSHOT_JSON_URL = "http://screenshots.ubuntu.com/json/package/%s"
-    
+
     # reviews
     # FIXME: fedora will want to get their own review server instance at
     #        some point I imagine :) (or a alternative backend)
     #
-    REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://reviews.ubuntu.com/reviews/api/1.0"
-    REVIEWS_URL = REVIEWS_SERVER + "/reviews/filter/%(language)s/%(origin)s/%(distroseries)s/%(version)s/%(pkgname)s%(appname)s/"
+    REVIEWS_SERVER = (os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or
+        "http://reviews.ubuntu.com/reviews/api/1.0")
+    REVIEWS_URL = (REVIEWS_SERVER + "/reviews/filter/%(language)s/%(origin)s/"
+        "%(distroseries)s/%(version)s/%(pkgname)s%(appname)s/")
 
-    REVIEW_STATS_URL = REVIEWS_SERVER+"/review-stats"
+    REVIEW_STATS_URL = REVIEWS_SERVER + "/review-stats"
 
     USE_AXI = False
 
@@ -57,7 +62,7 @@ class Fedora(Distro):
         return "fedora"
 
     def get_distro_channel_description(self):
-        """ The description of the main distro channel 
+        """ The description of the main distro channel
             Overrides what's present in yum.conf for fedora, updates,
             updates-testing, their respective -source and -debuginfo
         """
@@ -72,7 +77,7 @@ class Fedora(Distro):
         button_text = _("Remove All")
 
         return (primary, button_text)
-        
+
     def get_license_text(self, component):
         # with a PackageKit backend, component is always 'main'
         # (but we have license in the individual packages)
@@ -88,13 +93,13 @@ class Fedora(Distro):
         origin = cache.get_origin(pkgname)
         return origin == 'fedora' or origin == 'updates'
 
-    def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
+    def get_maintenance_status(self, cache, appname, pkgname, component,
+        channelname):
         # FIXME
-        return
+        pass
 
     def get_supported_query(self):
         import xapian
-        query1 = xapian.Query("XOO"+"fedora")
-        query2 = xapian.Query("XOO"+"updates")
+        query1 = xapian.Query("XOO" + "fedora")
+        query2 = xapian.Query("XOO" + "updates")
         return xapian.Query(xapian.Query.OP_OR, query1, query2)
-

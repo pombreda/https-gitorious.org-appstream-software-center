@@ -146,8 +146,9 @@ class AppPropertiesHelper(GObject.GObject):
     def is_available(self, doc):
         if doc.available is None:
             pkgname = self.get_pkgname(doc)
-            doc.available = (pkgname in self.cache or
-                             self.is_purchasable(doc))
+            doc.available = (
+                (pkgname in self.cache and self.cache[pkgname].candidate)
+                or self.is_purchasable(doc))
         return doc.available
 
     def is_installed(self, doc):

@@ -22,14 +22,17 @@ import apt
 from softwarecenter.distro import Distro
 from gettext import gettext as _
 
+
 class Debian(Distro):
 
     # metapackages
     IMPORTANT_METAPACKAGES = ("kde", "gnome", "gnome-desktop-environment")
 
     # screenshot handling
-    SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%(pkgname)s"
-    SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%(pkgname)s"
+    SCREENSHOT_THUMB_URL = ("http://screenshots.debian.net/"
+        "thumbnail/%(pkgname)s")
+    SCREENSHOT_LARGE_URL = ("http://screenshots.debian.net/"
+        "screenshot/%(pkgname)s")
     # the json description of the available screenshots
     SCREENSHOT_JSON_URL = "http://screenshots.debian.net/json/package/%s"
 
@@ -56,8 +59,9 @@ class Debian(Distro):
         for m in depends:
             if cache[m].section == "metapackages":
                 primary = _("If you uninstall %s, future updates will not "
-                              "include new items in <b>%s</b> set. "
-                              "Are you sure you want to continue?") % (appname, cache[m].installed.summary)
+                            "include new items in <b>%s</b> set. "
+                            "Are you sure you want to continue?") % (appname,
+                            cache[m].installed.summary)
                 button_text = _("Remove Anyway")
                 depends = []
                 break
@@ -73,7 +77,7 @@ class Debian(Distro):
                 depends = None
                 break
         return (primary, button_text)
-        
+
     def get_license_text(self, component):
         if component in ("main",):
             return _("Meets the Debian Free Software Guidelines")
@@ -108,7 +112,8 @@ class Debian(Distro):
                     return True
         return False
 
-    def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
+    def get_maintenance_status(self, cache, appname, pkgname, component,
+        channelname):
         """Return the maintenance status of a package."""
         if not hasattr(cache, '_cache') or not pkgname:
             return
@@ -145,16 +150,17 @@ class Debian(Distro):
             elif pkg_archive == "unstable":
                 return _("Debian does not provide critical updates "
                          "for %s") % appname
-        return
 
     def get_supported_query(self):
         import xapian
-        query1 = xapian.Query("XOL"+"Debian")
-        query2 = xapian.Query("XOC"+"main")
+        query1 = xapian.Query("XOL" + "Debian")
+        query2 = xapian.Query("XOC" + "main")
         return xapian.Query(xapian.Query.OP_AND, query1, query2)
 
 
 if __name__ == "__main__":
     cache = apt.Cache()
-    print(cache.get_maintenance_status(cache, "synaptic app", "synaptic", "main", None))
-    print(cache.get_maintenance_status(cache, "3dchess app", "3dchess", "universe", None))
+    print(cache.get_maintenance_status(cache, "synaptic app", "synaptic",
+        "main", None))
+    print(cache.get_maintenance_status(cache, "3dchess app", "3dchess",
+        "universe", None))

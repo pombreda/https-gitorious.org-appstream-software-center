@@ -25,7 +25,7 @@ import xapian
 from gi.repository import GObject
 
 from softwarecenter.enums import (SortMethods,
-                                  XapianValues, 
+                                  XapianValues,
                                   NonAppVisibility,
                                   DEFAULT_SEARCH_LIMIT)
 from softwarecenter.db.database import (
@@ -33,21 +33,21 @@ from softwarecenter.db.database import (
 from softwarecenter.distro import get_distro
 from softwarecenter.utils import ExecutionTime
 
-LOG=logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 class AppEnquire(GObject.GObject):
     """
-    A interface to enquire data from a xapian database. 
+    A interface to enquire data from a xapian database.
     It can combined with any xapian querry and with
     a generic filter function (that can filter on data not
     available in xapian)
     """
 
     # signal emited
-    __gsignals__ = {"query-complete" : (GObject.SIGNAL_RUN_FIRST,
-                                        GObject.TYPE_NONE,
-                                        ()),
+    __gsignals__ = {"query-complete": (GObject.SIGNAL_RUN_FIRST,
+                                       GObject.TYPE_NONE,
+                                       ()),
                     }
 
     def __init__(self, cache, db):
@@ -87,7 +87,7 @@ class AppEnquire(GObject.GObject):
         # generate a name and ensure we never have two threads
         # with the same name
         names = [thread.name for thread in threading.enumerate()]
-        for i in range(threading.active_count()+1, 0, -1):
+        for i in range(threading.active_count() + 1, 0, -1):
             thread_name = 'ThreadedQuery-%s' % i
             if not thread_name in names:
                 break
@@ -98,7 +98,7 @@ class AppEnquire(GObject.GObject):
         # don't block the UI while the thread is running
         context = GObject.main_context_default()
         while not self._perform_search_complete:
-            time.sleep(0.02) # 50 fps
+            time.sleep(0.02)  # 50 fps
             while context.pending():
                 context.iteration()
         t.join()
@@ -108,7 +108,7 @@ class AppEnquire(GObject.GObject):
 
     def _get_estimate_nr_apps_and_nr_pkgs(self, enquire, q, xfilter):
         # filter out docs of pkgs of which there exists a doc of the app
-        enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
+        enquire.set_query(xapian.Query(xapian.Query.OP_AND,
                                        q, xapian.Query("ATapplication")))
 
         try:
@@ -118,17 +118,17 @@ class AppEnquire(GObject.GObject):
             return (0, 0)
 
         nr_apps = tmp_matches.get_matches_estimated()
-        enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
+        enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT,
                                        q, xapian.Query("XD")))
         tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
         nr_pkgs = tmp_matches.get_matches_estimated() - nr_apps
         return (nr_apps, nr_pkgs)
 
     def _blocking_perform_search(self):
-        # WARNING this call may run in a thread, so its *not* 
+        # WARNING this call may run in a thread, so its *not*
         #         allowed to touch gtk, otherwise hell breaks loose
 
-        # performance only: this is only needed to avoid the 
+        # performance only: this is only needed to avoid the
         # python __call__ overhead for each item if we can avoid it
 
         # use a unique instance of both enquire and xapian database
@@ -152,18 +152,19 @@ class AppEnquire(GObject.GObject):
 
             # for searches we may want to disable show/hide
             terms = [term for term in q]
-            exact_pkgname_query = (len(terms) == 1 and 
+            exact_pkgname_query = (len(terms) == 1 and
                                    terms[0].startswith("XP"))
 
             with ExecutionTime("calculate nr_apps and nr_pkgs: "):
-                nr_apps, nr_pkgs = self._get_estimate_nr_apps_and_nr_pkgs(enquire, q, xfilter)
+                nr_apps, nr_pkgs = self._get_estimate_nr_apps_and_nr_pkgs(
+                    enquire, q, xfilter)
                 self.nr_apps += nr_apps
                 self.nr_pkgs += nr_pkgs
 
             # only show apps by default (unless in always visible mode)
             if self.nonapps_visible != NonAppVisibility.ALWAYS_VISIBLE:
                 if not exact_pkgname_query:
-                    q = xapian.Query(xapian.Query.OP_AND, 
+                    q = xapian.Query(xapian.Query.OP_AND,
                                      xapian.Query("ATapplication"),
                                      q)
 
@@ -171,14 +172,14 @@ class AppEnquire(GObject.GObject):
 
             # filter out docs of pkgs of which there exists a doc of the app
             # FIXME: make this configurable again?
-            enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
+            enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT,
                                            q, xapian.Query("XD")))
 
             # sort results
 
             # cataloged time - what's new category
             if self.sortmode == SortMethods.BY_CATALOGED_TIME:
-                if (self.db._axi_values and 
+                if (self.db._axi_values and
                     "catalogedtime" in self.db._axi_values):
                     enquire.set_sort_by_value(
                         self.db._axi_values["catalogedtime"], reverse=True)
@@ -195,7 +196,7 @@ class AppEnquire(GObject.GObject):
                 # use the default enquire.set_sort_by_relevance()
                 pass
             # display name - all categories / channels
-            elif (self.db._axi_values and 
+            elif (self.db._axi_values and
                   "display_name" in self.db._axi_values):
                 enquire.set_sort_by_key(LocaleSorter(self.db), reverse=False)
                 # fallback to pkgname - if needed?
@@ -203,7 +204,7 @@ class AppEnquire(GObject.GObject):
             else:
                 enquire.set_sort_by_value_then_relevance(
                     XapianValues.PKGNAME, False)
-                    
+
             #~ try:
             if self.limit == 0:
                 matches = enquire.get_mset(0, len(self.db), None, xfilter)
@@ -213,8 +214,8 @@ class AppEnquire(GObject.GObject):
             #~ except:
                 #~ logging.exception("get_mset")
                 #~ matches = []
-                
-            # promote exact matches to a "app", this will make the 
+
+            # promote exact matches to a "app", this will make the
             # show/hide technical items work correctly
             if exact_pkgname_query and len(matches) == 1:
                 self.nr_apps += 1
@@ -237,7 +238,6 @@ class AppEnquire(GObject.GObject):
 
         # wake up the UI if run in a search thread
         self._perform_search_complete = True
-        return
 
     def get_estimated_matches_count(self, query):
         with ExecutionTime("estimate item count for query: '%s'" % query):
@@ -250,9 +250,9 @@ class AppEnquire(GObject.GObject):
             nr_pkgs = len(tmp_matches)
         return nr_pkgs
 
-    def set_query(self, search_query, 
+    def set_query(self, search_query,
                   limit=DEFAULT_SEARCH_LIMIT,
-                  sortmode=SortMethods.UNSORTED, 
+                  sortmode=SortMethods.UNSORTED,
                   filter=None,
                   exact=False,
                   nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
@@ -270,14 +270,15 @@ class AppEnquire(GObject.GObject):
         - `exact`: If true, indexes of queries without matches will be
                     maintained in the store (useful to show e.g. a row
                     with "??? not found")
-        - `nonapps_visible`: decide whether adding non apps in the model or not.
-                             Can be NonAppVisibility.ALWAYS_VISIBLE/NonAppVisibility.MAYBE_VISIBLE
+        - `nonapps_visible`: decide whether adding non apps in the model or
+                             not. Can be NonAppVisibility.ALWAYS_VISIBLE
+                             /NonAppVisibility.MAYBE_VISIBLE
                              /NonAppVisibility.NEVER_VISIBLE
-                             (NonAppVisibility.MAYBE_VISIBLE will return non apps result
-                              if no matching apps is found)
-        - `nonblocking_load`: set to False to execute the query inside the current
-                              thread.  Defaults to True to allow the search to be
-                              performed without blocking the UI.
+                             (NonAppVisibility.MAYBE_VISIBLE will return non
+                              apps result if no matching apps is found)
+        - `nonblocking_load`: set to False to execute the query inside the
+                              current thread.  Defaults to True to allow the
+                              search to be performed without blocking the UI.
         - 'persistent_duplicate_filter': if True allows filtering of duplicate
                                          matches across multiple queries
         """
@@ -321,7 +322,8 @@ class AppEnquire(GObject.GObject):
 #        pkgnames = []
 #        for m in self.matches:
 #            doc = xdb.get_document(m.docid)
-#            pkgnames.append(doc.get_value(XapianValues.PKGNAME) or doc.get_data())
+#            pkgnames.append(doc.get_value(XapianValues.PKGNAME) or
+#                doc.get_data())
 #        return pkgnames
 
 #    def get_applications(self):
@@ -339,5 +341,3 @@ class AppEnquire(GObject.GObject):
         """ get the xapian.Document objects of the current matches """
         xdb = self.db.xapiandb
         return [xdb.get_document(m.docid) for m in self._matches]
-
-

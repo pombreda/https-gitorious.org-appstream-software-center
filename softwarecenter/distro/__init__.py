@@ -36,9 +36,12 @@ class Distro(object):
     # are found
     DISTROSERIES = []
 
-    # base path for the review summary, the JS will append %i.png (with i={1,5})
-    REVIEW_SUMMARY_STARS_BASE_PATH = "/usr/share/software-center/images/review-summary"
-    REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://localhost:8000"
+    # base path for the review summary, the JS will append %i.png
+    # (with i={1,5})
+    REVIEW_SUMMARY_STARS_BASE_PATH = ("/usr/share/software-center/images/"
+        "review-summary")
+    REVIEWS_SERVER = (os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or
+        "http://localhost:8000")
 
     # You need to set this var to enable purchases
     PURCHASE_APP_URL = ""
@@ -50,23 +53,23 @@ class Distro(object):
         """Return a new generic Distro instance."""
 
     def get_app_name(self):
-        """ 
-        The name of the application (as displayed in the main window and 
+        """
+        The name of the application (as displayed in the main window and
         the about window)
         """
         return _("Software Center")
 
     def get_app_description(self):
-        """ 
+        """
         The description of the application displayed in the about dialog
         """
-        return _("Lets you choose from thousands of applications available for your system.")
-
+        return _("Lets you choose from thousands of applications available "
+            "for your system.")
 
     def get_distro_channel_name(self):
         """ The name of the main channel in the Release file (e.g. Ubuntu)"""
         return "none"
- 
+
     def get_distro_channel_description(self):
         """ The description for the main distro channel """
         return "none"
@@ -83,15 +86,16 @@ class Distro(object):
             self._distro_code_name = platform.dist()[2]
         return self._distro_code_name
 
-    def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
+    def get_maintenance_status(self, cache, appname, pkgname, component,
+        channelname):
         raise UnimplementedError
 
     def get_license_text(self, component):
         raise UnimplementedError
 
     def is_supported(self, cache, doc, pkgname):
-        """ 
-        return True if the given document and pkgname is supported by 
+        """
+        return True if the given document and pkgname is supported by
         the distribution
         """
         raise UnimplementedError
@@ -105,7 +109,8 @@ class Distro(object):
         return _("Supported Software")
 
     def get_install_warning_text(self, cache, pkg, appname, depends):
-        primary = utf8(_("To install %s, these items must be removed:")) % utf8(appname)
+        primary = (utf8(_("To install %s, these items must be removed:")) %
+            utf8(appname))
         button_text = _("Install Anyway")
 
         # alter it if a meta-package is affected
@@ -113,7 +118,8 @@ class Distro(object):
             if cache[m].section == "metapackages":
                 primary = utf8(_("If you install %s, future updates will not "
                                  "include new items in <b>%s</b> set. "
-                                 "Are you sure you want to continue?")) % (utf8(appname), cache[m].installed.summary)
+                                 "Are you sure you want to continue?")) % (
+                                 utf8(appname), cache[m].installed.summary)
                 button_text = _("Install Anyway")
                 depends = []
                 break
@@ -121,9 +127,9 @@ class Distro(object):
         # alter it if an important meta-package is affected
         for m in self.IMPORTANT_METAPACKAGES:
             if m in depends:
-                primary = utf8(_("Installing %s may cause core applications to "
-                                 "be removed. "
-                                 "Are you sure you want to continue?")) % utf8(appname)
+                primary = utf8(_("Installing %s may cause core applications "
+                                 "to be removed. Are you sure you want to "
+                                 "continue?")) % utf8(appname)
                 button_text = _("Install Anyway")
                 depends = None
                 break
@@ -133,16 +139,17 @@ class Distro(object):
     def get_deauthorize_text(self, account_name, purchased_packages):
         if len(purchased_packages) == 0:
             if account_name:
-                primary = _('Are you sure you want to deauthorize this computer '
-                            'from the "%s" account?') % account_name
+                primary = _('Are you sure you want to deauthorize this '
+                            'computer from the "%s" account?') % account_name
             else:
-                primary = _('Are you sure you want to deauthorize this computer '
-                            'for purchases?')
+                primary = _('Are you sure you want to deauthorize this '
+                            'computer for purchases?')
             button_text = _('Deauthorize')
         else:
             if account_name:
-                primary = _('Deauthorizing this computer from the "%s" account '
-                            'will remove this purchased software:') % account_name
+                primary = _('Deauthorizing this computer from the "%s" '
+                            'account will remove this purchased '
+                            'software:') % account_name
             else:
                 primary = _('Deauthorizing this computer for purchases '
                             'will remove the following purchased software:')
@@ -151,7 +158,7 @@ class Distro(object):
 
     # generic architecture detection code
     def get_architecture(self):
-        return None
+        pass
 
 
 def _get_distro():
@@ -159,15 +166,17 @@ def _get_distro():
     distro_id = distro_info[0].strip()
     LOG.debug("get_distro: '%s'", distro_id)
     # start with a import, this gives us only a softwarecenter module
-    module =  __import__(distro_id, globals(), locals(), [], -1)
+    module = __import__(distro_id, globals(), locals(), [], -1)
     # get the right class and instanciate it
     distro_class = getattr(module, distro_id)
     instance = distro_class()
     return instance
 
+
 def get_distro():
     """ factory to return the right Distro object """
     return distro_instance
+
 
 def get_current_arch():
     # for tests and similar
@@ -177,11 +186,12 @@ def get_current_arch():
         return arch
     return get_distro().get_architecture()
 
+
 def get_foreign_architectures():
     return get_distro().get_foreign_architectures()
 
 # singelton
-distro_instance=_get_distro()
+distro_instance = _get_distro()
 
 
 if __name__ == "__main__":

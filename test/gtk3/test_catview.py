@@ -1,4 +1,4 @@
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk
 import time
 import unittest
 from mock import patch
@@ -91,14 +91,14 @@ class TestCatView(unittest.TestCase):
         self.assertFalse(view.whats_new_frame.get_property("visible"))
         self._p()
         win.destroy()
-        
+
     def test_subcatview_recommended_for_you_opt_in_display(self):
     
         # patch the recommender UUID value to insure that we are not opted-in for this test
-        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
-        self.addCleanup(get_recommender_uuid_patcher.stop)
-        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
-        mock_get_recommender_uuid.return_value = ""
+        get_recommender_opted_in_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
+        self.addCleanup(get_recommender_opted_in_patcher.stop)
+        mock_get_recommender_opted_in = get_recommender_opted_in_patcher.start()
+        mock_get_recommender_opted_in.return_value = False
         
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
@@ -117,10 +117,10 @@ class TestCatView(unittest.TestCase):
     def test_subcatview_recommended_for_you_spinner_display(self, mock_query):
     
         # patch the recommender UUID value to insure that we are not opted-in for this test
-        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
-        self.addCleanup(get_recommender_uuid_patcher.stop)
-        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
-        mock_get_recommender_uuid.return_value = ""
+        get_recommender_opted_in_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
+        self.addCleanup(get_recommender_opted_in_patcher.stop)
+        mock_get_recommender_opted_in = get_recommender_opted_in_patcher.start()
+        mock_get_recommender_opted_in.return_value = False
         
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
@@ -131,20 +131,10 @@ class TestCatView(unittest.TestCase):
         # click the opt-in button to initiate the process, this will show the spinner
         rec_panel.opt_in_button.emit('clicked')
         self._p()
-        from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
-        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.SPINNER)
+        from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
+        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == SpinnerNotebook.SPINNER_PAGE)
         self.assertTrue(rec_panel.opt_in_vbox.get_property("visible"))
-        # now pretent that we got data and ensure its displayed
-        rec_panel._update_recommended_for_you_content()
-        rec_panel.recommended_for_you_cat._recommend_me_result(
-            None, make_recommender_agent_recommend_me_dict())
-        self._p()
-        self.assertTrue(rec_panel.recommended_for_you_content.get_property("visible"))
-        self.assertFalse(rec_panel.opt_in_vbox.get_property("visible"))
-        # exit after brief timeout
-        TIMEOUT=100
-        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
-        Gtk.main()
+        win.destroy()
 
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
@@ -152,10 +142,10 @@ class TestCatView(unittest.TestCase):
     def test_subcatview_recommended_for_you_display_recommendations(self, mock_query):
     
         # patch the recommender UUID value to insure that we are not opted-in for this test
-        get_recommender_uuid_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent._get_recommender_uuid')
-        self.addCleanup(get_recommender_uuid_patcher.stop)
-        mock_get_recommender_uuid = get_recommender_uuid_patcher.start()
-        mock_get_recommender_uuid.return_value = ""
+        get_recommender_opted_in_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
+        self.addCleanup(get_recommender_opted_in_patcher.stop)
+        mock_get_recommender_opted_in = get_recommender_opted_in_patcher.start()
+        mock_get_recommender_opted_in.return_value = False
         
         from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
         # get the widgets we need
@@ -174,15 +164,86 @@ class TestCatView(unittest.TestCase):
                                 make_recommender_agent_recommend_me_dict())
         self.assertNotEqual(
                 lobby.recommended_for_you_panel.recommended_for_you_cat.get_documents(self.db), [])
-        from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
-        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == FramedHeaderBox.CONTENT)
+        from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
+        self.assertTrue(rec_panel.spinner_notebook.get_current_page() == SpinnerNotebook.CONTENT_PAGE)
         self._p()
         # test clicking recommended_for_you More button
         lobby.connect("category-selected", self._on_category_selected)
         lobby.recommended_for_you_panel.more.clicked()
         self._p()
         self.assertNotEqual(self._cat, None)
-        self.assertEqual(self._cat.name, "Recommended for You")
+        self.assertEqual(self._cat.name, "Recommended For You")
+        win.destroy()
+        
+    # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recagent.RecommenderAgent'
+           '.query_recommend_me')
+    def test_subcatview_recommended_for_you_display_recommendations_not_opted_in(self, mock_query):
+    
+        # patch the recommender UUID value to insure that we are not opted-in for this test
+        get_recommender_opted_in_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
+        self.addCleanup(get_recommender_opted_in_patcher.stop)
+        mock_get_recommender_opted_in = get_recommender_opted_in_patcher.start()
+        mock_get_recommender_opted_in.return_value = False
+        
+        from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
+        # get the widgets we need
+        win = get_test_window_catview()
+        # we want to work in the "subcat" view
+        notebook = win.get_child()
+        notebook.next_page()
+        
+        subcat_view = win.get_data("subcat")
+        self._p()
+        self.assertFalse(subcat_view.recommended_for_you_in_cat.get_property("visible"))
+        win.destroy()
+        
+    # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recagent.RecommenderAgent'
+           '.query_recommend_me')
+    def test_subcatview_recommended_for_you_display_recommendations_opted_in(self, mock_query):
+    
+        # patch the recommender UUID value to insure that we are not opted-in for this test
+        get_recommender_opted_in_patcher = patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
+        self.addCleanup(get_recommender_opted_in_patcher.stop)
+        mock_get_recommender_opted_in = get_recommender_opted_in_patcher.start()
+        mock_get_recommender_opted_in.return_value = True
+        
+        from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
+        # get the widgets we need
+        win = get_test_window_catview()
+        # we want to work in the "subcat" view
+        notebook = win.get_child()
+        notebook.next_page()
+        
+        subcat_view = win.get_data("subcat")
+        rec_cat_panel = subcat_view.recommended_for_you_in_cat
+        self._p()
+        rec_cat_panel._update_recommended_for_you_content()
+        self._p()
+        # we fake the callback from the agent here
+        rec_cat_panel.recommended_for_you_cat._recommend_me_result(
+                                None,
+                                make_recommender_agent_recommend_me_dict())
+        result_docs = rec_cat_panel.recommended_for_you_cat.get_documents(self.db)
+        self.assertNotEqual(result_docs, [])
+        # check that we are getting the correct number of results, corresponding
+        # to the following Internet items:
+        #   Mangler, Midori, Midori Private Browsing, Psi
+        self.assertTrue(len(result_docs) == 4)
+        from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
+        self.assertTrue(rec_cat_panel.spinner_notebook.get_current_page() == SpinnerNotebook.CONTENT_PAGE)
+        # check that the tiles themselves are visible
+        self._p()
+        self.assertTrue(rec_cat_panel.recommended_for_you_content.get_property("visible"))
+        self.assertTrue(rec_cat_panel.recommended_for_you_content.get_children()[0].title.get_property("visible"))
+        self._p()
+        # test clicking recommended_for_you More button
+        subcat_view.connect("category-selected", self._on_category_selected)
+        rec_cat_panel.more.clicked()
+        self._p()
+        self.assertNotEqual(self._cat, None)
+        self.assertEqual(self._cat.name, "Recommended For You in Internet")
         win.destroy()
 
     def _p(self):

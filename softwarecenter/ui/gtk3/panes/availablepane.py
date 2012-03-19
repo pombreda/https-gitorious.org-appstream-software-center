@@ -656,6 +656,8 @@ class AvailablePane(SoftwarePane):
         self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
         self.app_view.set_header_labels(_("Previous Purchases"), None)
         self.notebook.set_current_page(AvailablePane.Pages.LIST)
+        # clear any search terms
+        self._clear_search()
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
         self.refresh_apps(query=self.previous_purchases_query)

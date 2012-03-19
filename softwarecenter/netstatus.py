@@ -25,58 +25,63 @@ from dbus.mainloop.glib import DBusGMainLoop
 
 from gi.repository import GObject
 
-LOG=logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
+
 
 # enums
 class NetState(object):
     """ enums for network manager status """
     # Old enum values are for NM 0.7
 
-    # The NetworkManager daemon is in an unknown state. 
-    NM_STATE_UNKNOWN            = 0   
-    NM_STATE_UNKNOWN_LIST       = [NM_STATE_UNKNOWN]
-    # The NetworkManager daemon is asleep and all interfaces managed by it are inactive. 
-    NM_STATE_ASLEEP_OLD         = 1
-    NM_STATE_ASLEEP             = 10
-    NM_STATE_ASLEEP_LIST        = [NM_STATE_ASLEEP_OLD,
-                                   NM_STATE_ASLEEP]
+    # The NetworkManager daemon is in an unknown state.
+    NM_STATE_UNKNOWN = 0
+    NM_STATE_UNKNOWN_LIST = [NM_STATE_UNKNOWN]
+    # The NetworkManager daemon is asleep and all interfaces managed by
+    # it are inactive.
+    NM_STATE_ASLEEP_OLD = 1
+    NM_STATE_ASLEEP = 10
+    NM_STATE_ASLEEP_LIST = [NM_STATE_ASLEEP_OLD,
+                            NM_STATE_ASLEEP]
     # The NetworkManager daemon is connecting a device.
-    NM_STATE_CONNECTING_OLD     = 2
-    NM_STATE_CONNECTING         = 40
-    NM_STATE_CONNECTING_LIST    = [NM_STATE_CONNECTING_OLD,
-                                   NM_STATE_CONNECTING]
-    # The NetworkManager daemon is connected. 
-    NM_STATE_CONNECTED_OLD      = 3
-    NM_STATE_CONNECTED_LOCAL    = 50
-    NM_STATE_CONNECTED_SITE     = 60
-    NM_STATE_CONNECTED_GLOBAL   = 70
-    NM_STATE_CONNECTED_LIST     = [NM_STATE_CONNECTED_OLD,
-                                   NM_STATE_CONNECTED_LOCAL,
-                                   NM_STATE_CONNECTED_SITE,
-                                   NM_STATE_CONNECTED_GLOBAL]
+    NM_STATE_CONNECTING_OLD = 2
+    NM_STATE_CONNECTING = 40
+    NM_STATE_CONNECTING_LIST = [NM_STATE_CONNECTING_OLD,
+                                NM_STATE_CONNECTING]
+    # The NetworkManager daemon is connected.
+    NM_STATE_CONNECTED_OLD = 3
+    NM_STATE_CONNECTED_LOCAL = 50
+    NM_STATE_CONNECTED_SITE = 60
+    NM_STATE_CONNECTED_GLOBAL = 70
+    NM_STATE_CONNECTED_LIST = [NM_STATE_CONNECTED_OLD,
+                               NM_STATE_CONNECTED_LOCAL,
+                               NM_STATE_CONNECTED_SITE,
+                               NM_STATE_CONNECTED_GLOBAL]
     # The NetworkManager daemon is disconnecting.
-    NM_STATE_DISCONNECTING      = 30
+    NM_STATE_DISCONNECTING = 30
     NM_STATE_DISCONNECTING_LIST = [NM_STATE_DISCONNECTING]
     # The NetworkManager daemon is disconnected.
-    NM_STATE_DISCONNECTED_OLD   = 4
-    NM_STATE_DISCONNECTED       = 20
-    NM_STATE_DISCONNECTED_LIST  = [NM_STATE_DISCONNECTED_OLD,
+    NM_STATE_DISCONNECTED_OLD = 4
+    NM_STATE_DISCONNECTED = 20
+    NM_STATE_DISCONNECTED_LIST = [NM_STATE_DISCONNECTED_OLD,
                                    NM_STATE_DISCONNECTED]
 
 
 class NetworkStatusWatcher(GObject.GObject):
     """ simple watcher which notifys subscribers to network events..."""
-    __gsignals__ = {'changed':(GObject.SIGNAL_RUN_FIRST,
-                               GObject.TYPE_NONE,
-                               (int,)),
+    __gsignals__ = {'changed': (GObject.SIGNAL_RUN_FIRST,
+                                GObject.TYPE_NONE,
+                                (int,)),
                    }
 
     def __init__(self):
         GObject.GObject.__init__(self)
         return
 
+
 # internal helper
 NETWORK_STATE = 0
+
+
 def __connection_state_changed_handler(state):
     global NETWORK_STATE
 
@@ -84,15 +89,16 @@ def __connection_state_changed_handler(state):
     __WATCHER__.emit("changed", NETWORK_STATE)
     return
 
+
 # init network state
 def __init_network_state():
     global NETWORK_STATE
 
     # honor SOFTWARE_CENTER_NET_{DIS,}CONNECTED in the environment variables
     import os
-    env_map = { 
-        'SOFTWARE_CENTER_NET_DISCONNECTED' : NetState.NM_STATE_DISCONNECTED,
-        'SOFTWARE_CENTER_NET_CONNECTED' : NetState.NM_STATE_CONNECTED_GLOBAL,
+    env_map = {
+        'SOFTWARE_CENTER_NET_DISCONNECTED': NetState.NM_STATE_DISCONNECTED,
+        'SOFTWARE_CENTER_NET_CONNECTED': NetState.NM_STATE_CONNECTED_GLOBAL,
     }
     for envkey, state in env_map.iteritems():
         if envkey in os.environ:
@@ -104,10 +110,12 @@ def __init_network_state():
         bus = dbus.SystemBus(mainloop=dbus_loop)
         nm = bus.get_object('org.freedesktop.NetworkManager',
                             '/org/freedesktop/NetworkManager')
-        NETWORK_STATE = nm.state(dbus_interface='org.freedesktop.NetworkManager')
-        bus.add_signal_receiver(__connection_state_changed_handler,
-                                dbus_interface="org.freedesktop.NetworkManager",
-                                signal_name="StateChanged")
+        NETWORK_STATE = nm.state(
+            dbus_interface='org.freedesktop.NetworkManager')
+        bus.add_signal_receiver(
+            __connection_state_changed_handler,
+            dbus_interface="org.freedesktop.NetworkManager",
+            signal_name="StateChanged")
         return
 
     except Exception as e:
@@ -120,6 +128,7 @@ def __init_network_state():
     thread = threading.Thread(target=test_ping, name='test_ping')
     thread.start()
     return
+
 
 #helper
 def test_ping():
@@ -152,14 +161,18 @@ def test_ping():
 
 # global watcher
 __WATCHER__ = NetworkStatusWatcher()
+
+
 def get_network_watcher():
     return __WATCHER__
+
 
 # simply query
 def get_network_state():
     """ get the NetState state """
     global NETWORK_STATE
     return NETWORK_STATE
+
 
 # simply query even more
 def network_state_is_connected():
@@ -174,4 +187,3 @@ __init_network_state()
 if __name__ == '__main__':
     loop = GObject.MainLoop()
     loop.run()
-
