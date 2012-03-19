@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkDialog" id="dialog_broken_cache">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -23,6 +23,7 @@
             <child>
               <object class="GtkButton" id="button1">
                 <property name="label" translatable="yes">Cancel</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
@@ -37,6 +38,7 @@
             <child>
               <object class="GtkButton" id="button2">
                 <property name="label" translatable="yes">Repair</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -64,8 +66,6 @@
             <property name="can_focus">False</property>
             <property name="row_spacing">24</property>
             <property name="column_spacing">12</property>
-            <property name="n_rows">2</property>
-            <property name="n_columns">2</property>
             <child>
               <object class="GtkLabel" id="label_broken_cache">
                 <property name="visible">True</property>
@@ -162,6 +162,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="button_deauthorize_cancel">
                 <property name="label" translatable="yes">Cancel</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
@@ -176,6 +177,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="button_deauthorize_do">
                 <property name="label" translatable="yes">Remove</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -211,6 +213,9 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
                 <property name="can_focus">False</property>
                 <property name="n_rows">2</property>
                 <property name="n_columns">2</property>
+                <child>
+                  <placeholder/>
+                </child>
                 <child>
                   <object class="GtkImage" id="image_icon">
                     <property name="visible">True</property>
@@ -268,9 +273,6 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
                     <property name="y_padding">6</property>
                   </packing>
                 </child>
-                <child>
-                  <placeholder/>
-                </child>
               </object>
             </child>
           </object>
@@ -311,6 +313,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="button_dependency_cancel">
                 <property name="label" translatable="yes">Cancel</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
@@ -325,6 +328,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="button_dependency_do">
                 <property name="label" translatable="yes">Remove</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -352,8 +356,6 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <property name="can_focus">False</property>
             <property name="row_spacing">6</property>
             <property name="column_spacing">6</property>
-            <property name="n_rows">2</property>
-            <property name="n_columns">2</property>
             <child>
               <object class="GtkImage" id="image_package_icon">
                 <property name="visible">True</property>
@@ -446,6 +448,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="gwib_err_cancel_button">
                 <property name="label">gtk-cancel</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -461,6 +464,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="gwib_err_retry_button">
                 <property name="label" translatable="yes">Retry</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -505,6 +509,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
             <child>
               <object class="GtkButton" id="button_install_error_ok">
                 <property name="label" translatable="yes">OK</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -540,6 +545,9 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
                 <property name="can_focus">False</property>
                 <property name="n_rows">2</property>
                 <property name="n_columns">2</property>
+                <child>
+                  <placeholder/>
+                </child>
                 <child>
                   <object class="GtkImage" id="image_package_icon1">
                     <property name="visible">True</property>
@@ -603,9 +611,6 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
                     <property name="top_attach">1</property>
                     <property name="bottom_attach">2</property>
                   </packing>
-                </child>
-                <child>
-                  <placeholder/>
                 </child>
               </object>
             </child>

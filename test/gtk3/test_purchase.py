@@ -3,11 +3,12 @@
 import time
 import unittest
 
-from mock import Mock
+from mock import Mock,patch
 
-from testutils import setup_test_env, do_events
+from testutils import setup_test_env
 setup_test_env()
 
+from softwarecenter.testutils import do_events
 from softwarecenter.ui.gtk3.app import SoftwareCenterAppGtk3
 from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 import softwarecenter.paths
@@ -36,6 +37,23 @@ class TestPurchase(unittest.TestCase):
         mock.reset_mock()
         
         # run another one
+        win.destroy()
+
+    def test_purchase_view_tos(self):
+        from softwarecenter.ui.gtk3.views.purchaseview import get_test_window_purchaseview
+        win = get_test_window_purchaseview()
+        view = win.get_data("view")
+        # install the mock
+        mock_config = Mock()
+        mock_config.has_option.return_value = False
+        mock_config.getboolean.return_value = False
+        view.config = mock_config
+        func = "softwarecenter.ui.gtk3.views.purchaseview.show_accept_tos_dialog"
+        with patch(func) as mock_func:
+            mock_func.return_value = False
+            res = view.initiate_purchase(None, None)
+            self.assertFalse(res)
+            self.assertTrue(mock_func.called)
         win.destroy()
 
     def test_spinner_emits_signals(self):

@@ -21,8 +21,9 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
-
 from gettext import gettext as _
+
+import softwarecenter.paths
 
 
 class SimpleGtkbuilderDialog(object):
@@ -37,8 +38,21 @@ class SimpleGtkbuilderDialog(object):
                 name = Gtk.Buildable.get_name(o)
                 setattr(self, name, o)
 
+
 # for unitesting only
 _DIALOG = None
+
+
+def show_accept_tos_dialog(parent):
+    global _DIALOG
+    from dialog_tos import DialogTos
+    dialog = DialogTos(parent)
+    _DIALOG = dialog
+    result = dialog.run()
+    dialog.destroy()
+    if result == Gtk.ResponseType.YES:
+        return True
+    return False
 
 
 def confirm_repair_broken_cache(parent, datadir):
@@ -119,7 +133,11 @@ def error(parent, primary, secondary, details=None, alternative_action=None):
 
 
 if __name__ == "__main__":
-    print("Running remove dialog")
+    softwarecenter.paths.datadir = "./data"
+
+    print("Showing tos dialog")
+    res = show_accept_tos_dialog(None)
+    print "accepted: ", res
 
     print("Running broken apt-cache dialog")
     confirm_repair_broken_cache(None, "./data")

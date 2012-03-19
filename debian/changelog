@@ -52,6 +52,13 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp780812:
     - ensure that the distroseries is updated in the sources
       deb line when updating a purchased item (LP: #780812)
+  * lp:~mvo/software-center/recommendations-opt-out:
+    - fix double-results when opting-in and back out of of
+      the recommendations service repeatedly
+  * lp:~mvo/software-center/tos-dialog:
+    - display a terms-of-service dialog before the first purchase
+  * lp:~mvo/software-center/lp957599:
+    - add a new unit test test_spawn_helper.py
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-lp955048:
@@ -65,7 +72,12 @@ software-center (5.1.13) UNRELEASED; urgency=low
     - implements the recommendations opt-out feature as specified
       in the SoftwareCenter spec
 
- -- Kiwinote <kiwinote@gmail.com>  Mon, 19 Mar 2012 15:29:24 +0000
+  [ Kiwinote ]
+  * lp:~kiwinote/software-center/less-is-more:
+    - This branch clears out most of the unused code/files
+      that can be found in the sc codebase
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 19 Mar 2012 17:15:23 -0400
 
 software-center (5.1.12) precise; urgency=low
 
