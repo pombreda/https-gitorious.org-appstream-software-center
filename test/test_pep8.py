@@ -7,22 +7,12 @@ from testutils import setup_test_env
 setup_test_env()
 
 # Only test these two packages for now:
-import softwarecenter.backend
-import softwarecenter.db
-import softwarecenter.ui
-import softwarecenter.distro
+import softwarecenter
 
 class PackagePep8TestCase(unittest.TestCase):
     maxDiff = None
-    packages = [softwarecenter.ui,
-                softwarecenter.backend,
-                softwarecenter.db,
-                softwarecenter.distro,
-               ]
+    packages = [softwarecenter]
     exclude = []
-    #~ 'scagent.py', 'recagent.py', 'login_sso.py', 'login.py',
-        #~ 'launchpad.py', 'installbackend.py', 'fake_review_settings.py',
-        #~ 'channel.py']
 
     def message(self, text):
         self.errors.append(text)
