@@ -491,7 +491,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             if proxy:
                 os.environ["http_proxy"] = proxy
             else:
-                del os.environ["http_proxy"]
+                if os.environ.has_key("http_proxy"):
+                    del os.environ["http_proxy"]
         except Exception as e:
             # if no gnome settings are installed, do not mess with
             # http_proxy
