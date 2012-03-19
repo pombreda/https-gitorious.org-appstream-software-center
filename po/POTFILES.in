@@ -47,7 +47,6 @@ softwarecenter/ui/gtk3/panes/historypane.py
 softwarecenter/ui/gtk3/panes/installedpane.py
 softwarecenter/ui/gtk3/panes/pendingpane.py
 softwarecenter/ui/gtk3/panes/softwarepane.py
-softwarecenter/ui/gtk3/panes/unused__channelpane.py
 softwarecenter/ui/gtk3/panes/viewswitcher.py
 softwarecenter/ui/gtk3/views/appdetailsview.py
 softwarecenter/ui/gtk3/views/appview.py
