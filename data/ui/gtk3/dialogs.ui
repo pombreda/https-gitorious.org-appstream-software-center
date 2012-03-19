@@ -4,6 +4,7 @@
   <object class="GtkDialog" id="dialog_accept_tos">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
+    <property name="title"> </property>
     <property name="type_hint">dialog</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog-vbox7">
@@ -105,7 +106,7 @@
                 </child>
                 <child>
                   <object class="GtkLinkButton" id="linkbutton_tos">
-                    <property name="label" translatable="yes">OpenTerms of Service</property>
+                    <property name="label" translatable="yes">Open Terms of Service</property>
                     <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>

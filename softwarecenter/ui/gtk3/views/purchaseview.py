@@ -21,6 +21,7 @@ from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Pango
+import ConfigParser
 import logging
 import os
 import json
@@ -214,8 +215,11 @@ center no-repeat;
         self._unblock_wk_handlers()
 
     def _ask_for_tos_acceptance_if_needed(self):
-        if (not self.config.has_option("general", "accepted_tos") and
-            not self.config.getboolean("general", "accepted_tos")):
+	try:
+            accepted_tos = self.config.getboolean("general", "accepted_tos")
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+            accepted_tos = False
+        if not accepted_tos:
             # show the dialog and ensure the user accepts it
             res = show_accept_tos_dialog(get_parent(self))
             if not res:
