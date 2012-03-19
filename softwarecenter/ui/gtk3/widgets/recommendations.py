@@ -325,7 +325,7 @@ def get_test_window(panel_type="lobby"):
     elif panel_type is "category":
         cats = get_test_categories(db)
         view = RecommendationsPanelCategory(catview, cats[0])
-    else: # panel_type is "details":
+    else:  # panel_type is "details":
         view = RecommendationsPanelDetails(catview)
 
     win = Gtk.Window()
