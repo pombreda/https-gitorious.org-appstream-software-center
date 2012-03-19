@@ -269,7 +269,7 @@ class PackagekitInfo(PackageInfo):
     def get_origin(self, pkgname):
         p = self._get_one_package(pkgname)
         if not p:
-            return []
+            return ''
         origin = p.get_data()
         if origin.startswith('installed:'):
             return origin[len('installed:'):]
