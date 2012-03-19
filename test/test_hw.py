@@ -34,8 +34,10 @@ class TestHW(unittest.TestCase):
             { "hardware::input:keyboard": "yes",
               OPENGL_DRIVER_BLACKLIST_TAG + "intel": "no",
             })
-        self.assertEqual(s, 'This computer uses a "intel" video driver, '
-                         'but the application is not compatible with that.')
+        self.assertEqual(s, 
+                         u'This software does not work with the '
+                         '\u201cintel\u201D graphics driver this '
+                         'computer is using.')
 
 
 if __name__ == "__main__":

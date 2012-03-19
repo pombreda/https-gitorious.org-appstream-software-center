@@ -1,4 +1,5 @@
 # Copyright (C) 2012 Canonical
+# -*- coding: utf-8 -*-
 #
 # Authors:
 #  Michael Vogt
@@ -72,9 +73,9 @@ TAG_MISSING_DESCRIPTION = {
     'hardware::video:opengl': _('This computer does not have graphics fast '
                                  'enough for this software.'),
     # private extension
-    OPENGL_DRIVER_BLACKLIST_TAG: _('This computer uses a "%s" video driver, '
-                                   'but the application is not compatible '
-                                   'with that.'),
+    OPENGL_DRIVER_BLACKLIST_TAG: _(u'This software does not work with the '
+                                   '\u201c%s\u201D graphics driver this '
+                                   'computer is using.'),
 }
 
 def get_hw_short_description(tag):
