@@ -162,7 +162,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.add(self.recommended_for_you_content)
 
         # opt in button
-        button = Gtk.Button(self.TURN_ON_RECOMMENDATIONS_TEXT)
+        button = Gtk.Button(_(self.TURN_ON_RECOMMENDATIONS_TEXT))
         button.connect("clicked", self._on_opt_in_button_clicked)
         hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL)
         hbox.pack_start(button, False, False, 0)
@@ -170,7 +170,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.opt_in_button = button  # for tests
 
         # opt in text
-        text = self.RECOMMENDATIONS_OPT_IN_TEXT
+        text = _(self.RECOMMENDATIONS_OPT_IN_TEXT)
         label = Gtk.Label(text)
         label.set_alignment(0, 0.5)
         label.set_line_wrap(True)
@@ -287,10 +287,11 @@ class RecommendationsOptInDialog(Gtk.MessageDialog):
             self.set_image(icon)
             icon.show()
         self.format_secondary_text(
-                        RecommendationsPanelLobby.RECOMMENDATIONS_OPT_IN_TEXT)
+            _(RecommendationsPanelLobby.RECOMMENDATIONS_OPT_IN_TEXT))
         self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
-        self.add_button(RecommendationsPanelLobby.TURN_ON_RECOMMENDATIONS_TEXT,
-                                 Gtk.ResponseType.YES)
+        self.add_button(
+            _(RecommendationsPanelLobby.TURN_ON_RECOMMENDATIONS_TEXT),
+            Gtk.ResponseType.YES)
         self.set_default_response(Gtk.ResponseType.YES)
 
 
