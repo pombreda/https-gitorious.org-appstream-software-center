@@ -10,6 +10,7 @@ from softwarecenter.hw import (
     get_hardware_support_for_tags, 
     get_hw_missing_long_description,
     OPENGL_DRIVER_BLACKLIST_TAG)
+from softwarecenter.utils import utf8
 
 class TestHW(unittest.TestCase):
     """ tests the hardware support detection """
@@ -34,9 +35,11 @@ class TestHW(unittest.TestCase):
             { "hardware::input:keyboard": "yes",
               OPENGL_DRIVER_BLACKLIST_TAG + "intel": "no",
             })
-        self.assertEqual(s, 'This computer uses a "intel" video driver, '
-                         'but the application is not compatible with that.')
-
+        self.assertEqual(s, 
+                         utf8(u'This software does not work with the '
+                              u'\u201cintel\u201D graphics driver this '
+                              u'computer is using.'))
+                         
 
 if __name__ == "__main__":
     #import logging

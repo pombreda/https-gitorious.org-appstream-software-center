@@ -11,6 +11,7 @@ from piston_mini_client.validators import (
 PUBLIC_API_SCHEME = 'http'
 AUTHENTICATED_API_SCHEME = 'https'
 
+
 class SoftwareCenterRecommenderAPI(PistonAPI):
     default_service_root = 'http://localhost:8000/api/1.0'
 

@@ -1,4 +1,5 @@
 # Copyright (C) 2012 Canonical
+# -*- coding: utf-8 -*-
 #
 # Authors:
 #  Michael Vogt
@@ -17,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gettext import gettext as _
+from softwarecenter.utils import utf8
 
 # private extension over the debtagshw stuff
 OPENGL_DRIVER_BLACKLIST_TAG = "x-hardware::opengl-driver-blacklist:"
@@ -72,14 +74,16 @@ TAG_MISSING_DESCRIPTION = {
     'hardware::video:opengl': _('This computer does not have graphics fast '
                                  'enough for this software.'),
     # private extension
-    OPENGL_DRIVER_BLACKLIST_TAG: _('This computer uses a "%s" video driver, '
-                                   'but the application is not compatible '
-                                   'with that.'),
+    OPENGL_DRIVER_BLACKLIST_TAG: _(u'This software does not work with the '
+                                   u'\u201c%s\u201D graphics driver this '
+                                   u'computer is using.'),
 }
+
 
 def get_hw_short_description(tag):
     s = TAG_DESCRIPTION.get(tag)
-    return s
+    return utf8(s)
+
 
 def get_hw_missing_long_description(tags):
     s = ""
@@ -92,14 +96,14 @@ def get_hw_missing_long_description(tags):
             else:
                 # deal with generic tags
                 prefix, sep, postfix = tag.rpartition(":")
-                descr =  TAG_MISSING_DESCRIPTION.get(prefix+sep)
+                descr = TAG_MISSING_DESCRIPTION.get(prefix + sep)
                 descr = descr % postfix
                 if descr:
                     s += "%s\n" % descr
     # ensure that the last \n is gone
     if s:
         s = s[:-1]
-    return s
+    return utf8(s)
 
 
 def get_private_extensions_hardware_support_for_tags(tags):
@@ -114,8 +118,9 @@ def get_private_extensions_hardware_support_for_tags(tags):
                 res[tag] = debtagshw.enums.HardwareSupported.YES
     return res
 
+
 def get_hardware_support_for_tags(tags):
-    """ wrapper around the DebtagsAvailalbeHW to support adding our own 
+    """ wrapper around the DebtagsAvailalbeHW to support adding our own
         private tag extension (like opengl-driver)
     """
     from debtagshw.debtagshw import DebtagsAvailableHW

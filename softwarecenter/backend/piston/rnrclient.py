@@ -31,15 +31,18 @@ if "SOFTWARE_CENTER_DEBUG_HTTP" in os.environ:
 # get the server to use
 from softwarecenter.distro import get_distro
 distro = get_distro()
-SERVER_ROOT=distro.REVIEWS_SERVER
+SERVER_ROOT = distro.REVIEWS_SERVER
 
 try:
     if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
-        from softwarecenter.backend.piston.rnrclient_fake import RatingsAndReviewsAPI
+        from softwarecenter.backend.piston.rnrclient_fake import (
+            RatingsAndReviewsAPI
+        )
         RatingsAndReviewsAPI.default_service_root = SERVER_ROOT
         import rnrclient_fake
         rnrclient_fake
-        LOG.warn("using FAKE review api, data returned will be dummy data only")
+        LOG.warn("using FAKE review api, data returned will be dummy "
+            "data only")
     else:
         # patch default_service_root
         from rnrclient_pristine import RatingsAndReviewsAPI
@@ -68,22 +71,24 @@ if __name__ == "__main__":
     # dump all reviews
     for stat in rnr.review_stats():
         print("stats for (pkg='%s', app: '%s'):  avg=%s total=%s" % (
-            stat.package_name, stat.app_name, stat.ratings_average, stat.ratings_total))
+            stat.package_name, stat.app_name, stat.ratings_average,
+                stat.ratings_total))
         reviews = rnr.get_reviews(
             language="any", origin="ubuntu", distroseries="natty",
             packagename=stat.package_name,
             appname=urllib.quote_plus(stat.app_name.encode("utf-8")))
         for review in reviews:
-            print("rating: %s  user=%s" % (review.rating, review.reviewer_username))
+            print("rating: %s  user=%s" % (review.rating,
+                review.reviewer_username))
             print(review.summary)
             print(review.review_text)
             print("\n")
-        
+
     # get individual ones
-    reviews = rnr.get_reviews(language="en",origin="ubuntu",distroseries="maverick",
-                             packagename="unace", appname="ACE")
+    reviews = rnr.get_reviews(language="en", origin="ubuntu",
+        distroseries="maverick", packagename="unace", appname="ACE")
     print(reviews)
-    print(rnr.get_reviews(language="en",origin="ubuntu",distroseries="natty",
+    print(rnr.get_reviews(language="en", origin="ubuntu", distroseries="natty",
                           packagename="aclock.app"))
     print(rnr.get_reviews(language="en", origin="ubuntu", distroseries="natty",
                           packagename="unace", appname="ACE"))
