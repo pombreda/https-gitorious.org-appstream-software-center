@@ -16,8 +16,20 @@ TIMEOUT=100
 
 class TestRecommendationsWidgets(unittest.TestCase):
 
-    def test_recommendations_widgets(self):
-        win = get_test_window()
+    def test_recommendations_lobby(self):
+        win = get_test_window(panel_type="lobby")
+        win.show_all()
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
+        
+    def test_recommendations_category(self):
+        win = get_test_window(panel_type="category")
+        win.show_all()
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
+        
+    def test_recommendations_details(self):
+        win = get_test_window(panel_type="details")
         win.show_all()
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
