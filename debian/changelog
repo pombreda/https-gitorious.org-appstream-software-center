@@ -88,6 +88,8 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~kiwinote/software-center/less-is-more:
     - This branch clears out most of the unused code/files
       that can be found in the sc codebase
+  * lp:~kiwinote/software-center/less-is-more2:
+    - this removes unused code from the tree
 
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 19 Mar 2012 17:15:23 -0400
 

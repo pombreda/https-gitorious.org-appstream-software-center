@@ -37,7 +37,6 @@ from softwarecenter.netstatus import (NetState, get_network_watcher,
 from softwarecenter.db.application import Application
 from softwarecenter.db import DebFileApplication
 from softwarecenter.backend.reviews import ReviewStats
-#from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import (AppActions,
                                   PkgStates,
                                   Icons,
@@ -1165,10 +1164,6 @@ class AppDetailsView(Viewport):
         vb_inner.pack_start(self.title, False, False, 0)
         vb_inner.pack_start(self.subtitle, False, False, 0)
 
-        # usage
-        #~ self.usage = mkit.BubbleLabel()
-        #~ vb_inner.pack_start(self.usage, True, True, 0)
-
         # star rating box/widget
         self.review_stats_widget = StarRatingsWidget()
         self.review_stats = Gtk.HBox()
@@ -1539,9 +1534,6 @@ class AppDetailsView(Viewport):
         if not summary:
             summary = ""
 
-        # hide stuff
-        #~ self.usage.hide()
-
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
 
@@ -1569,9 +1561,6 @@ class AppDetailsView(Viewport):
 
         # show where it is
         self._configure_where_is_it()
-
-        # async query zeitgeist and rnr
-        self._update_usage_counter()
 
     def _update_minimal(self, app_details):
         self._update_app_icon(app_details)
@@ -2044,35 +2033,6 @@ class AppDetailsView(Viewport):
 
     def set_section(self, section):
         self.section = section
-
-    def _update_usage_counter(self):
-        """ try to get the usage counter from zeitgeist """
-        def _zeitgeist_callback(counter):
-            LOG.debug("zeitgeist usage: %s" % counter)
-            if counter == 0:
-                # this probably means we just have no idea about it,
-                # so instead of saying "Used: never" we just return
-                # this can go away when zeitgeist captures more events
-                # --there are still cases when we really do want to hide this
-                self.usage.hide()
-                return
-            if counter <= 100:
-                label_string = gettext.ngettext("Used: one time",
-                                                "Used: %(amount)s times",
-                                                counter) % {'amount': counter}
-            else:
-                label_string = _("Used: over 100 times")
-            self.usage.set_text('<small>%s</small>' % label_string)
-            self.usage.show()
-
-        # try to get it
-        # FIXME
-        # try:
-        #     zeitgeist_singleton.get_usage_counter(
-        #         self.app_details.desktop_file, _zeitgeist_callback)
-        # except Exception, e:
-        #     LOG.warning("could not update the usage counter: %s " % e)
-        #     self.usage.hide()
 
 
 def get_test_window_appdetails():

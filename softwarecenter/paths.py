@@ -34,8 +34,6 @@ if os.getuid() == 0 and "SUDO_USER" in os.environ and "HOME" in os.environ:
 #                 xdg_cache_home=os.path.expanduser("~/.cache"))
 from xdg import BaseDirectory as xdg
 
-from softwarecenter.toolkit import CURRENT_TOOLKIT, UIToolkits
-
 # global datadir, this maybe overriden at startup
 datadir = "/usr/share/software-center/"
 
@@ -70,18 +68,11 @@ XAPIAN_PATH = os.path.join(XAPIAN_BASE_PATH, "xapian")
 # ratings&review
 # relative to datadir
 class RNRApps:
-    if CURRENT_TOOLKIT is UIToolkits.GTK2:
-        SUBMIT_REVIEW = "submit_review.py"
-        REPORT_REVIEW = "report_review.py"
-        SUBMIT_USEFULNESS = "submit_usefulness.py"
-        MODIFY_REVIEW = "modify_review.py"
-        DELETE_REVIEW = "delete_review.py"
-    elif CURRENT_TOOLKIT is UIToolkits.GTK3:
-        SUBMIT_REVIEW = "submit_review_gtk3.py"
-        REPORT_REVIEW = "report_review_gtk3.py"
-        SUBMIT_USEFULNESS = "submit_usefulness_gtk3.py"
-        MODIFY_REVIEW = "modify_review_gtk3.py"
-        DELETE_REVIEW = "delete_review_gtk3.py"
+    SUBMIT_REVIEW = "submit_review_gtk3.py"
+    REPORT_REVIEW = "report_review_gtk3.py"
+    SUBMIT_USEFULNESS = "submit_usefulness_gtk3.py"
+    MODIFY_REVIEW = "modify_review_gtk3.py"
+    DELETE_REVIEW = "delete_review_gtk3.py"
 
 
 # piston helpers
