@@ -536,8 +536,8 @@ class AppDetails(GObject.GObject):
                 self._error = _("Not found")
                 self._error_not_found = utf8(
                     _(u"There isn\u2019t a software "
-                      u"package called \u201c%s\u201D in your current software "
-                      u"sources.")) % utf8(self.pkgname)
+                      u"package called \u201c%s\u201D in your current "
+                      u"software sources.")) % utf8(self.pkgname)
                 return PkgStates.NOT_FOUND
         return PkgStates.UNKNOWN
 

@@ -42,7 +42,7 @@ TAG_DESCRIPTION = {
     'hardware::storage:floppy': _('floppy disk drive'),
     'hardware::video:opengl': _('OpenGL hardware acceleration'),
     # "special" private tag extenstion that needs special handling
-    OPENGL_DRIVER_BLACKLIST_TAG : _('Graphics driver that is not %s'),
+    OPENGL_DRIVER_BLACKLIST_TAG: _('Graphics driver that is not %s'),
 }
 
 TAG_MISSING_DESCRIPTION = {
