@@ -1,3 +1,11 @@
+software-center (5.1.14) UNRELEASED; urgency=low
+
+  * softwarecenter/ui/gtk3/app.py:
+    - do not crash if no http_proxy is found in the environnment
+      (thanks to Vincent Untz)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Mar 2012 17:59:58 +0100
+
 software-center (5.1.13) precise; urgency=low
 
   [ Anthony Lenton ]
