@@ -71,6 +71,9 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/recommendations-opt-out:
     - implements the recommendations opt-out feature as specified
       in the SoftwareCenter spec
+  * lp:~gary-lasker/software-center/number-recommended-items-per-spec:
+    - simple branch that updates the number of recommended items displayed 
+      in the panels per spec
 
   [ Kiwinote ]
   * lp:~kiwinote/software-center/less-is-more:

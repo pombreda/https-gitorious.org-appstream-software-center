@@ -107,7 +107,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         # display the recommendedations
         if len(docs) > 0:
             self.catview._add_tiles_to_flowgrid(docs,
-                                        self.recommended_for_you_content, 8)
+                                        self.recommended_for_you_content, 12)
             self.recommended_for_you_content.show_all()
             self.spinner_notebook.hide_spinner()
             self.more.connect('clicked',
@@ -264,7 +264,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
         # display the recommendations
         if len(docs) > 0:
             self.catview._add_tiles_to_flowgrid(docs,
-                                        self.app_recommendations_content, 8)
+                                        self.app_recommendations_content, 3)
             self.show_all()
             self.spinner_notebook.hide_spinner()
         else:
