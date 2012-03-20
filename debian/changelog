@@ -1,3 +1,16 @@
+software-center (5.1.13.1) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/apptreeview.py:
+    - fix UnboundLocalError in expand_path() (LP: #960260)
+
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/app.py:
+    - do not crash if no http_proxy is found in the environnment
+      (thanks to Vincent Untz)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Mar 2012 17:59:58 +0100
+
 software-center (5.1.13) precise; urgency=low
 
   [ Anthony Lenton ]
