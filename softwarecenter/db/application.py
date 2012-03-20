@@ -729,9 +729,12 @@ class AppDetails(GObject.GObject):
             else:
                 ver = self._get_version_for_archive_suite(
                     self._pkg, self._app.archive_suite)
-                return ver.version
-        elif self._doc:
+                if ver:
+                    return ver.version
+        if self._doc:
             return self._doc.get_value(XapianValues.VERSION_INFO)
+        LOG.warn("no version information found for '%s'" % self.pkgname)
+        return ""
 
     def get_not_automatic_archive_versions(self):
         """ this will return list of tuples (version, archive_suites)

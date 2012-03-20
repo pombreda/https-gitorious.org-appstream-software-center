@@ -77,6 +77,9 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-crash-lp951238:
     - fix for a crash that can occur if we get a refresh_apps
       before the app_view pane is ready LP: #951238
+  * lp:~gary-lasker/software-center/fix-crash-lp943605:
+    - Don't crash if a valid value for the version is not returned 
+      by the call to _get_version_for_archive_suite (LP: #943605)
 
   [ Kiwinote ]
   * lp:~kiwinote/software-center/less-is-more:
