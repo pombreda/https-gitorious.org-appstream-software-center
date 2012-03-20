@@ -203,6 +203,8 @@ class StoreDatabase(GObject.GObject):
 
     def open(self, pathname=None, use_axi=True, use_agent=True):
         """ open the database """
+        self._logger.info("open() database: path=%s use_axi=%s "
+                          "use_agent=%s" % (pathname, use_axi, use_agent))
         if pathname:
             self._db_pathname = pathname
         # clean existing DBs on open
@@ -242,7 +244,8 @@ class StoreDatabase(GObject.GObject):
         return self.xapiandb.get_metadata("db-schema-version")
 
     def reopen(self):
-        " reopen the database "
+        """ reopen the database """
+        self._logger.info("reopen() database")
         self.open(use_axi=self._use_axi, use_agent=self._use_agent)
         self.emit("reopen")
 
