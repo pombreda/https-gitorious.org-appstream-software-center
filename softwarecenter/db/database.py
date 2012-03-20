@@ -42,6 +42,7 @@ from gettext import gettext as _
 
 LOG = logging.getLogger(__name__)
 
+
 def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
     """ parse the apt-xapian-index "values" file and provide the
     information in the self._axi_values dict
