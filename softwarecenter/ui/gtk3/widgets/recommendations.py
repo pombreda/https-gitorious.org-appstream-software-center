@@ -155,7 +155,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
     def _show_opt_in_view(self):
         # opt in box
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
-        vbox.set_border_width(StockEms.LARGE)
+        vbox.set_border_width(StockEms.MEDIUM)
         self.opt_in_vbox = vbox  # for tests
         self.recommended_for_you_content = vbox  # hook it up to the rest
 
