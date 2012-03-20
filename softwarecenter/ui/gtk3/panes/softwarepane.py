@@ -430,6 +430,9 @@ class SoftwarePane(Gtk.VBox, BasePane):
         if query is None:
             query = self.get_query()
 
+        # this can happen e.g. when opening a deb file, see bug #951238
+        if not self.app_view:
+            return
         self.app_view.clear_model()
         self.search_aid.reset()
         self.show_appview_spinner()

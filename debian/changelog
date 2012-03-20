@@ -74,6 +74,9 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/number-recommended-items-per-spec:
     - simple branch that updates the number of recommended items displayed 
       in the panels per spec
+  * lp:~gary-lasker/software-center/fix-crash-lp951238:
+    - fix for a crash that can occur if we get a refresh_apps
+      before the app_view pane is ready LP: #951238
 
   [ Kiwinote ]
   * lp:~kiwinote/software-center/less-is-more:
