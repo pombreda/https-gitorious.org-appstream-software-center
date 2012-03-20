@@ -40,6 +40,7 @@ from softwarecenter.enums import (
 from softwarecenter.paths import XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT
 from gettext import gettext as _
 
+LOG = logging.getLogger(__name__)
 
 def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
     """ parse the apt-xapian-index "values" file and provide the
@@ -146,7 +147,6 @@ class StoreDatabase(GObject.GObject):
         self._additional_databases = []
         # the xapian values as read from /var/lib/apt-xapian-index/values
         self._axi_values = {}
-        self._logger = logging.getLogger("softwarecenter.db")
         # we open one db per thread, thread names are reused eventually
         # so no memory leak
         self._db_per_thread = {}
@@ -176,7 +176,7 @@ class StoreDatabase(GObject.GObject):
                 axi = xapian.Database("/var/lib/apt-xapian-index/index")
                 xapiandb.add_database(axi)
             except:
-                self._logger.exception("failed to add apt-xapian-index")
+                LOG.exception("failed to add apt-xapian-index")
         if (self._use_agent and
             os.path.exists(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)):
             try:
@@ -203,7 +203,7 @@ class StoreDatabase(GObject.GObject):
 
     def open(self, pathname=None, use_axi=True, use_agent=True):
         """ open the database """
-        self._logger.info("open() database: path=%s use_axi=%s "
+        LOG.info("open() database: path=%s use_axi=%s "
                           "use_agent=%s" % (pathname, use_axi, use_agent))
         if pathname:
             self._db_pathname = pathname
@@ -245,7 +245,7 @@ class StoreDatabase(GObject.GObject):
 
     def reopen(self):
         """ reopen the database """
-        self._logger.info("reopen() database")
+        LOG.info("reopen() database")
         self.open(use_axi=self._use_axi, use_agent=self._use_agent)
         self.emit("reopen")
 
@@ -286,11 +286,11 @@ class StoreDatabase(GObject.GObject):
             for item in self.SEARCH_GREYLIST_STR.split(";"):
                 (search_term, n) = re.subn('\\b%s\\b' % item, '', search_term)
                 if n:
-                    self._logger.debug("greylist changed search term: '%s'" %
+                    LOG.debug("greylist changed search term: '%s'" %
                         search_term)
         # restore query if it was just greylist words
         if search_term == '':
-            self._logger.debug("grey-list replaced all terms, restoring")
+            LOG.debug("grey-list replaced all terms, restoring")
             search_term = orig_search_term
         # we have to strip the leading and trailing whitespaces to avoid having
         # different results for e.g. 'font ' and 'font' (LP: #506419)
@@ -466,7 +466,7 @@ class StoreDatabase(GObject.GObject):
 
         If no document is found, raise a IndexError
         """
-        #self._logger.debug("get_xapian_document app='%s' pkg='%s'" % (appname,
+        #LOG.debug("get_xapian_document app='%s' pkg='%s'" % (appname,
         #    pkgname))
         # first search for appname in the app-install-data namespace
         for m in self.xapiandb.postlist("AA" + appname):
