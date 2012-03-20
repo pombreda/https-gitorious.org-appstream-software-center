@@ -143,7 +143,9 @@ class AppTreeView(Gtk.TreeView):
         self.expanded_path = path
 
         if old is not None:
-            ok, start, end = self.get_visible_range()
+            res = self.get_visible_range()
+            if res:
+                start, end = res
             if (start and start.compare(old) != -1) or \
                (end and end.compare(old) != 1):
                 self._needs_collapse.append(old)
