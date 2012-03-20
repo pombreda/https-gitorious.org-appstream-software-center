@@ -1,3 +1,10 @@
+software-center (5.1.13.1) UNRELEASED; urgency=low
+
+  * softwarecenter/ui/gtk3/apptreeview.py:
+    - fix UnboundLocalError in expand_path() (LP: #960260)
+
+ -- Kiwinote <kiwinote@gmail.com>  Tue, 20 Mar 2012 16:30:53 +0000
+
 software-center (5.1.13) precise; urgency=low
 
   [ Anthony Lenton ]
