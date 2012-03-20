@@ -24,7 +24,6 @@ from gettext import gettext as _
 
 from gi.repository import Gtk, Gdk, GObject
 
-from softwarecenter.ui.gtk3.shapes import ShapeStar
 from softwarecenter.ui.gtk3.em import StockEms, em, small_em, big_em
 
 
@@ -48,6 +47,38 @@ class StarFillState:
 class StarRenderHints:
     NORMAL = 1
     REACTIVE = -1
+
+
+class ShapeStar():
+    def __init__(self, points, indent=0.61):
+        self.coords = self._calc_coords(points, 1 - indent)
+
+    def _calc_coords(self, points, indent):
+        coords = []
+
+        from math import cos, pi, sin
+        step = pi / points
+
+        for i in range(2 * points):
+            if i % 2:
+                x = (sin(step * i) + 1) * 0.5
+                y = (cos(step * i) + 1) * 0.5
+            else:
+                x = (sin(step * i) * indent + 1) * 0.5
+                y = (cos(step * i) * indent + 1) * 0.5
+
+            coords.append((x, y))
+        return coords
+
+    def layout(self, cr, x, y, w, h):
+        points = [(sx_sy[0] * w + x, sx_sy[1] * h + y)
+            for sx_sy in self.coords]
+        cr.move_to(*points[0])
+
+        for p in points[1:]:
+            cr.line_to(*p)
+
+        cr.close_path()
 
 
 class StarRenderer(ShapeStar):

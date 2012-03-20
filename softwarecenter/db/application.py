@@ -225,9 +225,10 @@ class AppDetails(GObject.GObject):
                     not channel_matches and
                     not section_matches):
                     self._error = _("Not found")
-                    self._error_not_found = utf8(_(u"There isn\u2019t a "
-                        "software package called \u201c%s\u201D in your "
-                        "current software sources.")) % utf8(self.pkgname)
+                    self._error_not_found = utf8(
+                        _(u"There isn\u2019t a "
+                          u"software package called \u201c%s\u201D in your "
+                          u"current software sources.")) % utf8(self.pkgname)
 
     def same_app(self, other):
         return self.pkgname == other.pkgname
@@ -346,9 +347,10 @@ class AppDetails(GObject.GObject):
         # this may have changed since we inited the appdetails
         elif self.pkg_state == PkgStates.NOT_FOUND:
             self._error = _("Not found")
-            self._error_not_found = utf8(_(u"There isn\u2019t a software "
-                "package called \u201c%s\u201D in your current software "
-                "sources.")) % utf8(self.pkgname)
+            self._error_not_found = utf8(
+                _(u"There isn\u2019t a software "
+                  u"package called \u201c%s\u201D in your current software "
+                  u"sources.")) % utf8(self.pkgname)
             return self._error_not_found
 
     @property
@@ -498,9 +500,10 @@ class AppDetails(GObject.GObject):
                     return PkgStates.NEEDS_SOURCE
                 else:
                     self._error = _("Not found")
-                    self._error_not_found = utf8(_(u"There isn\u2019t a "
-                        "software package called \u201c%s\u201D in your "
-                        "current software sources.")) % utf8(self.pkgname)
+                    self._error_not_found = utf8(
+                        _(u"There isn\u2019t a "
+                          u"software package called \u201c%s\u201D in your "
+                          u"current software sources.")) % utf8(self.pkgname)
                     return PkgStates.NOT_FOUND
             else:
                 if self.price:
@@ -531,9 +534,10 @@ class AppDetails(GObject.GObject):
                             component_to_check=component):
                             return PkgStates.NEEDS_SOURCE
                 self._error = _("Not found")
-                self._error_not_found = utf8(_(u"There isn\u2019t a software "
-                    "package called \u201c%s\u201D in your current software "
-                    "sources.")) % utf8(self.pkgname)
+                self._error_not_found = utf8(
+                    _(u"There isn\u2019t a software "
+                      u"package called \u201c%s\u201D in your current "
+                      u"software sources.")) % utf8(self.pkgname)
                 return PkgStates.NOT_FOUND
         return PkgStates.UNKNOWN
 
@@ -725,9 +729,12 @@ class AppDetails(GObject.GObject):
             else:
                 ver = self._get_version_for_archive_suite(
                     self._pkg, self._app.archive_suite)
-                return ver.version
-        elif self._doc:
+                if ver:
+                    return ver.version
+        if self._doc:
             return self._doc.get_value(XapianValues.VERSION_INFO)
+        LOG.warn("no version information found for '%s'" % self.pkgname)
+        return ""
 
     def get_not_automatic_archive_versions(self):
         """ this will return list of tuples (version, archive_suites)

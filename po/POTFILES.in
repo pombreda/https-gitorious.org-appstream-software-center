@@ -48,7 +48,6 @@ softwarecenter/ui/gtk3/panes/historypane.py
 softwarecenter/ui/gtk3/panes/installedpane.py
 softwarecenter/ui/gtk3/panes/pendingpane.py
 softwarecenter/ui/gtk3/panes/softwarepane.py
-softwarecenter/ui/gtk3/panes/unused__channelpane.py
 softwarecenter/ui/gtk3/panes/viewswitcher.py
 softwarecenter/ui/gtk3/views/appdetailsview.py
 softwarecenter/ui/gtk3/views/appview.py
@@ -65,7 +64,6 @@ softwarecenter/ui/gtk3/widgets/searchaid.py
 softwarecenter/ui/gtk3/widgets/searchentry.py
 softwarecenter/ui/gtk3/widgets/stars.py
 softwarecenter/ui/gtk3/widgets/thumbnail.py
-softwarecenter/ui/gtk3/widgets/unused__pathbar.py
 softwarecenter/ui/gtk3/widgets/videoplayer.py
 softwarecenter/ui/gtk3/widgets/weblivedialog.py
 softwarecenter/ui/gtk3/widgets/recommendations.py

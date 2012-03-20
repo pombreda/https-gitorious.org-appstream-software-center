@@ -32,7 +32,6 @@ from urlparse import urlparse
 
 from softwarecenter.utils import SimpleFileDownloader
 from softwarecenter.ui.gtk3.em import StockEms
-from softwarecenter.ui.gtk3.shapes import Circle
 from softwarecenter.ui.gtk3.drawing import rounded_rect
 from softwarecenter.ui.gtk3.utils import point_in
 import softwarecenter.paths
@@ -197,9 +196,20 @@ class ExhibitButton(Gtk.Button):
         y = (a.height - ds_h) / 2
         Gdk.cairo_set_source_pixbuf(cr, self._dropshadow, 0, y)
         cr.paint()
-        Circle.layout(cr, self._margin, (a.height - ds_h) / 2 + self._margin,
-                      a.width - 2 * self._margin,
-                      a.width - 2 * self._margin)
+
+        # layout circle
+        x = self._margin
+        y = (a.height - ds_h) / 2 + self._margin
+        w = a.width - 2 * self._margin
+        h = a.width - 2 * self._margin
+        cr.new_path()
+        r = min(w, h) * 0.5
+        x += int((w - 2 * r) / 2)
+        y += int((h - 2 * r) / 2)
+        from math import pi
+        cr.arc(r + x, r + y, r, 0, 2 * pi)
+        cr.close_path()
+
         if self.is_active:
             color = context.get_background_color(Gtk.StateFlags.SELECTED)
         else:
