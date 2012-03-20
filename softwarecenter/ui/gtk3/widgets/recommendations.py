@@ -155,7 +155,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
     def _show_opt_in_view(self):
         # opt in box
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
-        vbox.set_border_width(StockEms.LARGE)
+        vbox.set_border_width(StockEms.MEDIUM)
         self.opt_in_vbox = vbox  # for tests
         self.recommended_for_you_content = vbox  # hook it up to the rest
 
@@ -171,7 +171,11 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
 
         # opt in text
         text = _(self.RECOMMENDATIONS_OPT_IN_TEXT)
-        label = Gtk.Label(text)
+        label = Gtk.Label()
+        label.set_use_markup(True)
+        markup = '<small>%s</small>'
+        label.set_name("subtle-label")
+        label.set_markup(markup % text)
         label.set_alignment(0, 0.5)
         label.set_line_wrap(True)
         vbox.pack_start(label, False, False, 0)
