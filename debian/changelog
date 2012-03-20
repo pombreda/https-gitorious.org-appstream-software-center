@@ -1,4 +1,4 @@
-software-center (5.1.13) UNRELEASED; urgency=low
+software-center (5.1.13) precise; urgency=low
 
   [ Anthony Lenton ]
   * lp:~elachuni/software-center/pep8-test-part5,
@@ -97,7 +97,7 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~kiwinote/software-center/markupescape-and-utf8-fixes:
     - fix utf8 issues and markup escaping
 
- -- Kiwinote <kiwinote@gmail.com>  Tue, 20 Mar 2012 10:11:32 +0000
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 20 Mar 2012 11:53:06 +0100
 
 software-center (5.1.12) precise; urgency=low
 
