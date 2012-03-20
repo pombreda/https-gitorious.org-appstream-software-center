@@ -59,6 +59,8 @@ software-center (5.1.13) UNRELEASED; urgency=low
     - display a terms-of-service dialog before the first purchase
   * lp:~mvo/software-center/lp957599:
     - add a new unit test test_spawn_helper.py
+  * lp:~mvo/software-center/track-db-open:
+    - improve db logging
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-lp955048:
@@ -93,7 +95,7 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~kiwinote/software-center/ellipses:
     - fix use real ellipses instead of "..." in the new string
 
- -- Kiwinote <kiwinote@gmail.com>  Tue, 20 Mar 2012 09:56:52 +0000
+ -- Kiwinote <kiwinote@gmail.com>  Tue, 20 Mar 2012 10:11:32 +0000
 
 software-center (5.1.12) precise; urgency=low
 
