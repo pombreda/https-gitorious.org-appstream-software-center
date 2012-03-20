@@ -85,13 +85,13 @@ software-center (5.1.13) UNRELEASED; urgency=low
       opt-in panel
 
   [ Kiwinote ]
-  * lp:~kiwinote/software-center/less-is-more:
-    - This branch clears out most of the unused code/files
-      that can be found in the sc codebase
-  * lp:~kiwinote/software-center/less-is-more2:
-    - this removes unused code from the tree
+  * lp:~kiwinote/software-center/less-is-more,
+    lp:~kiwinote/software-center/less-is-more2:
+    - clean out a bunch of unused code / files
+  * software-center/ui/gtk3/widgets/apptreeview.py:
+    - play catchup with Gtk overrides (LP: #959530)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 19 Mar 2012 17:15:23 -0400
+ -- Kiwinote <kiwinote@gmail.com>  Tue, 20 Mar 2012 09:56:52 +0000
 
 software-center (5.1.12) precise; urgency=low
 
