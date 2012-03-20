@@ -40,6 +40,7 @@ from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.utils import get_query_for_pkgnames
 from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.region import get_region_cached
+from softwarecenter.utils import utf8
 
 from gettext import gettext as _
 
@@ -151,13 +152,17 @@ class RecommendedForYouCategory(Category):
         self.subcategory = subcategory
         if subcategory:
             # this is the set of recommendations for a given subcategory
-            cat_title = u"Recommended For You in %s" % subcategory.name
+            cat_title = u"Recommended For You in %s" % (
+                                                 subcategory.untranslated_name)
+            tr_title = utf8(_("Recommended For You in %s")) % utf8(
+                                                              subcategory.name)
         else:
             # this is the full set of recommendations for e.g. the lobby view
             cat_title = u"Recommended For You"
+            tr_title = _("Recommended For You")
         super(RecommendedForYouCategory, self).__init__(
                 cat_title,
-                _(cat_title),
+                tr_title,
                 None,
                 xapian.Query(),
                 flags=['available-only', 'not-installed-only'],

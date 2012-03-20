@@ -28,6 +28,7 @@ from softwarecenter.ui.gtk3.widgets.containers import (FramedHeaderBox,
 from softwarecenter.db.categories import (RecommendedForYouCategory,
                                           AppRecommendationsCategory)
 from softwarecenter.backend.recagent import RecommenderAgent
+from softwarecenter.utils import utf8
 
 LOG = logging.getLogger(__name__)
 
@@ -76,8 +77,8 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         RecommendationsPanel.__init__(self, catview)
         self.subcategory = subcategory
         if self.subcategory:
-            self.set_header_label(
-                       _(u"Recommended For You in %s") % self.subcategory.name)
+            self.set_header_label(GObject.markup_escape_text(utf8(
+                _("Recommended For You in %s")) % utf8(self.subcategory.name)))
         self.recommended_for_you_content = None
         if self.recommender_agent.is_opted_in():
             self._update_recommended_for_you_content()
@@ -107,7 +108,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         # display the recommendedations
         if len(docs) > 0:
             self.catview._add_tiles_to_flowgrid(docs,
-                                        self.recommended_for_you_content, 8)
+                                        self.recommended_for_you_content, 12)
             self.recommended_for_you_content.show_all()
             self.spinner_notebook.hide_spinner()
             self.more.connect('clicked',
@@ -155,7 +156,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
     def _show_opt_in_view(self):
         # opt in box
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
-        vbox.set_border_width(StockEms.LARGE)
+        vbox.set_border_width(StockEms.MEDIUM)
         self.opt_in_vbox = vbox  # for tests
         self.recommended_for_you_content = vbox  # hook it up to the rest
 
@@ -171,7 +172,11 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
 
         # opt in text
         text = _(self.RECOMMENDATIONS_OPT_IN_TEXT)
-        label = Gtk.Label(text)
+        label = Gtk.Label()
+        label.set_use_markup(True)
+        markup = '<small>%s</small>'
+        label.set_name("subtle-label")
+        label.set_markup(markup % text)
         label.set_alignment(0, 0.5)
         label.set_line_wrap(True)
         vbox.pack_start(label, False, False, 0)
@@ -264,7 +269,7 @@ class RecommendationsPanelDetails(RecommendationsPanel):
         # display the recommendations
         if len(docs) > 0:
             self.catview._add_tiles_to_flowgrid(docs,
-                                        self.app_recommendations_content, 8)
+                                        self.app_recommendations_content, 3)
             self.show_all()
             self.spinner_notebook.hide_spinner()
         else:

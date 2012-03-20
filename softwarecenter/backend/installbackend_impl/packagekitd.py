@@ -31,7 +31,6 @@ from softwarecenter.backend.transactionswatcher import (
     TransactionProgress
 )
 from softwarecenter.backend.installbackend import InstallBackend
-from softwarecenter.backend.installbackend_impl import packagekit_enums
 
 # temporary, must think of better solution
 from softwarecenter.db.pkginfo import get_pkg_info
@@ -100,13 +99,13 @@ class PackagekitTransaction(BaseTransaction):
     def get_role_description(self, role=None):
         role = role if role is not None else self._trans.get_property('role')
         return self.meta_data.get('sc_appname',
-            packagekit_enums.role_enum_to_localised_present(role))
+            packagekit.role_enum_to_localised_present(role))
 
     def get_status_description(self, status=None):
         if status is None:
             status = self._trans.get_property('status')
 
-        return packagekit_enums.status_enum_to_localised_text(status)
+        return packagekit.info_enum_to_localised_present(status)
 
     def is_waiting(self):
         """ return true if a time consuming task is taking place """

@@ -59,6 +59,8 @@ software-center (5.1.13) UNRELEASED; urgency=low
     - display a terms-of-service dialog before the first purchase
   * lp:~mvo/software-center/lp957599:
     - add a new unit test test_spawn_helper.py
+  * lp:~mvo/software-center/track-db-open:
+    - improve db logging
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-lp955048:
@@ -71,13 +73,31 @@ software-center (5.1.13) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/recommendations-opt-out:
     - implements the recommendations opt-out feature as specified
       in the SoftwareCenter spec
+  * lp:~gary-lasker/software-center/number-recommended-items-per-spec:
+    - simple branch that updates the number of recommended items displayed 
+      in the panels per spec
+  * lp:~gary-lasker/software-center/fix-crash-lp951238:
+    - fix for a crash that can occur if we get a refresh_apps
+      before the app_view pane is ready LP: #951238
+  * lp:~gary-lasker/software-center/fix-crash-lp943605:
+    - Don't crash if a valid value for the version is not returned 
+      by the call to _get_version_for_archive_suite (LP: #943605)
+  * lp:~gary-lasker/software-center/recommends-panel-visual-tweaks-lp942109:
+    - addresses the remaining visual tweaks for the recommendations 
+      opt-in panel
 
   [ Kiwinote ]
-  * lp:~kiwinote/software-center/less-is-more:
-    - This branch clears out most of the unused code/files
-      that can be found in the sc codebase
+  * lp:~kiwinote/software-center/less-is-more,
+    lp:~kiwinote/software-center/less-is-more2:
+    - clean out a bunch of unused code / files
+  * software-center/ui/gtk3/widgets/apptreeview.py:
+    - play catchup with Gtk overrides (LP: #959530)
+  * lp:~kiwinote/software-center/ellipses:
+    - fix use real ellipses instead of "..." in the new string
+  * lp:~kiwinote/software-center/markupescape-and-utf8-fixes:
+    - fix utf8 issues and markup escaping
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 19 Mar 2012 17:15:23 -0400
+ -- Kiwinote <kiwinote@gmail.com>  Tue, 20 Mar 2012 10:11:32 +0000
 
 software-center (5.1.12) precise; urgency=low
 
