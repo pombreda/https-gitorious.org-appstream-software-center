@@ -25,6 +25,7 @@ OPENGL_DRIVER_BLACKLIST_TAG = "x-hardware::opengl-driver-blacklist:"
 
 
 TAG_DESCRIPTION = {
+    # normal tags
     'hardware::webcam': _('webcam'),
     'hardware::digicam': _('digicam'),
     'hardware::input:mouse': _('mouse'),
@@ -40,7 +41,8 @@ TAG_DESCRIPTION = {
     'hardware::storage:dvd-writer': _('DVD burner'),
     'hardware::storage:floppy': _('floppy disk drive'),
     'hardware::video:opengl': _('OpenGL hardware acceleration'),
-
+    # "special" private tag extenstion that needs special handling
+    OPENGL_DRIVER_BLACKLIST_TAG : _('Graphics driver that is not %s'),
 }
 
 TAG_MISSING_DESCRIPTION = {
@@ -81,6 +83,8 @@ TAG_MISSING_DESCRIPTION = {
 
 
 def get_hw_short_description(tag):
+    # FIXME: deal with OPENGL_DRIVER_BLACKLIST_TAG as this needs rsplit(":")
+    #        and a view of all available tags
     s = TAG_DESCRIPTION.get(tag)
     return utf8(s)
 
