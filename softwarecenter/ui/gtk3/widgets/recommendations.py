@@ -28,6 +28,7 @@ from softwarecenter.ui.gtk3.widgets.containers import (FramedHeaderBox,
 from softwarecenter.db.categories import (RecommendedForYouCategory,
                                           AppRecommendationsCategory)
 from softwarecenter.backend.recagent import RecommenderAgent
+from softwarecenter.utils import utf8
 
 LOG = logging.getLogger(__name__)
 
@@ -76,8 +77,8 @@ class RecommendationsPanelCategory(RecommendationsPanel):
         RecommendationsPanel.__init__(self, catview)
         self.subcategory = subcategory
         if self.subcategory:
-            self.set_header_label(
-                       _(u"Recommended For You in %s") % self.subcategory.name)
+            self.set_header_label(GObject.markup_escape_text(utf8(
+                _("Recommended For You in %s")) % utf8(self.subcategory.name)))
         self.recommended_for_you_content = None
         if self.recommender_agent.is_opted_in():
             self._update_recommended_for_you_content()
