@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2009 Canonical
 #
 # Authors:
@@ -531,7 +532,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                             _(u"Turn Off Recommendations"))
         else:
             recommendations_menuitem.set_label(
-                                            _(u"Turn On Recommendations..."))
+                                            _(u"Turn On Recommendations…"))
 
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" %
