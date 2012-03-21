@@ -20,7 +20,6 @@
 # order is import here, otherwise test/gtk3/test_purchase.py is unhappy
 from gi.repository import GObject
 from gi.repository import Gtk
-import gi
 
 import atexit
 import collections
@@ -211,11 +210,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # Disable software-properties if it does not exist
         if not os.path.exists("/usr/bin/software-properties-gtk"):
-            edit_menu = self.builder.get_object("menu_edit")
-            edit_separator = self.builder.get_object("separator_software_sources")
-            edit_menu.remove(edit_separator)
-            edit_sources = self.builder.get_object("menuitem_software_sources")
-            edit_menu.remove(edit_sources)
+            sources = self.builder.get_object("menuitem_software_sources")
+            sources.set_sensitive(False)
 
         with ExecutionTime("opening the pkginfo"):
             # a main iteration friendly apt cache
@@ -225,7 +221,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         with ExecutionTime("opening the xapiandb"):
             pathname = os.path.join(xapian_base_path, "xapian")
-            self._use_axi = self.distro.USE_AXI and not options.disable_apt_xapian_index
+            self._use_axi = not options.disable_apt_xapian_index
             try:
                 self.db = StoreDatabase(pathname, self.cache)
                 self.db.open(use_axi=self._use_axi)
@@ -249,10 +245,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                 "package."))
                 # FIXME: force rebuild by providing a dbus service for this
                 sys.exit(1)
-
-        self.prefill_pkgnames = []
-        for doc in self.db:
-            self.prefill_pkgnames.append(self.db.get_pkgname(doc))
 
         # additional icons come from app-install-data
         with ExecutionTime("building the icon cache"):
@@ -438,13 +430,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.window_main.connect("realize", self.on_realize)
 
         # launchpad integration help, its ok if that fails
-        if gi.Repository.get_default().enumerate_versions('LaunchpadIntegration'):
-            try:
-                from gi.repository import LaunchpadIntegration
-                LaunchpadIntegration.set_sourcepackagename("software-center")
-                LaunchpadIntegration.add_items(self.menu_help, 3, True, False)
-            except Exception, e:
-                LOG.debug("launchpad integration error: '%s'" % e)
+        try:
+            from gi.repository import LaunchpadIntegration
+            LaunchpadIntegration.set_sourcepackagename("software-center")
+            LaunchpadIntegration.add_items(self.menu_help, 3, True, False)
+        except Exception, e:
+            LOG.debug("launchpad integration error: '%s'" % e)
 
     # helper
     def _run_software_center_agent(self):
@@ -491,11 +482,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def _setup_proxy(self, setting=None, key=None):
         try:
             proxy = get_http_proxy_string_from_gsettings()
-            LOG.debug("setting up proxy '%s'" % proxy)
+            LOG.info("setting up proxy '%s'" % proxy)
             if proxy:
                 os.environ["http_proxy"] = proxy
             else:
-                if os.environ.has_key("http_proxy"):
+                if "http_proxy" in os.environ:
                     del os.environ["http_proxy"]
         except Exception as e:
             # if no gnome settings are installed, do not mess with
@@ -1340,17 +1331,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                         self.recommender_uuid)
         self.config.write()
 
-    def cache_magic(self):
-        self.cache.open()
-        if hasattr(self.cache, 'prefill_cache'):
-            self.cache.prefill_cache(wanted_pkgs = self.prefill_pkgnames)
-
     def run(self, args):
         # show window as early as possible
         self.window_main.show_all()
 
         # delay cache open
-        GObject.timeout_add(1, self.cache_magic)
+        GObject.timeout_add(1, self.cache.open)
 
         # support both "pkg1 pkg" and "pkg1,pkg2" (and pkg1,pkg2 pkg3)
         if args:
