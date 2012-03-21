@@ -1,3 +1,11 @@
+software-center (5.1.13.2) UNRELEASED; urgency=low
+
+  * looks like the latest gtk causes us to receive less style-updated
+    signals, call init_sc_css_provider explicitly so we don't loose our
+    custom theming (LP: #961102)
+
+ -- Kiwinote <kiwinote@gmail.com>  Wed, 21 Mar 2012 13:44:32 +0000
+
 software-center (5.1.13.1) precise; urgency=low
 
   [ Kiwinote ]

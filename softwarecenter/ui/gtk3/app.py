@@ -278,6 +278,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         settings = Gtk.Settings.get_default()
         settings.set_property("gtk-error-bell", False)
 
+        # initial css loading
+        init_sc_css_provider(self.window_main,
+                             settings,
+                             Gdk.Screen.get_default(),
+                             datadir)
+
         # wire up the css provider to reconfigure on theme-changes
         self.window_main.connect("style-updated",
                                  self._on_style_updated,
