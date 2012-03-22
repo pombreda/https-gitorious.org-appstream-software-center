@@ -8,6 +8,8 @@ software-center (5.1.13.2) UNRELEASED; urgency=low
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/tos-urls-lp961538:
     - use a different url for the inline ToS dialog (LP: #961538)
+  * lp:~gary-lasker/software-center/fix-crash-lp960742:
+    - do not crash if file can not be unlinked (LP: #960742)
 
  -- Kiwinote <kiwinote@gmail.com>  Wed, 21 Mar 2012 13:44:32 +0000
 
