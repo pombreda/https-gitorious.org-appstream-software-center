@@ -171,6 +171,21 @@ class AppTreeView(Gtk.TreeView):
 
     def rowref_is_category(self, rowref):
         return isinstance(rowref, CategoryRowReference)
+        
+    def reset_action_button(self):
+        """ Set the current row's action button sensitivity to the
+            specified value
+        """
+        print ">>> self.selected_row_renderer: ", self.selected_row_renderer
+        if self.selected_row_renderer:
+            action_btn = self.selected_row_renderer.get_button_by_name(
+                CellButtonIDs.ACTION)
+            if action_btn:
+                action_btn.set_sensitive(True)
+                doc = self.selected_row_renderer.application
+                pkgname = self.db.get_pkgname(doc)
+                print ">>> pkgname: ", pkgname
+                self._check_remove_pkg_from_blocklist(pkgname)               
 
     def _on_realize(self, widget, tr):
         # connect to backend events once self is realized so handlers
@@ -498,6 +513,7 @@ class AppTreeView(Gtk.TreeView):
         cell.set_property('isactive', path == self.expanded_path)
 
     def _app_activated_cb(self, btn, btn_id, app, store, path):
+        print ">>> called app_activated_cb"
         if self.rowref_is_category(app):
             return
 

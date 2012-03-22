@@ -149,6 +149,8 @@ class AvailablePane(SoftwarePane):
             self.on_purchase_failed)
         self.purchase_view.connect("purchase-cancelled-by-user",
             self.on_purchase_cancelled_by_user)
+        self.purchase_view.connect("terms-of-service-declined",
+            self.on_terms_of_service_declined)
         self.purchase_view.connect("purchase-needs-spinner",
             self.on_purchase_needs_spinner)
 
@@ -259,6 +261,15 @@ class AvailablePane(SoftwarePane):
 
     def on_purchase_cancelled_by_user(self, widget):
         self._return_to_appdetails_view()
+        
+    def on_terms_of_service_declined(self, widget):
+        """ The Terms of Service dialog was declined by the user, so we just
+            reset the purchase button in case they want another chance
+        """
+        if self.is_app_details_view_showing():
+            self.app_details_view.pkg_statusbar.button.set_sensitive(True)
+        elif self.is_applist_view_showing():
+            self.app_view.tree_view.reset_action_button()
 
     def _return_to_appdetails_view(self):
         vm = get_viewmanager()
