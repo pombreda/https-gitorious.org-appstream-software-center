@@ -510,7 +510,6 @@ class AppTreeView(Gtk.TreeView):
         cell.set_property('isactive', path == self.expanded_path)
 
     def _app_activated_cb(self, btn, btn_id, app, store, path):
-        print ">>> called app_activated_cb"
         if self.rowref_is_category(app):
             return
 
