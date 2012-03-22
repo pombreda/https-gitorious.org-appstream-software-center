@@ -26,6 +26,7 @@ from gettext import gettext as _
 
 from softwarecenter.ui.gtk3.views.webkit import ScrolledWebkitWindow
 from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
+from softwarecenter.enums import SOFTWARE_CENTER_TOS_LINK_NO_HEADER
 
 
 class DialogTos(Gtk.Dialog):
@@ -65,7 +66,7 @@ class DialogTos(Gtk.Dialog):
 
     def run(self):
         self.spinner.show_spinner()
-        self.webkit.load_uri("http://apps.ubuntu.com/cat/tos")
+        self.webkit.load_uri(SOFTWARE_CENTER_TOS_LINK_NO_HEADER)
         return Gtk.Dialog.run(self)
 
     def _on_load_status_changed(self, view, pspec):
