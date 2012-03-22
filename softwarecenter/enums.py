@@ -52,8 +52,11 @@ RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or \
 UBUNTU_SSO_SERVICE = os.environ.get(
     "USSOC_SERVICE_URL", "https://login.ubuntu.com/api/1.0")
 
-# the terms-of-service link
-SOFTWARE_CENTER_TOS_LINK = "http://apps.ubuntu.com/cat/tos"
+# the terms-of-service links (the first is for display in a web browser
+# as it has the header and footer, the second is for display in a dialog
+# as it lacks them and so looks better)
+SOFTWARE_CENTER_TOS_LINK = "https://apps.ubuntu.com/cat/tos/"
+SOFTWARE_CENTER_TOS_LINK_NO_HEADER = "https://apps.ubuntu.com/cat/tos/plain/ "
 
 # version of the database, every time something gets added (like
 # terms for mime-type) increase this (but keep as a string!)
