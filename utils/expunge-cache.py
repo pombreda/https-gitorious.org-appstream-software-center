@@ -25,7 +25,11 @@ class ExpungeCache(object):
             print "Would delete: %s" % f
         else:
             logging.debug("Deleting: %s" % f)
-            os.unlink(f)
+            try:
+                os.unlink(f)
+            except OSError as e:
+                logging.warn("When expunging the cache, could not unlink "
+                             "file '%s' (%s)'" % (f, e))
 
     def clean(self):
         # go over the directories
