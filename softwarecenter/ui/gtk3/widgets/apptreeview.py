@@ -171,7 +171,7 @@ class AppTreeView(Gtk.TreeView):
 
     def rowref_is_category(self, rowref):
         return isinstance(rowref, CategoryRowReference)
-        
+
     def reset_action_button(self):
         """ Set the current row's action button sensitivity to the
             specified value
@@ -182,7 +182,7 @@ class AppTreeView(Gtk.TreeView):
             if action_btn:
                 action_btn.set_sensitive(True)
                 pkgname = self.db.get_pkgname(self.selected_doc)
-                self._check_remove_pkg_from_blocklist(pkgname)               
+                self._check_remove_pkg_from_blocklist(pkgname)
 
     def _on_realize(self, widget, tr):
         # connect to backend events once self is realized so handlers

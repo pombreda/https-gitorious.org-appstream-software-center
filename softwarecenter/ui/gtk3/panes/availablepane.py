@@ -261,7 +261,7 @@ class AvailablePane(SoftwarePane):
 
     def on_purchase_cancelled_by_user(self, widget):
         self._return_to_appdetails_view()
-        
+
     def on_terms_of_service_declined(self, widget):
         """ The Terms of Service dialog was declined by the user, so we just
             reset the purchase button in case they want another chance
