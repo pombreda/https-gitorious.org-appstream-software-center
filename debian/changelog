@@ -18,7 +18,11 @@ software-center (5.1.13.2) UNRELEASED; urgency=low
     - make recommendations menu available once the available pane is
       ready (LP: #961198)
 
- -- Kiwinote <kiwinote@gmail.com>  Wed, 21 Mar 2012 13:44:32 +0000
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/builder_get_cleanup:
+    - cleaner way to get menuitems
+
+ -- Kiwinote <kiwinote@gmail.com>  Fri, 23 Mar 2012 14:09:03 +0000
 
 software-center (5.1.13.1) precise; urgency=low
 
