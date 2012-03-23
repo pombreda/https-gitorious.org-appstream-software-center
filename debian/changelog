@@ -10,6 +10,10 @@ software-center (5.1.13.2) UNRELEASED; urgency=low
     - use a different url for the inline ToS dialog (LP: #961538)
   * lp:~gary-lasker/software-center/fix-crash-lp960742:
     - do not crash if file can not be unlinked (LP: #960742)
+  * lp:~gary-lasker/software-center/tos_buy_button_fix_lp961216:
+    - This branch fixes bug LP: #961216, where the "Buy" button on the
+      details page and listview stays insensitive after declining the
+      ToS dialog
 
  -- Kiwinote <kiwinote@gmail.com>  Wed, 21 Mar 2012 13:44:32 +0000
 
