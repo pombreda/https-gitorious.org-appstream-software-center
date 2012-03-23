@@ -93,6 +93,9 @@ center no-repeat;
          'purchase-cancelled-by-user': (GObject.SignalFlags.RUN_LAST,
                                         None,
                                         ()),
+         'terms-of-service-declined': (GObject.SignalFlags.RUN_LAST,
+                                       None,
+                                       ()),
          'purchase-needs-spinner': (GObject.SignalFlags.RUN_LAST,
                                      None,
                                     (bool, )),
@@ -145,6 +148,7 @@ center no-repeat;
         for the item specified
         """
         if not self._ask_for_tos_acceptance_if_needed():
+            self.emit("terms-of-service-declined")
             return False
 
         self.init_view()
