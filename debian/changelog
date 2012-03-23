@@ -1,3 +1,10 @@
+software-center (5.1.13.3) precise; urgency=low
+
+  * data/ui/gtk3/SoftwareCenter.ui:
+     - fix string from "Terms of Service" to "Terms of Use" (LP: #963309).
+
+ -- Paolo Rotolo <paolorotolo@ubuntu-it.org>  Fri, 23 Mar 2012 22:24:42 +0100
+
 software-center (5.1.13.2) UNRELEASED; urgency=low
 
   [ kiwinote ]
