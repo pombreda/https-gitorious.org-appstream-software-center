@@ -521,6 +521,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.available_pane.cat_view.recommended_for_you_panel.connect(
                         "recommendations-opt-out",
                         self._on_recommendations_opt_out)
+        recommendations_menuitem = self.builder.get_object(
+                                            "menuitem_recommendations")
+        recommendations_menuitem.set_sensitive(True)
 
     #~ def on_installed_pane_created(self, widget):
         #~ pass
@@ -544,7 +547,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         else:
             recommendations_menuitem.set_label(
                                             _(u"Turn On Recommendations…"))
-        recommendations_menuitem.set_sensitive(True)
 
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" %
