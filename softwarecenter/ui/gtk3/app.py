@@ -383,6 +383,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 "menuitem_view_supported_only")
         supported_menuitem.set_label(self.distro.get_supported_filter_name())
         file_menu = self.builder.get_object("menu1")
+        
+        recommendations_menuitem = self.builder.get_object(
+                                            "menuitem_recommendations")
+        recommendations_menuitem.set_sensitive(False)
 
         if not self.distro.DEVELOPER_URL:
             help_menu = self.builder.get_object("menu_help")
@@ -540,6 +544,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         else:
             recommendations_menuitem.set_label(
                                             _(u"Turn On Recommendations…"))
+        recommendations_menuitem.set_sensitive(True)
 
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" %
