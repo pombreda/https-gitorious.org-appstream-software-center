@@ -95,12 +95,18 @@ class RecommenderAgent(GObject.GObject):
         """
         # if we have not already set a recommender UUID, now is the time
         # to do it
+        LOG.info("Submitting recommendations profile to the server")
         if not self.recommender_uuid:
             self.recommender_uuid = get_uuid()
         installed_pkglist = [app.pkgname
                              for app in get_installed_apps_list(db)]
         data = self._generate_submit_profile_data(self.recommender_uuid,
                                                   installed_pkglist)
+                                                  
+        # TODO: check the hash of the profile to be uploaded and only
+        #       do the upload if it has changed (or if this is the initial
+        #       upload)
+            
         # build the command
         spawner = SpawnHelper()
         spawner.parent_xid = self.xid

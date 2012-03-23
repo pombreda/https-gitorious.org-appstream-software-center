@@ -424,6 +424,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # keep the cache clean
         GObject.timeout_add_seconds(15, self._run_expunge_cache_helper)
+        
+        # check to see if a new recommendations profile is upload is
+        # needed and upload if necessary
+        GObject.timeout_add_seconds(45, self._upload_recommendations_profile)
 
         # TODO: Remove the following two lines once we have remove repository
         #       support in aptdaemon (see LP: #723911)
@@ -463,6 +467,20 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
              "--by-unsuccessful-http-states",
              softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR,
              ])
+             
+    def _upload_recommendations_profile(self):
+        recommender_agent = self._get_recommender_agent()
+        if recommender_agent.is_opted_in():
+#            recommender_agent.connect("submit-profile-finished",
+#                                  self._on_profile_submitted)
+#            recommender_agent.connect("error",
+#                                  self._on_profile_submitted_error)
+            recommender_agent.post_submit_profile(self.db)
+            
+                        
+    def _get_recommender_agent(self):
+        rec_panel = self.available_pane.cat_view.recommended_for_you_panel
+        return rec_panel.recommender_agent
 
     def _rebuild_and_reopen_local_db(self, pathname):
         """ helper that rebuilds a db and reopens it """
@@ -506,9 +524,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def on_available_pane_created(self, widget):
         self.available_pane.searchentry.grab_focus()
-        rec_panel = self.available_pane.cat_view.recommended_for_you_panel
         self._update_recommendations_menuitem(
-                        opted_in=rec_panel.recommender_agent.is_opted_in())
+                        opted_in=self._get_recommender_agent().is_opted_in())
         # connect a signal to monitor the recommendations opt-in state and
         # persist the recommendations uuid on an opt-in
         self.available_pane.cat_view.recommended_for_you_panel.connect(
@@ -794,7 +811,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def on_menuitem_recommendations_activate(self, menu_item):
         rec_panel = self.available_pane.cat_view.recommended_for_you_panel
-        if rec_panel.recommender_agent.is_opted_in():
+        if self._get_recommender_agent().is_opted_in():
             rec_panel.opt_out_of_recommendations_service()
         else:
             # build and show the opt-in dialog
