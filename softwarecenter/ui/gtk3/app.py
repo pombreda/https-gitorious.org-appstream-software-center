@@ -384,6 +384,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         supported_menuitem.set_label(self.distro.get_supported_filter_name())
         file_menu = self.builder.get_object("menu1")
 
+        # this will be set sensitive once a the availablepane is available
+        self.menuitem_recommendations.set_sensitive(False)
+
         if not self.distro.DEVELOPER_URL:
             help_menu = self.builder.get_object("menu_help")
             developer_separator = self.builder.get_object(
@@ -517,6 +520,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.available_pane.cat_view.recommended_for_you_panel.connect(
                         "recommendations-opt-out",
                         self._on_recommendations_opt_out)
+        self.menuitem_recommendations.set_sensitive(True)
 
     #~ def on_installed_pane_created(self, widget):
         #~ pass
