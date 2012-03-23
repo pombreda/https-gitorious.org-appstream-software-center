@@ -139,6 +139,7 @@ class StarRenderer(ShapeStar):
 
         cr = cairo.Context(empty_surf)
         cr.set_source(lin)
+        cr.set_line_width(1)
         if self.rounded:
             cr.set_line_join(cairo.LINE_CAP_ROUND)
 
