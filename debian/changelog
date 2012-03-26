@@ -1,4 +1,4 @@
-software-center (5.1.13.2) UNRELEASED; urgency=low
+software-center (5.1.13.2) precise; urgency=low
 
   [ kiwinote ]
   * looks like the latest gtk causes us to receive less style-updated
@@ -29,12 +29,18 @@ software-center (5.1.13.2) UNRELEASED; urgency=low
     - draw stars with 1px border to get crisper stars (LP: #955346)
   * lp:~mvo/software-center/fix-purchase-accept-crash:
     - fixes crash when accepting tos on system without s-c config file
+  * lp:~mvo/software-center/lp962927:
+    - fix race condition on creating cache dir (LP: #962927)
+  * lp:~mvo/software-center/lp964918:
+    - do not raise an exception in the case of multiple origins,
+      instead log a warning and do the right thing in the UI
+      (LP: #964918)
   
   [ Dave Morley ]
   * lp:~davmor2/software-center/lp965222:
     - add ldtp based statup time helper
 
- -- Kiwinote <kiwinote@gmail.com>  Mon, 26 Mar 2012 14:43:34 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 26 Mar 2012 19:02:24 +0200
 
 software-center (5.1.13.1) precise; urgency=low
 
