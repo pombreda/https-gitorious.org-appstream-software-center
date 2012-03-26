@@ -138,6 +138,9 @@ center no-repeat;
             res = show_accept_tos_dialog(get_parent(self))
             if not res:
                 return False
+            # config parser will not add sections automatically :/
+            if not self.config.has_section("general"):
+                self.config.add_section("general")
             self.config.set("general", "accepted_tos", "yes")
             return True
         return True
