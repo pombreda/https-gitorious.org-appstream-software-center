@@ -20,7 +20,7 @@ class TestCaseUSCStartStop(unittest.TestCase):
         self.msgs.append(a)
 
     def tearDown(self):
-        ldtp.selectmenuitem('frmUbuntuSoftwareCenter', 'mnuClose')
+        ldtp.selectmenuitem('frmUbuntuSoftwareCent*', 'mnuClose')
         assert ldtp.waittillguinotexist('frmUbuntuSoftwareCent*')
         c = "This test took a total of " + str(time.time() - start_time)
         self.msgs.append(c)
