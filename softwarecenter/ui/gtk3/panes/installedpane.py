@@ -658,7 +658,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             if self.state.search_term:
                 self._search()
             self._build_oneconfview()
-        elif view_state.channel.origin is not self.current_displayed_origin:
+        elif (view_state and
+              view_state.channel and
+              view_state.channel.origin is not self.current_displayed_origin):
             # we don't need to refresh the full installed view every time it
             # is displayed, so we check to see if we are viewing the same
             # channel and if so we don't refresh the view, note that the view
@@ -667,8 +669,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self._build_categorised_installedview()
             self.current_displayed_origin = view_state.channel.origin
 
-        if self.state.search_term:
-            self._search(self.state.search_term)
+            if self.state.search_term:
+                self._search(self.state.search_term)
         return True
 
     def get_current_app(self):
@@ -718,8 +720,11 @@ def get_test_window():
     w.init_view()
 
     from softwarecenter.backend.channel import AllInstalledChannel
+    from softwarecenter.ui.gtk3.panes.softwarepane import DisplayState
     w.state.channel = AllInstalledChannel()
-    w.display_overview_page(None, None)
+    view_state = DisplayState()
+    view_state.channel = AllInstalledChannel()
+    w.display_overview_page(None, view_state)
 
     win.show()
     return win
