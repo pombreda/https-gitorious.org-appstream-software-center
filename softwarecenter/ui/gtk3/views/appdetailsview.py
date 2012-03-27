@@ -1715,10 +1715,13 @@ class AppDetailsView(Viewport):
 
         # check if app just became available and if so, force full
         # refresh
-        if (same_app and
-            self.pkg_state == PkgStates.NEEDS_SOURCE and
-            self.app_details.pkg_state != PkgStates.NEEDS_SOURCE):
-            force = True
+        if same_app:
+            # if the app was in one of the states, force refresh if its
+            # no longer in this state
+            for state in [PkgStates.NEEDS_SOURCE, PkgStates.NOT_FOUND]:
+                if (self.pkg_state == state and
+                    self.app_details.pkg_state != state):
+                    force = True
         self.pkg_state = self.app_details.pkg_state
 
         # for compat with the base class

@@ -1,7 +1,12 @@
 #!/usr/bin/python
 
-import os
 import datetime
+import glob
+import multiprocessing
+import os
+import subprocess
+import tempfile
+import time
 import unittest
 
 from testutils import setup_test_env
@@ -152,8 +157,6 @@ class TestSCUtils(unittest.TestCase):
 class TestExpungeCache(unittest.TestCase):
 
     def test_expunge_cache(self):
-        import subprocess
-        import tempfile
         dirname = tempfile.mkdtemp('s-c-testsuite')
         for name, content in [ ("foo-301", "status: 301"),
                                ("foo-200", "status: 200"),
@@ -184,6 +187,28 @@ class TestExpungeCache(unittest.TestCase):
         # be touched
         self.assertFalse(os.path.exists(os.path.join(dirname, "foo-200")))
         self.assertTrue(os.path.exists(os.path.join(dirname, "foo-random")))
+
+    def test_expunge_cache_lock(self):
+        def set_marker(d):
+            time.sleep(0.5)
+            target = os.path.join(d, "marker.%s." % os.getpid())
+            open(target, "w")
+        from softwarecenter.expunge import ExpungeCache
+        tmpdir = tempfile.mkdtemp()
+        # create two ExpungeCache processes 
+        e1 = ExpungeCache([tmpdir], by_days=0, by_unsuccessful_http_states=True)
+        e1._cleanup_dir = set_marker
+        e2 = ExpungeCache([tmpdir], by_days=0, by_unsuccessful_http_states=True)
+        e2._cleanup_dir = set_marker
+        t1 = multiprocessing.Process(target=e1.clean)
+        t1.start()
+        t2 = multiprocessing.Process(target=e2.clean)
+        t2.start()
+        # wait for finish
+        t1.join()
+        t2.join()
+        # ensure that the second one was not called
+        self.assertEqual(len(glob.glob(os.path.join(tmpdir, "marker.*"))), 1)
 
 
 
