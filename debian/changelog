@@ -4,8 +4,11 @@ software-center (5.1.13.3) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp962580:
     - add locking to the expunge helper process to fix bugs that are triggered
       if multiple expunge cache processes are run (LP: #962580)
+  * lp:~mvo/software-center/cache-refresh-glitch:
+    - ensure that we get a full refresh if a pkg was not available before
+      show_app is called
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 27 Mar 2012 15:21:17 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 27 Mar 2012 15:28:58 -0400
 
 software-center (5.1.13.2) precise; urgency=low
 
