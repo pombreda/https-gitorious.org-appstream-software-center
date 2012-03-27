@@ -75,3 +75,5 @@ class ExpungeCache(object):
             if lock > 0:
                 self._cleanup_dir(d)
                 release_lock(lock)
+            else:
+                logging.info("dir '%s' locked by another process" % d)
