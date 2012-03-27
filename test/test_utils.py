@@ -9,8 +9,6 @@ import tempfile
 import time
 import unittest
 
-from mock import Mock
-
 from testutils import setup_test_env
 setup_test_env()
 from softwarecenter.utils import (decode_xml_char_reference,
