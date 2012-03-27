@@ -223,8 +223,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         # hacky, hide the header
         self.app_view.header_hbox.hide()
-
+        
         self.hide_appview_spinner()
+        
+        # keep track of the current view by tracking its origin
+        self.current_displayed_origin = None
 
         # now we are initialized
         self.emit("installed-pane-created")
@@ -655,8 +658,14 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             if self.state.search_term:
                 self._search()
             self._build_oneconfview()
-        else:
+        elif view_state.channel.origin is not self.current_displayed_origin:
+            # we don't need to refresh the full installed view every time it
+            # is displayed, so we check to see if we are viewing the same
+            # channel and if so we don't refresh the view, note that the view
+            # *is* is refreshed whenever the contents change and this is
+            # sufficient (see LP: #828887)
             self._build_categorised_installedview()
+            self.current_displayed_origin = view_state.channel.origin
 
         if self.state.search_term:
             self._search(self.state.search_term)
