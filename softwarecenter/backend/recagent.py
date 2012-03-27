@@ -96,27 +96,30 @@ class RecommenderAgent(GObject.GObject):
         # if we have not already set a recommender UUID, now is the time
         # to do it
         LOG.info("Submitting recommendations profile to the server")
+        first_upload = False
         if not self.recommender_uuid:
             self.recommender_uuid = get_uuid()
+            first_upload = True
         installed_pkglist = [app.pkgname
                              for app in get_installed_apps_list(db)]
-        data = self._generate_submit_profile_data(self.recommender_uuid,
-                                                  installed_pkglist)
+        profile = self._generate_submit_profile_data(self.recommender_uuid,
+                                                     installed_pkglist)
                                                   
         # TODO: check the hash of the profile to be uploaded and only
         #       do the upload if it has changed (or if this is the initial
         #       upload)
-            
-        # build the command
-        spawner = SpawnHelper()
-        spawner.parent_xid = self.xid
-        spawner.needs_auth = True
-        spawner.connect("data-available", self._on_submit_profile_data)
-        spawner.connect("error", lambda spawner, err: self.emit("error", err))
-        spawner.run_generic_piston_helper(
-            "SoftwareCenterRecommenderAPI",
-            "submit_profile",
-            data=data)
+        
+        if first_upload or self._profile_has_changed(profile):
+            # build the command and upload the profile
+            spawner = SpawnHelper()
+            spawner.parent_xid = self.xid
+            spawner.needs_auth = True
+            spawner.connect("data-available", self._on_submit_profile_data)
+            spawner.connect("error", lambda spawner, err: self.emit("error", err))
+            spawner.run_generic_piston_helper(
+                "SoftwareCenterRecommenderAPI",
+                "submit_profile",
+                data=profile)
 
     def post_submit_anon_profile(self, uuid, installed_packages, extra):
         # build the command
@@ -241,6 +244,11 @@ class RecommenderAgent(GObject.GObject):
             'package_list': package_list
         }]
         return submit_profile_data
+        
+    def _profile_has_changed(self, profile):
+        # TODO: calculate a hash of the profile and compare it to the saved
+        #       hash for the previous upload
+        return True
 
 
 if __name__ == "__main__":
