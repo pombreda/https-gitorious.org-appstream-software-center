@@ -223,9 +223,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         # hacky, hide the header
         self.app_view.header_hbox.hide()
-        
+
         self.hide_appview_spinner()
-        
+
         # keep track of the current view by tracking its origin
         self.current_displayed_origin = None
 
