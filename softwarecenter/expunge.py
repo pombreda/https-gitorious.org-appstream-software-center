@@ -47,7 +47,10 @@ class ExpungeCache(object):
                 logging.warn("When expunging the cache, could not unlink "
                              "file '%s' (%s)'" % (f, e))
 
-    def _inspect_dir(self, path):
+    def _cleanup_dir(self, path):
+        """ cleanup the given directory (and subdirectories) using the
+            age or http state of the cache
+        """
         now = time.time()
         for root, dirs, files in os.walk(path):
             for f in files:
@@ -70,5 +73,5 @@ class ExpungeCache(object):
         for d in self.dirs:
             lock = get_lock(os.path.join(d, "expunge.lock"))
             if lock > 0:
-                self._inspect_dir(d)
+                self._cleanup_dir(d)
                 release_lock(lock)
