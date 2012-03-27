@@ -628,6 +628,23 @@ def get_uuid():
     return str(uuid.uuid4())
 
 
+def get_lock(path):
+    """ return a lock that can be released with release_lock on success
+        and -1 on failure
+    """
+    try:
+        import apt_pkg
+        return apt_pkg.get_lock(path, False)
+    except ImportError:
+        # implement me on non-apt system, I wish python had this in the stdlib
+        pass
+
+
+def release_lock(lock):
+    """ release a lock acquired with get_lock """
+    os.close(lock)
+
+
 class SimpleFileDownloader(GObject.GObject):
 
     LOG = logging.getLogger("softwarecenter.simplefiledownloader")
