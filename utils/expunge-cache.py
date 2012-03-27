@@ -1,4 +1,21 @@
 #!/usr/bin/python
+# Copyright (C) 2012 Canonical
+#
+# Authors:
+#  Michael Vogt
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 """
 Expunge httplib2 caches
@@ -7,49 +24,10 @@ Expunge httplib2 caches
 import argparse
 import logging
 import os
-import time
 import sys
 
+from softwarecenter.expunge import ExpungeCache
 
-class ExpungeCache(object):
-
-    def __init__(self, dirs, args):
-        self.dirs = dirs
-        # days to keep data in the cache (0 == disabled)
-        self.keep_time = 60 * 60 * 24 * args.by_days
-        self.keep_only_http200 = args.by_unsuccessful_http_states
-        self.dry_run = args.dry_run
-
-    def _rm(self, f):
-        if self.dry_run:
-            print "Would delete: %s" % f
-        else:
-            logging.debug("Deleting: %s" % f)
-            try:
-                os.unlink(f)
-            except OSError as e:
-                logging.warn("When expunging the cache, could not unlink "
-                             "file '%s' (%s)'" % (f, e))
-
-    def clean(self):
-        # go over the directories
-        now = time.time()
-        for d in self.dirs:
-            for root, dirs, files in os.walk(d):
-                for f in files:
-                    fullpath = os.path.join(root, f)
-                    header = open(fullpath).readline().strip()
-                    if not header.startswith("status:"):
-                        logging.debug(
-                            "Skipping files with unknown header: '%s'" % f)
-                        continue
-                    if self.keep_only_http200 and header != "status: 200":
-                        self._rm(fullpath)
-                    if self.keep_time:
-                        mtime = os.path.getmtime(fullpath)
-                        logging.debug("mtime of '%s': '%s" % (f, mtime))
-                        if (mtime + self.keep_time) < now:
-                            self._rm(fullpath)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -85,5 +63,8 @@ if __name__ == "__main__":
     os.nice(19)
 
     # do it
-    cleaner = ExpungeCache(args.directories, args)
+    cleaner = ExpungeCache(args.directories, 
+                           args.by_days, 
+                           args.by_unsuccessful_http_states,
+                           args.dry_run)
     cleaner.clean()
