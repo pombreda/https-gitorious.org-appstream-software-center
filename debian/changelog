@@ -1,17 +1,46 @@
-software-center (5.1.13.2) UNRELEASED; urgency=low
+software-center (5.1.13.2) precise; urgency=low
 
   [ kiwinote ]
   * looks like the latest gtk causes us to receive less style-updated
     signals, call init_sc_css_provider explicitly so we don't loose our
     custom theming (LP: #961102)
+
+  [ Paolo Rotolo ]
+  * data/ui/gtk3/SoftwareCenter.ui:
+     - fix string from "Terms of Service" to "Terms of Use" (LP: #963309).
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/tos-urls-lp961538:
     - use a different url for the inline ToS dialog (LP: #961538)
   * lp:~gary-lasker/software-center/fix-crash-lp960742:
     - do not crash if file can not be unlinked (LP: #960742)
+  * lp:~gary-lasker/software-center/tos_buy_button_fix_lp961216:
+    - This branch fixes bug LP: #961216, where the "Buy" button on the
+      details page and listview stays insensitive after declining the
+      ToS dialog
+  * lp:~gary-lasker/software-center/fix-crash-lp961198:
+    - make recommendations menu available once the available pane is
+      ready (LP: #961198)
 
- -- Kiwinote <kiwinote@gmail.com>  Wed, 21 Mar 2012 13:44:32 +0000
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/builder_get_cleanup:
+    - cleaner way to get menuitems
+  * lp:~mvo/software-center/lp-955346:
+    - draw stars with 1px border to get crisper stars (LP: #955346)
+  * lp:~mvo/software-center/fix-purchase-accept-crash:
+    - fixes crash when accepting tos on system without s-c config file
+  * lp:~mvo/software-center/lp962927:
+    - fix race condition on creating cache dir (LP: #962927)
+  * lp:~mvo/software-center/lp964918:
+    - do not raise an exception in the case of multiple origins,
+      instead log a warning and do the right thing in the UI
+      (LP: #964918)
+  
+  [ Dave Morley ]
+  * lp:~davmor2/software-center/lp965222:
+    - add ldtp based statup time helper
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 26 Mar 2012 19:02:24 +0200
 
 software-center (5.1.13.1) precise; urgency=low
 

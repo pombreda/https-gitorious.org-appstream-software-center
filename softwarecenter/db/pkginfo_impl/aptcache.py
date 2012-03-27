@@ -364,12 +364,13 @@ class AptCache(PackageInfo):
         this will use
         """
         if not pkgname in self._cache or not self._cache[pkgname].candidate:
-            return
+            return None
         origins = set([origin.origin for origin in self.get_origins(pkgname)])
         if len(origins) > 1:
-            raise Exception("Error, more than one origin '%s'" % origins)
+            LOG.warn("more than one origin '%s'" % origins)
+            return None
         if not origins:
-            return
+            return None
         # we support only a single origin (but its fine if that is available
         # on multiple mirrors). lowercase as the server excepts it this way
         origin_str = origins.pop()

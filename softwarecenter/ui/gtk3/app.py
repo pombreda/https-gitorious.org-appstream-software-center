@@ -210,8 +210,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # Disable software-properties if it does not exist
         if not os.path.exists("/usr/bin/software-properties-gtk"):
-            sources = self.builder.get_object("menuitem_software_sources")
-            sources.set_sensitive(False)
+            self.menuitem_software_sources.set_sensitive(False)
 
         with ExecutionTime("opening the pkginfo"):
             # a main iteration friendly apt cache
@@ -379,45 +378,35 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.restore_state()
 
         # Adapt menu entries
-        supported_menuitem = self.builder.get_object(
-                "menuitem_view_supported_only")
-        supported_menuitem.set_label(self.distro.get_supported_filter_name())
-        file_menu = self.builder.get_object("menu1")
+        self.menuitem_view_supported_only.set_label(
+            self.distro.get_supported_filter_name())
+
+        # this will be set sensitive once a the availablepane is available
+        self.menuitem_recommendations.set_sensitive(False)
 
         if not self.distro.DEVELOPER_URL:
-            help_menu = self.builder.get_object("menu_help")
-            developer_separator = self.builder.get_object(
-                    "separator_developer")
-            help_menu.remove(developer_separator)
-            developer_menuitem = self.builder.get_object("menuitem_developer")
-            help_menu.remove(developer_menuitem)
+            self.menu_help.remove(self.separator_developer)
+            self.menu_help.remove(self.menuitem_developer)
 
         # Check if oneconf is available
         och = is_oneconf_available()
         if not och:
-            file_menu.remove(self.builder.get_object(
-                "menuitem_sync_between_computers"))
+            self.menu_file.remove(self.menuitem_sync_between_computers)
 
         # restore the state of the add to launcher menu item, or remove the
         # menu item if Unity is not currently running
-        add_to_launcher_menuitem = self.builder.get_object(
-            "menuitem_add_to_launcher")
         if is_unity_running():
-            add_to_launcher_menuitem.set_active(
+            self.menuitem_add_to_launcher.set_active(
                                 self.available_pane.add_to_launcher_enabled)
         else:
-            view_menu = self.builder.get_object("menu_view")
-            add_to_launcher_separator = self.builder.get_object(
-                "add_to_launcher_separator")
-            view_menu.remove(add_to_launcher_separator)
-            view_menu.remove(add_to_launcher_menuitem)
+            self.menu_view.remove(self.add_to_launcher_separator)
+            self.menu_view.remove(self.menuitem_add_to_launcher)
 
         # run s-c-agent update
         if options.disable_buy or not self.distro.PURCHASE_APP_URL:
-            file_menu.remove(self.builder.get_object(
-                "menuitem_reinstall_purchases"))
+            self.menu_file.remove(self.menuitem_reinstall_purchases)
             if not (options.enable_lp or och):
-                file_menu.remove(self.builder.get_object("separator_login"))
+                self.menu_file.remove(self.separator_login)
         else:
             # running the agent will trigger a db reload so we do it later
             GObject.timeout_add_seconds(30, self._run_software_center_agent)
@@ -431,9 +420,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # TODO: Remove the following two lines once we have remove repository
         #       support in aptdaemon (see LP: #723911)
-        file_menu = self.builder.get_object("menu1")
-        file_menu.remove(self.builder.get_object(
-            "menuitem_deauthorize_computer"))
+        self.menu_file.remove(self.menuitem_deauthorize_computer)
 
         # keep track of the current active pane
         self.active_pane = self.available_pane
@@ -534,6 +521,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.available_pane.cat_view.recommended_for_you_panel.connect(
                         "recommendations-opt-out",
                         self._on_recommendations_opt_out)
+        self.menuitem_recommendations.set_sensitive(True)
 
     #~ def on_installed_pane_created(self, widget):
         #~ pass
@@ -549,13 +537,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self._update_recommendations_menuitem(opted_in=False)
 
     def _update_recommendations_menuitem(self, opted_in):
-        recommendations_menuitem = self.builder.get_object(
-                                            "menuitem_recommendations")
         if opted_in:
-            recommendations_menuitem.set_label(
+            self.menuitem_recommendations.set_label(
                                             _(u"Turn Off Recommendations"))
         else:
-            recommendations_menuitem.set_label(
+            self.menuitem_recommendations.set_label(
                                             _(u"Turn On Recommendations…"))
 
     def _on_update_software_center_agent_finished(self, pid, condition):

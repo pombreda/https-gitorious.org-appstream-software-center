@@ -172,6 +172,18 @@ class AppTreeView(Gtk.TreeView):
     def rowref_is_category(self, rowref):
         return isinstance(rowref, CategoryRowReference)
 
+    def reset_action_button(self):
+        """ Set the current row's action button sensitivity to the
+            specified value
+        """
+        if self.selected_row_renderer:
+            action_btn = self.selected_row_renderer.get_button_by_name(
+                CellButtonIDs.ACTION)
+            if action_btn:
+                action_btn.set_sensitive(True)
+                pkgname = self.db.get_pkgname(self.selected_doc)
+                self._check_remove_pkg_from_blocklist(pkgname)
+
     def _on_realize(self, widget, tr):
         # connect to backend events once self is realized so handlers
         # have access to the TreeView's initialised Gdk.Window
@@ -270,11 +282,11 @@ class AppTreeView(Gtk.TreeView):
         self._update_selected_row(view, tr, path)
 
     def _update_selected_row(self, view, tr, path=None):
-        # keep track of the currently selected row renderer for use when
-        # calculating icon size and coordinate values for the Unity
-        # launcher integration feature
+        # keep track of the currently selected row renderer and associated
+        # doc for use when updating the widgets and for use with the Unity
+        # integration feature
         self.selected_row_renderer = tr
-        ##
+        self.selected_doc = tr.application
         sel = view.get_selection()
         if not sel:
             return False

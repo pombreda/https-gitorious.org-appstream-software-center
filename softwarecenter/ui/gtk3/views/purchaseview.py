@@ -93,6 +93,9 @@ center no-repeat;
          'purchase-cancelled-by-user': (GObject.SignalFlags.RUN_LAST,
                                         None,
                                         ()),
+         'terms-of-service-declined': (GObject.SignalFlags.RUN_LAST,
+                                       None,
+                                       ()),
          'purchase-needs-spinner': (GObject.SignalFlags.RUN_LAST,
                                      None,
                                     (bool, )),
@@ -135,6 +138,9 @@ center no-repeat;
             res = show_accept_tos_dialog(get_parent(self))
             if not res:
                 return False
+            # config parser will not add sections automatically :/
+            if not self.config.has_section("general"):
+                self.config.add_section("general")
             self.config.set("general", "accepted_tos", "yes")
             return True
         return True
@@ -145,6 +151,7 @@ center no-repeat;
         for the item specified
         """
         if not self._ask_for_tos_acceptance_if_needed():
+            self.emit("terms-of-service-declined")
             return False
 
         self.init_view()
