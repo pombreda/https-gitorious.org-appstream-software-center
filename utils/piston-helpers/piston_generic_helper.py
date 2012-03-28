@@ -107,7 +107,7 @@ class SSOLoginHelper(object):
         try:
             res = api.whoami()
         except piston_mini_client.failhandlers.APIError as e:
-            LOG.exception("api.whoami failed with APIError")
+            LOG.exception("api.whoami failed with APIError: '%s'" % e)
             return False
         return len(res) > 0
 
