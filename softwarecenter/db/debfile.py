@@ -104,7 +104,8 @@ class AppDetailsDebFile(AppDetails):
     def description(self):
         if self._deb:
             description = self._deb._sections["Description"]
-            return ('\n').join(description.split('\n')[1:]).replace(" .\n", "")
+            s =  ('\n').join(description.split('\n')[1:]).replace(" .\n", "")
+            return utf8(s)
         return ""
 
     @property
