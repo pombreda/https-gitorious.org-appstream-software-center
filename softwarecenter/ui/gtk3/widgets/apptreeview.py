@@ -20,7 +20,7 @@ from softwarecenter.ui.gtk3.models.appstore2 import (
     AppGenericStore, CategoryRowReference)
 
 
-LOG=logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 class AppTreeView(Gtk.TreeView):
@@ -147,7 +147,7 @@ class AppTreeView(Gtk.TreeView):
 
         if old is not None:
             start, end = self.get_visible_range() or (None, None)
-            if ((start and start.compare(old) != -1) or 
+            if ((start and start.compare(old) != -1) or
                 (end and end.compare(old) != 1)):
                 self._needs_collapse.append(old)
             else:
