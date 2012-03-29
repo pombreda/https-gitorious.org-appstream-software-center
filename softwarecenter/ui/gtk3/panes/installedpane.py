@@ -457,6 +457,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         if window:
             window.set_cursor(self.busy_cursor)
         self.show_installed_view_spinner()
+        treeview_state = self._save_treeview_state()
 
         # disconnect the model to avoid e.g. updates of "cursor-changed"
         #  AppTreeView.expand_path while the model is in rebuild-flux
@@ -547,6 +548,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                 mode=AppView.DIFF_MODE)
 
             self.app_view.set_model(self.treefilter)
+            self._restore_treeview_state(treeview_state)
 
             # hide the local spinner
             self.hide_installed_view_spinner()
