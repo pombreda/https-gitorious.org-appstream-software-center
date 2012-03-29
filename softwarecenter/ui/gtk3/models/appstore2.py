@@ -409,6 +409,7 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         """ set the content of the liststore based on a list of
             xapian.MSetItems
         """
+        LOG.debug("set_from_matches len(matches)='%s'" % len(matches))
         self.current_matches = matches
         n_matches = len(matches)
         if n_matches == 0:
@@ -432,6 +433,7 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         self.buffer_icons()
 
     def load_range(self, indices, step):
+        LOG.debug("load_range: %s %s" % (indices, step))
         db = self.db.xapiandb
         matches = self.current_matches
 
@@ -446,7 +448,8 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         for i in range(start, end):
             try:
                 row_content = self[(i,)][0]
-            except IndexError:
+            except IndexError as e:
+                LOG.warn("failed to load rows: '%s'" % e)
                 break
 
             if row_content:

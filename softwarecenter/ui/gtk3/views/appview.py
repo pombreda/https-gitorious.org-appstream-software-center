@@ -176,13 +176,16 @@ class AppView(Gtk.VBox):
     def set_model(self, model):
         self.tree_view.set_model(model)
 
+    def get_model(self):
+        return self.tree_view.appmodel
+
     def display_matches(self, matches, is_search=False):
         # FIXME: installedpane handles display of the trees intimately,
         # so for the time being lets just return None in the case of our
         # TreeView displaying an AppTreeStore ...    ;(
         # ... also we dont currently support user sorting in the
         # installedview, so issue is somewhat moot for the time being...
-        if isinstance(self.tree_view.appmodel, AppTreeStore):
+        if isinstance(self.get_model(), AppTreeStore):
             LOG.debug("display_matches called on AppTreeStore, ignoring")
             return
 
@@ -197,9 +200,16 @@ class AppView(Gtk.VBox):
                 not self.user_defined_sort_method):
                 self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
 
-        model = self.tree_view.appmodel
+        model = self.get_model()
+        # disconnect the model from the view before running 
+        # set_from_matches to ensure that the _cell_data_func_cb is not
+        # run when the placeholder items are set, otherwise the purpose
+        # of the "load-on-demand" is gone and it leads to bugs like 
+        # LP: #964433
+        self.set_model(None)
         if model:
             model.set_from_matches(matches)
+        self.set_model(model)
         self.user_defined_sort_method = False
 
         self.tree_view_scroll.get_vadjustment().set_lower(self.vadj)
