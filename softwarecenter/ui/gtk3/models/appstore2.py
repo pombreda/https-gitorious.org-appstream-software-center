@@ -61,6 +61,9 @@ class CategoryRowReference:
         self.pkg_count = pkg_count
         self.vis_count = pkg_count
 
+    def __repr__(self):
+        return "[CategoryRowReference: name=%s]" % self.untranslated_name
+
 
 class UncategorisedRowRef(CategoryRowReference):
 
@@ -74,6 +77,9 @@ class UncategorisedRowRef(CategoryRowReference):
                                       untranslated_name,
                                       display_name,
                                       None, pkg_count)
+
+    def __repr__(self):
+        return "[UncategorizedRowReference: name=%s]" % self.untranslated_name
 
 
 class AppPropertiesHelper(GObject.GObject):

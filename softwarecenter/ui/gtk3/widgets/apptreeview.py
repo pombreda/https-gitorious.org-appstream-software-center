@@ -20,6 +20,9 @@ from softwarecenter.ui.gtk3.models.appstore2 import (
     AppGenericStore, CategoryRowReference)
 
 
+LOG=logging.getLogger(__name__)
+
+
 class AppTreeView(Gtk.TreeView):
 
     """Treeview based view component that takes a AppStore and displays it"""
@@ -144,16 +147,16 @@ class AppTreeView(Gtk.TreeView):
 
         if old is not None:
             start, end = self.get_visible_range() or (None, None)
-            if (start and start.compare(old) != -1) or \
-               (end and end.compare(old) != 1):
+            if ((start and start.compare(old) != -1) or 
+                (end and end.compare(old) != 1)):
                 self._needs_collapse.append(old)
             else:
                 try:  # try... a lazy solution to Bug #846204
                     model.row_changed(old, model.get_iter(old))
                 except:
-                    msg = ("apptreeview.expand_path: Supplied 'old' "
-                           "path is an invalid tree path: '%s'" % old)
-                    logging.debug(msg)
+                    LOG.exception(
+                        "apptreeview.expand_path: Supplied 'old' "
+                        "path is an invalid tree path: '%s'" % old)
 
         if path == None:
             return
