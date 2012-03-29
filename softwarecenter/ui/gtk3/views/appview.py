@@ -201,10 +201,10 @@ class AppView(Gtk.VBox):
                 self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
 
         model = self.get_model()
-        # disconnect the model from the view before running 
+        # disconnect the model from the view before running
         # set_from_matches to ensure that the _cell_data_func_cb is not
         # run when the placeholder items are set, otherwise the purpose
-        # of the "load-on-demand" is gone and it leads to bugs like 
+        # of the "load-on-demand" is gone and it leads to bugs like
         # LP: #964433
         self.set_model(None)
         if model:

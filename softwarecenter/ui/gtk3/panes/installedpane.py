@@ -329,7 +329,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         # store the state
         expanded_rows = []
         self.app_view.tree_view.map_expanded_rows(
-            lambda view,path,data: expanded_rows.append(path.to_string()), None)
+            lambda view, path, data: expanded_rows.append(path.to_string()),
+            None)
         vadj = self.app_view.tree_view_scroll.get_vadjustment().get_value()
         return expanded_rows, vadj
 
