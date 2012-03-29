@@ -153,7 +153,7 @@ class AppTreeView(Gtk.TreeView):
                 except:
                     msg = ("apptreeview.expand_path: Supplied 'old' "
                            "path is an invalid tree path: '%s'" % old)
-                    logging.debug(msg)
+                    logging.warn(msg)
 
         if path == None:
             return
@@ -485,12 +485,7 @@ class AppTreeView(Gtk.TreeView):
                             path)
 
     def _cell_data_func_cb(self, col, cell, model, it, user_data):
-
         path = model.get_path(it)
-
-        # this will give us the right underlying model regardless if its
-        # a TreeModelFilter, a AppTreeStore or a AppListStore
-        model = self.appmodel
 
         # this will pre-load data *only* on a AppListStore, it has
         # no effect with a AppTreeStore
