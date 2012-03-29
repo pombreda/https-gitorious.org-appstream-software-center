@@ -325,6 +325,22 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.nonapps_visible = NonAppVisibility.NEVER_VISIBLE
         self.refresh_apps()
 
+    def _save_treeview_state(self):
+        # store the state
+        expanded_rows = []
+        self.app_view.tree_view.map_expanded_rows(
+            lambda view,path,data: expanded_rows.append(path.to_string()), None)
+        vadj = self.app_view.tree_view_scroll.get_vadjustment().get_value()
+        return expanded_rows, vadj
+
+    def _restore_treeview_state(self, state):
+        expanded_rows, vadj = state
+        for ind in expanded_rows:
+            path = Gtk.TreePath.new_from_string(ind)
+            self.app_view.tree_view.expand_row(path, False)
+        self.app_view.tree_view_scroll.get_vadjustment().set_lower(vadj)
+        self.app_view.tree_view_scroll.get_vadjustment().set_value(vadj)
+
     #~ @interrupt_build_and_wait
     def _build_categorised_installedview(self):
         LOG.debug('Rebuilding categorised installedview...')
@@ -334,6 +350,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         if window:
             window.set_cursor(self.busy_cursor)
         self.show_installed_view_spinner()
+        treeview_state = self._save_treeview_state()
 
         # disconnect the model to avoid e.g. updates of "cursor-changed"
         #  AppTreeView.expand_path while the model is in rebuild-flux
@@ -415,6 +432,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                 mode=AppView.INSTALLED_MODE)
 
             self.app_view.set_model(self.treefilter)
+            self._restore_treeview_state(treeview_state)
 
             # hide the local spinner
             self.hide_installed_view_spinner()
