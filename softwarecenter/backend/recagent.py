@@ -21,6 +21,7 @@
 
 from gi.repository import GObject
 import logging
+import hashlib
 
 import softwarecenter.paths
 from spawn_helper import SpawnHelper
@@ -45,7 +46,7 @@ class RecommenderAgent(GObject.GObject):
                    ),
         "submit-profile-finished": (GObject.SIGNAL_RUN_LAST,
                                     GObject.TYPE_NONE,
-                                    (GObject.TYPE_PYOBJECT, str),
+                                    (GObject.TYPE_PYOBJECT, str, str),
                                    ),
         "submit-anon-profile-finished": (GObject.SIGNAL_RUN_LAST,
                                          GObject.TYPE_NONE,
@@ -76,7 +77,13 @@ class RecommenderAgent(GObject.GObject):
     def __init__(self, xid=None):
         GObject.GObject.__init__(self)
         self.xid = xid
-        self.recommender_uuid = self._get_recommender_uuid()
+        # the recommender uuid is the unique ID that is included with the
+        # profile upload to anonymously identify the user for recommendations,
+        # and the profile id is a hash of the current profile that is used
+        # when determining whether the profile has changed since the last
+        # upload
+        (self.recommender_uuid,
+         self.recommender_profile_id) = self._get_recommender_ids()
 
     def query_server_status(self):
         # build the command
@@ -96,20 +103,18 @@ class RecommenderAgent(GObject.GObject):
         # if we have not already set a recommender UUID, now is the time
         # to do it
         LOG.info("Submitting recommendations profile to the server")
-        first_upload = False
         if not self.recommender_uuid:
             self.recommender_uuid = get_uuid()
-            first_upload = True
         installed_pkglist = [app.pkgname
                              for app in get_installed_apps_list(db)]
         profile = self._generate_submit_profile_data(self.recommender_uuid,
                                                      installed_pkglist)
-                                                  
-        # TODO: check the hash of the profile to be uploaded and only
-        #       do the upload if it has changed (or if this is the initial
-        #       upload)
         
-        if first_upload or self._profile_has_changed(profile):
+        # compare profiles to see if there has been a change, and if there
+        # has, do the profile update
+        current_recommender_profile_id = hashlib.md5(str(profile)).hexdigest()
+        if current_recommender_profile_id != self.recommender_profile_id:
+            self.recommender_profile_id = current_recommender_profile_id
             # build the command and upload the profile
             spawner = SpawnHelper()
             spawner.parent_xid = self.xid
@@ -208,7 +213,8 @@ class RecommenderAgent(GObject.GObject):
     def _on_submit_profile_data(self, spawner, piston_submit_profile):
         self.emit("submit-profile-finished",
                   piston_submit_profile,
-                  self.recommender_uuid)
+                  self.recommender_uuid,
+                  self.recommender_profile_id)
 
     def _on_submit_anon_profile_data(self, spawner,
         piston_submit_anon_profile):
@@ -226,17 +232,24 @@ class RecommenderAgent(GObject.GObject):
     def _on_recommend_top_data(self, spawner, piston_top_apps):
         self.emit("recommend-top", piston_top_apps)
 
-    def _get_recommender_uuid(self):
+    def _get_recommender_ids(self):
         """ returns the recommender UUID value, which can be empty if it
             has not yet been set (indicating that the user has not yet
-            opted-in to the recommender service)
+            opted-in to the recommender service). also returns the
+            recommender profile ID, which can also be empty.
         """
         config = get_config()
         if config.has_option("general", "recommender_uuid"):
-            recommender_uuid = config.get("general", "recommender_uuid")
-            if recommender_uuid:
-                return recommender_uuid
-        return ""
+            recommender_uuid = config.get("general",
+                                          "recommender_uuid")
+        else:
+            recommender_uuid = ""
+        if config.has_option("general", "recommender_profile_id"):
+            recommender_profile_id = config.get("general",
+                                                "recommender_profile_id")
+        else:
+            recommender_profile_id = ""
+        return (recommender_uuid, recommender_profile_id)
 
     def _generate_submit_profile_data(self, recommender_uuid, package_list):
         submit_profile_data = [{
@@ -244,11 +257,6 @@ class RecommenderAgent(GObject.GObject):
             'package_list': package_list
         }]
         return submit_profile_data
-        
-    def _profile_has_changed(self, profile):
-        # TODO: calculate a hash of the profile and compare it to the saved
-        #       hash for the previous upload
-        return True
 
 
 if __name__ == "__main__":
