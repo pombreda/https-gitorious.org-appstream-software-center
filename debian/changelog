@@ -19,13 +19,16 @@ software-center (5.1.13.3) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp846204:
     - fix ValueError crashes in get_iter due to invalid tree paths
       (LP: #846204)
+  * lp:~mvo/software-center/lp964433:
+    - disconnect the model from the view before calling set_from_matches
+      (LP: #964433)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/installed-pane-refresh:
     - avoid rebuilding the treeview in the installedpane if its not
       required (LP: #828887)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 30 Mar 2012 03:04:58 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 30 Mar 2012 03:10:28 -0400
 
 software-center (5.1.13.2) precise; urgency=low
 
