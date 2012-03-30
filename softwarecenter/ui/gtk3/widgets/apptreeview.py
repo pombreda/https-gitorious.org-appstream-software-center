@@ -134,7 +134,14 @@ class AppTreeView(Gtk.TreeView):
         self.expanded_path = None
         self._needs_collapse = []
         if self.appmodel:
-            self.appmodel.clear()
+            # before clearing the model, disconnect it from the view. this
+            # avoids that the model gets a "cursor_changed" signal for each
+            # removed row and consequently that _update_selected_row is called
+            # for rows that are not really selected (LP: #969050)
+            model = self.get_model()
+            self.set_model(None)
+            model.clear()
+            self.set_model(model)
 
     def expand_path(self, path):
         if path is not None and not isinstance(path, Gtk.TreePath):
