@@ -146,13 +146,15 @@ class PkgListModel(QAbstractListModel):
     def installPackage(self, pkgname):
         appname = ""
         iconname = ""
-        self.backend.install(pkgname, appname, iconname)
+        app = Application(appname, pkgname)
+        self.backend.install(app, iconname)
 
     @pyqtSlot(str)
     def removePackage(self, pkgname):
         appname = ""
         iconname = ""
-        self.backend.remove(pkgname, appname, iconname)
+        app = Application(appname, pkgname)
+        self.backend.remove(app, iconname)
 
     # searchQuery property (for qml )
     def getSearchQuery(self):
