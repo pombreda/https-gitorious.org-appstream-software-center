@@ -335,6 +335,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             window.set_cursor(self.busy_cursor)
         self.show_installed_view_spinner()
 
+        # disconnect the model to avoid e.g. updates of "cursor-changed"
+        #  AppTreeView.expand_path while the model is in rebuild-flux
+        self.app_view.set_model(None)
+
         model = self.base_model  # base model not treefilter
         model.clear()
 
@@ -410,6 +414,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.app_view._append_appcount(self.installed_count,
                 mode=AppView.INSTALLED_MODE)
 
+            self.app_view.set_model(self.treefilter)
+
             # hide the local spinner
             self.hide_installed_view_spinner()
 
@@ -433,6 +439,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         if window:
             window.set_cursor(self.busy_cursor)
         self.show_installed_view_spinner()
+
+        # disconnect the model to avoid e.g. updates of "cursor-changed"
+        #  AppTreeView.expand_path while the model is in rebuild-flux
+        self.app_view.set_model(None)
 
         model = self.base_model  # base model not treefilter
         model.clear()
@@ -517,6 +527,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.installed_count = i
             self.app_view._append_appcount(self.installed_count,
                 mode=AppView.DIFF_MODE)
+
+            self.app_view.set_model(self.treefilter)
 
             # hide the local spinner
             self.hide_installed_view_spinner()
