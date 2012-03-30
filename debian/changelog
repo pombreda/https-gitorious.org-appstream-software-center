@@ -13,13 +13,30 @@ software-center (5.1.13.3) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp966514:
     - properly handle network disconnect conditions with the Ubuntu
       SSO dialog (LP: #966514)
+  * lp:~mvo/software-center/lp966879:
+    - fix for crashes in the installed view treeview (LP: #966879,
+      LP: #950899)
+  * lp:~mvo/software-center/lp846204:
+    - fix ValueError crashes in get_iter due to invalid tree paths
+      (LP: #846204)
+  * lp:~mvo/software-center/lp964433:
+    - disconnect the model from the view before calling set_from_matches
+      (LP: #964433)
+  * lp:~mvo/software-center/treeview-keep-state-on-db-cache-change:
+   - restore the state of the installed view treeview when the
+     the db or cache changes, such as on an app install or remove
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/installed-pane-refresh:
     - avoid rebuilding the treeview in the installedpane if its not
       required (LP: #828887)
+  * lp:~gary-lasker/software-center/fix-crash-lp967036:
+    - Small branch to fix a crash due to a UnicodeDecodeError when accessing 
+      the short description for H/W requirements (LP: #967036)
+  * lp:~gary-lasker/software-center/fix-crash-lp935930:
+    - fix a crash due to a UnicodeDecodeError (LP: #935930)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 28 Mar 2012 19:31:24 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 30 Mar 2012 03:25:05 -0400
 
 software-center (5.1.13.2) precise; urgency=low
 
