@@ -20,6 +20,9 @@ from softwarecenter.ui.gtk3.models.appstore2 import (
     AppGenericStore, CategoryRowReference)
 
 
+LOG = logging.getLogger(__name__)
+
+
 class AppTreeView(Gtk.TreeView):
 
     """Treeview based view component that takes a AppStore and displays it"""
@@ -131,7 +134,14 @@ class AppTreeView(Gtk.TreeView):
         self.expanded_path = None
         self._needs_collapse = []
         if self.appmodel:
-            self.appmodel.clear()
+            # before clearing the model, disconnect it from the view. this
+            # avoids that the model gets a "cursor_changed" signal for each
+            # removed row and consequently that _update_selected_row is called
+            # for rows that are not really selected (LP: #969050)
+            model = self.get_model()
+            self.set_model(None)
+            model.clear()
+            self.set_model(model)
 
     def expand_path(self, path):
         if path is not None and not isinstance(path, Gtk.TreePath):
@@ -144,16 +154,16 @@ class AppTreeView(Gtk.TreeView):
 
         if old is not None:
             start, end = self.get_visible_range() or (None, None)
-            if (start and start.compare(old) != -1) or \
-               (end and end.compare(old) != 1):
+            if ((start and start.compare(old) != -1) or
+                (end and end.compare(old) != 1)):
                 self._needs_collapse.append(old)
             else:
                 try:  # try... a lazy solution to Bug #846204
                     model.row_changed(old, model.get_iter(old))
                 except:
-                    msg = ("apptreeview.expand_path: Supplied 'old' "
-                           "path is an invalid tree path: '%s'" % old)
-                    logging.debug(msg)
+                    LOG.exception(
+                        "apptreeview.expand_path: Supplied 'old' "
+                        "path is an invalid tree path: '%s'" % old)
 
         if path == None:
             return
@@ -485,12 +495,7 @@ class AppTreeView(Gtk.TreeView):
                             path)
 
     def _cell_data_func_cb(self, col, cell, model, it, user_data):
-
         path = model.get_path(it)
-
-        # this will give us the right underlying model regardless if its
-        # a TreeModelFilter, a AppTreeStore or a AppListStore
-        model = self.appmodel
 
         # this will pre-load data *only* on a AppListStore, it has
         # no effect with a AppTreeStore
