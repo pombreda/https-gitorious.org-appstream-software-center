@@ -32,6 +32,7 @@ from softwarecenter.utils import (
     ExecutionTime,
     SimpleFileDownloader,
     split_icon_ext,
+    utf8,
     )
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
@@ -56,7 +57,7 @@ class CategoryRowReference:
 
     def __init__(self, untranslated_name, display_name, subcats, pkg_count):
         self.untranslated_name = untranslated_name
-        self.display_name = GObject.markup_escape_text(display_name)
+        self.display_name = GObject.markup_escape_text(utf8(display_name))
         #self.subcategories = subcats
         self.pkg_count = pkg_count
         self.vis_count = pkg_count

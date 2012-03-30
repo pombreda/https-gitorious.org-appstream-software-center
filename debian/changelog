@@ -33,6 +33,8 @@ software-center (5.1.13.3) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-crash-lp967036:
     - Small branch to fix a crash due to a UnicodeDecodeError when accessing 
       the short description for H/W requirements (LP: #967036)
+  * lp:~gary-lasker/software-center/fix-crash-lp935930:
+    - fix a crash due to a UnicodeDecodeError (LP: #935930)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Fri, 30 Mar 2012 03:25:05 -0400
 
