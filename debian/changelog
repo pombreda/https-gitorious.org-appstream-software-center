@@ -1,4 +1,4 @@
-software-center (5.1.13.3) UNRELEASED; urgency=low
+software-center (5.1.14) precise; urgency=low
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/lp962580:
@@ -41,7 +41,7 @@ software-center (5.1.13.3) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-crash-lp935930:
     - fix a crash due to a UnicodeDecodeError (LP: #935930)
 
- -- Kiwinote <kiwinote@gmail.com>  Fri, 30 Mar 2012 15:24:27 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 30 Mar 2012 18:00:50 +0200
 
 software-center (5.1.13.2) precise; urgency=low
 
