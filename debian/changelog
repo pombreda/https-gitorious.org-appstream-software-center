@@ -13,13 +13,17 @@ software-center (5.1.13.3) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp966514:
     - properly handle network disconnect conditions with the Ubuntu
       SSO dialog (LP: #966514)
+  * lp:~mvo/software-center/lp966879:
+    - fix for crashes in the installed view treeview (LP: #966879,
+      LP: #950899)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/installed-pane-refresh:
     - avoid rebuilding the treeview in the installedpane if its not
       required (LP: #828887)
+  * 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 28 Mar 2012 19:31:24 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 30 Mar 2012 02:53:12 -0400
 
 software-center (5.1.13.2) precise; urgency=low
 
