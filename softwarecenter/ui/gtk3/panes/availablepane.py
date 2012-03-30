@@ -487,8 +487,7 @@ class AvailablePane(SoftwarePane):
         '''
         Function that installs all applications displayed in the pane.
         '''
-        pkgnames = []
-        appnames = []
+        apps = []
         iconnames = []
         self.action_bar.remove_button(ActionButtons.INSTALL)
         for doc in self.enquirer.get_documents():
@@ -496,11 +495,10 @@ class AvailablePane(SoftwarePane):
             if (pkgname in self.cache and
                 not self.cache[pkgname].is_installed and
                 pkgname not in self.backend.pending_transactions):
-                pkgnames.append(pkgname)
-                appnames.append(self.db.get_appname(doc))
+                apps.append(self.db.get_application(doc))
                 # add iconnames
                 iconnames.append(self.db.get_iconname(doc))
-        self.backend.install_multiple(pkgnames, appnames, iconnames)
+        self.backend.install_multiple(apps, iconnames)
 
     def set_state(self, nav_item):
         pass
