@@ -25,6 +25,11 @@ software-center (5.1.13.3) UNRELEASED; urgency=low
   * lp:~mvo/software-center/treeview-keep-state-on-db-cache-change:
    - restore the state of the installed view treeview when the
      the db or cache changes, such as on an app install or remove
+  * lp:~mvo/software-center/946393:
+   - fix installing multiple apps when in a custom list view (LP: #946393)
+  * lp:~mvo/software-center/lp969050:
+   - disconnect the view when the model is cleared to avoid a furry of
+     cursor_changed signals as the rows get removed (LP: #969050)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/installed-pane-refresh:
@@ -36,7 +41,7 @@ software-center (5.1.13.3) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-crash-lp935930:
     - fix a crash due to a UnicodeDecodeError (LP: #935930)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 30 Mar 2012 03:25:05 -0400
+ -- Kiwinote <kiwinote@gmail.com>  Fri, 30 Mar 2012 15:24:27 +0200
 
 software-center (5.1.13.2) precise; urgency=low
 
