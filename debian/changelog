@@ -30,6 +30,9 @@ software-center (5.1.13.3) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/installed-pane-refresh:
     - avoid rebuilding the treeview in the installedpane if its not
       required (LP: #828887)
+  * lp:~gary-lasker/software-center/fix-crash-lp967036:
+    - Small branch to fix a crash due to a UnicodeDecodeError when accessing 
+      the short description for H/W requirements (LP: #967036)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Fri, 30 Mar 2012 03:25:05 -0400
 

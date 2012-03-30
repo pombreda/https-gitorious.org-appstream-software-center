@@ -20,6 +20,7 @@ from gi.repository import Gtk
 from gettext import gettext as _
 
 from softwarecenter.hw import get_hw_short_description
+from softwarecenter.utils import utf8
 
 
 class HardwareRequirementsLabel(Gtk.HBox):
@@ -70,7 +71,7 @@ class HardwareRequirementsLabel(Gtk.HBox):
             s = self.LABEL
         return _(s) % {
             "sym": sym,
-            "hardware": _(get_hw_short_description(self.tag))
+            "hardware": _(utf8(get_hw_short_description(self.tag)))
             }
 
     def set_hardware_requirement(self, tag, result):
