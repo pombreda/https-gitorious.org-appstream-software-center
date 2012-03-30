@@ -254,15 +254,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
         LOG.debug("on_cache_ready")
-        # it only makes sense to refresh if there is something to
-        # refresh, otherwise we create a bunch of (not yet needed)
-        # AppStore objects on startup when the cache sends its
-        # initial "cache-ready" signal
-        model = self.app_view.tree_view.get_model()
-        if model is None:
-            return
-        # FIXME: preserve selection too
-        self.refresh_apps()
 
     @wait_for_apt_cache_ready
     def on_application_activated(self, appview, app):

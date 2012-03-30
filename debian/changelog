@@ -22,13 +22,16 @@ software-center (5.1.13.3) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp964433:
     - disconnect the model from the view before calling set_from_matches
       (LP: #964433)
+  * lp:~mvo/software-center/treeview-keep-state-on-db-cache-change:
+   - restore the state of the installed view treeview when the
+     the db or cache changes, such as on an app install or remove
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/installed-pane-refresh:
     - avoid rebuilding the treeview in the installedpane if its not
       required (LP: #828887)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 30 Mar 2012 03:10:28 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 30 Mar 2012 03:25:05 -0400
 
 software-center (5.1.13.2) precise; urgency=low
 

@@ -325,8 +325,25 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.nonapps_visible = NonAppVisibility.NEVER_VISIBLE
         self.refresh_apps()
 
+    def _save_treeview_state(self):
+        # store the state
+        expanded_rows = []
+        self.app_view.tree_view.map_expanded_rows(
+            lambda view, path, data: expanded_rows.append(path.to_string()),
+            None)
+        vadj = self.app_view.tree_view_scroll.get_vadjustment().get_value()
+        return expanded_rows, vadj
+
+    def _restore_treeview_state(self, state):
+        expanded_rows, vadj = state
+        for ind in expanded_rows:
+            path = Gtk.TreePath.new_from_string(ind)
+            self.app_view.tree_view.expand_row(path, False)
+        self.app_view.tree_view_scroll.get_vadjustment().set_lower(vadj)
+        self.app_view.tree_view_scroll.get_vadjustment().set_value(vadj)
+
     #~ @interrupt_build_and_wait
-    def _build_categorised_installedview(self):
+    def _build_categorised_installedview(self, keep_state=False):
         LOG.debug('Rebuilding categorised installedview...')
 
         # display the busy cursor and a local spinner while we build the view
@@ -334,6 +351,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         if window:
             window.set_cursor(self.busy_cursor)
         self.show_installed_view_spinner()
+
+        if keep_state:
+            treeview_state = self._save_treeview_state()
 
         # disconnect the model to avoid e.g. updates of "cursor-changed"
         #  AppTreeView.expand_path while the model is in rebuild-flux
@@ -415,6 +435,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                 mode=AppView.INSTALLED_MODE)
 
             self.app_view.set_model(self.treefilter)
+            if keep_state:
+                self._restore_treeview_state(treeview_state)
 
             # hide the local spinner
             self.hide_installed_view_spinner()
@@ -431,7 +453,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         GObject.idle_add(profiled_rebuild_categorised_view)
 
-    def _build_oneconfview(self):
+    def _build_oneconfview(self, keep_state=False):
         LOG.debug('Rebuilding oneconfview for %s...' % self.current_hostid)
 
         # display the busy cursor and the local spinner while we build the view
@@ -439,6 +461,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         if window:
             window.set_cursor(self.busy_cursor)
         self.show_installed_view_spinner()
+
+        if keep_state:
+            treeview_state = self._save_treeview_state()
 
         # disconnect the model to avoid e.g. updates of "cursor-changed"
         #  AppTreeView.expand_path while the model is in rebuild-flux
@@ -529,6 +554,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                 mode=AppView.DIFF_MODE)
 
             self.app_view.set_model(self.treefilter)
+            if keep_state:
+                self._restore_treeview_state(treeview_state)
 
             # hide the local spinner
             self.hide_installed_view_spinner()
@@ -611,10 +638,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def refresh_apps(self, *args, **kwargs):
         """refresh the applist and update the navigation bar """
         logging.debug("installedpane refresh_apps")
+        keep_state = kwargs.get("keep_state", False)
         if self.current_hostid:
-            self._build_oneconfview()
+            self._build_oneconfview(keep_state)
         else:
-            self._build_categorised_installedview()
+            self._build_categorised_installedview(keep_state)
 
     def _clear_search(self):
         # remove the details and clear the search
@@ -641,9 +669,17 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.app_view._append_appcount(appcount, mode=AppView.DIFF_MODE)
         return vis_cats
 
-    def on_db_reopen(self, db):
-        self.refresh_apps(rebuild=True)
+    def _refresh_on_cache_or_db_change(self):
+        self.refresh_apps(keep_state=True)
         self.app_details_view.refresh_app()
+
+    def on_db_reopen(self, db):
+        LOG.debug("on_db_reopen")
+        self._refresh_on_cache_or_db_change()
+
+    def on_cache_ready(self, cache):
+        LOG.debug("on_cache_ready")
+        self._refresh_on_cache_or_db_change()
 
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
