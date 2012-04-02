@@ -40,8 +40,7 @@ class TestRecommenderAgent(unittest.TestCase):
         def _patched_on_submit_profile_data(*args, **kwargs):
             piston_submit_profile = {}
             recommender_agent.emit("submit-profile-finished", 
-                                   piston_submit_profile, 
-                                   uuid.uuid1())
+                                   piston_submit_profile)
         mock_spawn_helper_run.side_effect = _patched_on_submit_profile_data
         recommender_agent = RecommenderAgent()
         recommender_agent.connect("submit-profile-finished", self.on_query_done)
@@ -50,10 +49,9 @@ class TestRecommenderAgent(unittest.TestCase):
         recommender_agent.post_submit_profile(db)
         self.assertFalse(self.error)
         args, kwargs =  mock_spawn_helper_run.call_args
-        self.assertNotEqual(kwargs['data'][0]['uuid'], None)
         self.assertNotEqual(kwargs['data'][0]['package_list'], [])
 
-    def on_query_done(self, recagent, data, uuid=""):
+    def on_query_done(self, recagent, data):
         print "query done, data: '%s'" % data
         self.loop.quit()
         
