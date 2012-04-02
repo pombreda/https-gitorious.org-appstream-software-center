@@ -77,13 +77,6 @@ class RecommenderAgent(GObject.GObject):
     def __init__(self, xid=None):
         GObject.GObject.__init__(self)
         self.xid = xid
-        # the recommender uuid is the unique ID that is included with the
-        # profile upload to anonymously identify the user for recommendations,
-        # and the profile id is a hash of the current profile that is used
-        # when determining whether the profile has changed since the last
-        # upload
-        (self.recommender_uuid,
-         self.recommender_profile_id) = self._get_recommender_ids()
 
     def query_server_status(self):
         # build the command
@@ -100,18 +93,51 @@ class RecommenderAgent(GObject.GObject):
         """
         return hashlib.md5(str(profile)).hexdigest()
 
+    @property
+    def recommender_uuid(self):
+        config = get_config()
+        if config.has_option("general", "recommender_uuid"):
+            recommender_uuid = config.get("general",
+                                          "recommender_uuid")
+        else:
+            recommender_uuid = ""
+        return recommender_uuid
+
+    @property
+    def recommender_profile_id(self):
+        config = get_config()
+        if config.has_option("general", "recommender_profile_id"):
+            recommender_profile_id = config.get("general",
+                                                "recommender_profile_id")
+        else:
+            recommender_profile_id = ""
+        return recommender_profile_id
+        
+    def _set_recommender_profile_id(self, profile_id):
+        config = get_config()
+        if not config.has_section("general"):
+            config.add_section("general")
+        config.set("general", "recommender_profile_id", profile_id)
+
+    def _set_recommender_uuid(self, uuid):
+        config = get_config()
+        if not config.has_section("general"):
+            config.add_section("general")
+        config.set("general", "recommender_uuid", uuid)
+
     def post_submit_profile(self, db):
         """ This will post the users profile to the recommender server
             and also generate the UUID for the user if that is not
             there yet
         """
-        # if we have not already set a recommender UUID, now is the time
-        # to do it
-        if not self.recommender_uuid:
-            self.recommender_uuid = get_uuid()
+        recommender_uuid = self.recommender_uuid
+        if not recommender_uuid:
+            # generate a new uuid, but do not save it yet, this will
+            # be done later in _on_submit_profile_data
+            recommender_uuid = get_uuid()
         installed_pkglist = [app.pkgname
                              for app in get_installed_apps_list(db)]
-        profile = self._generate_submit_profile_data(self.recommender_uuid,
+        profile = self._generate_submit_profile_data(recommender_uuid,
                                                      installed_pkglist)
 
         # compare profiles to see if there has been a change, and if there
@@ -119,12 +145,13 @@ class RecommenderAgent(GObject.GObject):
         current_recommender_profile_id = self._calc_profile_id(profile)
         if current_recommender_profile_id != self.recommender_profile_id:
             LOG.info("Submitting recommendations profile to the server")
-            self.recommender_profile_id = current_recommender_profile_id
+            self._set_recommender_profile_id(current_recommender_profile_id)
             # build the command and upload the profile
             spawner = SpawnHelper()
             spawner.parent_xid = self.xid
             spawner.needs_auth = True
-            spawner.connect("data-available", self._on_submit_profile_data)
+            spawner.connect("data-available", self._on_submit_profile_data, 
+                            recommender_uuid)
             spawner.connect(
                 "error", lambda spawner, err: self.emit("error", err))
             spawner.run_generic_piston_helper(
@@ -208,8 +235,9 @@ class RecommenderAgent(GObject.GObject):
             return False
 
     def opt_out(self):
-        self.recommender_uuid = ""
-        self.recommender_profile_id = ""
+        config = get_config()
+        config.set("general", "recommender_uuid", "")
+        config.set("general", "recommender_profile_id", "")
 
     def _on_server_status_data(self, spawner, piston_server_status):
         self.emit("server-status", piston_server_status)
@@ -217,12 +245,14 @@ class RecommenderAgent(GObject.GObject):
     def _on_profile_data(self, spawner, piston_profile):
         self.emit("profile", piston_profile)
 
-    def _on_submit_profile_data(self, spawner, piston_submit_profile):
+    def _on_submit_profile_data(self, spawner, piston_submit_profile, 
+                                recommender_uuid):
+        self._set_recommender_uuid(recommender_uuid)
         self.emit("submit-profile-finished",
                   piston_submit_profile)
 
     def _on_submit_anon_profile_data(self, spawner,
-        piston_submit_anon_profile):
+                                     piston_submit_anon_profile):
         self.emit("submit-anon_profile", piston_submit_anon_profile)
 
     def _on_recommend_me_data(self, spawner, piston_me_apps):
@@ -236,25 +266,6 @@ class RecommenderAgent(GObject.GObject):
 
     def _on_recommend_top_data(self, spawner, piston_top_apps):
         self.emit("recommend-top", piston_top_apps)
-
-    def _get_recommender_ids(self):
-        """ returns the recommender UUID value, which can be empty if it
-            has not yet been set (indicating that the user has not yet
-            opted-in to the recommender service). also returns the
-            recommender profile ID, which can also be empty.
-        """
-        config = get_config()
-        if config.has_option("general", "recommender_uuid"):
-            recommender_uuid = config.get("general",
-                                          "recommender_uuid")
-        else:
-            recommender_uuid = ""
-        if config.has_option("general", "recommender_profile_id"):
-            recommender_profile_id = config.get("general",
-                                                "recommender_profile_id")
-        else:
-            recommender_profile_id = ""
-        return (recommender_uuid, recommender_profile_id)
 
     def _generate_submit_profile_data(self, recommender_uuid, package_list):
         submit_profile_data = [{
