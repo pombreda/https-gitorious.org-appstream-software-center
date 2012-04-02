@@ -112,7 +112,7 @@ class RecommenderAgent(GObject.GObject):
         else:
             recommender_profile_id = ""
         return recommender_profile_id
-        
+
     def _set_recommender_profile_id(self, profile_id):
         config = get_config()
         if not config.has_section("general"):
@@ -150,7 +150,7 @@ class RecommenderAgent(GObject.GObject):
             spawner = SpawnHelper()
             spawner.parent_xid = self.xid
             spawner.needs_auth = True
-            spawner.connect("data-available", self._on_submit_profile_data, 
+            spawner.connect("data-available", self._on_submit_profile_data,
                             recommender_uuid)
             spawner.connect(
                 "error", lambda spawner, err: self.emit("error", err))
@@ -245,7 +245,7 @@ class RecommenderAgent(GObject.GObject):
     def _on_profile_data(self, spawner, piston_profile):
         self.emit("profile", piston_profile)
 
-    def _on_submit_profile_data(self, spawner, piston_submit_profile, 
+    def _on_submit_profile_data(self, spawner, piston_submit_profile,
                                 recommender_uuid):
         self._set_recommender_uuid(recommender_uuid)
         self.emit("submit-profile-finished",
