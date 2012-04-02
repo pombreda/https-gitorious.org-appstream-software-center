@@ -95,6 +95,11 @@ class RecommenderAgent(GObject.GObject):
         spawner.run_generic_piston_helper(
             "SoftwareCenterRecommenderAPI", "server_status")
 
+    def _calc_profile_id(self, profile):
+        """ Return a profile id (md5 hash of a profile) for the given profile
+        """
+        return hashlib.md5(str(profile)).hexdigest()
+
     def post_submit_profile(self, db):
         """ This will post the users profile to the recommender server
             and also generate the UUID for the user if that is not
@@ -111,7 +116,7 @@ class RecommenderAgent(GObject.GObject):
 
         # compare profiles to see if there has been a change, and if there
         # has, do the profile update
-        current_recommender_profile_id = hashlib.md5(str(profile)).hexdigest()
+        current_recommender_profile_id = self._calc_profile_id(profile)
         if current_recommender_profile_id != self.recommender_profile_id:
             LOG.info("Submitting recommendations profile to the server")
             self.recommender_profile_id = current_recommender_profile_id
