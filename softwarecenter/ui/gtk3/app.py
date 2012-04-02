@@ -270,10 +270,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.sso = None
         self.available_for_me_query = None
 
-        # id values for use with the recommender service
-        self.recommender_uuid = ""
-        self.recommender_profile_id = ""
-
         Gtk.Window.set_default_icon_name("softwarecenter")
 
         # inhibit the error-bell, Bug #846138...
@@ -510,31 +506,15 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.available_pane.cat_view.recommended_for_you_panel.connect(
                         "recommendations-opt-out",
                         self._on_recommendations_opt_out)
-
-        # connect signals to the recommender agent itself to monitor
-        # profile uploads
-        recommender_agent = self._get_recommender_agent()
-        recommender_agent.connect("submit-profile-finished",
-                                  self._on_profile_submitted)
-        recommender_agent.connect("error",
-                                  self._on_profile_submitted_error)
         self.menuitem_recommendations.set_sensitive(True)
 
     #~ def on_installed_pane_created(self, widget):
         #~ pass
 
     def _on_recommendations_opt_in(self, rec_panel):
-        self.recommender_uuid = rec_panel.recommender_agent.recommender_uuid
-        self.recommender_profile_id = (
-            rec_panel.recommender_agent.recommender_profile_id)
         self._update_recommendations_menuitem(opted_in=True)
 
     def _on_recommendations_opt_out(self, rec_panel):
-        # if the user opts back out of the recommender service, we
-        # reset the recommender UUID to indicate it, we also reset
-        # the recommender_profile_id
-        self.recommender_uuid = ""
-        self.recommender_profile_id = ""
         self._update_recommendations_menuitem(opted_in=False)
 
     def _update_recommendations_menuitem(self, opted_in):
@@ -549,18 +529,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         recommender_agent = self._get_recommender_agent()
         if recommender_agent.is_opted_in():
             recommender_agent.post_submit_profile(self.db)
-
-    def _on_profile_submitted(self, rec_agent, profile):
-        LOG.debug("The recommendations profile has been successfully "
-                  "submitted to the recommender agent")
-        self.recommender_uuid = rec_agent.recommender_uuid
-        self.recommender_profile_id = rec_agent.recommender_profile_id
-
-    def _on_profile_submitted_error(self, error):
-        LOG.warn("could not submit the recommender profile: %s" % error)
-        # reset the profile id so that we will always upload on the
-        # next successful attempt
-        self.recommender_profile_id = ""
 
     def _get_recommender_agent(self):
         # FIXME: make the recommender agent a singleton
@@ -1334,12 +1302,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         else:
             # initial default state is to add to launcher, per spec
             self.available_pane.add_to_launcher_enabled = True
-        if self.config.has_option("general", "recommender_uuid"):
-            self.recommender_uuid = self.config.get("general",
-                                                    "recommender_uuid")
-        if self.config.has_option("general", "recommender_profile_id"):
-            self.recommender_profile_id = self.config.get("general",
-                                                    "recommender_profile_id")
 
     def save_state(self):
         LOG.debug("save_state")
@@ -1361,12 +1323,13 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.config.set("general", "add_to_launcher", "True")
         else:
             self.config.set("general", "add_to_launcher", "False")
+        # store the recommender values
         self.config.set("general",
                         "recommender_uuid",
-                        self.recommender_uuid)
+                        self._get_recommender_agent().recommender_uuid)
         self.config.set("general",
                         "recommender_profile_id",
-                        self.recommender_profile_id)
+                        self._get_recommender_agent().recommender_profile_id)
         self.config.write()
 
     def run(self, args):

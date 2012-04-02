@@ -3,7 +3,6 @@
 from gi.repository import GObject
 import unittest
 import os
-import uuid
 
 from mock import patch
 
