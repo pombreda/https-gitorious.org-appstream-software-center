@@ -1,3 +1,10 @@
+software-center (5.1.14.1) UNRELEASED; urgency=low
+
+  * lp:~gary-lasker/software-center/recommender-profile-uploads-lp944693:
+    - upload new recommender_profile if needed (LP: #944693)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 02 Apr 2012 19:06:39 +0200
+
 software-center (5.1.14) precise; urgency=low
 
   [ Michael Vogt ]
