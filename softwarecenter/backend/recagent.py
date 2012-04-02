@@ -108,7 +108,7 @@ class RecommenderAgent(GObject.GObject):
                              for app in get_installed_apps_list(db)]
         profile = self._generate_submit_profile_data(self.recommender_uuid,
                                                      installed_pkglist)
-        
+
         # compare profiles to see if there has been a change, and if there
         # has, do the profile update
         current_recommender_profile_id = hashlib.md5(str(profile)).hexdigest()
@@ -120,7 +120,8 @@ class RecommenderAgent(GObject.GObject):
             spawner.parent_xid = self.xid
             spawner.needs_auth = True
             spawner.connect("data-available", self._on_submit_profile_data)
-            spawner.connect("error", lambda spawner, err: self.emit("error", err))
+            spawner.connect(
+                "error", lambda spawner, err: self.emit("error", err))
             spawner.run_generic_piston_helper(
                 "SoftwareCenterRecommenderAPI",
                 "submit_profile",

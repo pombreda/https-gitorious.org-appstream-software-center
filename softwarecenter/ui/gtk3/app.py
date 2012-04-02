@@ -269,7 +269,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.scagent = None
         self.sso = None
         self.available_for_me_query = None
-        
+
         # id values for use with the recommender service
         self.recommender_uuid = ""
         self.recommender_profile_id = ""
@@ -416,7 +416,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # keep the cache clean
         GObject.timeout_add_seconds(15, self._run_expunge_cache_helper)
-        
+
         # check to see if a new recommendations profile upload is
         # needed and upload if necessary
         GObject.timeout_add_seconds(45, self._upload_recommendations_profile)
@@ -510,7 +510,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.available_pane.cat_view.recommended_for_you_panel.connect(
                         "recommendations-opt-out",
                         self._on_recommendations_opt_out)
-                        
+
         # connect signals to the recommender agent itself to monitor
         # profile uploads
         recommender_agent = self._get_recommender_agent()
@@ -536,7 +536,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.recommender_uuid = ""
         self.recommender_profile_id = ""
         self._update_recommendations_menuitem(opted_in=False)
-        
+
     def _update_recommendations_menuitem(self, opted_in):
         if opted_in:
             self.menuitem_recommendations.set_label(

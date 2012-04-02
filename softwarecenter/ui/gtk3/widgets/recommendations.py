@@ -235,7 +235,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         # the user's initial opt-in
         self._disconnect_recommender_listeners()
         self._hide_recommended_for_you_panel()
-        
+
     def _disconnect_recommender_listeners(self):
         try:
             self.recommender_agent.disconnect_by_func(
