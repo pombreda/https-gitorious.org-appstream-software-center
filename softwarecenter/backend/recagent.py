@@ -46,7 +46,7 @@ class RecommenderAgent(GObject.GObject):
                    ),
         "submit-profile-finished": (GObject.SIGNAL_RUN_LAST,
                                     GObject.TYPE_NONE,
-                                    (GObject.TYPE_PYOBJECT, str, str),
+                                    (GObject.TYPE_PYOBJECT,),
                                    ),
         "submit-anon-profile-finished": (GObject.SIGNAL_RUN_LAST,
                                          GObject.TYPE_NONE,
@@ -102,7 +102,6 @@ class RecommenderAgent(GObject.GObject):
         """
         # if we have not already set a recommender UUID, now is the time
         # to do it
-        LOG.info("Submitting recommendations profile to the server")
         if not self.recommender_uuid:
             self.recommender_uuid = get_uuid()
         installed_pkglist = [app.pkgname
@@ -114,6 +113,7 @@ class RecommenderAgent(GObject.GObject):
         # has, do the profile update
         current_recommender_profile_id = hashlib.md5(str(profile)).hexdigest()
         if current_recommender_profile_id != self.recommender_profile_id:
+            LOG.info("Submitting recommendations profile to the server")
             self.recommender_profile_id = current_recommender_profile_id
             # build the command and upload the profile
             spawner = SpawnHelper()
@@ -212,9 +212,7 @@ class RecommenderAgent(GObject.GObject):
 
     def _on_submit_profile_data(self, spawner, piston_submit_profile):
         self.emit("submit-profile-finished",
-                  piston_submit_profile,
-                  self.recommender_uuid,
-                  self.recommender_profile_id)
+                  piston_submit_profile)
 
     def _on_submit_anon_profile_data(self, spawner,
         piston_submit_anon_profile):

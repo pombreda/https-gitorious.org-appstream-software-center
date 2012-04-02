@@ -417,7 +417,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # keep the cache clean
         GObject.timeout_add_seconds(15, self._run_expunge_cache_helper)
         
-        # check to see if a new recommendations profile is upload is
+        # check to see if a new recommendations profile upload is
         # needed and upload if necessary
         GObject.timeout_add_seconds(45, self._upload_recommendations_profile)
 
@@ -523,9 +523,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     #~ def on_installed_pane_created(self, widget):
         #~ pass
 
-    def _on_recommendations_opt_in(self, rec_panel, recommender_uuid):
-        print "on_recommendations_opt_in with recommender_uuid: ", recommender_uuid
-        self.recommender_uuid = recommender_uuid
+    def _on_recommendations_opt_in(self, rec_panel):
+        self.recommender_uuid = rec_panel.recommender_agent.recommender_uuid
+        self.recommender_profile_id = (
+            rec_panel.recommender_agent.recommender_profile_id)
         self._update_recommendations_menuitem(opted_in=True)
 
     def _on_recommendations_opt_out(self, rec_panel):
@@ -549,12 +550,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if recommender_agent.is_opted_in():
             recommender_agent.post_submit_profile(self.db)
 
-    def _on_profile_submitted(self, agent, profile, recommender_uuid,
-                              recommender_profile_id):
+    def _on_profile_submitted(self, rec_agent, profile):
         LOG.debug("The recommendations profile has been successfully "
                   "submitted to the recommender agent")
-        self.recommender_uuid = recommender_uuid
-        self.recommender_profile_id = recommender_profile_id
+        self.recommender_uuid = rec_agent.recommender_uuid
+        self.recommender_profile_id = rec_agent.recommender_profile_id
 
     def _on_profile_submitted_error(self, error):
         LOG.warn("could not submit the recommender profile: %s" % error)
@@ -563,6 +563,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.recommender_profile_id = ""
 
     def _get_recommender_agent(self):
+        # FIXME: make the recommender agent a singleton
         rec_panel = self.available_pane.cat_view.recommended_for_you_panel
         return rec_panel.recommender_agent
 
@@ -1337,7 +1338,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.recommender_uuid = self.config.get("general",
                                                     "recommender_uuid")
         if self.config.has_option("general", "recommender_profile_id"):
-            self.recommender_uuid = self.config.get("general",
+            self.recommender_profile_id = self.config.get("general",
                                                     "recommender_profile_id")
 
     def save_state(self):

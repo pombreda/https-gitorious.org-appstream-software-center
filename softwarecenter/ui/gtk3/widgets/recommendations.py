@@ -129,7 +129,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
     __gsignals__ = {
         "recommendations-opt-in": (GObject.SIGNAL_RUN_LAST,
                                    GObject.TYPE_NONE,
-                                   (GObject.TYPE_STRING,),
+                                   (),
                                   ),
         "recommendations-opt-out": (GObject.SIGNAL_RUN_LAST,
                                     GObject.TYPE_NONE,
@@ -216,8 +216,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
                                   self._on_profile_submitted_error)
         self.recommender_agent.post_submit_profile(self.catview.db)
 
-    def _on_profile_submitted(self, agent, profile, recommender_uuid,
-                                                    recommender_profile_id):
+    def _on_profile_submitted(self, agent, profile):
         # after the user profile data has been uploaded, make the request
         # and load the the recommended_for_you content
         LOG.debug("The updated profile was successfully submitted to the "
@@ -226,7 +225,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         # the user's initial opt-in
         self._update_recommended_for_you_content()
         self._disconnect_recommender_listeners()
-        self.emit("recommendations-opt-in", recommender_uuid)
+        self.emit("recommendations-opt-in")
 
     def _on_profile_submitted_error(self, agent, msg):
         LOG.warn("Error while submitting the recommendations profile to the "
