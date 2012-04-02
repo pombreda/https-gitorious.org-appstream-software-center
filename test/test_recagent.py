@@ -3,7 +3,6 @@
 from gi.repository import GObject
 import unittest
 import os
-import uuid
 
 from mock import patch
 
@@ -45,6 +44,7 @@ class TestRecommenderAgent(unittest.TestCase):
         recommender_agent = RecommenderAgent()
         recommender_agent.connect("submit-profile-finished", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
+        recommender_agent._calc_profile_id = lambda profile: "i-am-random"
         db = get_test_db()
         recommender_agent.post_submit_profile(db)
         self.assertFalse(self.error)
