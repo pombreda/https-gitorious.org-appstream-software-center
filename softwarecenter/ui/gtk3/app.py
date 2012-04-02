@@ -97,6 +97,7 @@ from softwarecenter.ui.gtk3.widgets.recommendations import (
 from softwarecenter.config import get_config
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.login_sso import get_sso_backend
+from softwarecenter.backend.recagent import RecommenderAgent
 
 from softwarecenter.backend.channel import AllInstalledChannel
 from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
@@ -531,9 +532,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             recommender_agent.post_submit_profile(self.db)
 
     def _get_recommender_agent(self):
-        # FIXME: make the recommender agent a singleton
-        rec_panel = self.available_pane.cat_view.recommended_for_you_panel
-        return rec_panel.recommender_agent
+        if not hasattr(self, "_recommender_agent"):
+            self._recommender_agent = RecommenderAgent()
+        return self._recommender_agent
 
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" %
