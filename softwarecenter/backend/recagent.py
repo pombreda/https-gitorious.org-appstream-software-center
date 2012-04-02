@@ -77,6 +77,7 @@ class RecommenderAgent(GObject.GObject):
     def __init__(self, xid=None):
         GObject.GObject.__init__(self)
         self.xid = xid
+        self.config = get_config()
 
     def query_server_status(self):
         # build the command
@@ -95,35 +96,31 @@ class RecommenderAgent(GObject.GObject):
 
     @property
     def recommender_uuid(self):
-        config = get_config()
-        if config.has_option("general", "recommender_uuid"):
-            recommender_uuid = config.get("general",
-                                          "recommender_uuid")
+        if self.config.has_option("general", "recommender_uuid"):
+            recommender_uuid = self.config.get("general",
+                                               "recommender_uuid")
         else:
             recommender_uuid = ""
         return recommender_uuid
 
     @property
     def recommender_profile_id(self):
-        config = get_config()
-        if config.has_option("general", "recommender_profile_id"):
-            recommender_profile_id = config.get("general",
-                                                "recommender_profile_id")
+        if self.config.has_option("general", "recommender_profile_id"):
+            recommender_profile_id = self.config.get("general",
+                                                     "recommender_profile_id")
         else:
             recommender_profile_id = ""
         return recommender_profile_id
 
     def _set_recommender_profile_id(self, profile_id):
-        config = get_config()
-        if not config.has_section("general"):
-            config.add_section("general")
-        config.set("general", "recommender_profile_id", profile_id)
+        if not self.config.has_section("general"):
+            self.config.add_section("general")
+        self.config.set("general", "recommender_profile_id", profile_id)
 
     def _set_recommender_uuid(self, uuid):
-        config = get_config()
-        if not config.has_section("general"):
-            config.add_section("general")
-        config.set("general", "recommender_uuid", uuid)
+        if not self.config.has_section("general"):
+            self.config.add_section("general")
+        self.config.set("general", "recommender_uuid", uuid)
 
     def post_submit_profile(self, db):
         """ This will post the users profile to the recommender server
@@ -235,9 +232,8 @@ class RecommenderAgent(GObject.GObject):
             return False
 
     def opt_out(self):
-        config = get_config()
-        config.set("general", "recommender_uuid", "")
-        config.set("general", "recommender_profile_id", "")
+        self.config.set("general", "recommender_uuid", "")
+        self.config.set("general", "recommender_profile_id", "")
 
     def _on_server_status_data(self, spawner, piston_server_status):
         self.emit("server-status", piston_server_status)
