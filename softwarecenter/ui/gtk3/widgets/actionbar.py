@@ -139,7 +139,7 @@ https://wiki.ubuntu.com/SoftwareCenter#Learning_how_to_launch_an_application
                 action_bar_item.connect("activate-link",
                     self._callback(link_result, link_result_args))
             self._label_hbox.pack_start(action_bar_item, True, True, 0)
-            
+
         self._label_hbox.show_all()
         self._show(animate=False)
 
