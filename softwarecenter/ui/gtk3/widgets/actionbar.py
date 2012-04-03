@@ -130,6 +130,8 @@ https://wiki.ubuntu.com/SoftwareCenter#Learning_how_to_launch_an_application
 
         for i, text_for_label in enumerate(sections):
             action_bar_item = Gtk.Label(text_for_label)
+            # every second item in the bar is a clickable link, this is a
+            # convention carried over from the past design
             if not i % 2:
                 markup = sections[i]
                 action_bar_item.set_markup(markup)
