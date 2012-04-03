@@ -50,19 +50,19 @@ https://wiki.ubuntu.com/SoftwareCenter#Learning_how_to_launch_an_application
         super(ActionBar, self).__init__(spacing=self.PADDING)
         self._btns = Gtk.HBox(spacing=self.PADDING)
         self._btns.set_border_width(self.PADDING)
-        self._label = Gtk.HBox()
-        self._label.set_border_width(self.PADDING)
+        self._label_hbox = Gtk.HBox()
+        self._label_hbox.set_border_width(self.PADDING)
         # So that all buttons children right align
         self._btn_bin = Gtk.Alignment.new(1.0, 0.0, 1.0, 1.0)
         self._btn_bin.set_padding(0, 0, 0, 10)
         self._btn_bin.add(self._btns)
         # Buttons go on the right, labels on the left (in LTR mode)
-        super(ActionBar, self).pack_start(self._label, False, False, 10)
+        super(ActionBar, self).pack_start(self._label_hbox, False, False, 10)
         super(ActionBar, self).pack_end(self._btn_bin, False, True, 0)
 
         # Don't show_all() by default.
         self.set_no_show_all(True)
-        self._label.show_all()
+        self._label_hbox.show_all()
         self._btn_bin.show_all()
         self._visible = False
 
@@ -107,7 +107,7 @@ https://wiki.ubuntu.com/SoftwareCenter#Learning_how_to_launch_an_application
                 # buttons are removed
                 self.set_size_request(-1, self.get_allocation().height)
                 self._btns.remove(child)
-                if len(children) == 1 and not len(self._label):
+                if len(children) == 1 and not len(self._label_hbox):
                     # always animate with buttons
                     self._hide(animate=True)
                 return
@@ -128,37 +128,19 @@ https://wiki.ubuntu.com/SoftwareCenter#Learning_how_to_launch_an_application
         LOG.debug("got sections '%s'" % sections)
         self._label_text = text
 
-        # Unfortunately, gtk has no native method for embedding a link
-        # in a Gtk.Label with non-link elements. To represent the label,
-        # this method makes an eventbox for each link and non-link
-        # section. If the section corresponds to a link, it hooks hover,
-        # unhover, and click behavior to the box.
-        while len(self._label) > len(sections):
-            last = self._label.get_children()[-1]
-            self._label.remove(last)
-        while len(self._label) < len(sections):
-            box = Gtk.EventBox()
-            self._label.pack_start(box, True, True, 0)
-            # Sections alternate between link and non-link types, so
-            # hook up link methods to even sections.
-            if not len(self._label) % 2:
-                box.connect("button-press-event",
-                            self._callback(link_result, link_result_args))
-                box.connect("enter-notify-event", self._hover_link)
-                box.connect("leave-notify-event", self._unhover_link)
-
-        # Finally, place the text segments in their respective event
-        # boxes. Use pango to underline link segments.
-        for i, box in enumerate(self._label):
-            label = Gtk.Label()
-            markup = sections[i]
-            if i % 2:
-                markup = "<u>%s</u>" % markup
-            label.set_markup(markup)
-            if box.get_child():
-                box.remove(box.get_child())
-            box.add(label)
-            box.show_all()
+        for i, text_for_label in enumerate(sections):
+            action_bar_item = Gtk.Label(text_for_label)
+            if not i % 2:
+                markup = sections[i]
+                action_bar_item.set_markup(markup)
+            else:
+                markup = '<a href="">%s</a>' % text_for_label
+                action_bar_item.set_markup(markup)
+                action_bar_item.connect("activate-link",
+                    self._callback(link_result, link_result_args))
+            self._label_hbox.pack_start(action_bar_item, True, True, 0)
+            
+        self._label_hbox.show_all()
         self._show(animate=False)
 
     def unset_label(self):
@@ -169,9 +151,9 @@ https://wiki.ubuntu.com/SoftwareCenter#Learning_how_to_launch_an_application
         self._label_text = ""
 
         # Destroy all event boxes holding text segments.
-        while len(self._label):
-            last = self._label.get_children()[-1]
-            self._label.remove(last)
+        while len(self._label_hbox):
+            last = self._label_hbox.get_children()[-1]
+            self._label_hbox.remove(last)
 
         window = self.get_window()
         if window:
