@@ -1310,8 +1310,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         window = self.window_main.get_window()
         if window is None:
             return
-        if not self.config.has_section("general"):
-            self.config.add_section("general")
         maximized = window.get_state() & Gdk.WindowState.MAXIMIZED
         if maximized:
             self.config.set("general", "maximized", "True")

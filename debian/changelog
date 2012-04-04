@@ -1,3 +1,11 @@
+software-center (5.1.14.2) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/config-tweak:
+    - cleanup concerning always having a 'general' section in the cfg file
+
+ -- Kiwinote <kiwinote@gmail.com>  Wed, 04 Apr 2012 13:53:24 +0200
+
 software-center (5.1.14.1) precise; urgency=low
 
   * lp:~gary-lasker/software-center/recommender-profile-uploads-lp944693:
