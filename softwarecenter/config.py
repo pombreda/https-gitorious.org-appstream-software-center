@@ -33,6 +33,9 @@ class SoftwareCenterConfig(SafeConfigParser):
         SafeConfigParser.__init__(self)
         if not os.path.exists(os.path.dirname(config)):
             os.makedirs(os.path.dirname(config))
+        # we always want this section, even on fresh installs
+        self.add_section("general")
+        # read the config
         self.configfile = config
         try:
             self.read(self.configfile)
