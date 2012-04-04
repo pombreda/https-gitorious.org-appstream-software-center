@@ -324,6 +324,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def _hide_nonapp_pkgs(self):
         self.nonapps_visible = NonAppVisibility.NEVER_VISIBLE
         self.refresh_apps()
+        return True
 
     def _save_treeview_state(self):
         # store the state

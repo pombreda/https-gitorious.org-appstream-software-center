@@ -388,10 +388,12 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def _show_nonapp_pkgs(self):
         self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
         self.refresh_apps()
+        return True
 
     def _hide_nonapp_pkgs(self):
         self.nonapps_visible = NonAppVisibility.MAYBE_VISIBLE
         self.refresh_apps()
+        return True
 
     def get_query(self):
         channel_query = None
