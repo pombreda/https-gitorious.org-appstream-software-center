@@ -114,6 +114,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
             self.more.connect('clicked',
                               self.catview.on_category_clicked,
                               cat)
+            self.header.queue_draw()
             self.show_all()
         else:
             # hide the panel if we have no recommendations to show

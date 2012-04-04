@@ -113,13 +113,9 @@ class RecommenderAgent(GObject.GObject):
         return recommender_profile_id
 
     def _set_recommender_profile_id(self, profile_id):
-        if not self.config.has_section("general"):
-            self.config.add_section("general")
         self.config.set("general", "recommender_profile_id", profile_id)
 
     def _set_recommender_uuid(self, uuid):
-        if not self.config.has_section("general"):
-            self.config.add_section("general")
         self.config.set("general", "recommender_uuid", uuid)
 
     def post_submit_profile(self, db):
