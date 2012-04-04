@@ -7,8 +7,10 @@ software-center (5.1.14.2) UNRELEASED; urgency=low
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/recommends-more-button-lp971567:
     - correctly render 'more' button in recommendations panel (LP: #971567)
+  * lp:~gary-lasker/software-center/show-technical-items-lp955030:
+    - make 'show n technical items' more noticeable (LP: #955030)
 
- -- Kiwinote <kiwinote@gmail.com>  Wed, 04 Apr 2012 14:09:52 +0200
+ -- Kiwinote <kiwinote@gmail.com>  Wed, 04 Apr 2012 18:00:23 +0200
 
 software-center (5.1.14.1) precise; urgency=low
 
