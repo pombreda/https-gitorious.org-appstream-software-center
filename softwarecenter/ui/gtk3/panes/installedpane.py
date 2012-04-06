@@ -340,8 +340,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         for ind in expanded_rows:
             path = Gtk.TreePath.new_from_string(ind)
             self.app_view.tree_view.expand_row(path, False)
-        self.app_view.tree_view_scroll.get_vadjustment().set_lower(vadj)
-        self.app_view.tree_view_scroll.get_vadjustment().set_value(vadj)
+        va = self.app_view.tree_view_scroll.get_vadjustment()
+        if va:
+            va.set_lower(vadj)
+            va.set_value(vadj)
 
     #~ @interrupt_build_and_wait
     def _build_categorised_installedview(self, keep_state=False):
