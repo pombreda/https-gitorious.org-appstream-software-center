@@ -245,6 +245,16 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         except Exception as error:
             self._on_trans_error(error)
 
+    @inline_callbacks
+    def fix_incomplete_install(self):
+        try:
+            trans = yield self.aptd_client.fix_incomplete_install(defer=True)
+            self.emit("transaction-started", "", "", trans.tid,
+                      TransactionTypes.REPAIR)
+            yield self._run_transaction(trans, None, None, None)
+        except Exception as error:
+            self._on_trans_error(error)
+
     # FIXME: upgrade add-ons here
     @inline_callbacks
     def upgrade(self, app, iconname, addons_install=[], addons_remove=[],
@@ -844,6 +854,17 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                         self.reload()
                         self.install(app, iconname, filename, [], [],
                                      metadata=meta_copy)
+                        return
+                # Finish a cancelled installation before resuming. If the 
+                # user e.g. rebooted during a debconf question apt
+                # will hang and the user is required to call
+                # dpkg --configure -a, see LP#659438
+                elif trans.error.code == enums.ERROR_INCOMPLETE_INSTALL:
+                    action = _("Repair")
+                    res = self._show_transaction_failed_dialog(trans, enum,
+                                                               action)
+                    if res == "yes":
+                        self.fix_incomplete_install()
                         return
 
             elif (not "sc_add_repo_and_install_ignore_errors" in
