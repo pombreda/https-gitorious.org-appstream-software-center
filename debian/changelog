@@ -1,3 +1,8 @@
+software-center (5.1.14.2ubuntu1) precise; urgency=low
+
+  * Added keywords to the desktop file for better search criteria (LP: #977175)
+ -- Nekhelesh Ramananthan <krnekhelesh@gmail.com>  Mon, 09 Apr 2012 14:56:14 +0200
+
 software-center (5.1.14.2) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
