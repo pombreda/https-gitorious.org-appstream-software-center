@@ -437,6 +437,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
             self.enquirer.set_query(
                                 query,
                                 limit=self.get_app_items_limit(),
+                                sortmode=self.get_sort_mode(),
                                 nonapps_visible=self.nonapps_visible,
                                 nonblocking_load=False,
                                 filter=self.state.filter)

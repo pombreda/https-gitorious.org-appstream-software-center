@@ -210,7 +210,6 @@ class AppView(Gtk.VBox):
         if model:
             model.set_from_matches(matches)
         self.set_model(model)
-        self.user_defined_sort_method = False
 
         self.tree_view_scroll.get_vadjustment().set_lower(self.vadj)
         self.tree_view_scroll.get_vadjustment().set_value(self.vadj)
