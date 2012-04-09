@@ -783,18 +783,6 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
               utf8(enums.get_error_description_from_enum(trans.error_code)),
               utf8(cleaned_error_details))
         self._logger.error("error in _on_trans_finished '%s'" % msg)
-        # show dialog to the user and exit (no need to reopen the cache)
-        if not trans.error_code:
-            # sometimes aptdaemon doesn't return a value for error_code
-            # when the network connection has become unavailable; in
-            # that case, we will assume it's a failure during a package
-            # download because that is the only case where we see this
-            # happening - this avoids display of an empty error dialog
-            # and correctly prompts the user to check their network
-            # connection (see LP: #747172)
-            # FIXME: fix aptdaemon to return a valid error_code under
-            # all conditions
-            trans.error_code = enums.ERROR_PACKAGE_DOWNLOAD_FAILED
         # show dialog to the user and exit (no need to reopen
         # the cache)
         res = self.ui.error(None,
