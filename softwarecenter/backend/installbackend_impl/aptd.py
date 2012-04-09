@@ -829,43 +829,45 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
 
         # show error
         if enum == enums.EXIT_FAILED:
-            if trans.error:
-                # Handle invalid packages separately
-                if trans.error.code == enums.ERROR_INVALID_PACKAGE_FILE:
-                    action = _("_Ignore and install")
-                    res = self._show_transaction_failed_dialog(
-                        trans, enum, action)
-                    if res == "yes":
-                        # Reinject the transaction
-                        app, iconname, filename, meta_copy = \
-                            self._get_app_and_icon_and_deb_from_trans(trans)
-                        self.install(app, iconname, filename, [], [],
-                                     metadata=meta_copy, force=True)
-                        return
-                # on unauthenticated errors, try a "repair" using the
-                # reload functionatlity
-                elif trans.error.code == enums.ERROR_PACKAGE_UNAUTHENTICATED:
-                    action = _("Repair")
-                    res = self._show_transaction_failed_dialog(
-                        trans, enum, action)
-                    if res == "yes":
-                        app, iconname, filename, meta_copy = \
-                            self._get_app_and_icon_and_deb_from_trans(trans)
-                        self.reload()
-                        self.install(app, iconname, filename, [], [],
-                                     metadata=meta_copy)
-                        return
-                # Finish a cancelled installation before resuming. If the 
-                # user e.g. rebooted during a debconf question apt
-                # will hang and the user is required to call
-                # dpkg --configure -a, see LP#659438
-                elif trans.error.code == enums.ERROR_INCOMPLETE_INSTALL:
-                    action = _("Repair")
-                    res = self._show_transaction_failed_dialog(trans, enum,
-                                                               action)
-                    if res == "yes":
-                        self.fix_incomplete_install()
-                        return
+            # Handle invalid packages separately
+            if (trans.error and
+                trans.error.code == enums.ERROR_INVALID_PACKAGE_FILE):
+                action = _("_Ignore and install")
+                res = self._show_transaction_failed_dialog(
+                    trans, enum, action)
+                if res == "yes":
+                    # Reinject the transaction
+                    app, iconname, filename, meta_copy = \
+                        self._get_app_and_icon_and_deb_from_trans(trans)
+                    self.install(app, iconname, filename, [], [],
+                                 metadata=meta_copy, force=True)
+                    return
+            # on unauthenticated errors, try a "repair" using the
+            # reload functionatlity
+            elif (trans.error and
+                  trans.error.code == enums.ERROR_PACKAGE_UNAUTHENTICATED):
+                action = _("Repair")
+                res = self._show_transaction_failed_dialog(
+                    trans, enum, action)
+                if res == "yes":
+                    app, iconname, filename, meta_copy = \
+                        self._get_app_and_icon_and_deb_from_trans(trans)
+                    self.reload()
+                    self.install(app, iconname, filename, [], [],
+                                 metadata=meta_copy)
+                    return
+            # Finish a cancelled installation before resuming. If the 
+            # user e.g. rebooted during a debconf question apt
+            # will hang and the user is required to call
+            # dpkg --configure -a, see LP#659438
+            elif (trans.error and
+                  trans.error.code == enums.ERROR_INCOMPLETE_INSTALL):
+                action = _("Repair")
+                res = self._show_transaction_failed_dialog(trans, enum,
+                                                           action)
+                if res == "yes":
+                    self.fix_incomplete_install()
+                    return
 
             elif (not "sc_add_repo_and_install_ignore_errors" in
                 trans.meta_data):
