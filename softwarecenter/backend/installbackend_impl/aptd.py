@@ -856,7 +856,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                     self.install(app, iconname, filename, [], [],
                                  metadata=meta_copy)
                     return
-            # Finish a cancelled installation before resuming. If the 
+            # Finish a cancelled installation before resuming. If the
             # user e.g. rebooted during a debconf question apt
             # will hang and the user is required to call
             # dpkg --configure -a, see LP#659438

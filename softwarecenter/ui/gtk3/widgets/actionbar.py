@@ -130,7 +130,7 @@ https://wiki.ubuntu.com/SoftwareCenter#Learning_how_to_launch_an_application
 
         for i, text_for_label in enumerate(sections):
             action_bar_item = Gtk.Label(text_for_label)
-            # every second item in the bar is a clickable link, 
+            # every second item in the bar is a clickable link,
             # this is because the text.split("_") earlier (all links
             # are put into "_foo_"
             # FIXME: actually remove the "_" and use proper <a href>"
