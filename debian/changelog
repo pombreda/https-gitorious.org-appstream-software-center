@@ -40,8 +40,12 @@ software-center (5.1.14.2) UNRELEASED; urgency=low
       (LP: #977020)
     - Allow to repair an incomplete installation (partially fixes 
       LP: #659438)
+  
+  [ Kiwinote ]
+  * lp:~kiwinote/software-center/lp951557:
+    - don't duplicate text on paste (LP: #951557)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 10 Apr 2012 12:26:30 -0400
+ -- Kiwinote <kiwinote@gmail.com>  Tue, 10 Apr 2012 16:46:31 +0100
 
 software-center (5.1.14.1) precise; urgency=low
 
