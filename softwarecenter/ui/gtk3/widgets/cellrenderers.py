@@ -49,13 +49,13 @@ class CellRendererAppView(Gtk.CellRendererText):
         type=GObject.TYPE_PYOBJECT,
         nick='document',
         blurb='a xapian document containing pkg information',
-        flags=GObject.PARAM_READWRITE|GObject.PARAM_CONSTRUCT,
+        flags=(GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT),
         default=None)
     isactive = GObject.Property(
         type=bool,
         nick='isactive',
         blurb='is cell active/selected',
-        flags=GObject.PARAM_READWRITE|GObject.PARAM_CONSTRUCT,
+        flags=(GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT),
         default=False)
 
     def __init__(self, icons, layout, show_ratings, overlay_icon_name):
