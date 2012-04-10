@@ -235,7 +235,8 @@ class AppView(Gtk.VBox):
             for the application icon as it is displayed on-screen
         """
         icon_size = 32
-        if self.tree_view.selected_row_renderer.icon:
+        if (self.tree_view.selected_row_renderer and
+            self.tree_view.selected_row_renderer.icon):
             pb = self.tree_view.selected_row_renderer.icon
             if pb.get_width() > pb.get_height():
                 icon_size = pb.get_width()
@@ -254,8 +255,11 @@ class AppView(Gtk.VBox):
         # get toplevel window position
         (px, py) = parent.get_position()
         # and return the coordinate values
-        return (px + self.tree_view.selected_row_renderer.icon_x_offset,
-                py + self.tree_view.selected_row_renderer.icon_y_offset)
+        if self.tree_view.selected_row_renderer:
+            return (px + self.tree_view.selected_row_renderer.icon_x_offset,
+                    py + self.tree_view.selected_row_renderer.icon_y_offset)
+        else:
+            return (px, py)
 
 
 # ----------------------------------------------- testcode

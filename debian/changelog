@@ -16,6 +16,9 @@ software-center (5.1.14.2) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-crash-lp970157:
     - Small fix for a crash that can happen during the installed view 
       treeview initialization (LP: #970157)
+  * lp:~gary-lasker/software-center/fix-crash-lp968988:
+    - Fix crash bug LP: #968988 by making sure that there is always
+      a tree_view.selected_row_renderer 
 
   [ Nekhelesh Ramananthan ]
   * lp:~nik90/software-center/add_keywords_new:
