@@ -500,6 +500,13 @@ class AvailablePane(SoftwarePane):
                 iconnames.append(self.db.get_iconname(doc))
         self.backend.install_multiple(apps, iconnames)
 
+    def _show_or_hide_search_combo_box(self, view_state):
+        # show/hide the sort combobox headers if the category forces a
+        # custom sort mode
+        category = view_state.category
+        allow_user_sort = category is None or not category.is_forced_sort_mode
+        self.app_view.set_allow_user_sorting(allow_user_sort)
+
     def set_state(self, nav_item):
         pass
 
@@ -603,6 +610,7 @@ class AvailablePane(SoftwarePane):
 
         header_strings = self._get_header_for_view_state(view_state)
         self.app_view.set_header_labels(*header_strings)
+        self._show_or_hide_search_combo_box(view_state)
 
         self.app_view.vadj = view_state.vadjustment
 
@@ -631,10 +639,7 @@ class AvailablePane(SoftwarePane):
 
         header_strings = self._get_header_for_view_state(view_state)
         self.app_view.set_header_labels(*header_strings)
-        # hide the sort combobox headers if the category forces a
-        # custom sort mode
-        allow_user_sort = category is None or not category.is_forced_sort_mode
-        self.app_view.set_allow_user_sorting(allow_user_sort)
+        self._show_or_hide_search_combo_box(view_state)
 
         if view_state.search_term:
             self._clear_search()
