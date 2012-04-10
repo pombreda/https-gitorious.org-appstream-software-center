@@ -1,4 +1,4 @@
-software-center (5.1.14.2) UNRELEASED; urgency=low
+software-center (5.1.14.2) precise; urgency=low
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/config-tweak:
@@ -45,7 +45,7 @@ software-center (5.1.14.2) UNRELEASED; urgency=low
   * lp:~kiwinote/software-center/lp951557:
     - don't duplicate text on paste (LP: #951557)
 
- -- Kiwinote <kiwinote@gmail.com>  Tue, 10 Apr 2012 16:46:31 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 10 Apr 2012 19:21:21 +0200
 
 software-center (5.1.14.1) precise; urgency=low
 
