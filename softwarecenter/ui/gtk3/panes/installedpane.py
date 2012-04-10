@@ -332,7 +332,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.app_view.tree_view.map_expanded_rows(
             lambda view, path, data: expanded_rows.append(path.to_string()),
             None)
-        vadj = self.app_view.tree_view_scroll.get_vadjustment().get_value()
+        va = self.app_view.tree_view_scroll.get_vadjustment()
+        if va:
+            vadj = va.get_value()
+        else:
+            vadj = 0
         return expanded_rows, vadj
 
     def _restore_treeview_state(self, state):
