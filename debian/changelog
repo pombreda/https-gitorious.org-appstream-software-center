@@ -1,8 +1,13 @@
-software-center (5.1.14.2) UNRELEASED; urgency=low
+software-center (5.1.14.2) precise; urgency=low
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/config-tweak:
     - cleanup concerning always having a 'general' section in the cfg file
+  * lp:~mvo/software-center/pygi-properties-fixes:
+    - properly initialize the properties in CellRendererAppView as required
+      for pygi, fixes crash on network events (LP: #965937)
+  * lp:~mvo/software-center/lp977889:
+    - fix the disappearing list view sort combobox (LP: #977889)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/recommends-more-button-lp971567:
@@ -19,13 +24,28 @@ software-center (5.1.14.2) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-crash-lp968988:
     - Fix crash bug LP: #968988 by making sure that there is always
       a tree_view.selected_row_renderer 
+  * lp:~gary-lasker/software-center/remember-sort-preference-lp966878:
+    - Fix for bug LP: #966878 to not reset the user's sorting preference 
+      if they have set one
 
   [ Nekhelesh Ramananthan ]
   * lp:~nik90/software-center/add_keywords_new:
     - added keywords to the desktop file for better search criteria
       (LP: #977175)
+  
+  [ Sebastian Heinlein ]
+  * lp:~glatzor/software-center/fix-977020:
+    - fix software-center error dialogs for errors other than 
+      ERROR_INVALID_PACKAGE_FILE and ERROR_UNAUTHENTICATED_PACKAGE 
+      (LP: #977020)
+    - Allow to repair an incomplete installation (partially fixes 
+      LP: #659438)
+  
+  [ Kiwinote ]
+  * lp:~kiwinote/software-center/lp951557:
+    - don't duplicate text on paste (LP: #951557)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 09 Apr 2012 13:15:19 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 10 Apr 2012 19:21:21 +0200
 
 software-center (5.1.14.1) precise; urgency=low
 

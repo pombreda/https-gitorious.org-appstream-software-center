@@ -146,38 +146,6 @@ class SoftwarecenterDbusController(dbus.service.Object):
     def triggerCacheReload(self):
         self.parent.cache.emit("cache-ready")
 
-# XXX Haven't really thought this through....
-#~ class SoftwareCenterInitOndemand(object):
-#~
-    #~ """ Init objects/data that are low priority, i.e, use case is
-        #~ niche and/or load times are low and will not impact user
-        #~ experience.  All data and objects are loaded on request.
-    #~ """
-#~
-    #~ def init(self):
-        #~ pass
-
-
-#~ class SoftwareCenterInitDelayed(object):
-#~
-    #~ """ Init objects/data that are medium priority, not needed instantly
-        #~ but rather _potentially_ required within the first few seconds
-        #~ of USC usage.
-    #~ """
-#~
-    #~ def init(self):
-        #~ # reviews
-        #~ self.review_loader = get_review_loader(self.cache, self.db)
-        #~ # FIXME: add some kind of throttle, I-M-S here
-        #~ self.review_loader.refresh_review_stats(self.on_review_stats_loaded)
-        #~ #load usefulness votes from server when app starts
-        #~ self.useful_cache = UsefulnessCache(True)
-        #~ self.setup_database_rebuilding_listener()
-        #~ # open plugin manager and load plugins
-        #~ self.plugin_manager = PluginManager(self,
-            #~ SOFTWARE_CENTER_PLUGIN_DIRS)
-        #~ self.plugin_manager.load_plugins()
-
 
 class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
@@ -590,12 +558,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.menuitem_edit.activate()
             if self.menuitem_copy.get_sensitive():
                 self.menuitem_copy.activate()
-
-        if (event.keyval == Gdk.keyval_from_name("v") and
-            event.state == Gdk.ModifierType.CONTROL_MASK):
-            self.menuitem_edit.activate()
-            if self.menuitem_paste.get_sensitive():
-                self.menuitem_paste.activate()
 
         # copy web link
         if (event.keyval == Gdk.keyval_from_name("C") and
