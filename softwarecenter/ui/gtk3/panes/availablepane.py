@@ -618,7 +618,7 @@ class AvailablePane(SoftwarePane):
             self.refresh_apps()
 
         query = self.get_query()
-        n_matches = self.quick_query(query)
+        n_matches = self.quick_query_len(query)
         self.subcategories_view.set_subcategory(category, n_matches)
 
         self.action_bar.clear()
