@@ -611,7 +611,7 @@ class AvailablePane(SoftwarePane):
         header_strings = self._get_header_for_view_state(view_state)
         self.app_view.set_header_labels(*header_strings)
         self._show_or_hide_search_combo_box(view_state)
-        
+
         self.app_view.vadj = view_state.vadjustment
 
         self.refresh_apps()
