@@ -46,6 +46,7 @@ class AppTreeView(Gtk.TreeView):
         self._action_block_list = []
         self._needs_collapse = []
         self.expanded_path = None
+        self.selected_row_renderer = None
 
         # pixbuf for the icon that is displayed in the selected row
         self.selected_row_icon = None
