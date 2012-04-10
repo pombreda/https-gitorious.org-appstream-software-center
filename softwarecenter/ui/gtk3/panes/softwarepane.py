@@ -431,13 +431,14 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.show_appview_spinner()
         self._refresh_apps_with_apt_cache(query)
 
-    def quick_query(self, query):
-        # a blocking query and does not emit "query-complete"
+    def quick_query_len(self, query):
+        """ do a blocking query that only returns the amount of
+            matches from this query
+        """
         with ExecutionTime("enquirer.set_query() quick query"):
             self.enquirer.set_query(
                                 query,
                                 limit=self.get_app_items_limit(),
-                                sortmode=self.get_sort_mode(),
                                 nonapps_visible=self.nonapps_visible,
                                 nonblocking_load=False,
                                 filter=self.state.filter)
