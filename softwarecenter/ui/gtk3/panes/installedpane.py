@@ -332,7 +332,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.app_view.tree_view.map_expanded_rows(
             lambda view, path, data: expanded_rows.append(path.to_string()),
             None)
-        vadj = self.app_view.tree_view_scroll.get_vadjustment().get_value()
+        va = self.app_view.tree_view_scroll.get_vadjustment()
+        if va:
+            vadj = va.get_value()
+        else:
+            vadj = 0
         return expanded_rows, vadj
 
     def _restore_treeview_state(self, state):
@@ -340,8 +344,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         for ind in expanded_rows:
             path = Gtk.TreePath.new_from_string(ind)
             self.app_view.tree_view.expand_row(path, False)
-        self.app_view.tree_view_scroll.get_vadjustment().set_lower(vadj)
-        self.app_view.tree_view_scroll.get_vadjustment().set_value(vadj)
+        va = self.app_view.tree_view_scroll.get_vadjustment()
+        if va:
+            va.set_lower(vadj)
+            va.set_value(vadj)
 
     #~ @interrupt_build_and_wait
     def _build_categorised_installedview(self, keep_state=False):
