@@ -9,6 +9,13 @@ software-center (5.1.14.2) UNRELEASED; urgency=low
     - correctly render 'more' button in recommendations panel (LP: #971567)
   * lp:~gary-lasker/software-center/show-technical-items-lp955030:
     - make 'show n technical items' appear clickable again (LP: #955030)
+  * lp:~gary-lasker/software-center/fix-crash-lp969737:
+    - fix an intermittent crash that can occur when saving the vertical 
+      position of the installed pane treeview on a cache refresh 
+      (LP: #969737)
+  * lp:~gary-lasker/software-center/fix-crash-lp970157:
+    - Small fix for a crash that can happen during the installed view 
+      treeview initialization (LP: #970157)
 
   [ Nekhelesh Ramananthan ]
   * lp:~nik90/software-center/add_keywords_new:

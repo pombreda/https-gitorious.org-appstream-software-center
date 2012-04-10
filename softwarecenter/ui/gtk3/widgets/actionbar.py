@@ -130,8 +130,12 @@ https://wiki.ubuntu.com/SoftwareCenter#Learning_how_to_launch_an_application
 
         for i, text_for_label in enumerate(sections):
             action_bar_item = Gtk.Label(text_for_label)
-            # every second item in the bar is a clickable link, this is a
-            # convention carried over from the past design
+            # every second item in the bar is a clickable link, 
+            # this is because the text.split("_") earlier (all links
+            # are put into "_foo_"
+            # FIXME: actually remove the "_" and use proper <a href>"
+            #        in the label, but this requires a string change
+            #        so we need to do it after 12.04
             if not i % 2:
                 markup = text_for_label
                 action_bar_item.set_markup(markup)
@@ -339,6 +343,7 @@ if __name__ == "__main__":
 
     def perform_lbl():
         print("Clicked label link")
+        return True
 
     def add_func(*args):
         global btns
@@ -352,7 +357,8 @@ if __name__ == "__main__":
             btns -= 1
 
     def set_func(*args):
-        bar.set_label("This label _has a link", perform_lbl)
+        # example with multiple links
+        bar.set_label("This label _has a link_ and _another one_", perform_lbl)
 
     def unset_func(*args):
         bar.unset_label()
