@@ -189,7 +189,7 @@ class AppView(Gtk.VBox):
             LOG.debug("display_matches called on AppTreeStore, ignoring")
             return
             
-        self.set_sort_method(is_search)
+        self.configure_sort_method(is_search)
 
         model = self.get_model()
         # disconnect the model from the view before running
@@ -205,7 +205,10 @@ class AppView(Gtk.VBox):
         self.tree_view_scroll.get_vadjustment().set_lower(self.vadj)
         self.tree_view_scroll.get_vadjustment().set_value(self.vadj)
         
-    def set_sort_method(self, is_search=False):
+    def configure_sort_method(self, is_search=False):
+        """ configures the sort method UI appropriately based on current
+            conditions, including whether a search is currently in progress
+        """
         sort_by_relevance = is_search and not self.user_defined_sort_method
         if sort_by_relevance:
             self._use_combobox_with_sort_by_search_ranking()
