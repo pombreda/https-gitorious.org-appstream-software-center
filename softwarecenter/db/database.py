@@ -152,6 +152,7 @@ class StoreDatabase(GObject.GObject):
         # so no memory leak
         self._db_per_thread = {}
         self._parser_per_thread = {}
+        self._axi_stamp_monitor = None
 
     @property
     def xapiandb(self):
@@ -219,11 +220,16 @@ class StoreDatabase(GObject.GObject):
         self._use_axi = use_axi
         self._use_agent = use_agent
         if use_axi:
+            if self._axi_stamp_monitor:
+                self._axi_stamp_monitor.disconnect_by_func(
+                    self._on_axi_stamp_changed)
             self._axi_values = parse_axi_values_file()
             self.nr_databases += 1
             # mvo: we could monitor changes in 
             #       softwarecenter.paths.APT_XAPIAN_INDEX_DB_PATH here too 
             #       as its a text file that points to the current DB
+            #       *if* we do that, we need to change the event == ATTRIBUTE
+            #       change in _on_axi_stamp_changed too
             self._axi_stamp = Gio.File.new_for_path(
                 softwarecenter.paths.APT_XAPIAN_INDEX_UPDATE_STAMP_PATH)
             self._timeout_id = None
@@ -245,7 +251,7 @@ class StoreDatabase(GObject.GObject):
         if self._timeout_id:
             GObject.source_remove(self._timeout_id)
             self._timeout_id = None
-        self._timeout_id = GObject.timeout_add_seconds(1, self.reopen)
+        self._timeout_id = GObject.timeout_add(500, self.reopen)
 
     def add_database(self, database):
         self._additional_databases.append(database)
