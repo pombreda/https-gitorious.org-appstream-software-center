@@ -52,7 +52,7 @@ Recommends: lsb-release,
             update-notifier, 
             software-properties-gtk,
             sessioninstaller, 
-            lzma
+            xz-lzma
 Conflicts: gnome-app-install (<< 1), oneconf (<< 0.2.6.1)
 Replaces: gnome-app-install
 Provides: gnome-app-install
