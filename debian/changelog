@@ -1,3 +1,10 @@
+software-center (5.1.14.3) UNRELEASED; urgency=low
+
+  * debian/control:
+    - recommend xz-lmza instead of lzma (LP: #878354)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 11 Apr 2012 10:17:32 +0200
+
 software-center (5.1.14.2) precise; urgency=low
 
   [ Michael Vogt ]
