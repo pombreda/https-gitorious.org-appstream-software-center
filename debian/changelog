@@ -11,7 +11,11 @@ software-center (5.1.14.3) UNRELEASED; urgency=low
     - do not crash if the parent goes away (and therefore the pipe)
       and the token can not be obtained (LP: #970342)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 11 Apr 2012 16:53:12 -0400
+  [ Dave Morley ]
+  * lp:~davmor2/software-center/remove_two_lines:
+    - small fixes for test script USC-start-stop-times.py
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 11 Apr 2012 17:03:44 -0400
 
 software-center (5.1.14.2) precise; urgency=low
 
