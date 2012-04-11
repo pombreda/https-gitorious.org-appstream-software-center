@@ -28,7 +28,7 @@ from softwarecenter.db.utils import get_query_for_pkgnames
 from softwarecenter.db.pkginfo import get_pkg_info
 import softwarecenter.paths
 
-from gi.repository import GObject
+from gi.repository import GObject, Gio
 
 #from softwarecenter.utils import *
 from softwarecenter.enums import (
@@ -152,6 +152,7 @@ class StoreDatabase(GObject.GObject):
         # so no memory leak
         self._db_per_thread = {}
         self._parser_per_thread = {}
+        self._axi_stamp_monitor = None
 
     @property
     def xapiandb(self):
@@ -174,7 +175,8 @@ class StoreDatabase(GObject.GObject):
         xapiandb = xapian.Database(self._db_pathname)
         if self._use_axi:
             try:
-                axi = xapian.Database("/var/lib/apt-xapian-index/index")
+                axi = xapian.Database(
+                    softwarecenter.paths.APT_XAPIAN_INDEX_DB_PATH)
                 xapiandb.add_database(axi)
             except:
                 LOG.exception("failed to add apt-xapian-index")
@@ -218,14 +220,38 @@ class StoreDatabase(GObject.GObject):
         self._use_axi = use_axi
         self._use_agent = use_agent
         if use_axi:
+            if self._axi_stamp_monitor:
+                self._axi_stamp_monitor.disconnect_by_func(
+                    self._on_axi_stamp_changed)
             self._axi_values = parse_axi_values_file()
             self.nr_databases += 1
+            # mvo: we could monitor changes in 
+            #       softwarecenter.paths.APT_XAPIAN_INDEX_DB_PATH here too 
+            #       as its a text file that points to the current DB
+            #       *if* we do that, we need to change the event == ATTRIBUTE
+            #       change in _on_axi_stamp_changed too
+            self._axi_stamp = Gio.File.new_for_path(
+                softwarecenter.paths.APT_XAPIAN_INDEX_UPDATE_STAMP_PATH)
+            self._timeout_id = None
+            self._axi_stamp_monitor = self._axi_stamp.monitor_file(0, None)
+            self._axi_stamp_monitor.connect(
+                "changed", self._on_axi_stamp_changed)
         if use_agent:
             self.nr_databases += 1
         # additional dbs
         for db in self._additional_databases:
             self.nr_databases += 1
         self.emit("open", self._db_pathname)
+
+    def _on_axi_stamp_changed(self, monitor, afile, otherfile, event):
+        # we only care about the utime() update from update-a-x-i
+        if not event == Gio.FileMonitorEvent.ATTRIBUTE_CHANGED:
+            return
+        LOG.info("afile '%s' changed" % afile)
+        if self._timeout_id:
+            GObject.source_remove(self._timeout_id)
+            self._timeout_id = None
+        self._timeout_id = GObject.timeout_add(500, self.reopen)
 
     def add_database(self, database):
         self._additional_databases.append(database)
