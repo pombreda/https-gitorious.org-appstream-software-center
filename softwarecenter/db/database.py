@@ -221,6 +221,9 @@ class StoreDatabase(GObject.GObject):
         if use_axi:
             self._axi_values = parse_axi_values_file()
             self.nr_databases += 1
+            # mvo: we could monitor changes in 
+            #       softwarecenter.paths.APT_XAPIAN_INDEX_DB_PATH here too 
+            #       as its a text file that points to the current DB
             self._axi_stamp = Gio.File.new_for_path(
                 softwarecenter.paths.APT_XAPIAN_INDEX_UPDATE_STAMP_PATH)
             self._timeout_id = None
