@@ -3,6 +3,8 @@
 import apt
 import os
 import re
+import tempfile
+import time
 import unittest
 import xapian
 
@@ -12,7 +14,7 @@ from mock import Mock, patch
 from testutils import setup_test_env
 setup_test_env()
 
-
+import softwarecenter.paths
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.enquire import AppEnquire
@@ -33,8 +35,9 @@ from softwarecenter.enums import (
     PkgStates,
     )
 from softwarecenter.testutils import (
-    get_test_db, 
+    get_test_db,
     get_test_pkg_info,
+    do_events,
     make_software_center_agent_subscription_dict,
     make_software_center_agent_app_dict,
     )
@@ -676,6 +679,32 @@ class MultipleVersionsSupportTestCase(unittest.TestCase):
         details.force_not_automatic_archive_suite("")
         self.assertEqual(app.archive_suite, "")
 
+class TrackDBTestCase(unittest.TestCase):
+    
+    def test_track_db_open(self):
+        tmpdir = tempfile.mkdtemp()
+        tmpstamp = os.path.join(tmpdir, "update-stamp")
+        open(tmpstamp, "w")
+        softwarecenter.paths.APT_XAPIAN_INDEX_UPDATE_STAMP_PATH = tmpstamp
+        softwarecenter.paths.APT_XAPIAN_INDEX_DB_PATH = \
+            softwarecenter.paths.XAPIAN_PATH
+        db = get_test_db()
+        db._axi_stamp_monitor = None
+        db._on_axi_stamp_changed = Mock()
+        self.assertFalse(db._on_axi_stamp_changed.called)
+        db.open(use_axi=True)
+        do_events()
+        self.assertFalse(db._on_axi_stamp_changed.called)
+        do_events()
+        #print "modifiyng stampfile: ", tmpstamp
+        os.utime(tmpstamp, (0, 0))
+        # wait up to 5s until the gvfs delivers the signal
+        for i in range(50):
+            do_events()
+            time.sleep(0.1)
+            if db._on_axi_stamp_changed.called:
+                break
+        self.assertTrue(db._on_axi_stamp_changed.called)
 
 if __name__ == "__main__":
     #import logging

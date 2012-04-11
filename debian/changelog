@@ -1,9 +1,21 @@
 software-center (5.1.14.3) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * debian/control:
     - recommend xz-lmza instead of lzma (LP: #878354)
+  * lp:~mvo/software-center/track-axi-changes:
+    - add a monitor for changes in the apt-xapian-index to ensure
+      the DB is reopened if the cron job changes the apt-xapian-index
+      database (LP: #507836)
+  * lp:~mvo/software-center/lp970342:
+    - do not crash if the parent goes away (and therefore the pipe)
+      and the token can not be obtained (LP: #970342)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 11 Apr 2012 10:17:32 +0200
+  [ Dave Morley ]
+  * lp:~davmor2/software-center/remove_two_lines:
+    - small fixes for test script USC-start-stop-times.py
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 11 Apr 2012 17:03:44 -0400
 
 software-center (5.1.14.2) precise; urgency=low
 

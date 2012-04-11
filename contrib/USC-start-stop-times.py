@@ -10,10 +10,8 @@ start_time = time.time()
 class TestCaseUSCStartStop(unittest.TestCase):
 
     def setUp(self):
-        ldtp.launchapp('software-center')
+        ldtp.launchapp('./software-center')
         assert ldtp.waittillguiexist('frmUbuntuSoftwareCent*')
-        print sorted(ldtp.getapplist())
-        print ldtp.getmemorystat('xchat')
         self.msgs = []
         a = "Time taken for the frame to open is " + str(
             time.time() - start_time)
