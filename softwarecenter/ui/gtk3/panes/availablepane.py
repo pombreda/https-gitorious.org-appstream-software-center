@@ -530,6 +530,10 @@ class AvailablePane(SoftwarePane):
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
         LOG.debug("on_search_terms_changed: %s" % new_text)
+        
+        # reset the flag in the app_view because each new search should
+        # reset the sort criteria
+        self.app_view.user_defined_search_sort_method = False
 
         self.state.search_term = new_text
 
