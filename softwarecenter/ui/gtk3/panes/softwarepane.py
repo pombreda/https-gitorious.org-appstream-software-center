@@ -254,15 +254,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
         LOG.debug("on_cache_ready")
-        # it only makes sense to refresh if there is something to
-        # refresh, otherwise we create a bunch of (not yet needed)
-        # AppStore objects on startup when the cache sends its
-        # initial "cache-ready" signal
-        model = self.app_view.tree_view.get_model()
-        if model is None:
-            return
-        # FIXME: preserve selection too
-        self.refresh_apps()
 
     @wait_for_apt_cache_ready
     def on_application_activated(self, appview, app):
@@ -397,10 +388,12 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def _show_nonapp_pkgs(self):
         self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
         self.refresh_apps()
+        return True
 
     def _hide_nonapp_pkgs(self):
         self.nonapps_visible = NonAppVisibility.MAYBE_VISIBLE
         self.refresh_apps()
+        return True
 
     def get_query(self):
         channel_query = None
@@ -438,8 +431,10 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.show_appview_spinner()
         self._refresh_apps_with_apt_cache(query)
 
-    def quick_query(self, query):
-        # a blocking query and does not emit "query-complete"
+    def quick_query_len(self, query):
+        """ do a blocking query that only returns the amount of
+            matches from this query
+        """
         with ExecutionTime("enquirer.set_query() quick query"):
             self.enquirer.set_query(
                                 query,

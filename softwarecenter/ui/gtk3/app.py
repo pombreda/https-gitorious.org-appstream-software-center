@@ -97,6 +97,7 @@ from softwarecenter.ui.gtk3.widgets.recommendations import (
 from softwarecenter.config import get_config
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.login_sso import get_sso_backend
+from softwarecenter.backend.recagent import RecommenderAgent
 
 from softwarecenter.backend.channel import AllInstalledChannel
 from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
@@ -144,38 +145,6 @@ class SoftwarecenterDbusController(dbus.service.Object):
     @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
     def triggerCacheReload(self):
         self.parent.cache.emit("cache-ready")
-
-# XXX Haven't really thought this through....
-#~ class SoftwareCenterInitOndemand(object):
-#~
-    #~ """ Init objects/data that are low priority, i.e, use case is
-        #~ niche and/or load times are low and will not impact user
-        #~ experience.  All data and objects are loaded on request.
-    #~ """
-#~
-    #~ def init(self):
-        #~ pass
-
-
-#~ class SoftwareCenterInitDelayed(object):
-#~
-    #~ """ Init objects/data that are medium priority, not needed instantly
-        #~ but rather _potentially_ required within the first few seconds
-        #~ of USC usage.
-    #~ """
-#~
-    #~ def init(self):
-        #~ # reviews
-        #~ self.review_loader = get_review_loader(self.cache, self.db)
-        #~ # FIXME: add some kind of throttle, I-M-S here
-        #~ self.review_loader.refresh_review_stats(self.on_review_stats_loaded)
-        #~ #load usefulness votes from server when app starts
-        #~ self.useful_cache = UsefulnessCache(True)
-        #~ self.setup_database_rebuilding_listener()
-        #~ # open plugin manager and load plugins
-        #~ self.plugin_manager = PluginManager(self,
-            #~ SOFTWARE_CENTER_PLUGIN_DIRS)
-        #~ self.plugin_manager.load_plugins()
 
 
 class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
@@ -269,7 +238,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.scagent = None
         self.sso = None
         self.available_for_me_query = None
-        self.recommender_uuid = ""
 
         Gtk.Window.set_default_icon_name("softwarecenter")
 
@@ -414,6 +382,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # keep the cache clean
         GObject.timeout_add_seconds(15, self._run_expunge_cache_helper)
 
+        # check to see if a new recommendations profile upload is
+        # needed and upload if necessary
+        GObject.timeout_add_seconds(45, self._upload_recommendations_profile)
+
         # TODO: Remove the following two lines once we have remove repository
         #       support in aptdaemon (see LP: #723911)
         self.menu_file.remove(self.menuitem_deauthorize_computer)
@@ -493,9 +465,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def on_available_pane_created(self, widget):
         self.available_pane.searchentry.grab_focus()
-        rec_panel = self.available_pane.cat_view.recommended_for_you_panel
         self._update_recommendations_menuitem(
-                        opted_in=rec_panel.recommender_agent.is_opted_in())
+                        opted_in=self._get_recommender_agent().is_opted_in())
         # connect a signal to monitor the recommendations opt-in state and
         # persist the recommendations uuid on an opt-in
         self.available_pane.cat_view.recommended_for_you_panel.connect(
@@ -509,14 +480,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     #~ def on_installed_pane_created(self, widget):
         #~ pass
 
-    def _on_recommendations_opt_in(self, rec_panel, recommender_uuid):
-        self.recommender_uuid = recommender_uuid
+    def _on_recommendations_opt_in(self, rec_panel):
         self._update_recommendations_menuitem(opted_in=True)
 
     def _on_recommendations_opt_out(self, rec_panel):
-        # if the user opts back out of the recommender service, we
-        # reset the recommender UUID to indicate it
-        self.recommender_uuid = ""
         self._update_recommendations_menuitem(opted_in=False)
 
     def _update_recommendations_menuitem(self, opted_in):
@@ -526,6 +493,16 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         else:
             self.menuitem_recommendations.set_label(
                                             _(u"Turn On Recommendations…"))
+
+    def _upload_recommendations_profile(self):
+        recommender_agent = self._get_recommender_agent()
+        if recommender_agent.is_opted_in():
+            recommender_agent.post_submit_profile(self.db)
+
+    def _get_recommender_agent(self):
+        if not hasattr(self, "_recommender_agent"):
+            self._recommender_agent = RecommenderAgent()
+        return self._recommender_agent
 
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" %
@@ -581,12 +558,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.menuitem_edit.activate()
             if self.menuitem_copy.get_sensitive():
                 self.menuitem_copy.activate()
-
-        if (event.keyval == Gdk.keyval_from_name("v") and
-            event.state == Gdk.ModifierType.CONTROL_MASK):
-            self.menuitem_edit.activate()
-            if self.menuitem_paste.get_sensitive():
-                self.menuitem_paste.activate()
 
         # copy web link
         if (event.keyval == Gdk.keyval_from_name("C") and
@@ -780,7 +751,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def on_menuitem_recommendations_activate(self, menu_item):
         rec_panel = self.available_pane.cat_view.recommended_for_you_panel
-        if rec_panel.recommender_agent.is_opted_in():
+        if self._get_recommender_agent().is_opted_in():
             rec_panel.opt_out_of_recommendations_service()
         else:
             # build and show the opt-in dialog
@@ -1294,9 +1265,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         else:
             # initial default state is to add to launcher, per spec
             self.available_pane.add_to_launcher_enabled = True
-        if self.config.has_option("general", "recommender_uuid"):
-            self.recommender_uuid = self.config.get("general",
-                                                    "recommender_uuid")
 
     def save_state(self):
         LOG.debug("save_state")
@@ -1304,8 +1272,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         window = self.window_main.get_window()
         if window is None:
             return
-        if not self.config.has_section("general"):
-            self.config.add_section("general")
         maximized = window.get_state() & Gdk.WindowState.MAXIMIZED
         if maximized:
             self.config.set("general", "maximized", "True")
@@ -1318,9 +1284,13 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.config.set("general", "add_to_launcher", "True")
         else:
             self.config.set("general", "add_to_launcher", "False")
+        # store the recommender values
         self.config.set("general",
                         "recommender_uuid",
-                        self.recommender_uuid)
+                        self._get_recommender_agent().recommender_uuid)
+        self.config.set("general",
+                        "recommender_profile_id",
+                        self._get_recommender_agent().recommender_profile_id)
         self.config.write()
 
     def run(self, args):

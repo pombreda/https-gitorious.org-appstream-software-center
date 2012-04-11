@@ -32,6 +32,7 @@ from softwarecenter.utils import (
     ExecutionTime,
     SimpleFileDownloader,
     split_icon_ext,
+    utf8,
     )
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
@@ -56,10 +57,13 @@ class CategoryRowReference:
 
     def __init__(self, untranslated_name, display_name, subcats, pkg_count):
         self.untranslated_name = untranslated_name
-        self.display_name = GObject.markup_escape_text(display_name)
+        self.display_name = GObject.markup_escape_text(utf8(display_name))
         #self.subcategories = subcats
         self.pkg_count = pkg_count
         self.vis_count = pkg_count
+
+    def __repr__(self):
+        return "[CategoryRowReference: name=%s]" % self.untranslated_name
 
 
 class UncategorisedRowRef(CategoryRowReference):
@@ -74,6 +78,9 @@ class UncategorisedRowRef(CategoryRowReference):
                                       untranslated_name,
                                       display_name,
                                       None, pkg_count)
+
+    def __repr__(self):
+        return "[UncategorizedRowReference: name=%s]" % self.untranslated_name
 
 
 class AppPropertiesHelper(GObject.GObject):
@@ -409,6 +416,7 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         """ set the content of the liststore based on a list of
             xapian.MSetItems
         """
+        LOG.debug("set_from_matches len(matches)='%s'" % len(matches))
         self.current_matches = matches
         n_matches = len(matches)
         if n_matches == 0:
@@ -432,6 +440,7 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         self.buffer_icons()
 
     def load_range(self, indices, step):
+        LOG.debug("load_range: %s %s" % (indices, step))
         db = self.db.xapiandb
         matches = self.current_matches
 
@@ -446,7 +455,8 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         for i in range(start, end):
             try:
                 row_content = self[(i,)][0]
-            except IndexError:
+            except IndexError as e:
+                LOG.warn("failed to load rows: '%s'" % e)
                 break
 
             if row_content:

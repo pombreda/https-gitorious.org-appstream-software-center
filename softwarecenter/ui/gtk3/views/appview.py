@@ -176,13 +176,16 @@ class AppView(Gtk.VBox):
     def set_model(self, model):
         self.tree_view.set_model(model)
 
+    def get_model(self):
+        return self.tree_view.appmodel
+
     def display_matches(self, matches, is_search=False):
         # FIXME: installedpane handles display of the trees intimately,
         # so for the time being lets just return None in the case of our
         # TreeView displaying an AppTreeStore ...    ;(
         # ... also we dont currently support user sorting in the
         # installedview, so issue is somewhat moot for the time being...
-        if isinstance(self.tree_view.appmodel, AppTreeStore):
+        if isinstance(self.get_model(), AppTreeStore):
             LOG.debug("display_matches called on AppTreeStore, ignoring")
             return
 
@@ -197,10 +200,16 @@ class AppView(Gtk.VBox):
                 not self.user_defined_sort_method):
                 self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
 
-        model = self.tree_view.appmodel
+        model = self.get_model()
+        # disconnect the model from the view before running
+        # set_from_matches to ensure that the _cell_data_func_cb is not
+        # run when the placeholder items are set, otherwise the purpose
+        # of the "load-on-demand" is gone and it leads to bugs like
+        # LP: #964433
+        self.set_model(None)
         if model:
             model.set_from_matches(matches)
-        self.user_defined_sort_method = False
+        self.set_model(model)
 
         self.tree_view_scroll.get_vadjustment().set_lower(self.vadj)
         self.tree_view_scroll.get_vadjustment().set_value(self.vadj)
@@ -225,7 +234,8 @@ class AppView(Gtk.VBox):
             for the application icon as it is displayed on-screen
         """
         icon_size = 32
-        if self.tree_view.selected_row_renderer.icon:
+        if (self.tree_view.selected_row_renderer and
+            self.tree_view.selected_row_renderer.icon):
             pb = self.tree_view.selected_row_renderer.icon
             if pb.get_width() > pb.get_height():
                 icon_size = pb.get_width()
@@ -244,8 +254,11 @@ class AppView(Gtk.VBox):
         # get toplevel window position
         (px, py) = parent.get_position()
         # and return the coordinate values
-        return (px + self.tree_view.selected_row_renderer.icon_x_offset,
-                py + self.tree_view.selected_row_renderer.icon_y_offset)
+        if self.tree_view.selected_row_renderer:
+            return (px + self.tree_view.selected_row_renderer.icon_x_offset,
+                    py + self.tree_view.selected_row_renderer.icon_y_offset)
+        else:
+            return (px, py)
 
 
 # ----------------------------------------------- testcode

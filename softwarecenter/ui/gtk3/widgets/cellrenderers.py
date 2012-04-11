@@ -44,17 +44,22 @@ class CellRendererAppView(Gtk.CellRendererText):
     MAX_STARS = 5
     STAR_SIZE = EM
 
-    __gproperties__ = {
-        'application': (GObject.TYPE_PYOBJECT, 'document',
-                       'a xapian document containing pkg information',
-                       GObject.PARAM_READWRITE),
-
-        'isactive': (bool, 'isactive', 'is cell active/selected', False,
-                    GObject.PARAM_READWRITE),
-                    }
+    # initialize declared properties (LP: #965937)
+    application = GObject.Property(
+        type=GObject.TYPE_PYOBJECT,
+        nick='document',
+        blurb='a xapian document containing pkg information',
+        flags=(GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT),
+        default=None)
+    isactive = GObject.Property(
+        type=bool,
+        nick='isactive',
+        blurb='is cell active/selected',
+        flags=(GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT),
+        default=False)
 
     def __init__(self, icons, layout, show_ratings, overlay_icon_name):
-        GObject.GObject.__init__(self)
+        Gtk.CellRendererText.__init__(self)
 
         # the icon pixbuf to be displayed in the row
         self.icon = None

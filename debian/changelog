@@ -1,3 +1,104 @@
+software-center (5.1.14.2) precise; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/config-tweak:
+    - cleanup concerning always having a 'general' section in the cfg file
+  * lp:~mvo/software-center/pygi-properties-fixes:
+    - properly initialize the properties in CellRendererAppView as required
+      for pygi, fixes crash on network events (LP: #965937)
+  * lp:~mvo/software-center/lp977889:
+    - fix the disappearing list view sort combobox (LP: #977889)
+
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/recommends-more-button-lp971567:
+    - correctly render 'more' button in recommendations panel (LP: #971567)
+  * lp:~gary-lasker/software-center/show-technical-items-lp955030:
+    - make 'show n technical items' appear clickable again (LP: #955030)
+  * lp:~gary-lasker/software-center/fix-crash-lp969737:
+    - fix an intermittent crash that can occur when saving the vertical 
+      position of the installed pane treeview on a cache refresh 
+      (LP: #969737)
+  * lp:~gary-lasker/software-center/fix-crash-lp970157:
+    - Small fix for a crash that can happen during the installed view 
+      treeview initialization (LP: #970157)
+  * lp:~gary-lasker/software-center/fix-crash-lp968988:
+    - Fix crash bug LP: #968988 by making sure that there is always
+      a tree_view.selected_row_renderer 
+  * lp:~gary-lasker/software-center/remember-sort-preference-lp966878:
+    - Fix for bug LP: #966878 to not reset the user's sorting preference 
+      if they have set one
+
+  [ Nekhelesh Ramananthan ]
+  * lp:~nik90/software-center/add_keywords_new:
+    - added keywords to the desktop file for better search criteria
+      (LP: #977175)
+  
+  [ Sebastian Heinlein ]
+  * lp:~glatzor/software-center/fix-977020:
+    - fix software-center error dialogs for errors other than 
+      ERROR_INVALID_PACKAGE_FILE and ERROR_UNAUTHENTICATED_PACKAGE 
+      (LP: #977020)
+    - Allow to repair an incomplete installation (partially fixes 
+      LP: #659438)
+  
+  [ Kiwinote ]
+  * lp:~kiwinote/software-center/lp951557:
+    - don't duplicate text on paste (LP: #951557)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 10 Apr 2012 19:21:21 +0200
+
+software-center (5.1.14.1) precise; urgency=low
+
+  * lp:~gary-lasker/software-center/recommender-profile-uploads-lp944693:
+    - upload new recommender_profile if needed (LP: #944693)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 02 Apr 2012 19:12:25 +0200
+
+software-center (5.1.14) precise; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/lp962580:
+    - add locking to the expunge helper process to fix bugs that are triggered
+      if multiple expunge cache processes are run (LP: #962580)
+  * lp:~mvo/software-center/cache-refresh-glitch:
+    - ensure that we get a full refresh if a pkg was not available before
+      show_app is called
+  * lp:~mvo/software-center/lp940482:
+    - fix crash if the debfile does not return proper utf8 for the
+      description (LP: #940482)
+  * lp:~mvo/software-center/lp966514:
+    - properly handle network disconnect conditions with the Ubuntu
+      SSO dialog (LP: #966514)
+  * lp:~mvo/software-center/lp966879:
+    - fix for crashes in the installed view treeview (LP: #966879,
+      LP: #950899)
+  * lp:~mvo/software-center/lp846204:
+    - fix ValueError crashes in get_iter due to invalid tree paths
+      (LP: #846204)
+  * lp:~mvo/software-center/lp964433:
+    - disconnect the model from the view before calling set_from_matches
+      (LP: #964433)
+  * lp:~mvo/software-center/treeview-keep-state-on-db-cache-change:
+   - restore the state of the installed view treeview when the
+     the db or cache changes, such as on an app install or remove
+  * lp:~mvo/software-center/946393:
+   - fix installing multiple apps when in a custom list view (LP: #946393)
+  * lp:~mvo/software-center/lp969050:
+   - disconnect the view when the model is cleared to avoid a furry of
+     cursor_changed signals as the rows get removed (LP: #969050)
+
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/installed-pane-refresh:
+    - avoid rebuilding the treeview in the installedpane if its not
+      required (LP: #828887)
+  * lp:~gary-lasker/software-center/fix-crash-lp967036:
+    - Small branch to fix a crash due to a UnicodeDecodeError when accessing 
+      the short description for H/W requirements (LP: #967036)
+  * lp:~gary-lasker/software-center/fix-crash-lp935930:
+    - fix a crash due to a UnicodeDecodeError (LP: #935930)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 30 Mar 2012 18:00:50 +0200
+
 software-center (5.1.13.2) precise; urgency=low
 
   [ kiwinote ]

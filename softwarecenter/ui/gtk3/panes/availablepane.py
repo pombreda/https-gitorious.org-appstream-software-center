@@ -487,8 +487,7 @@ class AvailablePane(SoftwarePane):
         '''
         Function that installs all applications displayed in the pane.
         '''
-        pkgnames = []
-        appnames = []
+        apps = []
         iconnames = []
         self.action_bar.remove_button(ActionButtons.INSTALL)
         for doc in self.enquirer.get_documents():
@@ -496,11 +495,17 @@ class AvailablePane(SoftwarePane):
             if (pkgname in self.cache and
                 not self.cache[pkgname].is_installed and
                 pkgname not in self.backend.pending_transactions):
-                pkgnames.append(pkgname)
-                appnames.append(self.db.get_appname(doc))
+                apps.append(self.db.get_application(doc))
                 # add iconnames
                 iconnames.append(self.db.get_iconname(doc))
-        self.backend.install_multiple(pkgnames, appnames, iconnames)
+        self.backend.install_multiple(apps, iconnames)
+
+    def _show_or_hide_search_combo_box(self, view_state):
+        # show/hide the sort combobox headers if the category forces a
+        # custom sort mode
+        category = view_state.category
+        allow_user_sort = category is None or not category.is_forced_sort_mode
+        self.app_view.set_allow_user_sorting(allow_user_sort)
 
     def set_state(self, nav_item):
         pass
@@ -605,6 +610,7 @@ class AvailablePane(SoftwarePane):
 
         header_strings = self._get_header_for_view_state(view_state)
         self.app_view.set_header_labels(*header_strings)
+        self._show_or_hide_search_combo_box(view_state)
 
         self.app_view.vadj = view_state.vadjustment
 
@@ -620,7 +626,7 @@ class AvailablePane(SoftwarePane):
             self.refresh_apps()
 
         query = self.get_query()
-        n_matches = self.quick_query(query)
+        n_matches = self.quick_query_len(query)
         self.subcategories_view.set_subcategory(category, n_matches)
 
         self.action_bar.clear()
@@ -633,10 +639,7 @@ class AvailablePane(SoftwarePane):
 
         header_strings = self._get_header_for_view_state(view_state)
         self.app_view.set_header_labels(*header_strings)
-        # hide the sort combobox headers if the category forces a
-        # custom sort mode
-        allow_user_sort = category is None or not category.is_forced_sort_mode
-        self.app_view.set_allow_user_sorting(allow_user_sort)
+        self._show_or_hide_search_combo_box(view_state)
 
         if view_state.search_term:
             self._clear_search()

@@ -32,6 +32,7 @@ if "SOFTWARE_CENTER_DEBUG_HTTP" in os.environ:
     httplib2.debuglevel = 1
 
 import piston_mini_client.auth
+import piston_mini_client.failhandlers
 from piston_mini_client.failhandlers import APIError
 
 try:
@@ -93,6 +94,11 @@ class SSOLoginHelper(object):
         self.loop.quit()
 
     def verify_token_sync(self, token):
+        """ Verify that the token is valid
+        
+            Note that this may raise httplib2 exceptions if the server
+            is not reachable
+        """
         LOG.debug("verify_token")
         auth = piston_mini_client.auth.OAuthAuthorizer(
             token["token"], token["token_secret"],
@@ -100,10 +106,10 @@ class SSOLoginHelper(object):
         api = UbuntuSsoAPI(auth=auth)
         try:
             res = api.whoami()
-        except:
-            LOG.exception("api.whoami failed")
-            return None
-        return res
+        except piston_mini_client.failhandlers.APIError as e:
+            LOG.exception("api.whoami failed with APIError: '%s'" % e)
+            return False
+        return len(res) > 0
 
     def clear_token(self):
         clear_token_from_ubuntu_sso(SOFTWARE_CENTER_NAME_KEYRING)
@@ -124,10 +130,18 @@ class SSOLoginHelper(object):
     def get_oauth_token_and_verify_sync(self):
         token = self.get_oauth_token_sync()
         # check if the token is valid and reset it if it is not
-        if token and not self.verify_token_sync(token):
-            self.clear_token()
-            # re-trigger login
-            token = self.get_oauth_token_sync()
+        if token:
+            # verify token will return false if there is a API error, 
+            # but there maybe httplib2 errors if there is no network,
+            # so ignore them
+            try:
+                if not self.verify_token_sync(token):
+                    self.clear_token()
+                    # re-trigger login once
+                    token = self.get_oauth_token_sync()
+            except Exception as e:
+                LOG.warn(
+                    "token could not be verified (network problem?): %s" % e)
         return token
 
 

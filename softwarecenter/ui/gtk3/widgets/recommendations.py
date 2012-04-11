@@ -114,6 +114,7 @@ class RecommendationsPanelCategory(RecommendationsPanel):
             self.more.connect('clicked',
                               self.catview.on_category_clicked,
                               cat)
+            self.header.queue_draw()
             self.show_all()
         else:
             # hide the panel if we have no recommendations to show
@@ -129,7 +130,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
     __gsignals__ = {
         "recommendations-opt-in": (GObject.SIGNAL_RUN_LAST,
                                    GObject.TYPE_NONE,
-                                   (GObject.TYPE_STRING,),
+                                   (),
                                   ),
         "recommendations-opt-out": (GObject.SIGNAL_RUN_LAST,
                                     GObject.TYPE_NONE,
@@ -202,13 +203,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.remove_more_button()
         self.show_all()
         self.emit("recommendations-opt-out")
-        try:
-            self.recommender_agent.disconnect_by_func(
-                self._on_profile_submitted)
-            self.recommender_agent.disconnect_by_func(
-                self._on_profile_submitted_error)
-        except TypeError:
-            pass
+        self._disconnect_recommender_listeners()
 
     def _upload_user_profile_and_get_recommendations(self):
         # initiate upload of the user profile here
@@ -222,19 +217,34 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
                                   self._on_profile_submitted_error)
         self.recommender_agent.post_submit_profile(self.catview.db)
 
-    def _on_profile_submitted(self, agent, profile, recommender_uuid):
+    def _on_profile_submitted(self, agent, profile):
         # after the user profile data has been uploaded, make the request
         # and load the the recommended_for_you content
-        LOG.debug("The recommendations profile has been successfully "
-                  "submitted to the recommender agent")
-        self.emit("recommendations-opt-in", recommender_uuid)
+        LOG.debug("The updated profile was successfully submitted to the "
+                  "recommender service")
+        # only detect the very first profile upload as that indicates
+        # the user's initial opt-in
         self._update_recommended_for_you_content()
+        self._disconnect_recommender_listeners()
+        self.emit("recommendations-opt-in")
 
     def _on_profile_submitted_error(self, agent, msg):
         LOG.warn("Error while submitting the recommendations profile to the "
                  "recommender agent: %s" % msg)
         # TODO: handle this! display an error message in the panel
+        # detect the very first profile upload as that indicates
+        # the user's initial opt-in
+        self._disconnect_recommender_listeners()
         self._hide_recommended_for_you_panel()
+
+    def _disconnect_recommender_listeners(self):
+        try:
+            self.recommender_agent.disconnect_by_func(
+                self._on_profile_submitted)
+            self.recommender_agent.disconnect_by_func(
+                self._on_profile_submitted_error)
+        except TypeError:
+            pass
 
 
 class RecommendationsPanelDetails(RecommendationsPanel):
