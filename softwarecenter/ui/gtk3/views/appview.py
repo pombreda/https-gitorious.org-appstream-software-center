@@ -188,17 +188,8 @@ class AppView(Gtk.VBox):
         if isinstance(self.get_model(), AppTreeStore):
             LOG.debug("display_matches called on AppTreeStore, ignoring")
             return
-
-        sort_by_relevance = is_search and not self.user_defined_sort_method
-        if sort_by_relevance:
-            self._use_combobox_with_sort_by_search_ranking()
-            self.set_sort_method_with_no_signal(self._SORT_BY_SEARCH_RANKING)
-        else:
-            if not is_search:
-                self._use_combobox_without_sort_by_search_ranking()
-            if (self.get_sort_mode() == SortMethods.BY_SEARCH_RANKING and \
-                not self.user_defined_sort_method):
-                self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
+            
+        self.set_sort_method(is_search)
 
         model = self.get_model()
         # disconnect the model from the view before running
@@ -213,6 +204,18 @@ class AppView(Gtk.VBox):
 
         self.tree_view_scroll.get_vadjustment().set_lower(self.vadj)
         self.tree_view_scroll.get_vadjustment().set_value(self.vadj)
+        
+    def set_sort_method(self, is_search=False):
+        sort_by_relevance = is_search and not self.user_defined_sort_method
+        if sort_by_relevance:
+            self._use_combobox_with_sort_by_search_ranking()
+            self.set_sort_method_with_no_signal(self._SORT_BY_SEARCH_RANKING)
+        else:
+            if not is_search:
+                self._use_combobox_without_sort_by_search_ranking()
+            if (self.get_sort_mode() == SortMethods.BY_SEARCH_RANKING and \
+                not self.user_defined_sort_method):
+                self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
 
     def clear_model(self):
         return self.tree_view.clear_model()

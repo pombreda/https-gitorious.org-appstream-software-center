@@ -447,6 +447,9 @@ class SoftwarePane(Gtk.VBox, BasePane):
     @wait_for_apt_cache_ready
     def _refresh_apps_with_apt_cache(self, query):
         LOG.debug("softwarepane query: %s" % query)
+
+        self.app_view.set_sort_method(self._is_in_search_mode())
+
         # a nonblocking query calls on_query_complete once finished
         with ExecutionTime("enquirer.set_query()"):
             self.enquirer.set_query(
