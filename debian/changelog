@@ -7,8 +7,11 @@ software-center (5.1.14.3) UNRELEASED; urgency=low
     - add a monitor for changes in the apt-xapian-index to ensure
       the DB is reopened if the cron job changes the apt-xapian-index
       database (LP: #507836)
+  * lp:~mvo/software-center/lp970342:
+    - do not crash if the parent goes away (and therefore the pipe)
+      and the token can not be obtained (LP: #970342)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 11 Apr 2012 16:47:32 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 11 Apr 2012 16:53:12 -0400
 
 software-center (5.1.14.2) precise; urgency=low
 

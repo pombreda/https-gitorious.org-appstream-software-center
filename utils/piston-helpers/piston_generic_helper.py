@@ -192,7 +192,12 @@ if __name__ == "__main__":
         token = helper.get_oauth_token_and_verify_sync()
         # if we don't have a token, error here
         if not token:
-            sys.stderr.write("ERROR: can not obtain a oauth token\n")
+            # it may happen that the parent is closed already so the pipe
+            # is gone, that is ok as we exit anyway
+            try:
+                sys.stderr.write("ERROR: can not obtain a oauth token\n")
+            except IOError:
+                pass
             sys.exit(1)
 
         auth = piston_mini_client.auth.OAuthAuthorizer(
