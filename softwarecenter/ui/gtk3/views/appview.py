@@ -133,7 +133,6 @@ class AppView(Gtk.VBox):
 
     def on_sort_method_changed(self, *args):
         self.user_defined_sort_method = True
-        
         self.vadj = 0.0
         self.emit("sort-method-changed", self.sort_methods_combobox)
 
@@ -191,7 +190,7 @@ class AppView(Gtk.VBox):
         if isinstance(self.get_model(), AppTreeStore):
             LOG.debug("display_matches called on AppTreeStore, ignoring")
             return
-            
+
         model = self.get_model()
         # disconnect the model from the view before running
         # set_from_matches to ensure that the _cell_data_func_cb is not
@@ -205,7 +204,7 @@ class AppView(Gtk.VBox):
 
         self.tree_view_scroll.get_vadjustment().set_lower(self.vadj)
         self.tree_view_scroll.get_vadjustment().set_value(self.vadj)
-        
+
     def configure_sort_method(self, is_search=False):
         """ configures the sort method UI appropriately based on current
             conditions, including whether a search is currently in progress
