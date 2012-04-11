@@ -207,7 +207,7 @@ class AppView(Gtk.VBox):
 
     def configure_sort_method(self, is_search=False):
         """ configures the sort method UI appropriately based on current
-            conditions, including whether a search is currently in progress
+            conditions, including whether a search is in progress
         """
         if is_search and not self.user_defined_search_sort_method:
             # the first results for any new search should always be returned
