@@ -533,7 +533,7 @@ class AvailablePane(SoftwarePane):
 
         # reset the flag in the app_view because each new search should
         # reset the sort criteria
-        self.app_view.force_default_search_sort_method = True
+        self.app_view.reset_default_sort_mode()
 
         self.state.search_term = new_text
 
@@ -699,7 +699,7 @@ class AvailablePane(SoftwarePane):
 
         # reset the flag in the app_view because each new category should
         # reset the sort criteria
-        self.app_view.force_default_search_sort_method = True
+        self.app_view.reset_default_sort_mode()
 
         if category.subcategories:
             page = AvailablePane.Pages.SUBCATEGORY

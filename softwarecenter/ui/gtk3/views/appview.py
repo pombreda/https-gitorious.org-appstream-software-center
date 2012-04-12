@@ -95,7 +95,7 @@ class AppView(Gtk.VBox):
         self.vadj = 0.0
 
         # list view sorting stuff
-        self.force_default_search_sort_method = True
+        self._force_default_sort_method = True
         self._handler = self.sort_methods_combobox.connect(
                                     "changed",
                                     self.on_sort_method_changed)
@@ -203,9 +203,18 @@ class AppView(Gtk.VBox):
         self.tree_view_scroll.get_vadjustment().set_lower(self.vadj)
         self.tree_view_scroll.get_vadjustment().set_value(self.vadj)
 
+    def reset_default_sort_mode(self):
+        """ force the appview to reset to the default sort method without
+            doing a refresh or sending any signals
+        """
+        self._force_default_sort_method = True
+
     def configure_sort_method(self, is_search=False):
         """ configures the sort method UI appropriately based on current
-            conditions, including whether a search is in progress
+            conditions, including whether a search is in progress.
+
+            Note that this will not change the users current sort method,
+            if that is the intention, call reset_default_sort_mode()
         """
         # figure out what combobox we need
         if is_search:
@@ -214,10 +223,10 @@ class AppView(Gtk.VBox):
             self._use_combobox_without_sort_by_search_ranking()
 
         # and what sorting
-        if self.force_default_search_sort_method:
-            # always reset this, its the job of the user of this class to
-            # set it
-            self.force_default_search_sort_method = False
+        if self._force_default_sort_method:
+            # always reset this, its the job of the user of the appview 
+            # to call reset_default_sort_mode() to reset this
+            self._force_default_sort_method = False
             # and now set the default sort depending on if its a view or not
             if is_search:
                 self.set_sort_method_with_no_signal(
