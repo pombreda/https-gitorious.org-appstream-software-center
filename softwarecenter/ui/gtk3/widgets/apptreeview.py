@@ -374,7 +374,7 @@ class AppTreeView(Gtk.TreeView):
         if app:
             self.app_view.emit("application-activated", app)
 
-    def _on_button_event_get_path(self, view, event):
+    def _on_button_event_get_path(self, view, event, allow_categories=False):
         if event.button != 1:
             return False
 
@@ -384,10 +384,17 @@ class AppTreeView(Gtk.TreeView):
 
         # check the path is valid and is not a category row
         path = res[0]
-        is_cat = self.rowref_is_category(self.get_rowref(view.get_model(),
-            path))
-        if path is None or is_cat:
+        is_cat = self.rowref_is_category(
+            self.get_rowref(view.get_model(), path))
+
+        if path is None:
             return False
+
+        if is_cat:
+            if allow_categories:
+                return path
+            else:
+                return False
 
         # only act when the selection is already there
         selection = view.get_selection()
@@ -397,16 +404,12 @@ class AppTreeView(Gtk.TreeView):
         return path
 
     def _on_button_press_event(self, view, event, tr):
-        path = self._on_button_event_get_path(view, event)
+        path = self._on_button_event_get_path(view, event, 
+                                              allow_categories=False)
         if not path:
-            # ^path has too much filtered out, so check it properly here
-            res = view.get_path_at_pos(int(event.x), int(event.y))
-            if not res or event.button != 1:
-                return
-            path = res[0]
-            is_cat = self.rowref_is_category(self.get_rowref(view.get_model(),
-                     path))
-            if is_cat:
+            path = self._on_button_event_get_path(view, event, 
+                                                  allow_categories=True)
+            if path:
                 if view.row_expanded(path):
                     view.collapse_row(path)
                 else:
