@@ -397,7 +397,22 @@ class AppTreeView(Gtk.TreeView):
         return path
 
     def _on_button_press_event(self, view, event, tr):
-        if not self._on_button_event_get_path(view, event):
+        path = self._on_button_event_get_path(view, event)
+        if not path:
+            # ^path has too much filtered out, so check it properly here
+            res = view.get_path_at_pos(int(event.x), int(event.y))
+            if not res or event.button != 1:
+                return
+            path = res[0]
+            is_cat = self.rowref_is_category(self.get_rowref(view.get_model(),
+                     path))
+            if is_cat:
+                if view.row_expanded(path):
+                    view.collapse_row(path)
+                else:
+                    view.expand_row(path, True)
+                return True  # swallow event to avoid double action when
+                             # clicking on the expander arrow itself
             return
 
         self.pressed = True
