@@ -374,7 +374,7 @@ class AppTreeView(Gtk.TreeView):
         if app:
             self.app_view.emit("application-activated", app)
 
-    def _on_button_event_get_path(self, view, event):
+    def _on_button_event_get_path(self, view, event, allow_categories=False):
         if event.button != 1:
             return False
 
@@ -384,10 +384,17 @@ class AppTreeView(Gtk.TreeView):
 
         # check the path is valid and is not a category row
         path = res[0]
-        is_cat = self.rowref_is_category(self.get_rowref(view.get_model(),
-            path))
-        if path is None or is_cat:
+        is_cat = self.rowref_is_category(
+            self.get_rowref(view.get_model(), path))
+
+        if path is None:
             return False
+
+        if is_cat:
+            if allow_categories:
+                return path
+            else:
+                return False
 
         # only act when the selection is already there
         selection = view.get_selection()
@@ -397,7 +404,18 @@ class AppTreeView(Gtk.TreeView):
         return path
 
     def _on_button_press_event(self, view, event, tr):
-        if not self._on_button_event_get_path(view, event):
+        path = self._on_button_event_get_path(view, event,
+                                              allow_categories=False)
+        if not path:
+            path = self._on_button_event_get_path(view, event,
+                                                  allow_categories=True)
+            if path:
+                if view.row_expanded(path):
+                    view.collapse_row(path)
+                else:
+                    view.expand_row(path, True)
+                return True  # swallow event to avoid double action when
+                             # clicking on the expander arrow itself
             return
 
         self.pressed = True
