@@ -57,6 +57,7 @@ class HardwareRequirementsLabel(Gtk.HBox):
 
     def _build_ui(self):
         self._label = Gtk.Label()
+        self._label.set_selectable(True)
         self._label.show()
         self.pack_start(self._label, True, True, 0)
 
