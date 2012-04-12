@@ -225,8 +225,8 @@ class StoreDatabase(GObject.GObject):
                     self._on_axi_stamp_changed)
             self._axi_values = parse_axi_values_file()
             self.nr_databases += 1
-            # mvo: we could monitor changes in 
-            #       softwarecenter.paths.APT_XAPIAN_INDEX_DB_PATH here too 
+            # mvo: we could monitor changes in
+            #       softwarecenter.paths.APT_XAPIAN_INDEX_DB_PATH here too
             #       as its a text file that points to the current DB
             #       *if* we do that, we need to change the event == ATTRIBUTE
             #       change in _on_axi_stamp_changed too
