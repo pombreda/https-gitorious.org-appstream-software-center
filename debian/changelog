@@ -11,6 +11,10 @@ software-center (5.1.14.3) UNRELEASED; urgency=low
     - do not crash if the parent goes away (and therefore the pipe)
       and the token can not be obtained (LP: #970342)
 
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/sorting-fix-lp969215:
+    - fix sort combo box inconsistencies (LP: #969215)
+
   [ Dave Morley ]
   * lp:~davmor2/software-center/remove_two_lines:
     - small fixes for test script USC-start-stop-times.py

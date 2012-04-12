@@ -71,6 +71,7 @@ class TestAppView(unittest.TestCase):
         # test normal window (no search)
         matches = get_test_enquirer_matches(appview.helper.db)
         appview.display_matches(matches, is_search=False)
+        appview.configure_sort_method(is_search=False)
         do_events()
         in_model = []
         for item in model:
@@ -79,7 +80,9 @@ class TestAppView(unittest.TestCase):
 
         # now repeat and simulate a search
         matches = get_test_enquirer_matches(appview.helper.db)
+        appview.user_defined_search_sort_method = False
         appview.display_matches(matches, is_search=True)
+        appview.configure_sort_method(is_search=True)
         do_events()
         in_model = []
         for item in model:
@@ -88,7 +91,9 @@ class TestAppView(unittest.TestCase):
 
         # and back again to no search
         matches = get_test_enquirer_matches(appview.helper.db)
+        appview.user_defined_search_sort_method = False
         appview.display_matches(matches, is_search=False)
+        appview.configure_sort_method(is_search=False)
         do_events()
         # collect items in the model
         in_model = []
