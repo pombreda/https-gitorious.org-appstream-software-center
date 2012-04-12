@@ -43,7 +43,7 @@ except ImportError:
 from softwarecenter.db.categories import get_query_for_category
 from softwarecenter.db.database import Application, StoreDatabase
 import softwarecenter.distro
-from softwarecenter.i18n import get_language
+from softwarecenter.i18n import get_languages
 from softwarecenter.utils import (upstream_version_compare,
                                   uri_to_filename,
                                   get_person_from_config,
@@ -254,7 +254,7 @@ class ReviewLoader(GObject.GObject):
             bdb.DB_VERSION_MAJOR,
             bdb.DB_VERSION_MINOR)
 
-        self.language = get_language()
+        self.language = get_languages()[0]
         if os.path.exists(self.REVIEW_STATS_CACHE_FILE):
             try:
                 self.REVIEW_STATS_CACHE = pickle.load(
