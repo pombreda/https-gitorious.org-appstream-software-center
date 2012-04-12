@@ -513,7 +513,15 @@ class AppTreeView(Gtk.TreeView):
             model.row_changed(path, it)
             return
 
+        # update active property
         cell.set_property('isactive', path == self.expanded_path)
+        # update "text" property for a11y
+        raw = model[path][AppGenericStore.COL_ROW_DATA]
+        if self.rowref_is_category(raw):
+	    text = raw.display_name
+        else:
+            text = self.db.get_pkgname(raw)
+        cell.set_property('text', text)
 
     def _app_activated_cb(self, btn, btn_id, app, store, path):
         if self.rowref_is_category(app):
