@@ -94,7 +94,9 @@ class AppView(Gtk.VBox):
         self.appcount = None
         self.vadj = 0.0
 
+        # list view sorting stuff
         self.user_defined_sort_method = False
+        self.user_defined_search_sort_method = False
         self._handler = self.sort_methods_combobox.connect(
                                     "changed",
                                     self.on_sort_method_changed)
@@ -189,17 +191,6 @@ class AppView(Gtk.VBox):
             LOG.debug("display_matches called on AppTreeStore, ignoring")
             return
 
-        sort_by_relevance = is_search and not self.user_defined_sort_method
-        if sort_by_relevance:
-            self._use_combobox_with_sort_by_search_ranking()
-            self.set_sort_method_with_no_signal(self._SORT_BY_SEARCH_RANKING)
-        else:
-            if not is_search:
-                self._use_combobox_without_sort_by_search_ranking()
-            if (self.get_sort_mode() == SortMethods.BY_SEARCH_RANKING and \
-                not self.user_defined_sort_method):
-                self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
-
         model = self.get_model()
         # disconnect the model from the view before running
         # set_from_matches to ensure that the _cell_data_func_cb is not
@@ -213,6 +204,24 @@ class AppView(Gtk.VBox):
 
         self.tree_view_scroll.get_vadjustment().set_lower(self.vadj)
         self.tree_view_scroll.get_vadjustment().set_value(self.vadj)
+
+    def configure_sort_method(self, is_search=False):
+        """ configures the sort method UI appropriately based on current
+            conditions, including whether a search is in progress
+        """
+        if is_search and not self.user_defined_search_sort_method:
+            # the first results for any new search should always be returned
+            # sorted by relevance
+            self._use_combobox_with_sort_by_search_ranking()
+            self.set_sort_method_with_no_signal(
+                                        self._SORT_BY_SEARCH_RANKING)
+            self.user_defined_search_sort_method = True
+        else:
+            if not is_search:
+                self._use_combobox_without_sort_by_search_ranking()
+            if ((self.get_sort_mode() == SortMethods.BY_SEARCH_RANKING) and
+                not self.user_defined_sort_method):
+                self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
 
     def clear_model(self):
         return self.tree_view.clear_model()

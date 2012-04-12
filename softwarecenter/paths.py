@@ -67,7 +67,9 @@ XAPIAN_PATH = os.path.join(XAPIAN_BASE_PATH, "xapian")
 # AXI
 APT_XAPIAN_INDEX_BASE_PATH = "/var/lib/apt-xapian-index"
 APT_XAPIAN_INDEX_DB_PATH = APT_XAPIAN_INDEX_BASE_PATH + "/index"
-APT_XAPIAN_INDEX_UPDATE_STAMP_PATH = APT_XAPIAN_INDEX_BASE_PATH + "/update-timestamp"
+APT_XAPIAN_INDEX_UPDATE_STAMP_PATH = (APT_XAPIAN_INDEX_BASE_PATH +
+                                      "/update-timestamp")
+
 
 # ratings&review
 # relative to datadir
