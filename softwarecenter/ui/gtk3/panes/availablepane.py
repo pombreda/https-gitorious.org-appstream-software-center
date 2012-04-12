@@ -533,7 +533,7 @@ class AvailablePane(SoftwarePane):
 
         # reset the flag in the app_view because each new search should
         # reset the sort criteria
-        self.app_view.user_defined_search_sort_method = False
+        self.app_view.force_default_search_sort_method = True
 
         self.state.search_term = new_text
 
@@ -696,6 +696,10 @@ class AvailablePane(SoftwarePane):
         """ callback when a category is selected """
         LOG.debug("on_category_activated: %s %s" % (
                 category.name, category))
+
+        # reset the flag in the app_view because each new category should
+        # reset the sort criteria
+        self.app_view.force_default_search_sort_method = True
 
         if category.subcategories:
             page = AvailablePane.Pages.SUBCATEGORY

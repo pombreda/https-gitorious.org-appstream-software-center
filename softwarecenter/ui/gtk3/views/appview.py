@@ -95,8 +95,7 @@ class AppView(Gtk.VBox):
         self.vadj = 0.0
 
         # list view sorting stuff
-        self.user_defined_sort_method = False
-        self.user_defined_search_sort_method = False
+        self.force_default_search_sort_method = True
         self._handler = self.sort_methods_combobox.connect(
                                     "changed",
                                     self.on_sort_method_changed)
@@ -132,7 +131,6 @@ class AppView(Gtk.VBox):
         pass
 
     def on_sort_method_changed(self, *args):
-        self.user_defined_sort_method = True
         self.vadj = 0.0
         self.emit("sort-method-changed", self.sort_methods_combobox)
 
@@ -209,19 +207,24 @@ class AppView(Gtk.VBox):
         """ configures the sort method UI appropriately based on current
             conditions, including whether a search is in progress
         """
-        if is_search and not self.user_defined_search_sort_method:
-            # the first results for any new search should always be returned
-            # sorted by relevance
+        # figure out what combobox we need
+        if is_search:
             self._use_combobox_with_sort_by_search_ranking()
-            self.set_sort_method_with_no_signal(
-                                        self._SORT_BY_SEARCH_RANKING)
-            self.user_defined_search_sort_method = True
         else:
-            if not is_search:
-                self._use_combobox_without_sort_by_search_ranking()
-            if ((self.get_sort_mode() == SortMethods.BY_SEARCH_RANKING) and
-                not self.user_defined_sort_method):
-                self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
+            self._use_combobox_without_sort_by_search_ranking()
+
+        # and what sorting
+        if self.force_default_search_sort_method:
+            # always reset this, its the job of the user of this class to
+            # set it
+            self.force_default_search_sort_method = False
+            # and now set the default sort depending on if its a view or not
+            if is_search:
+                self.set_sort_method_with_no_signal(
+                    self._SORT_BY_SEARCH_RANKING)
+            else:
+                self.set_sort_method_with_no_signal(
+                    self._SORT_BY_TOP_RATED)
 
     def clear_model(self):
         return self.tree_view.clear_model()
