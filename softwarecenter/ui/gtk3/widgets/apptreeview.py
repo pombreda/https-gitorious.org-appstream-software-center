@@ -518,7 +518,7 @@ class AppTreeView(Gtk.TreeView):
         # update "text" property for a11y
         raw = model[path][AppGenericStore.COL_ROW_DATA]
         if self.rowref_is_category(raw):
-	    text = raw.display_name
+            text = raw.display_name
         else:
             text = self.db.get_pkgname(raw)
         cell.set_property('text', text)
