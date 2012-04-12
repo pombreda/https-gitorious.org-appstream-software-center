@@ -20,7 +20,6 @@ from gi.repository import Gtk
 from gettext import gettext as _
 
 from softwarecenter.hw import get_hw_short_description
-from softwarecenter.utils import utf8
 
 
 class HardwareRequirementsLabel(Gtk.HBox):
@@ -66,12 +65,16 @@ class HardwareRequirementsLabel(Gtk.HBox):
         sym = self.SUPPORTED_SYM[self.result]
         # we add a trailing
         if self.last_item:
-            s = self.LABEL_LAST_ITEM
+            label_text = self.LABEL_LAST_ITEM
         else:
-            s = self.LABEL
-        return _(s) % {
+            label_text = self.LABEL
+        short_descr = get_hw_short_description(self.tag)
+        return _(label_text) % {
             "sym": sym,
-            "hardware": _(utf8(get_hw_short_description(self.tag)))
+            # we need unicode() here instead of utf8 or str because
+            # the %s in "label_text" will cause str() to be called on the
+            # encoded string, but it will not know what encoding to use
+            "hardware": unicode(short_descr, "utf8", "ignore")
             }
 
     def set_hardware_requirement(self, tag, result):

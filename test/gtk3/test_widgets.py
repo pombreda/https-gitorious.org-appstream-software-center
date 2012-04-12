@@ -9,11 +9,10 @@ from mock import Mock, patch
 
 from testutils import setup_test_env, do_events
 setup_test_env()
+from softwarecenter.utils import utf8
 from softwarecenter.ui.gtk3.widgets.reviews import get_test_reviews_window
-
 from softwarecenter.ui.gtk3.widgets.labels import (
     HardwareRequirementsLabel, HardwareRequirementsBox)
-
 
 # window destory timeout
 TIMEOUT=100
@@ -144,6 +143,18 @@ class TestHWRequirements(unittest.TestCase):
         # test setting it again
         label.set_hardware_requirement('hardware::video:opengl', 'yes')
         self.assertEqual(len(label.get_children()), 1)
+
+    # regression test for bug #967036
+    @patch("softwarecenter.ui.gtk3.widgets.labels.get_hw_short_description")
+    def test_hardware_requirements_label_utf8(self, mock_get_hw):
+        magic_marker = u" \u1234 GPS"
+        mock_get_hw.return_value = utf8(magic_marker)
+        label = HardwareRequirementsLabel()
+        label.set_hardware_requirement('hardware::gps', 'yes')
+        self.assertEqual(
+            label.get_label(),
+            u"%s%s" % (HardwareRequirementsLabel.SUPPORTED_SYM["yes"],
+                       magic_marker))
 
     def test_hardware_requirements_box(self):
         box = HardwareRequirementsBox()
