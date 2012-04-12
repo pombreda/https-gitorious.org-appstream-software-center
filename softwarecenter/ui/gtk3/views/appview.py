@@ -224,7 +224,7 @@ class AppView(Gtk.VBox):
 
         # and what sorting
         if self._force_default_sort_method:
-            # always reset this, its the job of the user of the appview 
+            # always reset this, its the job of the user of the appview
             # to call reset_default_sort_mode() to reset this
             self._force_default_sort_method = False
             # and now set the default sort depending on if its a view or not
