@@ -131,6 +131,10 @@ class SoftwarecenterDbusController(dbus.service.Object):
         dbus.service.Object.__init__(self, bus_name, object_path)
         self.parent = parent
 
+    def stop(self):
+        """ stop the dbus controller and remove from the bus """
+        self.remove_from_connection()
+
     @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
     def bringToFront(self, args):
         if args != 'nothing-to-show':
@@ -513,14 +517,32 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_review_stats_loaded(self, reviews):
         LOG.debug("on_review_stats_loaded: '%s'" % len(reviews))
 
-    def on_window_main_delete_event(self, widget, event):
+    def close_app(self):
+        """ perform tasks like save-state etc when the application is
+            exited
+        """
+        # this may happen during the early initialization
+        # when "app.run()" was called but has not finished seting up the
+        # stuff yet, in this case its ok to just exit
+        if Gtk.main_level() == 0:
+            LOG.info("closing before the regular main loop was run")
+            sys.exit(0)
+        # this is the case when it regularly runs
         if hasattr(self, "glaunchpad"):
             self.glaunchpad.shutdown()
         self.save_state()
+        # this will not throw exceptions in pygi but "only" log via g_critical
+        # to the terminal but it might in the future so we add a handler here
         try:
             Gtk.main_quit()
-        except Exception as e:
-            LOG.warning(e)
+        except:
+            LOG.exception("Gtk.main_quit failed")
+        # ensure that the dbus controller is really gone, just for good
+        # measure
+        self.dbusControler.stop()
+        # exit here explictely to ensure that no further gtk event loops or
+        # threads run and cause havoc on exit (LP: #914393)
+        sys.exit(0)
 
     def on_window_main_key_press_event(self, widget, event):
         """ Define all the accelerator keys here - slightly messy, but the ones
@@ -827,7 +849,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         get_appmanager().request_action(app, [], [], AppActions.REMOVE)
 
     def on_menuitem_close_activate(self, widget):
-        Gtk.main_quit()
+        self.close_app()
+
+    def on_window_main_delete_event(self, widget, event):
+        self.close_app()
 
 # Edit Menu
     def on_menu_edit_activate(self, menuitem):
@@ -1171,11 +1196,15 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                        '/com/ubuntu/Softwarecenter')
             iface = dbus.Interface(proxy_obj, 'com.ubuntu.SoftwarecenterIFace')
             if args:
-                iface.bringToFront(args)
+                res = iface.bringToFront(args)
             else:
                 # None can not be transported over dbus
-                iface.bringToFront('nothing-to-show')
-            sys.exit()
+                res = iface.bringToFront('nothing-to-show')
+            # ensure that the running s-c is working
+            if res is not True:
+                LOG.info("found a running software-center on dbus, "
+                         "reconnecting")
+                sys.exit()
         except dbus.DBusException:
             bus_name = dbus.service.BusName('com.ubuntu.Softwarecenter', bus)
             self.dbusControler = SoftwarecenterDbusController(self, bus_name)
