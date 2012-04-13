@@ -199,6 +199,7 @@ class UIReviewsList(Gtk.VBox):
                 pkgversion = self._parent.app_details.version
                 review = UIReview(r, pkgversion, self.logged_in_person,
                     self.useful_votes)
+                review.show_all()
                 self.vbox.pack_start(review, True, True, 0)
 
     def _be_the_first_to_review(self):
@@ -273,7 +274,6 @@ class UIReviewsList(Gtk.VBox):
         # always hide spinner and call _fill (fine if there is nothing to do)
         self.hide_spinner()
         self._fill()
-        self.vbox.show_all()
 
         if self.reviews:
             # adjust label if we have reviews
@@ -452,17 +452,10 @@ class UIReview(Gtk.VBox):
         self._allocation = None
 
         if review_data:
-        # when this is mapped, show/hide widgets that are network sensitive
-        # this ensures that even with show_all() we show the right stuff
-            self.connect('realize',
-                         self._on_realize,
-                         review_data,
-                         app_version,
-                         logged_in_person,
-                         useful_votes)
-
-    def _on_realize(self, widget, *content):
-        self._build(*content)
+            self._build(review_data,
+                        app_version,
+                        logged_in_person,
+                        useful_votes)
 
     def _on_report_abuse_clicked(self, button):
         reviews = self.get_ancestor(UIReviewsList)
@@ -690,6 +683,7 @@ class UIReview(Gtk.VBox):
         watcher.connect(
             "changed", lambda w, s: self._on_network_state_change())
 
+
     def _build_usefulness_ui(self, current_user_reviewer, useful_total,
                              useful_favorable, useful_votes,
                              usefulness_submit_error=False):
@@ -714,10 +708,8 @@ class UIReview(Gtk.VBox):
                 m = '<small>%s</small>'
                 self.yes_like = Link(m % _('Yes'))
                 self.yes_like.set_name("subtle-label")
-                self.yes_like.set_sensitive(network_state_is_connected())
                 self.no_like = Link(m % _('No'))
                 self.no_like.set_name("subtle-label")
-                self.no_like.set_sensitive(network_state_is_connected())
                 self.yes_like.connect('clicked', self._on_useful_clicked, True)
                 self.no_like.connect('clicked', self._on_useful_clicked, False)
                 self.yes_no_separator = Gtk.Label()
@@ -841,7 +833,6 @@ class UIReview(Gtk.VBox):
                 # verb, it won't need a question mark.
                 self.complain = Link(m % _('Inappropriate?'))
                 self.complain.set_name("subtle-label")
-                self.complain.set_sensitive(network_state_is_connected())
                 self.flagbox.pack_start(self.complain, False, False, 0)
                 self.complain.connect('clicked', self._on_report_abuse_clicked)
             self.flagbox.show_all()
