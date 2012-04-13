@@ -514,13 +514,19 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         LOG.debug("on_review_stats_loaded: '%s'" % len(reviews))
 
     def on_window_main_delete_event(self, widget, event):
+        # this may happen during the early initialization
+        # when "app.run()" was called but has not finished seting up the
+        # stuff yet, in this case its ok to just exit
+        if Gtk.main_level() == 0:
+            LOG.info("closing before the regular main loop was run")
+            sys.exit(0)
+        # this is the case when it regularly runs
         if hasattr(self, "glaunchpad"):
             self.glaunchpad.shutdown()
         self.save_state()
-        try:
-            Gtk.main_quit()
-        except Exception as e:
-            LOG.warning(e)
+        # this will not throw exceptions in pygi but "only" log via g_critical
+        # to the terminal
+        Gtk.main_quit()
 
     def on_window_main_key_press_event(self, widget, event):
         """ Define all the accelerator keys here - slightly messy, but the ones
