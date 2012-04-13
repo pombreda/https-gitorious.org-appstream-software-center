@@ -19,6 +19,8 @@ software-center (5.1.14.3) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp979013:
     - fix a bug in the review display for certain language
       environments (LP: #979013)
+  * lp:~mvo/software-center/appview-tweaks:
+    - code cleanup in the sortmode code
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/sorting-fix-lp969215:
