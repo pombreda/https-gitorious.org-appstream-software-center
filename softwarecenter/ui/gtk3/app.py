@@ -517,7 +517,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_review_stats_loaded(self, reviews):
         LOG.debug("on_review_stats_loaded: '%s'" % len(reviews))
 
-    def on_window_main_delete_event(self, widget, event):
+    def close_app(self):
+        """ perform tasks like save-state etc when the application is 
+            exited
+        """
         # this may happen during the early initialization
         # when "app.run()" was called but has not finished seting up the
         # stuff yet, in this case its ok to just exit
@@ -840,7 +843,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         get_appmanager().request_action(app, [], [], AppActions.REMOVE)
 
     def on_menuitem_close_activate(self, widget):
-        Gtk.main_quit()
+        self.close_app()
+
+    def on_window_main_delete_event(self, widget, event):
+        self.close_app()
 
 # Edit Menu
     def on_menu_edit_activate(self, menuitem):
