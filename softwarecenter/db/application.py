@@ -482,8 +482,10 @@ class AppDetails(GObject.GObject):
                                   for origin in self._pkg.installed.origins]
                 if not self._app.archive_suite in archive_suites:
                     return PkgStates.FORCE_VERSION
-            if self._pkg.installed and self._pkg.is_upgradable:
-                return PkgStates.UPGRADABLE
+            # Don't handle upgrades yet, see bug LP #976525 we need more UI
+            # for this
+            #if self._pkg.installed and self._pkg.is_upgradable:
+            #    return PkgStates.UPGRADABLE
             if self._pkg.is_installed:
                 return PkgStates.INSTALLED
             else:
