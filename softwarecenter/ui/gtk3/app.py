@@ -1177,11 +1177,15 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                        '/com/ubuntu/Softwarecenter')
             iface = dbus.Interface(proxy_obj, 'com.ubuntu.SoftwarecenterIFace')
             if args:
-                iface.bringToFront(args)
+                res = iface.bringToFront(args)
             else:
                 # None can not be transported over dbus
-                iface.bringToFront('nothing-to-show')
-            sys.exit()
+                res = iface.bringToFront('nothing-to-show')
+            # ensure that the running s-c is 
+            if res is not True:
+                LOG.info("found a running software-center on dbus, "
+                         "reconnecting")
+                sys.exit()
         except dbus.DBusException:
             bus_name = dbus.service.BusName('com.ubuntu.Softwarecenter', bus)
             self.dbusControler = SoftwarecenterDbusController(self, bus_name)
