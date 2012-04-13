@@ -25,8 +25,13 @@ software-center (5.1.14.3) UNRELEASED; urgency=low
     - fix a bug that can result in a blank software center
       screen on startup (LP: #772549)
   * lp:~mvo/software-center/lp914393:
-    - adds a explicit sys.exit() to ensure all gtk event
+    - adds an explicit sys.exit() to ensure all gtk event
       processing is stopped on application quit (LP: #914393)
+  * lp:~mvo/software-center/lp976169:
+    - do not crash if apt-xapian-index is not installed
+      (LP: #976337)
+    - ignore xapian.DatabaseOpeningError here (happens when
+      there is no a-x-i so we don't care) (LP: #976169)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/sorting-fix-lp969215:
@@ -41,7 +46,7 @@ software-center (5.1.14.3) UNRELEASED; urgency=low
     - everyone tries to expand a category in the installed pane by clicking
       on the text rather than the expander arrow (LP: #877130)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 13 Apr 2012 11:35:16 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 13 Apr 2012 11:41:18 -0400
 
 software-center (5.1.14.2) precise; urgency=low
 
