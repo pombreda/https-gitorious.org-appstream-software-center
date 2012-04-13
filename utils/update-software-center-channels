@@ -36,11 +36,11 @@ def trigger_axi_update_and_wait():
     context = GObject.main_context_default()
     main = GObject.MainLoop(context)
     system_bus = dbus.SystemBus()
-    axi = dbus.Interface(
-        system_bus.get_object("org.debian.AptXapianIndex","/"),
-        "org.debian.AptXapianIndex")
-    axi.connect_to_signal("UpdateFinished", _axi_finished)
     try:
+        axi = dbus.Interface(
+            system_bus.get_object("org.debian.AptXapianIndex","/"),
+            "org.debian.AptXapianIndex")
+        axi.connect_to_signal("UpdateFinished", _axi_finished)
         # first arg is force, second update_only
         axi.update_async(True, False)
         main.run()
