@@ -86,7 +86,7 @@ def get_hw_short_description(tag):
     # FIXME: deal with OPENGL_DRIVER_BLACKLIST_TAG as this needs rsplit(":")
     #        and a view of all available tags
     s = TAG_DESCRIPTION.get(tag)
-    return utf8(s)
+    return utf8(_(s))
 
 
 def get_hw_missing_long_description(tags):
@@ -107,7 +107,7 @@ def get_hw_missing_long_description(tags):
     # ensure that the last \n is gone
     if s:
         s = s[:-1]
-    return utf8(s)
+    return utf8(_(s))
 
 
 def get_private_extensions_hardware_support_for_tags(tags):
