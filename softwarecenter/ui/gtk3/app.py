@@ -540,6 +540,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # ensure that the dbus controller is really gone, just for good
         # measure
         self.dbusControler.stop()
+        # exit here explictely to ensure that no further gtk event loops or
+        # threads run and cause havoc on exit (LP: #914393)
+        sys.exit(0)
 
     def on_window_main_key_press_event(self, widget, event):
         """ Define all the accelerator keys here - slightly messy, but the ones
