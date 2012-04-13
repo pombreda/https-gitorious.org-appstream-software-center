@@ -21,6 +21,9 @@ software-center (5.1.14.3) UNRELEASED; urgency=low
       environments (LP: #979013)
   * lp:~mvo/software-center/appview-tweaks:
     - code cleanup in the sortmode code
+  * lp:~mvo/software-center/lp772549:
+    - fix a bug that can result in a blank software center
+      screen on startup (LP: #772549)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/sorting-fix-lp969215:
@@ -35,7 +38,7 @@ software-center (5.1.14.3) UNRELEASED; urgency=low
     - everyone tries to expand a category in the installed pane by clicking
       on the text rather than the expander arrow (LP: #877130)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 13 Apr 2012 00:58:19 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 13 Apr 2012 11:24:19 -0400
 
 software-center (5.1.14.2) precise; urgency=low
 
