@@ -131,6 +131,10 @@ class SoftwarecenterDbusController(dbus.service.Object):
         dbus.service.Object.__init__(self, bus_name, object_path)
         self.parent = parent
 
+    def stop(self):
+        """ stop the dbus controller and remove from the bus """
+        self.remove_from_connection()
+
     @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
     def bringToFront(self, args):
         if args != 'nothing-to-show':
@@ -524,6 +528,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if hasattr(self, "glaunchpad"):
             self.glaunchpad.shutdown()
         self.save_state()
+        # ensure that the dbus controller is really gone, just for good
+        # measure
+        self.dbusControler.stop()
         # this will not throw exceptions in pygi but "only" log via g_critical
         # to the terminal
         Gtk.main_quit()
