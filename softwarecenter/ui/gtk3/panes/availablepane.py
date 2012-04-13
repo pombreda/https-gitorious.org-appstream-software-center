@@ -697,10 +697,6 @@ class AvailablePane(SoftwarePane):
         LOG.debug("on_category_activated: %s %s" % (
                 category.name, category))
 
-        # reset the flag in the app_view because each new category should
-        # reset the sort criteria
-        self.app_view.reset_default_sort_mode()
-
         if category.subcategories:
             page = AvailablePane.Pages.SUBCATEGORY
             callback = self.display_subcategory_page
