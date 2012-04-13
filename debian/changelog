@@ -10,6 +10,15 @@ software-center (5.1.14.3) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp970342:
     - do not crash if the parent goes away (and therefore the pipe)
       and the token can not be obtained (LP: #970342)
+  * lp:~mvo/software-center/lp967036:
+    - fix UnicodeDecodeError crash for apps with hardware
+      requirements in the details view (LP: #967036)
+  * lp:~mvo/software-center/list-a11y:
+    - restore the a11y support for orca/accerciser/ldtp for
+      the listview and treeview
+  * lp:~mvo/software-center/lp979013:
+    - fix a bug in the review display for certain language
+      environments (LP: #979013)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/sorting-fix-lp969215:
@@ -24,7 +33,7 @@ software-center (5.1.14.3) UNRELEASED; urgency=low
     - everyone tries to expand a category in the installed pane by clicking
       on the text rather than the expander arrow (LP: #877130)
 
- -- Kiwinote <kiwinote@gmail.com>  Thu, 12 Apr 2012 11:00:48 +0100
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 13 Apr 2012 00:58:19 -0400
 
 software-center (5.1.14.2) precise; urgency=low
 
