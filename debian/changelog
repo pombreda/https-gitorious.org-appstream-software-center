@@ -32,6 +32,9 @@ software-center (5.1.14.3) UNRELEASED; urgency=low
       (LP: #976337)
     - ignore xapian.DatabaseOpeningError here (happens when
       there is no a-x-i so we don't care) (LP: #976169)
+  * lp:~mvo/software-center/lp976525:
+    - do not show "upgradable" button when there should be "remove"
+      (LP: #976525)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/sorting-fix-lp969215:
