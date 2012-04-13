@@ -48,9 +48,11 @@ def get_languages():
         for lang in langs[:]:
             if "_" in lang and not lang in FULL:
                 langs.remove(lang)
-    # fallback
-    if not langs:
-        return [get_language()]
+    # ensure the data from get_language() part of the result too
+    # (see LP: #979013)
+    from_get_language = get_language()
+    if not from_get_language in langs:
+        langs.insert(0, from_get_language)
     return langs
 
 
