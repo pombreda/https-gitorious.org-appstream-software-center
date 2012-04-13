@@ -714,8 +714,10 @@ class UIReview(Gtk.VBox):
                 m = '<small>%s</small>'
                 self.yes_like = Link(m % _('Yes'))
                 self.yes_like.set_name("subtle-label")
+                self.yes_like.set_sensitive(network_state_is_connected())
                 self.no_like = Link(m % _('No'))
                 self.no_like.set_name("subtle-label")
+                self.no_like.set_sensitive(network_state_is_connected())
                 self.yes_like.connect('clicked', self._on_useful_clicked, True)
                 self.no_like.connect('clicked', self._on_useful_clicked, False)
                 self.yes_no_separator = Gtk.Label()
