@@ -1,4 +1,4 @@
-software-center (5.1.14.3) UNRELEASED; urgency=low
+software-center (5.2) precise; urgency=low
 
   [ Michael Vogt ]
   * debian/control:
@@ -49,7 +49,7 @@ software-center (5.1.14.3) UNRELEASED; urgency=low
     - everyone tries to expand a category in the installed pane by clicking
       on the text rather than the expander arrow (LP: #877130)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 13 Apr 2012 11:41:18 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 13 Apr 2012 18:35:13 +0200
 
 software-center (5.1.14.2) precise; urgency=low
 
