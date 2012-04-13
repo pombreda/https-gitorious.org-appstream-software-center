@@ -42,6 +42,10 @@ class TestI18n(unittest.TestCase):
         # falls back to english
         os.environ["LANGUAGE"] = "yxy_YYY"
         self.assertEqual(get_languages(), ["en"])
+        os.environ["LANGUAGE"] = "es_MX:es_ES:es_AR:es_ES:en"
+        os.environ["LANG"] = "es_MX.UTF-8"
+        self.assertEqual(get_languages(), ["es", "en"])
+        
 
     def test_init_locale(self):
         import locale
