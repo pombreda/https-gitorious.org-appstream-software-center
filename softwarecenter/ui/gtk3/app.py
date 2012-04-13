@@ -518,7 +518,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         LOG.debug("on_review_stats_loaded: '%s'" % len(reviews))
 
     def close_app(self):
-        """ perform tasks like save-state etc when the application is 
+        """ perform tasks like save-state etc when the application is
             exited
         """
         # this may happen during the early initialization
@@ -1200,7 +1200,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             else:
                 # None can not be transported over dbus
                 res = iface.bringToFront('nothing-to-show')
-            # ensure that the running s-c is 
+            # ensure that the running s-c is working
             if res is not True:
                 LOG.info("found a running software-center on dbus, "
                          "reconnecting")
