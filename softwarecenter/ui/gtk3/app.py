@@ -531,12 +531,15 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if hasattr(self, "glaunchpad"):
             self.glaunchpad.shutdown()
         self.save_state()
+        # this will not throw exceptions in pygi but "only" log via g_critical
+        # to the terminal but it might in the future so we add a handler here
+        try:
+            Gtk.main_quit()
+        except:
+            LOG.exception("Gtk.main_quit failed")
         # ensure that the dbus controller is really gone, just for good
         # measure
         self.dbusControler.stop()
-        # this will not throw exceptions in pygi but "only" log via g_critical
-        # to the terminal
-        Gtk.main_quit()
 
     def on_window_main_key_press_event(self, widget, event):
         """ Define all the accelerator keys here - slightly messy, but the ones
