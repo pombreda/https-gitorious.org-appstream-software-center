@@ -738,14 +738,14 @@ class UIReview(Gtk.VBox):
         if network_state_is_connected():
             self.likebox.show()
             self.useful.show()
-            self.complain.show()
+            self.flagbox.show()
         else:
             self.likebox.hide()
             # we hide the useful box because if its there it says something
             # like "10 people found this useful. Did you?" but you can't
             # actually submit anything without network
             self.useful.hide()
-            self.complain.hide()
+            self.flagbox.hide()
 
     def _get_usefulness_label(self, current_user_reviewer,
                               useful_total, useful_favorable, already_voted):
