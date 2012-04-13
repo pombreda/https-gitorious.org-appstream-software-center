@@ -5,6 +5,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
 import logging
 import sys
+import xapian
 
 from gi.repository import GObject
 
@@ -62,9 +63,13 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.DEBUG)
 
     # do it
-    res = check_for_channel_updates_and_trigger_axi()
-    # return "1" means xapian got updated
-    if res:
-        sys.exit(1)
+    try:
+        res = check_for_channel_updates_and_trigger_axi()
+        # return "1" means xapian got updated
+        if res:
+            sys.exit(1)
+    except xapian.DatabaseOpeningError as e:
+        # this can happen if there is no a-x-i DB yet and we can ignore it
+        LOG.info("failed to open xapian db: '%s'" % e)
     # return "0" nothing was done
     sys.exit(0)
