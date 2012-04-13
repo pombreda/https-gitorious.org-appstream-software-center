@@ -486,11 +486,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         if (self.state.category and
             self.state.category.sortmode != SortMethods.BY_ALPHABET):
             return self.state.category.sortmode
-        # searches are always by ranking unless the user decided differently
-        if (self._is_in_search_mode() and
-            not self.app_view.user_defined_sort_method):
-            return SortMethods.BY_SEARCH_RANKING
-        # use the appview combo
+        # ask the app_view for the sort-mode
         return self.app_view.get_sort_mode()
 
     def on_search_entry_key_press_event(self, event):
