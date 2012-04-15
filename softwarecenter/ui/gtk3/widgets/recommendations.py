@@ -215,6 +215,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         # FIXME: we could probably use more apt test for the help_text value,
         #        but at this point in Precise we are well past string freeze
         #        so we will just reuse the RECOMMENDATIONS_OPT_IN_TEXT
+        self.spinner_notebook.show_spinner()
         self.sso = get_sso_backend(get_parent_xid(self),
                                    SOFTWARE_CENTER_NAME_KEYRING,
                                    self.RECOMMENDATIONS_OPT_IN_TEXT)
@@ -242,11 +243,13 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
     def _whoami_error(self, ssologin, e):
         # if there is an error in the SSO whois, reset everything to the
         # opt-in view state
+        self.spinner_notebook.hide_spinner()
         self.opt_out_of_recommendations_service()
         
     def _login_canceled(self, sso):
         # if the user cancels out of the SSO dialog, reset everything to the
         # opt-in view state
+        self.spinner_notebook.hide_spinner()
         self.opt_out_of_recommendations_service()
 
     def _upload_user_profile_and_get_recommendations(self):
