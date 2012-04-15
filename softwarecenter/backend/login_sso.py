@@ -85,7 +85,7 @@ class LoginBackendDbusSSO(LoginBackend):
         self._credentials = credentials
 
     def _on_credentials_error(self, app_name, error, detailed_error=""):
-        LOG.error("_on_credentails_error for %s: %s (%s)" % (
+        LOG.error("_on_credentials_error for %s: %s (%s)" % (
                 app_name, error, detailed_error))
         if app_name != self.appname:
             return
@@ -93,10 +93,11 @@ class LoginBackendDbusSSO(LoginBackend):
         self.emit("login-failed")
 
     def _on_authorization_denied(self, app_name):
-        LOG.error("_on_authorization_denied: %s" % app_name)
+        LOG.warn("_on_authorization_denied: %s" % app_name)
         if app_name != self.appname:
             return
         self.cancel_login()
+        self.emit("login-failed")
 
 
 class LoginBackendDbusSSOFake(LoginBackend):
