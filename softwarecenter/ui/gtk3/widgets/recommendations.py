@@ -212,9 +212,9 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
 
     def _try_sso_login(self):
         # display the SSO login dialog if needed
-        # FIXME: we could probably use more apt test for the help_text value,
-        #        but at this point in Precise we are well past string freeze
-        #        so we will just reuse the RECOMMENDATIONS_OPT_IN_TEXT
+        # FIXME: consider improving the text in the SSO dialog, for now
+        #        we simply reuse the opt-in text from the panel since we
+        #        are well past string freeze
         self.spinner_notebook.show_spinner()
         self.sso = get_sso_backend(get_parent_xid(self),
                                    SOFTWARE_CENTER_NAME_KEYRING,
