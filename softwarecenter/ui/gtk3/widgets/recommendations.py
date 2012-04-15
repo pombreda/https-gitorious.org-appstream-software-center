@@ -25,9 +25,13 @@ from gettext import gettext as _
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.containers import (FramedHeaderBox,
                                                        FlowableGrid)
+from softwarecenter.ui.gtk3.utils import get_parent_xid
 from softwarecenter.db.categories import (RecommendedForYouCategory,
                                           AppRecommendationsCategory)
 from softwarecenter.backend.recagent import RecommenderAgent
+from softwarecenter.backend.login_sso import get_sso_backend
+from softwarecenter.backend.ubuntusso import get_ubuntu_sso_backend
+from softwarecenter.enums import SOFTWARE_CENTER_NAME_KEYRING
 from softwarecenter.utils import utf8
 
 LOG = logging.getLogger(__name__)
@@ -186,12 +190,13 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.opt_in_to_recommendations_service()
 
     def opt_in_to_recommendations_service(self):
+        # first we verify the ubuntu sso login/oath status, and if that is good
         # we upload the user profile here, and only after this is finished
         # do we fire the request for recommendations and finally display
         # them here -- a spinner is shown for this process (the spec
         # wants a progress bar, but we don't have access to real-time
         # progress info)
-        self._upload_user_profile_and_get_recommendations()
+        self._try_sso_login()
 
     def opt_out_of_recommendations_service(self):
         # tell the backend that the user has opted out
@@ -204,6 +209,41 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.show_all()
         self.emit("recommendations-opt-out")
         self._disconnect_recommender_listeners()
+        
+    def _try_sso_login(self):
+        # display the SSO login dialog if needed
+        # FIXME: we could probably use more apt test for the help_text value,
+        #        but at this point in Precise we are well past string freeze
+        #        so we will just reuse the RECOMMENDATIONS_OPT_IN_TEXT
+        self.sso = get_sso_backend(get_parent_xid(self),
+                                   SOFTWARE_CENTER_NAME_KEYRING,
+                                   self.RECOMMENDATIONS_OPT_IN_TEXT)
+        self.sso.connect("login-successful", self._maybe_login_successful)
+        self.sso.connect("login-canceled", self._login_canceled)
+        self.sso.login_or_register()
+        
+    def _maybe_login_successful(self, sso, oauth_result):
+        self.ssoapi = get_ubuntu_sso_backend()
+        self.ssoapi.connect("whoami", self._whoami_done)
+        self.ssoapi.connect("error", self._whoami_error)
+        # this will automatically verify the keyring token and retrigger
+        # login (once) if its expired
+        self.ssoapi.whoami()
+
+    def _whoami_done(self, ssologin, result):
+        # we are all squared up with SSO login, now we can proceed with the
+        # recommendations upload
+        self._upload_user_profile_and_get_recommendations()
+
+    def _whoami_error(self, ssologin, e):
+        # if there is an error in the SSO whois, reset everything to the
+        # opt-in view state
+        self.opt_out_of_recommendations_service()
+        
+    def _login_canceled(self, sso):
+        # if the user cancels out of the SSO dialog, reset everything to the
+        # opt-in view state
+        self.opt_out_of_recommendations_service()
 
     def _upload_user_profile_and_get_recommendations(self):
         # initiate upload of the user profile here
