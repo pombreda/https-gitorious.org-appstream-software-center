@@ -209,7 +209,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.show_all()
         self.emit("recommendations-opt-out")
         self._disconnect_recommender_listeners()
-        
+
     def _try_sso_login(self):
         # display the SSO login dialog if needed
         # FIXME: we could probably use more apt test for the help_text value,
@@ -222,7 +222,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.sso.connect("login-successful", self._maybe_login_successful)
         self.sso.connect("login-canceled", self._login_canceled)
         self.sso.login_or_register()
-        
+
     def _maybe_login_successful(self, sso, oauth_result):
         self.ssoapi = get_ubuntu_sso_backend()
         self.ssoapi.connect("whoami", self._whoami_done)
@@ -245,7 +245,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         # opt-in view state
         self.spinner_notebook.hide_spinner()
         self.opt_out_of_recommendations_service()
-        
+
     def _login_canceled(self, sso):
         # if the user cancels out of the SSO dialog, reset everything to the
         # opt-in view state
