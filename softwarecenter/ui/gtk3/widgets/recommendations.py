@@ -154,7 +154,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.set_header_label(_(u"Recommended For You"))
         self.recommended_for_you_content = None
         if self.recommender_agent.is_opted_in():
-            self._update_recommended_for_you_content()
+            self._try_sso_login()
         else:
             self._show_opt_in_view()
 
@@ -232,8 +232,12 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
 
     def _whoami_done(self, ssologin, result):
         # we are all squared up with SSO login, now we can proceed with the
-        # recommendations upload
-        self._upload_user_profile_and_get_recommendations()
+        # recommendations display, or the profile upload if this is an
+        # initial opt-in
+        if self.recommender_agent.is_opted_in():
+            self._update_recommended_for_you_content()
+        else:
+            self._upload_user_profile_and_get_recommendations()
 
     def _whoami_error(self, ssologin, e):
         # if there is an error in the SSO whois, reset everything to the
