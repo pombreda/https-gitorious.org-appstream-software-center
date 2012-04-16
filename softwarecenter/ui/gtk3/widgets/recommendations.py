@@ -241,10 +241,10 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
             self._upload_user_profile_and_get_recommendations()
 
     def _whoami_error(self, ssologin, e):
-        # if there is an error in the SSO whois, reset everything to the
-        # opt-in view state
+        # if there is an error in the SSO whois, just hide recommendations as
+        # it is likely that there is simply no network connectivity
         self.spinner_notebook.hide_spinner()
-        self.opt_out_of_recommendations_service()
+        self._hide_recommended_for_you_panel()
 
     def _login_canceled(self, sso):
         # if the user cancels out of the SSO dialog, reset everything to the
