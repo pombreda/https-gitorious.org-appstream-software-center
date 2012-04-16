@@ -126,7 +126,9 @@ class TestAppdetailsView(unittest.TestCase):
         mock_app = get_mock_app_from_real_app(app)
         self.view.app = mock_app
         mock_details = mock_app.get_details(None)
-        mock_details.cached_icon_file_path = "download-icon-test"
+        fname = "download-icon-test"
+        mock_details.cached_icon_file_path = fname
+        self.addCleanup(lambda: os.path.exists(fname) and os.remove(fname))
         mock_details.icon = "favicon.ico"
         mock_details.icon_url = "http://de.wikipedia.org/favicon.ico"
         self.view.app_details = mock_details
@@ -135,7 +137,6 @@ class TestAppdetailsView(unittest.TestCase):
         # ensure the icon is there
         # FIXME: ensure that the icon is really downloaded
         #self.assertTrue(os.path.exists(mock_details.cached_icon_file_path))
-        #os.unlink(mock_details.cached_icon_file_path)
 
     def test_add_where_is_it(self):
         app = Application("", "software-center")
