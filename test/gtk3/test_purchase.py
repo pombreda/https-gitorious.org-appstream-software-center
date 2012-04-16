@@ -3,12 +3,12 @@
 import time
 import unittest
 
-from mock import Mock,patch
+from mock import Mock, patch
 
 from testutils import setup_test_env
 setup_test_env()
 
-from softwarecenter.testutils import do_events
+from softwarecenter.testutils import do_events, get_mock_options
 from softwarecenter.ui.gtk3.app import SoftwareCenterAppGtk3
 from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 import softwarecenter.paths
@@ -35,7 +35,7 @@ class TestPurchase(unittest.TestCase):
         self.assertTrue("skipping" in mock.debug.call_args[0][0])
         self.assertFalse("consumer_secret" in mock.debug.call_args[0][0])
         mock.reset_mock()
-        
+
         # run another one
         win.destroy()
 
@@ -73,23 +73,20 @@ class TestPurchase(unittest.TestCase):
 
 
     def test_reinstall_previous_purchase_display(self):
-        mock_options = Mock()
-        mock_options.display_navlog = False
-        mock_options.disable_apt_xapian_index = False
-        mock_options.disable_buy = False
+        mock_options = get_mock_options()
         xapiandb = "/var/cache/software-center/"
         app = SoftwareCenterAppGtk3(
             softwarecenter.paths.datadir, xapiandb, mock_options)
-	# real app opens cache async
-	app.cache.open()
-	# show it
+        # real app opens cache async
+        app.cache.open()
+        # show it
         app.window_main.show_all()
         app.available_pane.init_view()
         self._p()
         app.on_menuitem_reinstall_purchases_activate(None)
         # it can take a bit until the sso client is ready
         for i in range(100):
-            if (app.available_pane.get_current_page() == 
+            if (app.available_pane.get_current_page() ==
                 AvailablePane.Pages.LIST):
                 break
             self._p()

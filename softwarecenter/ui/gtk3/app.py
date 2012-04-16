@@ -1214,24 +1214,38 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             If the list of packages is only one element long show that,
             otherwise turn it into a comma seperated search
         """
-        # strip away the apt: prefix
-        if packages and packages[0].startswith("apt:///"):
-            # this is for 'apt:pkgname' in alt+F2 in gnome
-            packages[0] = packages[0].partition("apt:///")[2]
-        elif packages and packages[0].startswith("apt://"):
-            packages[0] = packages[0].partition("apt://")[2]
-        elif packages and packages[0].startswith("apt:"):
-            packages[0] = packages[0].partition("apt:")[2]
 
-        # allow s-c to be called with a search term
-        if packages and packages[0].startswith("search:"):
-            packages[0] = packages[0].partition("search:")[2]
-            self.available_pane.init_view()
-            self.available_pane.searchentry.set_text(" ".join(packages))
+        if not isinstance(packages, collections.Iterable):
+            # XXX: do something? at least log :-/
             return
 
-        if len(packages) == 1:
-            request = packages[0]
+        _packages = []  # make a copy
+
+        # support both "pkg1 pkg" and "pkg1,pkg2" (and "pkg1,pkg2 pkg3")
+        for arg in packages:
+            if "," in arg:
+                _packages.extend(arg.split(","))
+            else:
+                _packages.append(arg)
+
+        if len(_packages) > 0:
+            # strip away the apt: prefix
+            for prefix in ("apt:///",  # for 'apt:pkgname' in alt+F2 in gnome
+                           "apt://", "apt:"):
+                _packages[0] = _packages[0].partition(prefix)[2]
+
+            # allow s-c to be called with a search term
+            if packages[0].startswith("search:"):
+                packages[0] = packages[0].partition("search:")[2]
+                self.available_pane.init_view()
+                self.available_pane.searchentry.set_text(" ".join(packages))
+                return
+
+        print '\n-> show_available_packages len is', len(_packages)
+        print '\n-> show_available_packages content is', repr(_packages)
+
+        if len(_packages) == 1:
+            request = _packages[0]
 
             # are we dealing with a path?
             if os.path.exists(request) and not os.path.isdir(request):
@@ -1244,7 +1258,22 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 # if there is a "/" in the string consider it as tuple
                 # of (pkgname, appname) for exact matching (used by
                 # e.g. unity
-                (pkgname, sep, appname) = packages[0].partition("/")
+
+                # when passing [''] to bringToFront, this triggers:
+                # org.freedesktop.DBus.Python.ValueError: Traceback (most recent call last):
+                #   File "/usr/lib/python2.7/dist-packages/dbus/service.py", line 707, in _message_cb
+                #     retval = candidate_method(self, *args, **keywords)
+                #   File "/home/nessita/canonical/software-store/fix-977931/softwarecenter/ui/gtk3/app.py", line 144, in bringToFront
+                #     self.parent.show_available_packages(args)
+                #   File "/home/nessita/canonical/software-store/fix-977931/softwarecenter/ui/gtk3/app.py", line 1250, in show_available_packages
+                #     app = Application(appname, pkgname)
+                #   File "/home/nessita/canonical/software-store/fix-977931/softwarecenter/db/application.py", line 52, in __init__
+                #     raise ValueError("Need either appname or pkgname or request")
+                # ValueError: Need either appname or pkgname or request
+
+                (pkgname, sep, appname) = _packages[0].partition("/")
+                # pkgname and/or appname can be ''
+                print '\n\n***** creating an Application with %r and %r' % (appname, pkgname)
                 app = Application(appname, pkgname)
 
             @wait_for_apt_cache_ready
@@ -1261,11 +1290,14 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                     self.available_pane.show_app(app)
             show_app(self, app)
             return
-        elif len(packages) > 1:
+        elif len(_packages) > 1:
             # turn multiple packages into a search with ","
             self.available_pane.init_view()
-            self.available_pane.searchentry.set_text(",".join(packages))
+            self.available_pane.searchentry.set_text(",".join(_packages))
             return
+
+        print '\n-> setting self.view_manager.set_active_view to ', ViewPages.AVAILABLE
+
         # normal startup, show the lobby (it will have a spinner when
         # its not ready yet) - it will also initialize the view
         self.view_manager.set_active_view(ViewPages.AVAILABLE)
@@ -1328,13 +1360,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # delay cache open
         GObject.timeout_add(1, self.cache.open)
-
-        # support both "pkg1 pkg" and "pkg1,pkg2" (and pkg1,pkg2 pkg3)
-        if args:
-            for (i, arg) in enumerate(args[:]):
-                if "," in arg:
-                    args.extend(arg.split(","))
-                    del args[i]
 
         # FIXME: make this more predictable and less random
         # show args when the app is ready

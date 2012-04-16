@@ -5,20 +5,20 @@ import unittest
 
 from mock import Mock
 
-from testutils import setup_test_env, do_events
+from testutils import do_events, get_mock_options, setup_test_env
 setup_test_env()
 
 import softwarecenter.paths
+
+from softwarecenter.ui.gtk3.app import SoftwareCenterAppGtk3
 from softwarecenter.ui.gtk3.app import SoftwareCenterAppGtk3
 from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
+
 
 class DebFileOpenTestCase(unittest.TestCase):
 
     def test_deb_file_view_error(self):
-        mock_options = Mock()
-        mock_options.display_navlog = False
-        mock_options.disable_apt_xapian_index = False
-        mock_options.disable_buy = False
+        mock_options = get_mock_options()
         xapianpath = softwarecenter.paths.XAPIAN_BASE_PATH
         app = SoftwareCenterAppGtk3(
             softwarecenter.paths.datadir, xapianpath, mock_options)
@@ -37,7 +37,7 @@ class DebFileOpenTestCase(unittest.TestCase):
         # this is deb that is not installable
         action_button = app.available_pane.app_details_view.pkg_statusbar.button
         self.assertFalse(action_button.get_property("visible"))
-        
+
 
 
 if __name__ == "__main__":
