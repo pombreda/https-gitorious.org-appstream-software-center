@@ -145,7 +145,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
     TURN_ON_RECOMMENDATIONS_TEXT = _(u"Turn On Recommendations")
     RECOMMENDATIONS_OPT_IN_TEXT = _(u"To make recommendations, "
                  "Ubuntu Software Center "
-                 "will occasionally send to Canonical an anonymous list "
+                 "will occasionally send to Canonical a list "
                  "of software currently installed.")
 
     def __init__(self, catview):
