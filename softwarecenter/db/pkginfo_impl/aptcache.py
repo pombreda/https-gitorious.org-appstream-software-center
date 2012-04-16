@@ -596,6 +596,10 @@ class AptCache(PackageInfo):
                 self._set_candidate_release(pkg, archive_suite)
             # now get the right version
             version = self._cache[p].candidate
+            # this can happen on e.g. deb packages that are not in the cache
+            # testcase: software-center google-chrome-stable_current_amd64.deb
+            if not version:
+                continue
             pkgs_to_install.append(version)
             # now do it
             deps_inst = self._try_install_and_get_all_deps_installed(
