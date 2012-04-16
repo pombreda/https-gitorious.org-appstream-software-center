@@ -537,8 +537,11 @@ class AppTreeView(Gtk.TreeView):
         raw = model[path][AppGenericStore.COL_ROW_DATA]
         if self.rowref_is_category(raw):
             text = raw.display_name
-        else:
+        elif raw:
             text = self.db.get_pkgname(raw)
+        else:
+            # this can happen for empty/not-yet-loaded row, LP: #981992
+            text = ""
         cell.set_property('text', text)
 
     def _app_activated_cb(self, btn, btn_id, app, store, path):

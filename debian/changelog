@@ -7,8 +7,11 @@ software-center (5.2.1) UNRELEASED; urgency=low
   * lp:~mvo/software-center/fix-crash-deb-file-size-calc:
     - fix crash when installing a deb file that is not found in
       the current apt cache
+  * lp:~mvo/software-center/lp981992:
+    - fix a crash in the new a11y code if there is a row that has
+      no data or is not yet preloaded (LP: #981992)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 16 Apr 2012 14:55:23 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 16 Apr 2012 15:04:03 -0400
 
 software-center (5.2) precise; urgency=low
 
