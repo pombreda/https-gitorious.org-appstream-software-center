@@ -97,7 +97,7 @@ class LoginBackendDbusSSO(LoginBackend):
         if app_name != self.appname:
             return
         self.cancel_login()
-        self.emit("login-failed")
+        self.emit("login-canceled")
 
 
 class LoginBackendDbusSSOFake(LoginBackend):
