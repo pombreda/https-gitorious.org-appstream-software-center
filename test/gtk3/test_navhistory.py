@@ -25,7 +25,6 @@ class MockButton():
     def has_focus(self):
         return False
 
-
 class TestNavhistory(unittest.TestCase):
     """ basic tests for navigation history """
 
@@ -42,7 +41,7 @@ class TestNavhistory(unittest.TestCase):
         # mock view manager
         view_manager = Mock()
         view_manager.navhistory = navhistory
-        # create a NavHistory
+        # create a NavHistory 
         pane = Mock()
         pane.pane_name = "pane_name"
         return back_forward_btn, options, navhistory, view_manager, pane

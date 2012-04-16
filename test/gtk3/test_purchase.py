@@ -71,7 +71,6 @@ class TestPurchase(unittest.TestCase):
         # run another one
         win.destroy()
 
-
     def test_reinstall_previous_purchase_display(self):
         mock_options = get_mock_options()
         xapiandb = "/var/cache/software-center/"

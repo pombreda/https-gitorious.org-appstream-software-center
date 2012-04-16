@@ -3,7 +3,6 @@ test/.coverage
 test/coverage_html
 test/coverage_summary
 test/output
-test/data/test.db/*
 help/*
 data/xapian/*
 .backup

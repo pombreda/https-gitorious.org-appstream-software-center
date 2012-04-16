@@ -9,8 +9,6 @@ from testutils import do_events, get_mock_options, setup_test_env
 setup_test_env()
 
 import softwarecenter.paths
-
-from softwarecenter.ui.gtk3.app import SoftwareCenterAppGtk3
 from softwarecenter.ui.gtk3.app import SoftwareCenterAppGtk3
 from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 
@@ -37,7 +35,6 @@ class DebFileOpenTestCase(unittest.TestCase):
         # this is deb that is not installable
         action_button = app.available_pane.app_details_view.pkg_statusbar.button
         self.assertFalse(action_button.get_property("visible"))
-
 
 
 if __name__ == "__main__":

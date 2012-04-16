@@ -71,6 +71,11 @@ class ApplicationManager(GObject.GObject):
         else:
             _appmanager = self
 
+    def destroy(self):
+        """Destroy the global instance."""
+        global _appmanager
+        _appmanager = None
+
     def request_action(self, app, addons_install, addons_remove, action):
         """callback when an app action is requested from the appview,
            if action is "remove", must check if other dependencies have to be
