@@ -1,3 +1,11 @@
+software-center (5.2.1) UNRELEASED; urgency=low
+
+  * lp:~mvo/software-center/lp977179:
+    - make the review UI react correctly to conditions of network
+      availability (LP: #977179)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 16 Apr 2012 14:30:11 -0400
+
 software-center (5.2) precise; urgency=low
 
   [ Michael Vogt ]
