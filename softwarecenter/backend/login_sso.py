@@ -93,7 +93,7 @@ class LoginBackendDbusSSO(LoginBackend):
         self.emit("login-failed")
 
     def _on_authorization_denied(self, app_name):
-        LOG.warn("_on_authorization_denied: %s" % app_name)
+        LOG.info("_on_authorization_denied: %s" % app_name)
         if app_name != self.appname:
             return
         self.cancel_login()
