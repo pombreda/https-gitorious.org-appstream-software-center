@@ -406,6 +406,8 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             yield self._run_transaction(trans, None, None, None, metadata)
         except Exception as error:
             self._on_trans_error(error)
+        # note that the cache re-open will happen via the connected
+        # "transaction-finished" signal
 
     @inline_callbacks
     def enable_component(self, component):
