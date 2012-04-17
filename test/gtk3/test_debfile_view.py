@@ -3,8 +3,6 @@
 import time
 import unittest
 
-from mock import Mock
-
 from testutils import do_events, get_mock_options, setup_test_env
 setup_test_env()
 

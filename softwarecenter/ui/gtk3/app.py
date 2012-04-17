@@ -175,10 +175,13 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     # the size of the icon for dialogs
     APP_ICON_SIZE = Gtk.IconSize.DIALOG
 
+    START_DBUS = True
+
     def __init__(self, datadir, xapian_base_path, options, args=None):
         self.dbusControler = None
-        # setup dbus and exit if there is another instance already running
-        self.setup_dbus_or_bring_other_instance_to_front(args)
+        if self.START_DBUS:
+            # setup dbus and exit if there is another instance already running
+            self.setup_dbus_or_bring_other_instance_to_front(args)
 
         self.datadir = datadir
         super(SoftwareCenterAppGtk3, self).__init__(
@@ -1283,16 +1286,14 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 items[0] = items[0].replace(SEARCH_PREFIX, '', 1)
                 search_text = SearchSeparators.REGULAR.join(items)
             else:
+                print '\n-> NO SEARCH show_available_packages', repr(search_text), items
                 # strip away the apt: prefix, if present
                 items[0] = re.sub(PACKAGE_PREFIX_REGEX, '', items[0])
                 if len(items) > 1:
-                    print '\n-> more than one package! ', items
                     # turn multiple packages into a search with ","
                     search_text = SearchSeparators.PACKAGE.join(items)
 
-
-        ##print '\n-> show_available_packages search_text', search_text
-        ##print '\n-> show_available_packages items are', items
+        print '\n-> show_available_packages', repr(search_text), items
 
         app = None
         if not search_text and len(items) == 1:
@@ -1316,43 +1317,18 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                     LOG.warning('show_available_packages: received %r but '
                                 'can\'t build an Application from it.', request)
 
+        print '\n-> show_available_packages', repr(app)
+        print '------>\n\n'
+
         if search_text:
-            ##print '\n-> search text is set:', search_text
             self.available_pane.init_view()
             self.available_pane.searchentry.set_text(search_text)
         elif app is not None:
-            ##print '\n-> app is not None, showing it'
             self.show_app(app)
         else:
-            ##print '\n-> app is None, setting self.view_manager to', ViewPages.AVAILABLE
             # normal startup, show the lobby (it will have a spinner when
             # its not ready yet) - it will also initialize the view
             self.view_manager.set_active_view(ViewPages.AVAILABLE)
-
-    def restore_state(self):
-        if self.config.has_option("general", "size"):
-            (x, y) = self.config.get("general", "size").split(",")
-            self.window_main.set_default_size(int(x), int(y))
-        else:
-            # on first launch, specify the default window size to take
-            # advantage of the available screen real estate (but set a
-            # reasonable limit in case of a crazy-huge monitor)
-            screen_height = Gdk.Screen.height()
-            screen_width = Gdk.Screen.width()
-            self.window_main.set_default_size(
-                                        min(int(.85 * screen_width), 1200),
-                                        min(int(.85 * screen_height), 800))
-        if (self.config.has_option("general", "maximized") and
-            self.config.getboolean("general", "maximized")):
-            self.window_main.maximize()
-        if self.config.has_option("general", "add_to_launcher"):
-            self.available_pane.add_to_launcher_enabled = (
-                    self.config.getboolean(
-                    "general",
-                    "add_to_launcher"))
-        else:
-            # initial default state is to add to launcher, per spec
-            self.available_pane.add_to_launcher_enabled = True
 
     def restore_state(self):
         if self.config.has_option("general", "size"):
