@@ -31,6 +31,7 @@ DBusGMainLoop(set_as_default=True)
 import gettext
 import logging
 import os
+import re
 import subprocess
 import sys
 import xapian
@@ -53,22 +54,29 @@ from softwarecenter.i18n import init_locale
 # misc imports
 from softwarecenter.plugin import PluginManager
 from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIRS
-from softwarecenter.enums import (Icons,
-                                  PkgStates,
-                                  ViewPages,
-                                  AppActions,
-                                  DB_SCHEMA_VERSION,
-                                  MOUSE_EVENT_FORWARD_BUTTON,
-                                  MOUSE_EVENT_BACK_BUTTON,
-                                  SOFTWARE_CENTER_TOS_LINK,
-                                  SOFTWARE_CENTER_NAME_KEYRING)
-from softwarecenter.utils import (clear_token_from_ubuntu_sso,
-                                  get_http_proxy_string_from_gsettings,
-                                  wait_for_apt_cache_ready,
-                                  ExecutionTime,
-                                  is_unity_running)
-from softwarecenter.ui.gtk3.utils import (get_sc_icon_theme,
-                                          init_sc_css_provider)
+from softwarecenter.enums import (
+    AppActions,
+    DB_SCHEMA_VERSION,
+    Icons,
+    MOUSE_EVENT_FORWARD_BUTTON,
+    MOUSE_EVENT_BACK_BUTTON,
+    PkgStates,
+    SearchSeparators,
+    SOFTWARE_CENTER_TOS_LINK,
+    SOFTWARE_CENTER_NAME_KEYRING,
+    ViewPages,
+    )
+from softwarecenter.utils import (
+    clear_token_from_ubuntu_sso,
+    get_http_proxy_string_from_gsettings,
+    wait_for_apt_cache_ready,
+    ExecutionTime,
+    is_unity_running,
+    )
+from softwarecenter.ui.gtk3.utils import (
+    get_sc_icon_theme,
+    init_sc_css_provider,
+    )
 from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
 try:
@@ -87,10 +95,14 @@ from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 from softwarecenter.ui.gtk3.panes.historypane import HistoryPane
 from softwarecenter.ui.gtk3.panes.globalpane import GlobalPane
 from softwarecenter.ui.gtk3.panes.pendingpane import PendingPane
-from softwarecenter.ui.gtk3.session.appmanager import (ApplicationManager,
-                                                       get_appmanager)
+from softwarecenter.ui.gtk3.session.appmanager import (
+    ApplicationManager,
+    get_appmanager,
+    )
 from softwarecenter.ui.gtk3.session.viewmanager import (
-    ViewManager, get_viewmanager)
+    ViewManager,
+    get_viewmanager,
+    )
 from softwarecenter.ui.gtk3.widgets.recommendations import (
     RecommendationsOptInDialog)
 
@@ -112,6 +124,9 @@ from softwarecenter.db.pkginfo import get_pkg_info
 from gi.repository import Gdk
 
 LOG = logging.getLogger(__name__)
+# "apt:///" is a valid prefix for 'apt:pkgname' in alt+F2 in gnome
+PACKAGE_PREFIX_REGEX = re.compile('^apt:(?:/{2,3})*')
+SEARCH_PREFIX = 'search:'
 
 
 # py3 compat
@@ -553,7 +568,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             Gtk.main_quit()
         except:
             LOG.exception("Gtk.main_quit failed")
-
         # exit here explictely to ensure that no further gtk event loops or
         # threads run and cause havoc on exit (LP: #914393)
         sys.exit(0)
@@ -1230,7 +1244,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         If 'app' is not installed, show it in the available pane.
 
         """
-        print '\n\n\n=============================== show_available_packages (app installed?)', (app.pkgname in self.cache and self.cache[app.pkgname].installed)
         if (app.pkgname in self.cache and self.cache[app.pkgname].installed):
             with ExecutionTime("installed_pane.init_view()"):
                 self.installed_pane.init_view()
@@ -1240,55 +1253,55 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.available_pane.init_view()
             self.available_pane.show_app(app)
 
-    def show_search_text(self, text):
-        """Set 'text' to be the search text in the available pane."""
-        self.available_pane.init_view()
-        self.available_pane.searchentry.set_text(search_text)
-
-    def _show_available_packages(self, packages):
+    def show_available_packages(self, packages):
         """ Show packages given as arguments in the available_pane
             If the list of packages is only one element long show that,
             otherwise turn it into a comma seperated search
         """
+        # avoid treating strings as sequences ('foo' will be 'f', 'o', 'o')
+        if isinstance(packages, basestring):
+            packages = (packages,)
 
         if not isinstance(packages, collections.Iterable):
-            # XXX: do something? at least log :-/
+            LOG.warning('show_available_packages: argument is not an iterable '
+                        '%r', packages)
             return
 
-        _packages = []  # make a copy
-        search_text = None
+        items = []  # make a copy of the given sequence
 
         # support both "pkg1 pkg" and "pkg1,pkg2" (and "pkg1,pkg2 pkg3")
         for arg in packages:
             if "," in arg:
-                _packages.extend(arg.split(","))
+                items.extend(arg.split(SearchSeparators.PACKAGE))
             else:
-                _packages.append(arg)
+                items.append(arg)
 
-        if len(_packages) > 0:
-            # strip away the apt: prefix
-            for prefix in ("apt:///",  # for 'apt:pkgname' in alt+F2 in gnome
-                           "apt://", "apt:"):
-                _packages[0] = _packages[0].partition(prefix)[2]
-
+        search_text = ''
+        if len(items) > 0:
             # allow s-c to be called with a search term
-            if _packages[0].startswith("search:"):
-                _packages[0] = _packages[0].partition("search:")[2]
-                self.show_search_text(" ".join(_packages))
-                return
+            if items[0].startswith(SEARCH_PREFIX):
+                items[0] = items[0].replace(SEARCH_PREFIX, '', 1)
+                search_text = SearchSeparators.REGULAR.join(items)
+            else:
+                # strip away the apt: prefix, if present
+                items[0] = re.sub(PACKAGE_PREFIX_REGEX, '', items[0])
+                if len(items) > 1:
+                    print '\n-> more than one package! ', items
+                    # turn multiple packages into a search with ","
+                    search_text = SearchSeparators.PACKAGE.join(items)
 
-        print '\n-> show_available_packages len is', len(_packages)
-        print '\n-> show_available_packages content is', repr(_packages)
+
+        ##print '\n-> show_available_packages search_text', search_text
+        ##print '\n-> show_available_packages items are', items
 
         app = None
-        if len(_packages) == 1:
-            request = _packages[0]
-            print '\n-> exactly one package! ', request
+        if not search_text and len(items) == 1:
+            request = items[0]
 
             # are we dealing with a path?
             if os.path.exists(request) and not os.path.isdir(request):
-                if not request.startswith(os.path.sep):
-                    # we may have been given a relative path
+                if not request.startswith('/'):
+                # we may have been given a relative path
                     request = os.path.join(os.getcwd(), request)
                 app = DebFileApplication(request)
             else:
@@ -1302,92 +1315,19 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 else:
                     LOG.warning('show_available_packages: received %r but '
                                 'can\'t build an Application from it.', request)
-        elif len(_packages) > 1:
-            print '\n-> more than one package! ', _packages
-            search_text = ",".join(_packages)
-            # turn multiple packages into a search with ","
-            self.show_search_text(",".join(_packages))
-            return
 
-        print '\n-> app is None? ', app is None
-
-        if app is not None:
-            self.show_app(app)
-            return
-
-        print '\n-> setting self.view_manager.set_active_view to ', ViewPages.AVAILABLE
-
-        # normal startup, show the lobby (it will have a spinner when
-        # its not ready yet) - it will also initialize the view
-        self.view_manager.set_active_view(ViewPages.AVAILABLE)
-
-    def show_available_packages(self, packages):
-        """ Show packages given as arguments in the available_pane
-            If the list of packages is only one element long show that,
-            otherwise turn it into a comma seperated search
-        """
-
-        print '\n\n\n=============================== show_available_packages', packages
-
-        # strip away the apt: prefix
-        if packages and packages[0].startswith("apt:///"):
-            # this is for 'apt:pkgname' in alt+F2 in gnome
-            packages[0] = packages[0].partition("apt:///")[2]
-        elif packages and packages[0].startswith("apt://"):
-            packages[0] = packages[0].partition("apt://")[2]
-        elif packages and packages[0].startswith("apt:"):
-            packages[0] = packages[0].partition("apt:")[2]
-
-        # allow s-c to be called with a search term
-        if packages and packages[0].startswith("search:"):
-            packages[0] = packages[0].partition("search:")[2]
+        if search_text:
+            ##print '\n-> search text is set:', search_text
             self.available_pane.init_view()
-            self.available_pane.searchentry.set_text(" ".join(packages))
-            return
-
-        if len(packages) == 1:
-            request = packages[0]
-            print '\n\n\n=============================== show_available_packages (request)', request
-
-            # are we dealing with a path?
-            if os.path.exists(request) and not os.path.isdir(request):
-                if not request.startswith('/'):
-                # we may have been given a relative path
-                    request = os.path.join(os.getcwd(), request)
-                app = DebFileApplication(request)
-            else:
-                # package from archive
-                # if there is a "/" in the string consider it as tuple
-                # of (pkgname, appname) for exact matching (used by
-                # e.g. unity
-                (pkgname, sep, appname) = packages[0].partition("/")
-                app = Application(appname, pkgname)
-
-            print '\n\n\n=============================== show_available_packages (app?)', repr(app)
-
-            @wait_for_apt_cache_ready
-            def show_app(self, app):
-                # if the pkg is installed, show it in the installed pane
-                if (app.pkgname in self.cache and
-                    self.cache[app.pkgname].installed):
-                    with ExecutionTime("installed_pane.init_view()"):
-                        self.installed_pane.init_view()
-                    with ExecutionTime("installed_pane.show_app()"):
-                        self.installed_pane.show_app(app)
-                else:
-                    self.available_pane.init_view()
-                    self.available_pane.show_app(app)
-
+            self.available_pane.searchentry.set_text(search_text)
+        elif app is not None:
+            ##print '\n-> app is not None, showing it'
             self.show_app(app)
-            return
-        elif len(packages) > 1:
-            # turn multiple packages into a search with ","
-            self.available_pane.init_view()
-            self.available_pane.searchentry.set_text(",".join(packages))
-            return
-        # normal startup, show the lobby (it will have a spinner when
-        # its not ready yet) - it will also initialize the view
-        self.view_manager.set_active_view(ViewPages.AVAILABLE)
+        else:
+            ##print '\n-> app is None, setting self.view_manager to', ViewPages.AVAILABLE
+            # normal startup, show the lobby (it will have a spinner when
+            # its not ready yet) - it will also initialize the view
+            self.view_manager.set_active_view(ViewPages.AVAILABLE)
 
     def restore_state(self):
         if self.config.has_option("general", "size"):
