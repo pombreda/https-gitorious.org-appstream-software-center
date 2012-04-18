@@ -33,6 +33,7 @@ from softwarecenter.backend.login_sso import get_sso_backend
 from softwarecenter.backend.ubuntusso import get_ubuntu_sso_backend
 from softwarecenter.enums import SOFTWARE_CENTER_NAME_KEYRING
 from softwarecenter.utils import utf8
+from softwarecenter.netstatus import network_state_is_connected
 
 LOG = logging.getLogger(__name__)
 
@@ -220,6 +221,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
                                    SOFTWARE_CENTER_NAME_KEYRING,
                                    self.RECOMMENDATIONS_OPT_IN_TEXT)
         self.sso.connect("login-successful", self._maybe_login_successful)
+        self.sso.connect("login-failed", self._login_failed)
         self.sso.connect("login-canceled", self._login_canceled)
         self.sso.login_or_register()
 
@@ -241,7 +243,19 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
             self._upload_user_profile_and_get_recommendations()
 
     def _whoami_error(self, ssologin, e):
-        # if there is an error in the SSO whois, reset everything to the
+        self.spinner_notebook.hide_spinner()
+        if not network_state_is_connected():
+            # if there is an error in the SSO whois, first just check if we
+            # have network access and if we do no, just hide the panel
+            self._hide_recommended_for_you_panel()
+        else:
+            # an error that is not network related indicates that the user's
+            # token has likely been revoked or invalidated on the server, for
+            # this case we want to reset the user's opt-in status
+            self.opt_out_of_recommendations_service()
+        
+    def _login_failed(self, sso):
+        # if the user cancels out of the SSO dialog, reset everything to the
         # opt-in view state
         self.spinner_notebook.hide_spinner()
         self.opt_out_of_recommendations_service()
