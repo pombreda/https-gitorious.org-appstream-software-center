@@ -114,9 +114,10 @@ class SoftwareCenterMetadataPlugin:
             try:
                 distro = get_distro()
                 if distro:
-                    url = distro.get_downloadable_icon_url(ver.uri, icon)
+                    base_uri = ver.uri
                     # new python-apt returns None instead of StopIteration
-                    if url:
+                    if base_uri:
+                        url = distro.get_downloadable_icon_url(base_uri, icon)
                         document.add_value(XapianValues.ICON_URL, url)
             except StopIteration:
                 pass
