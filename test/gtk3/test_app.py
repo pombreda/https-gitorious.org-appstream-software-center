@@ -43,7 +43,6 @@ class ShowAvailablePackagesTestCase(AppTestCase):
     """Test suite for parsing and loading package lists."""
 
     installed = False
-    prefix = 'apt:'
 
     def setUp(self):
         super(ShowAvailablePackagesTestCase, self).setUp()
@@ -53,17 +52,28 @@ class ShowAvailablePackagesTestCase(AppTestCase):
         self.addCleanup(self.app.installed_pane.disconnect, cid)
         cid = self.app.available_pane.connect('available-pane-created',
                 partial(self.track_calls, 'available-pane-created'))
-        self.addCleanup(self.app.available_pane_pane.disconnect, cid)
+        self.addCleanup(self.app.available_pane.disconnect, cid)
 
-    def check_available_pane_shown(self, apps=None):
+    def transform_for_test(self, items):
+        """Do nothing, children will do interesting things."""
+        return items
+
+    def check_available_pane_shown(self, apps, items=None):
         """Check that the available_pane was shown."""
+        if items is None:
+            items = self.transform_for_test(apps)
+
+        self.app.show_available_packages(items)
+
         expected = [((self.app.available_pane,), {})]
         self.assertEqual(self.called, {'available-pane-created': expected})
 
-        if apps and len(apps) == 1:
+        if apps and len(apps) == 1 and apps[0]:
             app_name, = apps
             self.assertEqual(app_name,
                 self.app.available_pane.app_details_view.app_details.name)
+            self.assertEqual(PkgStates.NOT_FOUND,
+                self.app.available_pane.app_details_view.app_details.pkg_state)
         else:
             self.assertIsNone(
                 self.app.available_pane.app_details_view.app_details)
@@ -75,60 +85,34 @@ class ShowAvailablePackagesTestCase(AppTestCase):
             self.assertEqual('',
                 self.app.available_pane.searchentry.get_text())
 
-    def test_empty_string(self):
-        """Pass an empty string, show the 'available' view."""
-        self.app.show_available_packages('')
+    def test_empty(self):
+        """Pass an empty argument, show the 'available' view."""
+        self.check_available_pane_shown(apps=())
 
-        self.check_available_pane_shown()
+    def test_single_empty_item(self):
+        """Pass a single empty item, show the 'available' view."""
+        self.check_available_pane_shown(apps=('',))
 
-    def test_non_empty_string(self):
-        """Pass a non empty string, show the 'available' view."""
-        self.app.show_available_packages('foo')
+    def test_single_item(self):
+        """Pass a single item, show the 'available' view."""
         self.check_available_pane_shown(apps=('foo',))
 
-    def test_non_empty_string_with_package_separator(self):
-        """Pass a string with the package sep, show the 'available' view."""
-        self.app.show_available_packages('foo,bar')
+    def test_two_items(self):
+        """Pass two items, show the 'available' view."""
         self.check_available_pane_shown(apps=('foo', 'bar'))
 
-    def test_empty_sequence(self):
-        """Pass an empty sequence, show the 'available' view."""
-        self.app.show_available_packages(())
-        self.check_available_pane_shown()
-
-    def test_one_package(self):
-        """Pass one package, show the 'available' view."""
-        apps = ('foo',)
-        self.app.show_available_packages(apps)
-        self.check_available_pane_shown(apps)
-
-        self.assertEqual(PkgStates.NOT_FOUND,
-            self.app.available_pane.app_details_view.app_details.pkg_state)
-
-    def test_two_packages(self):
-        """Pass two packages, show the 'available' view."""
-        apps = ('foo', 'bar')
-        self.app.show_available_packages(apps)
-        self.check_available_pane_shown(apps)
-
-    def test_with_invalid_package_prefix(self):
-        """Pass a package with an invalid package prefix."""
-        apps = ('apt:/foo',)
-        self.app.show_available_packages(apps)
+    def test_item_with_invalid_prefix(self):
+        """Pass a item with an invalid item prefix."""
         # something in the Application construction layer is removing the
-        # expected '/' in the package name
-        self.check_available_pane_shown(apps=('foo',))
+        # expected '/' in the item name
+        self.check_available_pane_shown(apps=('foo',), items=('apt:/foo',))
 
-    def test_with_package_prefix(self):
-        """Pass a package with the package prefix."""
+    def test_item_with_prefix(self):
+        """Pass a item with the item prefix."""
         for prefix in ('apt:', 'apt://', 'apt:///'):
             for case in ('foo', 'apt:foo'):
-                self.app.show_available_packages((prefix + case,))
-                self.check_available_pane_shown(apps=(case,))
-
-                self.assertEqual(PkgStates.NOT_FOUND,
-                    self.app.available_pane.app_details_view.app_details.pkg_state)
-
+                self.check_available_pane_shown(apps=(case,),
+                                                items=(prefix + case,))
 
     # search:magicicada thunderbird firefox -> search for "magicicada thunderbird firefox"
     # magicicada thunderbird firefox -> search for "magicicada,thunderbird,firefox"
@@ -143,6 +127,13 @@ class ShowAvailablePackagesTestCase(AppTestCase):
     # search:/home/nessita/poll.py -> search for "/home/nessita/poll.py"
     # search:apt:/home/nessita/poll.py -> search for "apt:/home/nessita/poll.py"
 
+
+class ShowAvailablePackagesFromStringTestCase(ShowAvailablePackagesTestCase):
+    """Test suite for parsing and loading package lists."""
+
+    def transform_for_test(self, items):
+        """Transform a sequence into a comma separated string."""
+        return ','.join(items)
 
 
 if __name__ == "__main__":
