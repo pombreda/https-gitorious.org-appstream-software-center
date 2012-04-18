@@ -115,7 +115,9 @@ class SoftwareCenterMetadataPlugin:
                 distro = get_distro()
                 if distro:
                     url = distro.get_downloadable_icon_url(ver.uri, icon)
-                    document.add_value(XapianValues.ICON_URL, url)
+                    # new python-apt returns None instead of StopIteration
+                    if url:
+                        document.add_value(XapianValues.ICON_URL, url)
             except StopIteration:
                 pass
         if CustomKeys.SCREENSHOT_URLS in ver.record:
