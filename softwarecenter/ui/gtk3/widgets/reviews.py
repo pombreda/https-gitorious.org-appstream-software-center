@@ -683,7 +683,6 @@ class UIReview(Gtk.VBox):
         watcher.connect(
             "changed", lambda w, s: self._on_network_state_change())
 
-
     def _build_usefulness_ui(self, current_user_reviewer, useful_total,
                              useful_favorable, useful_votes,
                              usefulness_submit_error=False):
