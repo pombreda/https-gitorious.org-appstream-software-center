@@ -85,11 +85,10 @@ class GMenuSearcher(object):
             # retry search for app-install-data desktop files
             if not self._found and ":" in os.path.basename(desktop_file):
                 # the desktop files in app-install-data have a layout
-                # like "pkg:file.desktop" so we need to take that into 
+                # like "pkg:file.desktop" so we need to take that into
                 # account when searching
                 desktop_file = os.path.basename(desktop_file).split(":")[1]
                 self._search_gmenu_dir([root], desktop_file)
-                
             return self._found
 
 
