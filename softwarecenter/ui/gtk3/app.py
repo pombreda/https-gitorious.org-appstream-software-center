@@ -125,7 +125,8 @@ from gi.repository import Gdk
 
 LOG = logging.getLogger(__name__)
 # "apt:///" is a valid prefix for 'apt:pkgname' in alt+F2 in gnome
-PACKAGE_PREFIX_REGEX = re.compile('^apt:(?:/{2,3})*')
+PACKAGE_PREFIX = 'apt:'
+PACKAGE_PREFIX_REGEX = re.compile('^%s(?:/{2,3})*' % PACKAGE_PREFIX)
 SEARCH_PREFIX = 'search:'
 
 
@@ -145,11 +146,9 @@ class SoftwarecenterDbusController(dbus.service.Object):
                  object_path='/com/ubuntu/Softwarecenter'):
         dbus.service.Object.__init__(self, bus_name, object_path)
         self.parent = parent
-        self.bus_name = bus_name
 
     def stop(self):
         """ stop the dbus controller and remove from the bus """
-        self.bus_name.get_bus().release_name(self.bus_name.get_name())
         self.remove_from_connection()
 
     @dbus.service.method('com.ubuntu.SoftwarecenterIFace')
@@ -1286,14 +1285,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 items[0] = items[0].replace(SEARCH_PREFIX, '', 1)
                 search_text = SearchSeparators.REGULAR.join(items)
             else:
-                print '\n-> NO SEARCH show_available_packages', repr(search_text), items
                 # strip away the apt: prefix, if present
                 items[0] = re.sub(PACKAGE_PREFIX_REGEX, '', items[0])
                 if len(items) > 1:
                     # turn multiple packages into a search with ","
                     search_text = SearchSeparators.PACKAGE.join(items)
-
-        print '\n-> show_available_packages', repr(search_text), items
 
         app = None
         if not search_text and len(items) == 1:
@@ -1304,7 +1300,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 if not request.startswith('/'):
                 # we may have been given a relative path
                     request = os.path.join(os.getcwd(), request)
-                app = DebFileApplication(request)
+                try:
+                    app = DebFileApplication(request)
+                except ValueError:
+                    LOG.exception('show_available_packages: can not build a '
+                                  'DebFileApplication, forcing search:')
+                    search_text = request
             else:
                 # package from archive
                 # if there is a "/" in the string consider it as tuple
@@ -1315,10 +1316,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                     app = Application(appname, pkgname)
                 else:
                     LOG.warning('show_available_packages: received %r but '
-                                'can\'t build an Application from it.', request)
+                                'can not build an Application from it.',
+                                 request)
 
-        print '\n-> show_available_packages', repr(app)
-        print '------>\n\n'
+        LOG.info('show_available_packages: search_text is %r, app is %r.',
+                 search_text, app)
 
         if search_text:
             self.available_pane.init_view()

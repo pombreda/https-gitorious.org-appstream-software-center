@@ -162,6 +162,7 @@ class AppPropertiesHelper(GObject.GObject):
         if doc.installed is None:
             pkgname = self.get_pkgname(doc)
             doc.installed = (self.is_available(doc) and
+                             pkgname in self.cache and
                              self.cache[pkgname].is_installed)
         return doc.installed
 
