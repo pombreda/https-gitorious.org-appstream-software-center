@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import logging
 import os
 import unittest
 
@@ -10,7 +11,7 @@ from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.application import Application
-
+from softwarecenter.enums import PkgStates
 
 class TestWhereIsit(unittest.TestCase):
     """ tests the "where is it in the menu" code """
@@ -74,8 +75,20 @@ class TestWhereIsit(unittest.TestCase):
         self.assertEqual(found[1].get_icon().get_names()[0], 
                          "applications-utilities")
         
+    def test_where_is_it_real_system(self):
+        app = Application("", "gedit")
+        details = app.get_details(self.db)
+        if details.pkg_state != PkgStates.INSTALLED:
+            logging.warn("gedit not installed, skipping real menu test")
+            self.skipTest("gedit not installed")
+            return
+        self.assertEqual(details.desktop_file, 
+                         "/usr/share/app-install/desktop/gedit:gedit.desktop")
+        # search the *real* menu
+        searcher = GMenuSearcher()
+        found = searcher.get_main_menu_path(details.desktop_file)
+        self.assertNotEqual(found, None)
 
 if __name__ == "__main__":
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
     unittest.main()

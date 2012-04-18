@@ -343,6 +343,7 @@ def is_unity_running():
     """
     return True if Unity is currently running
     """
+    return False
     unity_running = False
     try:
         bus = dbus.SessionBus()
