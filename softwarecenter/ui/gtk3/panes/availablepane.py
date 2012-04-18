@@ -49,7 +49,8 @@ from softwarepane import SoftwarePane
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
 from softwarecenter.backend.unitylauncher import (UnityLauncher,
-                                                  UnityLauncherInfo)
+                                                  UnityLauncherInfo,
+                                                  TransactionDetails)
 
 LOG = logging.getLogger(__name__)
 
@@ -108,7 +109,9 @@ class AvailablePane(SoftwarePane):
 
         # integrate with the Unity launcher
         self.unity_launcher = UnityLauncher()
-
+        # keep track of applications that are queued to be added
+        # to the Unity launcher
+        self.unity_launcher_transaction_queue = {}
         # flag to indicate whether applications should be added to the
         # unity launcher when installed (this value is initialized by
         # the config load in app.py)
@@ -213,10 +216,14 @@ class AvailablePane(SoftwarePane):
             Gtk.Label(label=NavButtons.PURCHASE))
 
         # install backend
-        self.backend.connect("transactions-changed",
-            self._on_transactions_changed)
         self.backend.connect("transaction-started",
             self.on_transaction_started)
+        self.backend.connect("transactions-changed",
+            self.on_transactions_changed)
+        self.backend.connect("transaction-finished",
+            self.on_transaction_complete)
+        self.backend.connect("transaction-stopped",
+            self.on_transaction_complete)
 
         # now we are initialized
         self.searchentry.set_sensitive(True)
@@ -367,33 +374,42 @@ class AvailablePane(SoftwarePane):
 
         self.state.category = None
         self.state.subcategory = None
+        
+    def on_transaction_started(self, backend, pkgname, appname, trans_id,
+                               trans_type):
+        # we only care about installs for the launcher
+        if trans_type == TransactionTypes.INSTALL:
+            transaction_details = TransactionDetails(
+                    pkgname, appname, trans_id, trans_type)
+            self.unity_launcher_transaction_queue[pkgname] = (
+                    transaction_details)
 
-    def _on_transactions_changed(self, *args):
+    def on_transactions_changed(self, *args):
         """internal helper that keeps the action bar up-to-date by
            keeping track of the transaction-started signals
         """
         if self._is_custom_list_search(self.state.search_term):
             self._update_action_bar()
+        for pkgname in args[1]:
+            if pkgname in self.unity_launcher_transaction_queue:
+                transaction_details = (
+                    self.unity_launcher_transaction_queue.pop(pkgname))
+                self._add_application_to_unity_launcher(transaction_details)
 
-    def on_transaction_started(self, backend, pkgname, appname, trans_id,
-                               trans_type):
-        self._add_application_to_unity_launcher(
-                backend, pkgname, appname, trans_id, trans_type)
+    def on_transaction_complete(self, backend, result):
+        if result.pkgname in self.unity_launcher_transaction_queue:
+            self.unity_launcher_transaction_queue.pop(result.pkgname)
 
-    def _add_application_to_unity_launcher(self, backend, pkgname,
-                                           appname, trans_id,
-                                           trans_type):
+    def _add_application_to_unity_launcher(self, transaction_details):
         if not self.add_to_launcher_enabled:
             return
-        # mvo: use use softwarecenter.utils explictly so that we can monkey
+        # mvo: use use softwarecenter.utils explicitly so that we can monkey
         #      patch it in the test
         if not softwarecenter.utils.is_unity_running():
             return
-        # we only care about installs
-        if not trans_type == TransactionTypes.INSTALL:
-            return
 
-        app = Application(pkgname=pkgname, appname=appname)
+        app = Application(pkgname=transaction_details.pkgname,
+                          appname=transaction_details.appname)
         appdetails = app.get_details(self.db)
         # we only add items to the launcher that have a desktop file
         if not appdetails.desktop_file:
@@ -408,9 +424,10 @@ class AvailablePane(SoftwarePane):
         # now gather up the unity launcher info items and send the app to the
         # launcher service
         launcher_info = self._get_unity_launcher_info(app, appdetails,
-            trans_id)
-        self.unity_launcher.send_application_to_launcher(pkgname,
-            launcher_info)
+                transaction_details.trans_id)
+        self.unity_launcher.send_application_to_launcher(
+                transaction_details.pkgname,
+                launcher_info)
 
     def _get_unity_launcher_info(self, app, appdetails, trans_id):
         (icon_size, icon_x, icon_y) = (
