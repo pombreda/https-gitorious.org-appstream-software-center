@@ -44,7 +44,8 @@ class UnityLauncherInfo(GObject.GObject):
         self.icon_size = icon_size
         self.app_install_desktop_file_path = app_install_desktop_file_path
         self.trans_id = trans_id
-        
+
+
 class TransactionDetails(GObject.GObject):
     """ Simple class to keep track of aptdaemon transaction details for
         use with the Unity launcher integration
@@ -58,6 +59,7 @@ class TransactionDetails(GObject.GObject):
         self.appname = appname
         self.trans_id = trans_id
         self.trans_type = trans_type
+
 
 class UnityLauncher(GObject.GObject):
     """ Implements the integration between Software Center and the Unity

@@ -371,10 +371,9 @@ class AvailablePane(SoftwarePane):
         """ unset the current showing category, but keep e.g. the current
             search
         """
-
         self.state.category = None
         self.state.subcategory = None
-        
+
     def on_transaction_started(self, backend, pkgname, appname, trans_id,
                                trans_type):
         # we only care about installs for the launcher
