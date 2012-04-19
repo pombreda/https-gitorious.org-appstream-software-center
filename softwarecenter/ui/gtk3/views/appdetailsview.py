@@ -1913,7 +1913,9 @@ class AppDetailsView(Viewport):
                 self.pkg_statusbar.progress.set_fraction(progress / 100.0)
             if progress >= 100:
                 self.pkg_statusbar.progress.set_fraction(1)
-                self.adjustment_value = self.get_vadjustment().get_value()
+                adj = self.get_vadjustment()
+                if adj:
+                    self.adjustment_value = adj.get_value()
 
     def get_app_icon_details(self):
         """ helper for unity dbus support to provide details about the
