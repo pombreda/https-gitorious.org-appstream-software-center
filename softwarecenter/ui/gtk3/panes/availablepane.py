@@ -542,7 +542,9 @@ class AvailablePane(SoftwarePane):
             self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
 
         vm = get_viewmanager()
-        self.app_view.tree_view_scroll.get_vadjustment().set_value(0.0)
+        adj = self.app_view.tree_view_scroll.get_vadjustment()
+        if adj:
+            adj.set_value(0.0)
 
         # yeah for special cases - as discussed on irc, mpt
         # wants this to return to the category screen *if*
