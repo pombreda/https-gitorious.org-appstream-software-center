@@ -13,8 +13,10 @@ software-center (5.2.1) UNRELEASED; urgency=low
   * lp:~mvo/software-center/fix-gmenu-searcher:
     - fix the menu searcher for non-Unity configurations after
       the app-install-data-ubuntu file layout changed
+  * lp:~mvo/software-center/lp808455:
+    - trivial fix for crash on downstream distros (LP: #808455)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 19 Apr 2012 01:33:54 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 19 Apr 2012 01:39:39 -0400
 
 software-center (5.2) precise; urgency=low
 
