@@ -23,7 +23,7 @@ import logging
 LOG = logging.getLogger(__name__)
 
 
-class UnityLauncherInfo(GObject.GObject):
+class UnityLauncherInfo(object):
     """ Simple class to keep track of application details needed for
         Unity launcher integration
     """
@@ -46,7 +46,7 @@ class UnityLauncherInfo(GObject.GObject):
         self.trans_id = trans_id
 
 
-class TransactionDetails(GObject.GObject):
+class TransactionDetails(object):
     """ Simple class to keep track of aptdaemon transaction details for
         use with the Unity launcher integration
     """
@@ -61,7 +61,7 @@ class TransactionDetails(GObject.GObject):
         self.trans_type = trans_type
 
 
-class UnityLauncher(GObject.GObject):
+class UnityLauncher(object):
     """ Implements the integration between Software Center and the Unity
         launcher
     """
