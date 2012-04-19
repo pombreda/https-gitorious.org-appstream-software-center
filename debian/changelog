@@ -10,8 +10,15 @@ software-center (5.2.1) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp981992:
     - fix a crash in the new a11y code if there is a row that has
       no data or is not yet preloaded (LP: #981992)
+  * lp:~mvo/software-center/fix-gmenu-searcher:
+    - fix the menu searcher for non-Unity configurations after
+      the app-install-data-ubuntu file layout changed
+  * lp:~mvo/software-center/lp808455:
+    - trivial fix for crash on downstream distros (LP: #808455)
+  * lp:~mvo/software-center/lp927262:
+    - fix crash when get_vadjustment() returns None (LP: #927262)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 16 Apr 2012 15:04:03 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 19 Apr 2012 01:45:12 -0400
 
 software-center (5.2) precise; urgency=low
 

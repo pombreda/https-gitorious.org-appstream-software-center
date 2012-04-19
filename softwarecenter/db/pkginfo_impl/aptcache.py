@@ -234,6 +234,7 @@ class AptCache(PackageInfo):
     def open(self):
         """ (re)open the cache, this sends cache-invalid, cache-ready signals
         """
+        LOG.info("aptcache.open()")
         self._ready = False
         self.emit("cache-invalid")
         from softwarecenter.utils import ExecutionTime
