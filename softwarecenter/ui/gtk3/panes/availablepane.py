@@ -376,20 +376,23 @@ class AvailablePane(SoftwarePane):
 
     def on_transaction_started(self, backend, pkgname, appname, trans_id,
                                trans_type):
-        # we only care about installs for the launcher
+        # we only care about installs for the launcher, queue here for
+        # later, see #972710
         if trans_type == TransactionTypes.INSTALL:
             transaction_details = TransactionDetails(
                     pkgname, appname, trans_id, trans_type)
             self.unity_launcher_transaction_queue[pkgname] = (
                     transaction_details)
 
-    def on_transactions_changed(self, *args):
+    def on_transactions_changed(self, backend, pending_transactions):
         """internal helper that keeps the action bar up-to-date by
            keeping track of the transaction-started signals
         """
         if self._is_custom_list_search(self.state.search_term):
             self._update_action_bar()
-        for pkgname in args[1]:
+        # add app to unity launcher on the first sign of progress
+        # and remove from the pending queue once that is done
+        for pkgname in pending_transactions:
             if pkgname in self.unity_launcher_transaction_queue:
                 transaction_details = (
                     self.unity_launcher_transaction_queue.pop(pkgname))
@@ -558,7 +561,9 @@ class AvailablePane(SoftwarePane):
             self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
 
         vm = get_viewmanager()
-        self.app_view.tree_view_scroll.get_vadjustment().set_value(0.0)
+        adj = self.app_view.tree_view_scroll.get_vadjustment()
+        if adj:
+            adj.set_value(0.0)
 
         # yeah for special cases - as discussed on irc, mpt
         # wants this to return to the category screen *if*

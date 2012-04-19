@@ -176,12 +176,15 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                     'transaction-finished': (GObject.SIGNAL_RUN_FIRST,
                                              GObject.TYPE_NONE,
                                              (GObject.TYPE_PYOBJECT, )),
+                    # emits a TransactionFinished object
                     'transaction-stopped': (GObject.SIGNAL_RUN_FIRST,
                                             GObject.TYPE_NONE,
                                             (GObject.TYPE_PYOBJECT,)),
+                    # emits with a pending_transactions list object
                     'transactions-changed': (GObject.SIGNAL_RUN_FIRST,
                                              GObject.TYPE_NONE,
                                              (GObject.TYPE_PYOBJECT, )),
+                    # emits pkgname, percent
                     'transaction-progress-changed': (GObject.SIGNAL_RUN_FIRST,
                                                      GObject.TYPE_NONE,
                                                      (str, int,)),
@@ -406,6 +409,8 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             yield self._run_transaction(trans, None, None, None, metadata)
         except Exception as error:
             self._on_trans_error(error)
+        # note that the cache re-open will happen via the connected
+        # "transaction-finished" signal
 
     @inline_callbacks
     def enable_component(self, component):
