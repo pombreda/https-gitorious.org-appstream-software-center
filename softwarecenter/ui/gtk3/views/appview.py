@@ -200,8 +200,10 @@ class AppView(Gtk.VBox):
             model.set_from_matches(matches)
         self.set_model(model)
 
-        self.tree_view_scroll.get_vadjustment().set_lower(self.vadj)
-        self.tree_view_scroll.get_vadjustment().set_value(self.vadj)
+        adj = self.tree_view_scroll.get_vadjustment()
+        if adj:
+            adj.set_lower(self.vadj)
+            adj.set_value(self.vadj)
 
     def reset_default_sort_mode(self):
         """ force the appview to reset to the default sort method without
