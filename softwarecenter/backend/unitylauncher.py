@@ -16,13 +16,14 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from gi.repository import GObject
 import dbus
 import logging
 
 LOG = logging.getLogger(__name__)
 
 
-class UnityLauncherInfo(object):
+class UnityLauncherInfo(GObject.GObject):
     """ Simple class to keep track of application details needed for
         Unity launcher integration
     """
@@ -45,7 +46,22 @@ class UnityLauncherInfo(object):
         self.trans_id = trans_id
 
 
-class UnityLauncher(object):
+class TransactionDetails(GObject.GObject):
+    """ Simple class to keep track of aptdaemon transaction details for
+        use with the Unity launcher integration
+    """
+    def __init__(self,
+                 pkgname,
+                 appname,
+                 trans_id,
+                 trans_type):
+        self.pkgname = pkgname
+        self.appname = appname
+        self.trans_id = trans_id
+        self.trans_type = trans_type
+
+
+class UnityLauncher(GObject.GObject):
     """ Implements the integration between Software Center and the Unity
         launcher
     """

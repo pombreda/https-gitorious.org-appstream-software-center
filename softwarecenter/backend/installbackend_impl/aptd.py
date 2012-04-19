@@ -176,12 +176,15 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                     'transaction-finished': (GObject.SIGNAL_RUN_FIRST,
                                              GObject.TYPE_NONE,
                                              (GObject.TYPE_PYOBJECT, )),
+                    # emits a TransactionFinished object
                     'transaction-stopped': (GObject.SIGNAL_RUN_FIRST,
                                             GObject.TYPE_NONE,
                                             (GObject.TYPE_PYOBJECT,)),
+                    # emits with a pending_transactions list object
                     'transactions-changed': (GObject.SIGNAL_RUN_FIRST,
                                              GObject.TYPE_NONE,
                                              (GObject.TYPE_PYOBJECT, )),
+                    # emits pkgname, percent
                     'transaction-progress-changed': (GObject.SIGNAL_RUN_FIRST,
                                                      GObject.TYPE_NONE,
                                                      (str, int,)),
