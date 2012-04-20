@@ -427,13 +427,20 @@ def clear_token_from_ubuntu_sso(appname):
         DBUS_CREDENTIALS_IFACE,
         DBUS_CREDENTIALS_PATH,
         )
+    # clean
+    loop = GObject.MainLoop()
     bus = dbus.SessionBus()
     obj = bus.get_object(bus_name=DBUS_BUS_NAME,
                          object_path=DBUS_CREDENTIALS_PATH,
                          follow_name_owner_changes=True)
     proxy = dbus.Interface(object=obj,
                            dbus_interface=DBUS_CREDENTIALS_IFACE)
+    proxy.connect_to_signal("CredentialsCleared", loop.quit)
+    proxy.connect_to_signal("CredentialsNotFound", loop.quit)
+    proxy.connect_to_signal("CredentialsError", loop.quit)
     proxy.clear_credentials(appname, {})
+    # run the mainloop until the credentials are clear
+    loop.run()
 
 
 def get_nice_date_string(cur_t):

@@ -129,6 +129,10 @@ class TestSCUtils(unittest.TestCase):
         uuid = get_uuid()
         self.assertTrue(uuid and len(uuid) > 0)
 
+    def test_clear_credentials(self):
+        from softwarecenter.utils import clear_token_from_ubuntu_sso
+        res = clear_token_from_ubuntu_sso("fo")
+
     def test_make_string_from_list(self):
         from softwarecenter.utils import make_string_from_list
         base = "There was a problem posting this review to %s (omg!)"
