@@ -25,10 +25,15 @@ from gettext import gettext as _
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.containers import (FramedHeaderBox,
                                                        FlowableGrid)
+from softwarecenter.ui.gtk3.utils import get_parent_xid
 from softwarecenter.db.categories import (RecommendedForYouCategory,
                                           AppRecommendationsCategory)
 from softwarecenter.backend.recagent import RecommenderAgent
+from softwarecenter.backend.login_sso import get_sso_backend
+from softwarecenter.backend.ubuntusso import get_ubuntu_sso_backend
+from softwarecenter.enums import SOFTWARE_CENTER_NAME_KEYRING
 from softwarecenter.utils import utf8
+from softwarecenter.netstatus import network_state_is_connected
 
 LOG = logging.getLogger(__name__)
 
@@ -150,7 +155,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.set_header_label(_(u"Recommended For You"))
         self.recommended_for_you_content = None
         if self.recommender_agent.is_opted_in():
-            self._update_recommended_for_you_content()
+            self._try_sso_login()
         else:
             self._show_opt_in_view()
 
@@ -186,12 +191,13 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.opt_in_to_recommendations_service()
 
     def opt_in_to_recommendations_service(self):
+        # first we verify the ubuntu sso login/oath status, and if that is good
         # we upload the user profile here, and only after this is finished
         # do we fire the request for recommendations and finally display
         # them here -- a spinner is shown for this process (the spec
         # wants a progress bar, but we don't have access to real-time
         # progress info)
-        self._upload_user_profile_and_get_recommendations()
+        self._try_sso_login()
 
     def opt_out_of_recommendations_service(self):
         # tell the backend that the user has opted out
@@ -204,6 +210,65 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
         self.show_all()
         self.emit("recommendations-opt-out")
         self._disconnect_recommender_listeners()
+
+    def _try_sso_login(self):
+        # display the SSO login dialog if needed
+        # FIXME: consider improving the text in the SSO dialog, for now
+        #        we simply reuse the opt-in text from the panel since we
+        #        are well past string freeze
+        self.spinner_notebook.show_spinner()
+        self.sso = get_sso_backend(get_parent_xid(self),
+                                   SOFTWARE_CENTER_NAME_KEYRING,
+                                   self.RECOMMENDATIONS_OPT_IN_TEXT)
+        self.sso.connect("login-successful", self._maybe_login_successful)
+        self.sso.connect("login-failed", self._login_failed)
+        self.sso.connect("login-canceled", self._login_canceled)
+        self.sso.login_or_register()
+
+    def _maybe_login_successful(self, sso, oauth_result):
+        self.ssoapi = get_ubuntu_sso_backend()
+        self.ssoapi.connect("whoami", self._whoami_done)
+        self.ssoapi.connect("error", self._whoami_error)
+        # this will automatically verify the keyring token and retrigger
+        # login (once) if its expired
+        self.ssoapi.whoami()
+
+    def _whoami_done(self, ssologin, result):
+        # we are all squared up with SSO login, now we can proceed with the
+        # recommendations display, or the profile upload if this is an
+        # initial opt-in
+        if self.recommender_agent.is_opted_in():
+            self._update_recommended_for_you_content()
+        else:
+            self._upload_user_profile_and_get_recommendations()
+
+    def _whoami_error(self, ssologin, e):
+        self.spinner_notebook.hide_spinner()
+        # FIXME: there is a race condition here if the network state changed
+        #        between the call and this check, to fix this properly the
+        #        spawn_helper/piston-generic-helper will need to return
+        #        better error information though
+        if not network_state_is_connected():
+            # if there is an error in the SSO whois, first just check if we
+            # have network access and if we do no, just hide the panel
+            self._hide_recommended_for_you_panel()
+        else:
+            # an error that is not network related indicates that the user's
+            # token has likely been revoked or invalidated on the server, for
+            # this case we want to reset the user's opt-in status
+            self.opt_out_of_recommendations_service()
+        
+    def _login_failed(self, sso):
+        # if the user cancels out of the SSO dialog, reset everything to the
+        # opt-in view state
+        self.spinner_notebook.hide_spinner()
+        self.opt_out_of_recommendations_service()
+
+    def _login_canceled(self, sso):
+        # if the user cancels out of the SSO dialog, reset everything to the
+        # opt-in view state
+        self.spinner_notebook.hide_spinner()
+        self.opt_out_of_recommendations_service()
 
     def _upload_user_profile_and_get_recommendations(self):
         # initiate upload of the user profile here
