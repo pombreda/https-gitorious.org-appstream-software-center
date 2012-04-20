@@ -23,8 +23,16 @@ software-center (5.2.1) UNRELEASED; urgency=low
     - fix bug where an application will be added to the Unity launcher
       in the case where the user cancels the installation auth dialog
       (LP: #972710)
+  * lp:~gary-lasker/software-center/recommendations-sso-login-lp973612:
+    - fix bug where the recommendations opt-in panel is hidden if
+      the user declines the SSO dialog after opting in (LP: #973612)
+    - fix the user experience if the user has previously opted-in to
+      recommendations and their SSO token is found have been removed
+      or revoked or otherwise found to be invalid (LP: #967064)
+    - improve the responsiveness of the spinner in the recommendations
+      flow 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 19 Apr 2012 11:28:24 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 20 Apr 2012 18:21:18 -0400
 
 software-center (5.2) precise; urgency=low
 
