@@ -199,6 +199,7 @@ class UIReviewsList(Gtk.VBox):
                 pkgversion = self._parent.app_details.version
                 review = UIReview(r, pkgversion, self.logged_in_person,
                     self.useful_votes)
+                review.show_all()
                 self.vbox.pack_start(review, True, True, 0)
 
     def _be_the_first_to_review(self):
@@ -273,7 +274,6 @@ class UIReviewsList(Gtk.VBox):
         # always hide spinner and call _fill (fine if there is nothing to do)
         self.hide_spinner()
         self._fill()
-        self.vbox.show_all()
 
         if self.reviews:
             # adjust label if we have reviews
@@ -452,17 +452,10 @@ class UIReview(Gtk.VBox):
         self._allocation = None
 
         if review_data:
-        # when this is mapped, show/hide widgets that are network sensitive
-        # this ensures that even with show_all() we show the right stuff
-            self.connect('realize',
-                         self._on_realize,
-                         review_data,
-                         app_version,
-                         logged_in_person,
-                         useful_votes)
-
-    def _on_realize(self, widget, *content):
-        self._build(*content)
+            self._build(review_data,
+                        app_version,
+                        logged_in_person,
+                        useful_votes)
 
     def _on_report_abuse_clicked(self, button):
         reviews = self.get_ancestor(UIReviewsList)
@@ -738,14 +731,14 @@ class UIReview(Gtk.VBox):
         if network_state_is_connected():
             self.likebox.show()
             self.useful.show()
-            self.complain.show()
+            self.flagbox.show()
         else:
             self.likebox.hide()
             # we hide the useful box because if its there it says something
             # like "10 people found this useful. Did you?" but you can't
             # actually submit anything without network
             self.useful.hide()
-            self.complain.hide()
+            self.flagbox.hide()
 
     def _get_usefulness_label(self, current_user_reviewer,
                               useful_total, useful_favorable, already_voted):
@@ -839,7 +832,6 @@ class UIReview(Gtk.VBox):
                 # verb, it won't need a question mark.
                 self.complain = Link(m % _('Inappropriate?'))
                 self.complain.set_name("subtle-label")
-                self.complain.set_sensitive(network_state_is_connected())
                 self.flagbox.pack_start(self.complain, False, False, 0)
                 self.complain.connect('clicked', self._on_report_abuse_clicked)
             self.flagbox.show_all()

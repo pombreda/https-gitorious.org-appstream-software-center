@@ -1,3 +1,25 @@
+software-center (5.2.1) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/lp977179:
+    - make the review UI react correctly to conditions of network
+      availability (LP: #977179)
+  * lp:~mvo/software-center/fix-crash-deb-file-size-calc:
+    - fix crash when installing a deb file that is not found in
+      the current apt cache
+  * lp:~mvo/software-center/lp981992:
+    - fix a crash in the new a11y code if there is a row that has
+      no data or is not yet preloaded (LP: #981992)
+  * lp:~mvo/software-center/fix-gmenu-searcher:
+    - fix the menu searcher for non-Unity configurations after
+      the app-install-data-ubuntu file layout changed
+  * lp:~mvo/software-center/lp808455:
+    - trivial fix for crash on downstream distros (LP: #808455)
+  * lp:~mvo/software-center/lp927262:
+    - fix crash when get_vadjustment() returns None (LP: #927262)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 19 Apr 2012 01:45:12 -0400
+
 software-center (5.2) precise; urgency=low
 
   [ Michael Vogt ]
