@@ -108,7 +108,7 @@ class ShowPackagesTestCase(AppTestCase):
         self.app.show_available_packages(items)
 
         expected = [((self.app.available_pane,), {})]
-        self.assertEqual(self.called, {'available-pane-created': expected})
+        self.assertEqual(self.called, {'pane-created': expected})
 
         self.assertEqual(SearchSeparators.REGULAR.join(apps),
             self.app.available_pane.searchentry.get_text())
@@ -168,6 +168,8 @@ class ShowPackagesAptTestCase(ShowPackagesTestCase):
                 mock_cache_entry.installed = Mock()
                 mock_cache_entry.installed.version = '0.90'
                 mock_cache_entry.installed.installed_size = 0
+            else:
+                mock_cache_entry.installed = None
 
             self.app.cache[self.pkg_name] = mock_cache_entry
             self.addCleanup(self.app.cache.pop, self.pkg_name)

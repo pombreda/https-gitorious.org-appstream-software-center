@@ -144,7 +144,8 @@ class AppView(Gtk.VBox):
         return combo
 
     def _get_combo_children(self):
-        return len(self.sort_methods_combobox.get_model())
+        model = self.sort_methods_combobox.get_model()
+        return len(model) if model is not None else None
 
     def _use_combobox_with_sort_by_search_ranking(self):
         if self._get_combo_children() == 4:
@@ -200,8 +201,10 @@ class AppView(Gtk.VBox):
             model.set_from_matches(matches)
         self.set_model(model)
 
-        self.tree_view_scroll.get_vadjustment().set_lower(self.vadj)
-        self.tree_view_scroll.get_vadjustment().set_value(self.vadj)
+        adjustment = self.tree_view_scroll.get_vadjustment()
+        if adjustment:
+            adjustment.set_lower(self.vadj)
+            adjustment.set_value(self.vadj)
 
     def reset_default_sort_mode(self):
         """ force the appview to reset to the default sort method without
