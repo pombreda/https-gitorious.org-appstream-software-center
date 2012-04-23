@@ -112,8 +112,13 @@ class SoftwareCenterMetadataPlugin:
             # calculate the url and add it (but only if there actually is
             # a url)
             try:
-                url = get_distro().get_downloadable_icon_url(ver.uri, icon)
-                document.add_value(XapianValues.ICON_URL, url)
+                distro = get_distro()
+                if distro:
+                    base_uri = ver.uri
+                    # new python-apt returns None instead of StopIteration
+                    if base_uri:
+                        url = distro.get_downloadable_icon_url(base_uri, icon)
+                        document.add_value(XapianValues.ICON_URL, url)
             except StopIteration:
                 pass
         if CustomKeys.SCREENSHOT_URLS in ver.record:
