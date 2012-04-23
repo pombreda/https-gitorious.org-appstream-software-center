@@ -123,7 +123,8 @@ class DisplayState(object):
         self.search_term = ""
         self.application = None
         self.limit = 0
-        #~ self.filter = None
+        if self.filter:
+            self.filter.reset()
         self.vadjustment = 0.0
 
 

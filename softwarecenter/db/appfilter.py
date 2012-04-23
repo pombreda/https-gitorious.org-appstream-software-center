@@ -115,3 +115,10 @@ class AppFilter(xapian.MatchDecider):
         new_filter.not_installed_only = self.not_installed_only
         new_filter.restricted_list = self.restricted_list
         return new_filter
+    
+    def reset(self):
+        """ reset the values that are not global """
+        self.avilable_only = False
+        self.installed_only = False
+        self.not_installed_only = False
+        self.restricted_list = False
