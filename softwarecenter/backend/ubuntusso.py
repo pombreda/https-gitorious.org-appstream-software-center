@@ -54,7 +54,7 @@ class UbuntuSSOAPI(GObject.GObject):
     def _on_whoami_data(self, spawner, piston_whoami):
         self.emit("whoami", piston_whoami)
 
-    def whoami(self):
+    def whoami(self, no_relogin=False):
         """ trigger request for the getting account information, this
             will also verify if the current token is valid and if not
             trigger a cleanup/re-authenticate
@@ -64,6 +64,7 @@ class UbuntuSSOAPI(GObject.GObject):
         spawner.connect("data-available", self._on_whoami_data)
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
         spawner.needs_auth = True
+        spawner.no_relogin = no_relogin
         spawner.run_generic_piston_helper("UbuntuSsoAPI", "whoami")
 
 
