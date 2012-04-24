@@ -59,7 +59,7 @@ from softwarecenter.i18n import get_language
 from softwarecenter.ui.gtk3.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.ui.gtk3.dialogs import SimpleGtkbuilderDialog
 from softwarecenter.ui.gtk3.widgets.stars import ReactiveStar
-from softwarecenter.utils import make_string_from_list
+from softwarecenter.utils import make_string_from_list, utf8
 
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.piston.rnrclient_pristine import ReviewRequest
@@ -725,9 +725,10 @@ class SubmitReviewsApp(BaseApp):
         self.review_appicon.set_from_pixbuf(icon)
 
         # title
-        m = '<b><span size="x-large">%s</span></b>\n%s'
-        self.review_title.set_markup(m % (
-                gettext.dgettext("app-install-data", app.name), version))
+        app = utf8(gettext.dgettext("app-install-data", app.name))
+        version = utf8(version)
+        self.review_title.set_markup(
+            '<b><span size="x-large">%s</span></b>\n%s' % (app, version))
 
         # review label
         self.review_label.set_markup(_('Review by: %s') %
@@ -974,7 +975,7 @@ class SubmitReviewsApp(BaseApp):
         """ little helper to facilitate posting message to twitter account
             passed in
         """
-        status_text = _("Posting to %s") % account['service'].capitalize()
+        status_text = _("Posting to %s") % utf8(account['service'].capitalize())
         self._change_status("progress", status_text)
         return self.gwibber_helper.send_message(msg, account['id'])
 
