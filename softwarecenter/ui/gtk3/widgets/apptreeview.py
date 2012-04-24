@@ -63,17 +63,13 @@ class AppTreeView(Gtk.TreeView):
 
         self.set_headers_visible(False)
 
-        # a11y: this is a cell renderer that only displays a icon, but still
-        #       has a markup property for orca and friends
-        # we use it so that orca and other a11y tools get proper text to read
-        # it needs to be the first one, because that is what the tools look
-        # at by default
-        tr = CellRendererAppView(icons,
+        # our custom renderer
+        self._renderer = CellRendererAppView(icons,
                                  self.create_pango_layout(''),
                                  show_ratings,
                                  Icons.INSTALLED_OVERLAY)
-        tr.set_pixbuf_width(32)
-        tr.set_button_spacing(em(0.3))
+        self._renderer.set_pixbuf_width(32)
+        self._renderer.set_button_spacing(em(0.3))
 
         # create buttons and set initial strings
         info = CellButtonRenderer(self,
@@ -89,37 +85,43 @@ class AppTreeView(Gtk.TreeView):
                  self.VARIANT_REMOVE: _('Remove'),
                  self.VARIANT_PURCHASE: _(u'Buy\u2026')})
 
-        tr.button_pack_start(info)
-        tr.button_pack_end(action)
+        self._renderer.button_pack_start(info)
+        self._renderer.button_pack_end(action)
 
-        column = Gtk.TreeViewColumn("Applications", tr,
-                                    application=AppGenericStore.COL_ROW_DATA)
-        column.set_cell_data_func(tr, self._cell_data_func_cb)
-        column.set_fixed_width(200)
-        column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
-        self.append_column(column)
+        self._column = Gtk.TreeViewColumn(
+            "Applications", self._renderer,
+            application=AppGenericStore.COL_ROW_DATA)
+        self._column.set_cell_data_func(
+            self._renderer, self._cell_data_func_cb)
+        self._column.set_fixed_width(200)
+        self._column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+        self.append_column(self._column)
 
         # network status watcher
         watcher = get_network_watcher()
-        watcher.connect("changed", self._on_net_state_changed, tr)
+        watcher.connect("changed", self._on_net_state_changed, self._renderer)
 
         # custom cursor
         self._cursor_hand = Gdk.Cursor.new(Gdk.CursorType.HAND2)
 
-        self.connect("style-updated", self._on_style_updated, tr)
+        self.connect("style-updated", self._on_style_updated, self._renderer)
         # button and motion are "special"
-        self.connect("button-press-event", self._on_button_press_event, tr)
-        self.connect("button-release-event", self._on_button_release_event, tr)
-        self.connect("key-press-event", self._on_key_press_event, tr)
-        self.connect("key-release-event", self._on_key_release_event, tr)
-        self.connect("motion-notify-event", self._on_motion, tr)
-        self.connect("cursor-changed", self._on_cursor_changed, tr)
+        self.connect("button-press-event", self._on_button_press_event, 
+                     self._renderer)
+        self.connect("button-release-event", self._on_button_release_event, 
+                     self._renderer)
+        self.connect("key-press-event", self._on_key_press_event, 
+                     self._renderer)
+        self.connect("key-release-event", self._on_key_release_event, 
+                     self._renderer)
+        self.connect("motion-notify-event", self._on_motion, self._renderer)
+        self.connect("cursor-changed", self._on_cursor_changed, self._renderer)
         # our own "activate" handler
-        self.connect("row-activated", self._on_row_activated, tr)
+        self.connect("row-activated", self._on_row_activated, self._renderer)
 
         self.backend = get_install_backend()
         self._transactions_connected = False
-        self.connect('realize', self._on_realize, tr)
+        self.connect('realize', self._on_realize, self._renderer)
 
     @property
     def appmodel(self):
@@ -143,6 +145,15 @@ class AppTreeView(Gtk.TreeView):
             self.set_model(None)
             model.clear()
             self.set_model(model)
+
+    def set_model(self, model):
+        # the set_cell_data_func() calls here are a workaround for bug
+        # LP: #986186 - once that is fixed upstream we can revert this
+        # and remove the entire "set_model" again
+        self._column.set_cell_data_func(self._renderer, None)
+        Gtk.TreeView.set_model(self, model)
+        self._column.set_cell_data_func(
+            self._renderer, self._cell_data_func_cb)
 
     def expand_path(self, path):
         if path is not None and not isinstance(path, Gtk.TreePath):
