@@ -975,7 +975,7 @@ class SubmitReviewsApp(BaseApp):
         """ little helper to facilitate posting message to twitter account
             passed in
         """
-        status_text = _("Posting to %s") % account['service'].capitalize()
+        status_text = _("Posting to %s") % utf8(account['service'].capitalize())
         self._change_status("progress", status_text)
         return self.gwibber_helper.send_message(msg, account['id'])
 
