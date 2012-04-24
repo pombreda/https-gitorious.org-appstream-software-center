@@ -28,6 +28,7 @@ from apt.utils import (get_release_filename_for_pkg,
 from gettext import gettext as _
 from softwarecenter.distro.Debian import Debian
 from softwarecenter.enums import BUY_SOMETHING_HOST
+from softwarecenter.utils import utf8
 
 LOG = logging.getLogger(__name__)
 
@@ -89,7 +90,7 @@ class Ubuntu(Debian):
 
     def get_removal_warning_text(self, cache, pkg, appname, depends):
         primary = _("To remove %s, these items must be removed "
-                    "as well:") % appname
+                    "as well:") % utf8(appname)
         button_text = _("Remove All")
 
         # alter it if a meta-package is affected
