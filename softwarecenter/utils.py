@@ -421,7 +421,7 @@ def convert_desktop_file_to_installed_location(app_install_data_file_path,
 def clear_token_from_ubuntu_sso_sync(appname):
     """ send a dbus signal to the com.ubuntu.sso service to clear
         the credentials for the given appname, e.g. _("Ubuntu Software Center")
-        and wait for it to finish
+        and wait for it to finish (or 2s)
     """
     from ubuntu_sso import (
         DBUS_BUS_NAME,
@@ -440,6 +440,8 @@ def clear_token_from_ubuntu_sso_sync(appname):
     proxy.connect_to_signal("CredentialsNotFound", loop.quit)
     proxy.connect_to_signal("CredentialsError", loop.quit)
     proxy.clear_credentials(appname, {})
+    # ensure we don't hang forever here
+    GObject.timeout_add_seconds(2, loop.quit)
     # run the mainloop until the credentials are clear
     loop.run()
 
