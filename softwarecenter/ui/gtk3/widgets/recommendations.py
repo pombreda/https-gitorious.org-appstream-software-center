@@ -244,6 +244,10 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
 
     def _whoami_error(self, ssologin, e):
         self.spinner_notebook.hide_spinner()
+        # FIXME: there is a race condition here if the network state changed
+        #        between the call and this check, to fix this properly the
+        #        spawn_helper/piston-generic-helper will need to return
+        #        better error information though
         if not network_state_is_connected():
             # if there is an error in the SSO whois, first just check if we
             # have network access and if we do no, just hide the panel
@@ -253,7 +257,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
             # token has likely been revoked or invalidated on the server, for
             # this case we want to reset the user's opt-in status
             self.opt_out_of_recommendations_service()
-        
+
     def _login_failed(self, sso):
         # if the user cancels out of the SSO dialog, reset everything to the
         # opt-in view state

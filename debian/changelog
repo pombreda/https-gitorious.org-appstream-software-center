@@ -17,8 +17,34 @@ software-center (5.2.1) UNRELEASED; urgency=low
     - trivial fix for crash on downstream distros (LP: #808455)
   * lp:~mvo/software-center/lp927262:
     - fix crash when get_vadjustment() returns None (LP: #927262)
+  * lp:~mvo/software-center/utf8-fixes:
+    - fix various utf8-related crashes (LP: #943500, LP: #922225,
+      LP: #917755)
+  * lp:~mvo/software-center/gwibber-utf8-lp985255:
+    - fix a utf8 crash in the gwibber integration (LP: #985255)
+  * lp:~mvo/software-center/workaround-gtk-regression-lp986186:
+    - workaround performance issue with the Gtk.TreeView.set_model()
+      call when there is a cell_data_func attached. Not every user is
+      affected (settings dependant somehow), but when affected it causes
+      a massive performance degration for huge list models like "System"
+      (LP: #986186). This branch works around the problem by disconnecting
+      the cell_data_func before setting the new model.
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 19 Apr 2012 01:45:12 -0400
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/add-to-launcher-after-auth-lp972710:
+    - fix bug where an application will be added to the Unity launcher
+      in the case where the user cancels the installation auth dialog
+      (LP: #972710)
+  * lp:~gary-lasker/software-center/recommendations-sso-login-lp973612:
+    - fix bug where the recommendations opt-in panel is hidden if
+      the user declines the SSO dialog after opting in (LP: #973612)
+    - fix the user experience if the user has previously opted-in to
+      recommendations and their SSO token is found have been removed
+      or revoked or otherwise found to be invalid (LP: #967064)
+    - improve the responsiveness of the spinner in the recommendations
+      flow 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 24 Apr 2012 10:18:08 -0400
 
 software-center (5.2) precise; urgency=low
 
