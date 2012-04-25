@@ -51,7 +51,7 @@ from softwarecenter.enums import (SOFTWARE_CENTER_NAME_KEYRING,
                                   SOFTWARE_CENTER_SSO_DESCRIPTION,
                                   )
                                   
-from softwarecenter.utils import clear_token_from_ubuntu_sso
+from softwarecenter.utils import clear_token_from_ubuntu_sso_sync
 
 # the piston import
 from softwarecenter.backend.piston.ubuntusso_pristine import UbuntuSsoAPI
@@ -112,7 +112,7 @@ class SSOLoginHelper(object):
         return len(res) > 0
 
     def clear_token(self):
-        clear_token_from_ubuntu_sso(SOFTWARE_CENTER_NAME_KEYRING)
+        clear_token_from_ubuntu_sso_sync(SOFTWARE_CENTER_NAME_KEYRING)
 
     def get_oauth_token_sync(self):
         self.oauth = None

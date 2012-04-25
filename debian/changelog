@@ -29,6 +29,9 @@ software-center (5.2.1) UNRELEASED; urgency=low
       a massive performance degration for huge list models like "System"
       (LP: #986186). This branch works around the problem by disconnecting
       the cell_data_func before setting the new model.
+  * lp:~mvo/software-center/fix-clear-credentials-race:
+    - fix an incorrect use of the sso dbus backend, we now correctly
+      wait until it emits a CredentialsCleared signal (LP: #986117)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/add-to-launcher-after-auth-lp972710:
@@ -44,7 +47,7 @@ software-center (5.2.1) UNRELEASED; urgency=low
     - improve the responsiveness of the spinner in the recommendations
       flow 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 24 Apr 2012 10:18:08 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 25 Apr 2012 18:06:09 -0400
 
 software-center (5.2) precise; urgency=low
 

@@ -15,6 +15,7 @@ from softwarecenter.utils import (decode_xml_char_reference,
                                   release_filename_in_lists_from_deb_line,
                                   get_http_proxy_string_from_libproxy,
                                   )
+from softwarecenter.testutils import do_events
 
 
 class TestSCUtils(unittest.TestCase):
@@ -128,6 +129,11 @@ class TestSCUtils(unittest.TestCase):
         from softwarecenter.utils import get_uuid
         uuid = get_uuid()
         self.assertTrue(uuid and len(uuid) > 0)
+
+    def test_clear_credentials(self):
+        from softwarecenter.utils import clear_token_from_ubuntu_sso_sync
+        res = clear_token_from_ubuntu_sso_sync("fo")
+        do_events()
 
     def test_make_string_from_list(self):
         from softwarecenter.utils import make_string_from_list
