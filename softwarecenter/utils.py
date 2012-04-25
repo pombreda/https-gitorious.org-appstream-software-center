@@ -418,9 +418,10 @@ def convert_desktop_file_to_installed_location(app_install_data_file_path,
     return ""
 
 
-def clear_token_from_ubuntu_sso(appname):
+def clear_token_from_ubuntu_sso_sync(appname):
     """ send a dbus signal to the com.ubuntu.sso service to clear
         the credentials for the given appname, e.g. _("Ubuntu Software Center")
+        and wait for it to finish
     """
     from ubuntu_sso import (
         DBUS_BUS_NAME,

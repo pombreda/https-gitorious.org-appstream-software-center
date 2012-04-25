@@ -130,8 +130,8 @@ class TestSCUtils(unittest.TestCase):
         self.assertTrue(uuid and len(uuid) > 0)
 
     def test_clear_credentials(self):
-        from softwarecenter.utils import clear_token_from_ubuntu_sso
-        res = clear_token_from_ubuntu_sso("fo")
+        from softwarecenter.utils import clear_token_from_ubuntu_sso_sync
+        res = clear_token_from_ubuntu_sso_sync("fo")
 
     def test_make_string_from_list(self):
         from softwarecenter.utils import make_string_from_list
