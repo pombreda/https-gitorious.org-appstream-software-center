@@ -127,7 +127,8 @@ class Application(object):
 
     # special methods
     def __hash__(self):
-        return ("%s:%s" % (self.appname, self.pkgname)).__hash__()
+        return utf8("%s:%s" % (
+                utf8(self.appname), utf8(self.pkgname))).__hash__()
 
     def __cmp__(self, other):
         return self.apps_cmp(self, other)
