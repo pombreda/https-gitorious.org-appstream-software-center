@@ -811,6 +811,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             installed_purchases)
         if deauthorize:
             # clear the ubuntu SSO token for this account
+            # FIXME: as this is a sync call it maybe slow so we should
+            #        probably provide a async() version of this as well
             clear_token_from_ubuntu_sso_sync(SOFTWARE_CENTER_NAME_KEYRING)
 
             # uninstall the list of purchased packages
