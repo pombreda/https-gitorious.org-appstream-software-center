@@ -146,6 +146,14 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
     TURN_ON_RECOMMENDATIONS_TEXT = _(u"Turn On Recommendations")
     RECOMMENDATIONS_OPT_IN_TEXT = _(u"To make recommendations, "
                  "Ubuntu Software Center "
+                 "will occasionally send to Canonical a list "
+                 "of software currently installed.")
+    # FIXME: The following unused string can be removed after the transition
+    #        to the new string has had enough time to take effect
+    # TRANSLATORS: please ignore the following string as it it just there for
+    #              a transition to the updated string above
+    UNUSED_RECOMMENDATIONS_OPT_IN_TEXT = _(u"To make recommendations, "
+                 "Ubuntu Software Center "
                  "will occasionally send to Canonical an anonymous list "
                  "of software currently installed.")
 
