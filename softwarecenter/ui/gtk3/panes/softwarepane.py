@@ -369,23 +369,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
             self.action_bar.set_label(
                         label, link_result=self._show_nonapp_pkgs)
 
-    def _on_label_app_list_header_activate_link(self, link, uri):
-        #print "actiavte: ", link, uri
-        if uri.startswith("search:"):
-            self.searchentry.set_text(uri[len("search:"):])
-        elif uri.startswith("search-all:"):
-            self.unset_current_category()
-            self.refresh_apps()
-        elif uri.startswith("search-parent:"):
-            self.apps_subcategory = None
-            self.refresh_apps()
-        elif uri.startswith("search-unsupported:"):
-            self.apps_filter.set_supported_only(False)
-            self.refresh_apps()
-        # FIXME: add ability to remove categories restriction here
-        # True stops event propergation
-        return True
-
     def _show_nonapp_pkgs(self):
         self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
         self.refresh_apps()
