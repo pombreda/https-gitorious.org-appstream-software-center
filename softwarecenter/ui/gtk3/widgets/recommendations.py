@@ -148,6 +148,12 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
                  "Ubuntu Software Center "
                  "will occasionally send to Canonical a list "
                  "of software currently installed.")
+    # TRANSLATORS: please ignore the following string as it it just there for
+    #              a transition to the updated string
+    UNUSED_RECOMMENDATIONS_OPT_IN_TEXT = _(u"To make recommendations, "
+                 "Ubuntu Software Center "
+                 "will occasionally send to Canonical an anonymous list "
+                 "of software currently installed.")
 
     def __init__(self, catview):
         RecommendationsPanel.__init__(self, catview)
