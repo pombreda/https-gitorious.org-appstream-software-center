@@ -22,6 +22,13 @@ software-center (5.2.1) UNRELEASED; urgency=low
       LP: #917755)
   * lp:~mvo/software-center/gwibber-utf8-lp985255:
     - fix a utf8 crash in the gwibber integration (LP: #985255)
+  * lp:~mvo/software-center/workaround-gtk-regression-lp986186:
+    - workaround performance issue with the Gtk.TreeView.set_model()
+      call when there is a cell_data_func attached. Not every user is
+      affected (settings dependant somehow), but when affected it causes
+      a massive performance degration for huge list models like "System"
+      (LP: #986186). This branch works around the problem by disconnecting
+      the cell_data_func before setting the new model.
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/add-to-launcher-after-auth-lp972710:
