@@ -418,22 +418,32 @@ def convert_desktop_file_to_installed_location(app_install_data_file_path,
     return ""
 
 
-def clear_token_from_ubuntu_sso(appname):
+def clear_token_from_ubuntu_sso_sync(appname):
     """ send a dbus signal to the com.ubuntu.sso service to clear
         the credentials for the given appname, e.g. _("Ubuntu Software Center")
+        and wait for it to finish (or 2s)
     """
     from ubuntu_sso import (
         DBUS_BUS_NAME,
         DBUS_CREDENTIALS_IFACE,
         DBUS_CREDENTIALS_PATH,
         )
+    # clean
+    loop = GObject.MainLoop()
     bus = dbus.SessionBus()
     obj = bus.get_object(bus_name=DBUS_BUS_NAME,
                          object_path=DBUS_CREDENTIALS_PATH,
                          follow_name_owner_changes=True)
     proxy = dbus.Interface(object=obj,
                            dbus_interface=DBUS_CREDENTIALS_IFACE)
+    proxy.connect_to_signal("CredentialsCleared", loop.quit)
+    proxy.connect_to_signal("CredentialsNotFound", loop.quit)
+    proxy.connect_to_signal("CredentialsError", loop.quit)
     proxy.clear_credentials(appname, {})
+    # ensure we don't hang forever here
+    GObject.timeout_add_seconds(2, loop.quit)
+    # run the mainloop until the credentials are clear
+    loop.run()
 
 
 def get_nice_date_string(cur_t):
