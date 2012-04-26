@@ -257,7 +257,7 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
             # token has likely been revoked or invalidated on the server, for
             # this case we want to reset the user's opt-in status
             self.opt_out_of_recommendations_service()
-        
+
     def _login_failed(self, sso):
         # if the user cancels out of the SSO dialog, reset everything to the
         # opt-in view state
