@@ -132,7 +132,7 @@ class TestSCUtils(unittest.TestCase):
 
     def test_clear_credentials(self):
         from softwarecenter.utils import clear_token_from_ubuntu_sso_sync
-        res = clear_token_from_ubuntu_sso_sync("fo")
+        clear_token_from_ubuntu_sso_sync("fo")
         do_events()
 
     def test_make_string_from_list(self):
