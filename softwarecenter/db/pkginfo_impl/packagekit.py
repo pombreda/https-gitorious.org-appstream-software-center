@@ -116,8 +116,8 @@ class PackagekitInfo(PackageInfo):
 
     def __init__(self):
         super(PackagekitInfo, self).__init__()
-        self.client = packagekit.Client()
-        self.client.set_locale(make_locale_string())
+        self.pktask = packagekit.Task()
+        self.pktask.set_locale(make_locale_string())
         self._cache_pkg_filter_none = {} # temporary hack for decent testing
         self._cache_pkg_filter_newest = {} # temporary hack for decent testing
         self._cache_details = {} # temporary hack for decent testing
@@ -136,7 +136,7 @@ class PackagekitInfo(PackageInfo):
         ids = [p.get_id() for p in batch]
 
         try:
-            result = self.client.get_details(ids, None, self._on_progress_changed, None)
+            result = self.pktask.get_details(ids, None, self._on_progress_changed, None)
             details = result.get_details_array()
         except GObject.GError as e:
             LOG.info('Cannot get details when prefilling cache cache: %s' % e)
@@ -163,9 +163,9 @@ class PackagekitInfo(PackageInfo):
             # MaximumItemsToResolve in /etc/PackageKit.conf.
             # If the configuration is changed to a lower value, this will
             # fail badly...
-            for i in xrange(0, len(wanted_pkgs), 100):
+            for i in xrange(0, len(wanted_pkgs), 3000):
                 try:
-                    result = self.client.resolve(pfilter, wanted_pkgs[i:i+100], None, self._on_progress_changed, None)
+                    result = self.pktask.resolve(pfilter, wanted_pkgs[i:i+100], None, self._on_progress_changed, None)
                     newpkgs = result.get_package_array()
                     pkgs.extend(newpkgs)
                 except GObject.GError as e:
@@ -173,7 +173,7 @@ class PackagekitInfo(PackageInfo):
 
         else:
             try:
-                result = self.client.get_packages(pfilter, None, self._on_progress_changed, None)
+                result = self.pktask.get_packages(pfilter, None, self._on_progress_changed, None)
                 pkgs = result.get_package_array()
             except GObject.GError as e:
                 LOG.info('Cannot prefill cache: %s' % e)
@@ -256,7 +256,7 @@ class PackagekitInfo(PackageInfo):
         p = self._get_one_package(pkgname)
         if not p:
             return []
-        res = self.client.get_files((p.get_id(),), None, self._on_progress_changed, None)
+        res = self.pktask.get_files((p.get_id(),), None, self._on_progress_changed, None)
         files = res.get_files_array()
         if not files:
             return []
@@ -319,7 +319,7 @@ class PackagekitInfo(PackageInfo):
         if not p:
             return []
         autoremove = False
-        res = self.client.simulate_remove_packages((p.package.get_id(),),
+        res = self.pktask.simulate_remove_packages((p.package.get_id(),),
                                             autoremove, None,
                                             self._on_progress_changed, None,
         )
@@ -333,7 +333,7 @@ class PackagekitInfo(PackageInfo):
         p = self.get_candidate(pkg.name)
         if not p:
             return []
-        res = self.client.simulate_install_packages((p.package.get_id(),),
+        res = self.pktask.simulate_install_packages((p.package.get_id(),),
                                             None,
                                             self._on_progress_changed, None,
         )
@@ -377,7 +377,7 @@ class PackagekitInfo(PackageInfo):
             return self._cache_details[packageid]
 
         try:
-            result = self.client.get_details((packageid,), None, self._on_progress_changed, None)
+            result = self.pktask.get_details((packageid,), None, self._on_progress_changed, None)
         except GObject.GError as e:
             return None
 
@@ -419,7 +419,7 @@ class PackagekitInfo(PackageInfo):
         pfilter |= 1 << packagekit.FilterEnum.NOT_SOURCE
 
         try:
-            result = self.client.resolve(pfilter,
+            result = self.pktask.resolve(pfilter,
                                          (pkgname,),
                                          None,
                                          self._on_progress_changed, None
@@ -440,7 +440,7 @@ class PackagekitInfo(PackageInfo):
             return self._repocache
 
         pfilter = 1 << pfilter
-        result = self.client.get_repo_list(pfilter,
+        result = self.pktask.get_repo_list(pfilter,
                                            None,
                                            self._on_progress_changed, None)
         repos = result.get_repo_detail_array()
