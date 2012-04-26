@@ -2,6 +2,7 @@
 #
 # Authors:
 #  Alex Eftimie
+#  Matthias Klumpp
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -101,7 +102,7 @@ class PackagekitTransaction(BaseTransaction):
         return self.meta_data.get('sc_appname',
             packagekit.role_enum_to_localised_present(role))
 
-    def get_status_description(self, status=None):
+    def get_status_description(self, status=packagekit.StatusEnum.UNKNOWN):
         if status is None:
             status = self._trans.get_property('status')
 
@@ -143,7 +144,7 @@ class PackagekitTransactionsWatcher(BaseTransactionsWatcher):
 
     def __init__(self):
         super(PackagekitTransactionsWatcher, self).__init__()
-        self.client = packagekit.Client()
+        self.pktask = packagekit.Task()
 
         bus = dbus.SystemBus()
         proxy = bus.get_object('org.freedesktop.PackageKit',
@@ -167,7 +168,7 @@ class PackagekitTransactionsWatcher(BaseTransactionsWatcher):
         if tid not in PackagekitTransactionsWatcher._tlist.keys():
             LOG.debug("Trying to setup %s" % tid)
             if not trans:
-                trans = self.client.get_progress(tid, None)
+                trans = self.pktask.get_progress(tid, None)
             trans = PackagekitTransaction(trans)
             LOG.debug("Add return new transaction %s %s" % (tid, trans))
             PackagekitTransactionsWatcher._tlist[tid] = trans
@@ -216,7 +217,7 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         # this is public exposed
         self.pending_transactions = {}
 
-        self.client = packagekit.Client()
+        self.pktask = packagekit.Task()
         self.pkginfo = get_pkg_info()
         self.pkginfo.open()
 
@@ -248,7 +249,7 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         # temporary hack
         pkgnames = self._fix_pkgnames(pkgnames)
 
-        self.client.remove_packages_async(pkgnames,
+        self.pktask.remove_packages_async(pkgnames,
                     False,  # allow deps
                     False,  # autoremove
                     None,  # cancellable
@@ -289,7 +290,7 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         # PackageKit from installing untrusted packages
         # (in general, all enabled repos should have GPG signatures,
         # which is enough for being marked "trusted", but still)
-        self.client.install_packages_async(True,  # only trusted
+        self.pktask.install_packages_async(True,  # only trusted
                     pkgnames,
                     None,  # cancellable
                     self._on_progress_changed,
