@@ -1,3 +1,6 @@
+*** DO NOT UPLOAD YET FROM THIS BRANCH, use the lp:software-center/5.2 
+    BRANCH INSTEAD until "quantal" gets the first upload ***
+
 software-center (5.2.1) precise-proposed; urgency=low
 
   [ Michael Vogt ]
