@@ -1,4 +1,7 @@
-software-center (5.2.1) UNRELEASED; urgency=low
+*** DO NOT UPLOAD YET FROM THIS BRANCH, use the lp:software-center/5.2 
+    BRANCH INSTEAD until "quantal" gets the first upload ***
+
+software-center (5.2.1) precise-proposed; urgency=low
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/lp977179:
@@ -47,7 +50,7 @@ software-center (5.2.1) UNRELEASED; urgency=low
     - improve the responsiveness of the spinner in the recommendations
       flow 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 25 Apr 2012 18:06:09 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 Apr 2012 09:47:19 +0200
 
 software-center (5.2) precise; urgency=low
 
