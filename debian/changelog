@@ -1,6 +1,15 @@
 *** DO NOT UPLOAD YET FROM THIS BRANCH, use the lp:software-center/5.2 
     BRANCH INSTEAD until "quantal" gets the first upload ***
 
+software-center (5.3.0) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/whatsnew-leak-lp985389:
+    - search filter fix for the case when the "installed-only"
+      filter leaks into subsequent searches (LP: #985389)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 30 Apr 2012 18:22:04 -0400
+
 software-center (5.2.1) precise-proposed; urgency=low
 
   [ Michael Vogt ]
