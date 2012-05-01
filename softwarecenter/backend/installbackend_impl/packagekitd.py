@@ -103,7 +103,7 @@ class PackagekitTransaction(BaseTransaction):
             packagekit.role_enum_to_localised_present(role))
 
     def get_status_description(self, status=packagekit.StatusEnum.UNKNOWN):
-        if status is None:
+        if status is packagekit.StatusEnum.UNKNOWN:
             status = self._trans.get_property('status')
 
         return packagekit.info_enum_to_localised_present(status)

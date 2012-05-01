@@ -19,6 +19,7 @@
 
 from gi.repository import PackageKitGlib as packagekit
 from gi.repository import GObject
+from gi.repository import GLib as glib
 import logging
 import locale
 
@@ -26,6 +27,8 @@ from gettext import gettext as _
 
 from softwarecenter.db.pkginfo import PackageInfo, _Version
 from softwarecenter.distro import get_distro
+
+import sys
 
 LOG = logging.getLogger('softwarecenter.db.packagekit')
 
@@ -123,11 +126,23 @@ class PackagekitInfo(PackageInfo):
         self._cache_details = {} # temporary hack for decent testing
         self._notfound_cache_pkg = []
         self._repocache = {}
+        self._ready = False
         self.distro = get_distro()
+        self.pkgs_cache = {}
 
     def __contains__(self, pkgname):
         # setting it like this for now
         return pkgname not in self._notfound_cache_pkg
+
+    def open(self):
+        """ (re)open the cache, this sends cache-invalid, cache-ready signals
+        """
+        LOG.info("packagekit.cache.open()")
+        self.emit("cache-invalid")
+        if not self._ready or not self.pkgs_cache:
+            self._fill_package_cache(True)
+        if self._ready:
+            self.emit("cache-ready")
 
     def _prefill_descriptions_helper(self, batch):
         if not batch:
@@ -146,68 +161,53 @@ class PackagekitInfo(PackageInfo):
             packageid = detail.get_property('package-id')
             self._cache_details[packageid] = detail
 
-    def prefill_cache(self, wanted_pkgs = None, prefill_descriptions = False, use_resolve = True, only_newest = False):
-        cache = {}
+    def _pkit_search_finished(self, res, loop):
+	try:
+	    results = self.pktask.generic_finish(res)
+	except GObject.GError as e:
+		LOG.info('failed to search: %s' % e);
+		loop.quit()
+		return
 
-        if wanted_pkgs:
-            wanted_pkgs = list(set(wanted_pkgs))
+	error_code = results.get_error_code();
+	if error_code is not None:
+	    #TODO
+	    print "Got ERROR!"
 
+	# get the data
+	LOG.info('Adding package data')
+	array = results.get_package_array();
+	for pkg in array:
+	    self.pkgs_cache.update({ pkg.get_name() : pkg })
+
+	# cache is prepared now, we're ready
+	self._ready = True
+
+	loop.quit()
+
+    def _fill_package_cache(self, force = False):
         # we never want source packages
         pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
-        if only_newest:
-            pfilter |= 1 << packagekit.FilterEnum.NEWEST
+        #if only_newest:
+         #pfilter |= 1 << packagekit.FilterEnum.NOT_INSTALLED
 
-        if wanted_pkgs and use_resolve:
+        if force or not self.pkgs_cache:
+            self.pkgs_cache = {}
+            self_ready = False
             pkgs = []
-            # FIXME: 100 is not a random value, it's the default value of
-            # MaximumItemsToResolve in /etc/PackageKit.conf.
-            # If the configuration is changed to a lower value, this will
-            # fail badly...
-            for i in xrange(0, len(wanted_pkgs), 3000):
-                try:
-                    result = self.pktask.resolve(pfilter, wanted_pkgs[i:i+100], None, self._on_progress_changed, None)
-                    newpkgs = result.get_package_array()
-                    pkgs.extend(newpkgs)
-                except GObject.GError as e:
-                    LOG.info('Error while prefilling cache: %s' % e)
 
-        else:
-            try:
-                result = self.pktask.get_packages(pfilter, None, self._on_progress_changed, None)
-                pkgs = result.get_package_array()
-            except GObject.GError as e:
-                LOG.info('Cannot prefill cache: %s' % e)
-                return
+            loop = glib.MainLoop()
+            self.pktask.get_packages_async(pfilter, None, lambda prog, t, u: None, None, lambda s, r, u: self._pkit_search_finished(r, loop), None)
+            loop.run()
 
-        batch = []
 
-        for pkg in pkgs:
-            name = pkg.get_name()
-            if wanted_pkgs and name not in wanted_pkgs:
-                continue
-            try:
-                value = cache[name]
-                value.append(pkg)
-                cache[name] = value
-            except KeyError:
-                cache[name] = [ pkg ]
-                if prefill_descriptions:
-                    batch.append(pkg)
-
-            if len(batch) == 1000:
-                self._prefill_descriptions_helper(batch)
-                batch = []
-        self._prefill_descriptions_helper(batch)
-
-        if only_newest:
-            self._cache_pkg_filter_newest = cache
-        else:
-            self._cache_pkg_filter_none = cache
+            # Make package cache available globally
+            #self.pkgs_cache = pkgs
 
     def is_installed(self, pkgname):
         for p in self._get_packages(pkgname):
-            if p.get_info() == packagekit.InfoEnum.INSTALLED:
-                return True
+	    if p.get_info() == packagekit.InfoEnum.INSTALLED:
+		return True
         return False
 
     def is_upgradable(self, pkgname):
@@ -220,8 +220,8 @@ class PackagekitInfo(PackageInfo):
 
     def get_installed(self, pkgname):
         for p in self._get_packages(pkgname):
-            if p.get_info() == packagekit.InfoEnum.INSTALLED:
-                return PackagekitVersion(p, self)
+	    if p.get_info() == packagekit.InfoEnum.INSTALLED:
+		return PackagekitVersion(p, self)
         return None
 
     def get_candidate(self, pkgname):
@@ -400,9 +400,13 @@ class PackagekitInfo(PackageInfo):
 
         return ps[0]
 
-    def _get_packages(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
+    def _get_packages(self, pkgname, pfilter=packagekit.FilterEnum.NONE):
+        """ make sure we're ready and have a working cache """
+        if not self._ready:
+            return None
+
         """ resolve a package name into a PkPackage object or return None """
-        LOG.debug("packages %s", pkgname) #, self._cache.keys()
+        LOG.debug("fetch packages for %s", pkgname) #, self._cache.keys()
 
         if pfilter in (packagekit.FilterEnum.NONE, packagekit.FilterEnum.NOT_SOURCE):
             cache_pkg_filter = self._cache_pkg_filter_none
@@ -418,19 +422,13 @@ class PackagekitInfo(PackageInfo):
         # we never want source packages
         pfilter |= 1 << packagekit.FilterEnum.NOT_SOURCE
 
-        try:
-            result = self.pktask.resolve(pfilter,
-                                         (pkgname,),
-                                         None,
-                                         self._on_progress_changed, None
-            )
-        except GObject.GError as e:
-            return []
+        pkgs = []
+        if pkgname in self.pkgs_cache:
+	    pkgs.append(self.pkgs_cache[pkgname])
+	if pkgs:
+	    LOG.debug('Found package: %s' % pkgname)
 
-        pkgs = result.get_package_array()
-
-        if cache_pkg_filter is not None:
-            cache_pkg_filter[pkgname] = pkgs
+        #print "Package: %s", self.pkgs_cache[pkgname]
 
         return pkgs
 
@@ -470,6 +468,6 @@ class PackagekitInfo(PackageInfo):
         pass
 
 if __name__ == "__main__":
-    pi = PackagekitInfo()
+   pi = PackagekitInfo()
 
-    print "Firefox, installed ", pi.is_installed('firefox')
+   print "Firefox, installed ", pi.is_installed('firefox')
