@@ -373,6 +373,9 @@ class AvailablePane(SoftwarePane):
         """
         self.state.category = None
         self.state.subcategory = None
+        # reset the non-global filters see (LP: #985389)
+        if self.state.filter:
+            self.state.filter.reset()
 
     def on_transaction_started(self, backend, pkgname, appname, trans_id,
                                trans_type):
