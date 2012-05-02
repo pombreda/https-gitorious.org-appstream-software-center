@@ -1,3 +1,4 @@
+*~
 *.py[co]
 build/
 test/.coverage
@@ -6,4 +7,6 @@ test/coverage_summary
 test/output
 help/*
 data/xapian/*
+softwarecenter/version.py
 .backup
+.kdev4
