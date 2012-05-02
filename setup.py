@@ -62,10 +62,16 @@ def merge_extras_ubuntu_com_channel_file():
 
 
 # update version.py
-line = open("debian/changelog").readline()
-m = re.match("^[\w-]+ \(([\w\.~]+)\) ([\w-]+);", line)
-VERSION = m.group(1)
-CODENAME = m.group(2)
+line = open("version.txt").readline()
+m = re.match("([\d\.]+) ([\w-]+)", line)
+if m:
+    VERSION = m.group(1)
+    CODENAME = m.group(2)
+else:
+    print "WARNING: Could not parse version number! Continuing with unknown release info!"
+    VERSION = "<unknown>"
+    CODENAME = "none"
+
 DISTRO = platform.dist()[0]
 RELEASE = platform.dist()[1]
 open("softwarecenter/version.py", "w").write("""
