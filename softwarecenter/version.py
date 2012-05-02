@@ -1,5 +1,0 @@
-
-VERSION = '5.1.7.1'
-CODENAME = 'UNRELEASED'
-DISTRO = 'Ubuntu'
-RELEASE = '12.04'
