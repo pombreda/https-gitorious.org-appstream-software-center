@@ -65,18 +65,18 @@ from softwarecenter.enums import (
     SOFTWARE_CENTER_TOS_LINK,
     SOFTWARE_CENTER_NAME_KEYRING,
     ViewPages,
-    )
+)
 from softwarecenter.utils import (
-    clear_token_from_ubuntu_sso,
+    clear_token_from_ubuntu_sso_sync,
     get_http_proxy_string_from_gsettings,
     wait_for_apt_cache_ready,
     ExecutionTime,
     is_unity_running,
-    )
+)
 from softwarecenter.ui.gtk3.utils import (
     get_sc_icon_theme,
     init_sc_css_provider,
-    )
+)
 from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
 try:
@@ -841,7 +841,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             installed_purchases)
         if deauthorize:
             # clear the ubuntu SSO token for this account
-            clear_token_from_ubuntu_sso(SOFTWARE_CENTER_NAME_KEYRING)
+            # FIXME: as this is a sync call it maybe slow so we should
+            #        probably provide a async() version of this as well
+            clear_token_from_ubuntu_sso_sync(SOFTWARE_CENTER_NAME_KEYRING)
 
             # uninstall the list of purchased packages
             # TODO: do we need to check for dependencies and show a removal
