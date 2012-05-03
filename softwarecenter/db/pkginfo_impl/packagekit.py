@@ -140,7 +140,7 @@ class PackagekitInfo(PackageInfo):
         LOG.info("packagekit.cache.open()")
         self.emit("cache-invalid")
         if not self._ready or not self.pkgs_cache:
-            self._fill_package_cache(True)
+            self._fill_package_cache(fast = True, force = True)
         if self._ready:
             self.emit("cache-ready")
 
@@ -161,6 +161,10 @@ class PackagekitInfo(PackageInfo):
             packageid = detail.get_property('package-id')
             self._cache_details[packageid] = detail
 
+    def _add_package_to_cache(self, pkg):
+        if pkg is packagekit.Package:
+            self.pkgs_cache.update({ pkg.get_name() : pkg })
+
     def _pkit_search_finished(self, res, loop):
 	try:
 	    results = self.pktask.generic_finish(res)
@@ -178,27 +182,36 @@ class PackagekitInfo(PackageInfo):
 	LOG.info('Adding package data')
 	array = results.get_package_array();
 	for pkg in array:
-	    self.pkgs_cache.update({ pkg.get_name() : pkg })
+	    self._add_package_to_cache(pkg)
 
 	# cache is prepared now, we're ready
 	self._ready = True
 
 	loop.quit()
 
-    def _fill_package_cache(self, force = False):
+    def _fill_package_cache(self, fast = False, force = False):
         # we never want source packages
         pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
         #if only_newest:
          #pfilter |= 1 << packagekit.FilterEnum.NOT_INSTALLED
 
         if force or not self.pkgs_cache:
-            self.pkgs_cache = {}
-            self_ready = False
-            pkgs = []
+            if fast:
+                """ Use PackageKit cache to make loading the package cache faster.
+                To get fresh data, we need to run the non-fast mode async later. """
+                pksack = packagekit.PackageSack()
+                pksack.add_packages_from_file ("/var/lib/PackageKit/system.package-list")
+                array = pksack.get_array()
+                for pkg in array:
+                    self._add_package_to_cache(pkg)
+            else:
+                self.pkgs_cache = {}
+                self_ready = False
+                pkgs = []
 
-            loop = glib.MainLoop()
-            self.pktask.get_packages_async(pfilter, None, lambda prog, t, u: None, None, lambda s, r, u: self._pkit_search_finished(r, loop), None)
-            loop.run()
+                loop = glib.MainLoop()
+                self.pktask.get_packages_async(pfilter, None, lambda prog, t, u: None, None, lambda s, r, u: self._pkit_search_finished(r, loop), None)
+                loop.run()
 
 
             # Make package cache available globally
