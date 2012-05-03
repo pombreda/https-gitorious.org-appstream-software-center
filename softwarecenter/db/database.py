@@ -139,6 +139,10 @@ class StoreDatabase(GObject.GObject):
 
     def __init__(self, pathname=None, cache=None):
         GObject.GObject.__init__(self)
+        # initialize at creation time to avoid spurious AttributeError
+        self._use_agent = False
+        self._use_axi = False
+
         if pathname is None:
             pathname = softwarecenter.paths.XAPIAN_PATH
         self._db_pathname = pathname

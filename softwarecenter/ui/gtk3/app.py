@@ -124,8 +124,8 @@ from softwarecenter.db.pkginfo import get_pkg_info
 from gi.repository import Gdk
 
 LOG = logging.getLogger(__name__)
-# "apt:///" is a valid prefix for 'apt:pkgname' in alt+F2 in gnome
 PACKAGE_PREFIX = 'apt:'
+# "apt:///" is a valid prefix for 'apt:pkgname' in alt+F2 in gnome
 PACKAGE_PREFIX_REGEX = re.compile('^%s(?:/{2,3})*' % PACKAGE_PREFIX)
 SEARCH_PREFIX = 'search:'
 
@@ -133,6 +133,68 @@ SEARCH_PREFIX = 'search:'
 # py3 compat
 def callable(func):
     return isinstance(func, collections.Callable)
+
+
+def parse_packages_args(packages):
+    search_text = ''
+    app = None
+
+    # avoid treating strings as sequences ('foo' should not be 'f', 'o', 'o')
+    if isinstance(packages, basestring):
+        packages = (packages,)
+
+    if not isinstance(packages, collections.Iterable):
+        LOG.warning('show_available_packages: argument is not an iterable %r',
+            packages)
+        return search_text, app
+
+    items = []  # make a copy of the given sequence
+    for arg in packages:
+        # support both "pkg1 pkg" and "pkg1,pkg2" (and "pkg1,pkg2 pkg3")
+        if "," in arg:
+            items.extend(arg.split(SearchSeparators.PACKAGE))
+        else:
+            items.append(arg)
+
+    if len(items) > 0:
+        # allow s-c to be called with a search term
+        if items[0].startswith(SEARCH_PREFIX):
+            # remove the initial search prefix
+            items[0] = items[0].replace(SEARCH_PREFIX, '', 1)
+            search_text = SearchSeparators.REGULAR.join(items)
+        else:
+            # strip away the initial apt: prefix, if present
+            items[0] = re.sub(PACKAGE_PREFIX_REGEX, '', items[0])
+            if len(items) > 1:
+                # turn multiple packages into a search with "," as separator
+                search_text = SearchSeparators.PACKAGE.join(items)
+
+    if not search_text and len(items) == 1:
+        request = items[0]
+        # are we dealing with a path?
+        if os.path.exists(request) and not os.path.isdir(request):
+            if not request.startswith('/'):
+            # we may have been given a relative path
+                request = os.path.join(os.getcwd(), request)
+            try:
+                app = DebFileApplication(request)
+            except ValueError:
+                LOG.exception('show_available_packages: can not build a '
+                    'DebFileApplication, forcing search:')
+                search_text = request
+        else:
+            # package from archive
+            # if there is a "/" in the string consider it as tuple
+            # of (pkgname, appname) for exact matching (used by
+            # e.g. unity
+            (pkgname, sep, appname) = request.partition("/")
+            if pkgname or appname:
+                app = Application(appname, pkgname)
+            else:
+                LOG.warning('show_available_packages: received %r but '
+                    'can not build an Application from it.', request)
+
+    return search_text, app
 
 
 class SoftwarecenterDbusController(dbus.service.Object):
@@ -1262,65 +1324,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             If the list of packages is only one element long show that,
             otherwise turn it into a comma seperated search
         """
-        # avoid treating strings as sequences ('foo' will be 'f', 'o', 'o')
-        if isinstance(packages, basestring):
-            packages = (packages,)
-
-        if not isinstance(packages, collections.Iterable):
-            LOG.warning('show_available_packages: argument is not an iterable '
-                        '%r', packages)
-            return
-
-        items = []  # make a copy of the given sequence
-
-        # support both "pkg1 pkg" and "pkg1,pkg2" (and "pkg1,pkg2 pkg3")
-        for arg in packages:
-            if "," in arg:
-                items.extend(arg.split(SearchSeparators.PACKAGE))
-            else:
-                items.append(arg)
-
-        search_text = ''
-        if len(items) > 0:
-            # allow s-c to be called with a search term
-            if items[0].startswith(SEARCH_PREFIX):
-                items[0] = items[0].replace(SEARCH_PREFIX, '', 1)
-                search_text = SearchSeparators.REGULAR.join(items)
-            else:
-                # strip away the apt: prefix, if present
-                items[0] = re.sub(PACKAGE_PREFIX_REGEX, '', items[0])
-                if len(items) > 1:
-                    # turn multiple packages into a search with ","
-                    search_text = SearchSeparators.PACKAGE.join(items)
-
-        app = None
-        if not search_text and len(items) == 1:
-            request = items[0]
-
-            # are we dealing with a path?
-            if os.path.exists(request) and not os.path.isdir(request):
-                if not request.startswith('/'):
-                # we may have been given a relative path
-                    request = os.path.join(os.getcwd(), request)
-                try:
-                    app = DebFileApplication(request)
-                except ValueError:
-                    LOG.exception('show_available_packages: can not build a '
-                                  'DebFileApplication, forcing search:')
-                    search_text = request
-            else:
-                # package from archive
-                # if there is a "/" in the string consider it as tuple
-                # of (pkgname, appname) for exact matching (used by
-                # e.g. unity
-                (pkgname, sep, appname) = request.partition("/")
-                if pkgname or appname:
-                    app = Application(appname, pkgname)
-                else:
-                    LOG.warning('show_available_packages: received %r but '
-                                'can not build an Application from it.',
-                                 request)
-
+        search_text, app = parse_packages_args(packages)
         LOG.info('show_available_packages: search_text is %r, app is %r.',
                  search_text, app)
 
