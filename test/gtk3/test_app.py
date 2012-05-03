@@ -8,7 +8,7 @@ from functools import partial
 
 from mock import Mock
 
-from testutils import do_events, get_mock_options, setup_test_env
+from testutils import get_mock_options, setup_test_env
 setup_test_env()
 
 import softwarecenter.paths

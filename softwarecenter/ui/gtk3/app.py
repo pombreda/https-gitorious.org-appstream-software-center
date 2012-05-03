@@ -174,8 +174,8 @@ def parse_packages_args(packages):
         # are we dealing with a path?
         if os.path.exists(request) and not os.path.isdir(request):
             if not request.startswith('/'):
-            # we may have been given a relative path
-                request = os.path.join(os.getcwd(), request)
+                # we may have been given a relative path
+                request = os.path.abspath(request)
             try:
                 app = DebFileApplication(request)
             except ValueError:
