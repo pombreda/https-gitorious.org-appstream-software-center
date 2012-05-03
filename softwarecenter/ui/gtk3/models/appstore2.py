@@ -476,6 +476,14 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
     """ A treestore based application model
     """
 
+    __gsignals__ = {
+        # meh, this is a signal from AppPropertiesHelper
+        "needs-refresh": (GObject.SignalFlags.RUN_LAST,
+                             None,
+                             (str, ),
+                            ),
+        }
+
     def __init__(self, db, cache, icons, icon_size=AppGenericStore.ICON_SIZE,
                  global_icon_cache=True):
         AppGenericStore.__init__(
