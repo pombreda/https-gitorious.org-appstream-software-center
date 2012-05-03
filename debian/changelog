@@ -9,6 +9,9 @@ software-center (5.2.2) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-crash-lp969732:
     - need to explicitly declare the needs-refresh signal in the 
       AppTreeStore class to prevent a crash (LP: #969732)
+  * lp:~gary-lasker/software-center/fix-crash-lp870822:
+    - don't crash if we don't get a pkgversion object back 
+      (LP: #870822)
 
 
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 30 Apr 2012 18:22:04 -0400
