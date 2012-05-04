@@ -20,6 +20,7 @@
 from gi.repository import PackageKitGlib as packagekit
 from gi.repository import GObject
 from gi.repository import GLib as glib
+from gi.repository import Gio as gio
 import logging
 import locale
 
@@ -27,8 +28,6 @@ from gettext import gettext as _
 
 from softwarecenter.db.pkginfo import PackageInfo, _Version
 from softwarecenter.distro import get_distro
-
-import sys
 
 LOG = logging.getLogger('softwarecenter.db.packagekit')
 
@@ -128,7 +127,7 @@ class PackagekitInfo(PackageInfo):
         self._repocache = {}
         self._ready = False
         self.distro = get_distro()
-        self.pkgs_cache = {}
+        self._pkgs_cache = {}
 
     def __contains__(self, pkgname):
         # setting it like this for now
@@ -139,7 +138,7 @@ class PackagekitInfo(PackageInfo):
         """
         LOG.info("packagekit.cache.open()")
         self.emit("cache-invalid")
-        if not self._ready or not self.pkgs_cache:
+        if not self._ready or not self._pkgs_cache:
             self._fill_package_cache(fast = True, force = True)
         if self._ready:
             self.emit("cache-ready")
@@ -162,8 +161,7 @@ class PackagekitInfo(PackageInfo):
             self._cache_details[packageid] = detail
 
     def _add_package_to_cache(self, pkg):
-        if pkg is packagekit.Package:
-            self.pkgs_cache.update({ pkg.get_name() : pkg })
+        self._pkgs_cache.update({ pkg.get_name() : pkg })
 
     def _pkit_search_finished(self, res, loop):
 	try:
@@ -190,35 +188,45 @@ class PackagekitInfo(PackageInfo):
 	loop.quit()
 
     def _fill_package_cache(self, fast = False, force = False):
+        """Build a package-cache, to allow fast searching of packages.
+        If fast is false, the cache will be filled with fresh data, but
+        loading it might take longer."""
+
         # we never want source packages
         pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
         #if only_newest:
          #pfilter |= 1 << packagekit.FilterEnum.NOT_INSTALLED
 
-        if force or not self.pkgs_cache:
+        if force or not self._pkgs_cache:
+            self._pkgs_cache = {}
             if fast:
                 """ Use PackageKit cache to make loading the package cache faster.
                 To get fresh data, we need to run the non-fast mode async later. """
-                pksack = packagekit.PackageSack()
-                pksack.add_packages_from_file ("/var/lib/PackageKit/system.package-list")
-                array = pksack.get_array()
-                for pkg in array:
-                    self._add_package_to_cache(pkg)
+                fp = gio.File.new_for_path("/var/lib/PackageKit/system.package-list")
+                if fp.query_exists(None):
+                    pksack = packagekit.PackageSack()
+                    pksack.add_packages_from_file (fp)
+                    array = pksack.get_array()
+                    for pkg in array:
+                        self._add_package_to_cache(pkg)
+                else:
+                    self._fill_package_cache(False, force)
+                    return
             else:
-                self.pkgs_cache = {}
                 self_ready = False
                 pkgs = []
 
                 loop = glib.MainLoop()
                 self.pktask.get_packages_async(pfilter, None, lambda prog, t, u: None, None, lambda s, r, u: self._pkit_search_finished(r, loop), None)
                 loop.run()
-
-
-            # Make package cache available globally
-            #self.pkgs_cache = pkgs
+            if self._pkgs_cache:
+                self._ready = True
 
     def is_installed(self, pkgname):
-        for p in self._get_packages(pkgname):
+        pkgs = self._get_packages(pkgname)
+        if pkgs is None:
+            return False
+        for p in pkgs:
 	    if p.get_info() == packagekit.InfoEnum.INSTALLED:
 		return True
         return False
@@ -403,7 +411,7 @@ class PackagekitInfo(PackageInfo):
 
     def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
         LOG.debug("package_one %s", pkgname) #, self._cache.keys()
-        ps = self._get_packages(pkgname, pfilter, cache)
+        ps = self._get_packages(pkgname, pfilter)
         if not ps:
             # also keep it in not found, to prevent further calls of resolve
             if pkgname not in self._notfound_cache_pkg:
@@ -428,20 +436,20 @@ class PackagekitInfo(PackageInfo):
         else:
             cache_pkg_filter = None
 
-        if cache and cache_pkg_filter is not None and (pkgname in cache_pkg_filter.keys()):
-            return cache_pkg_filter[pkgname]
+#        if cache and cache_pkg_filter is not None and (pkgname in cache_pkg_filter.keys()):
+#            return cache_pkg_filter[pkgname]
 
         pfilter = 1 << pfilter
         # we never want source packages
         pfilter |= 1 << packagekit.FilterEnum.NOT_SOURCE
 
         pkgs = []
-        if pkgname in self.pkgs_cache:
-	    pkgs.append(self.pkgs_cache[pkgname])
+        if pkgname in self._pkgs_cache:
+	    pkgs.append(self._pkgs_cache[pkgname])
 	if pkgs:
 	    LOG.debug('Found package: %s' % pkgname)
 
-        #print "Package: %s", self.pkgs_cache[pkgname]
+        #print "Package: %s", self._pkgs_cache[pkgname]
 
         return pkgs
 
