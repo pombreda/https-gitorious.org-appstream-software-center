@@ -140,6 +140,10 @@ class PackagekitInfo(PackageInfo):
         self.emit("cache-invalid")
         if not self._ready or not self._pkgs_cache:
             self._fill_package_cache(fast = True, force = True)
+            # Start async update of package-cache, as the data which was
+            # loaded before (in fast-mode) might not be fully up-to-date
+            self._update_package_cache_async()
+
         if self._ready:
             self.emit("cache-ready")
 
@@ -163,34 +167,48 @@ class PackagekitInfo(PackageInfo):
     def _add_package_to_cache(self, pkg):
         self._pkgs_cache.update({ pkg.get_name() : pkg })
 
-    def _pkit_search_finished(self, res, loop):
-	try:
-	    results = self.pktask.generic_finish(res)
-	except GObject.GError as e:
-		LOG.info('failed to search: %s' % e);
-		loop.quit()
-		return
+    def _pkit_getpackages_finished(self, res, replacecache = False):
+        try:
+            results = self.pktask.generic_finish(res)
+        except GObject.GError as e:
+            LOG.info('failed to search: %s' % e);
+            loop.quit()
+            return
 
-	error_code = results.get_error_code();
-	if error_code is not None:
-	    #TODO
-	    print "Got ERROR!"
+        error_code = results.get_error_code();
+        if error_code is not None:
+            #TODO
+            print "Got ERROR!"
 
-	# get the data
-	LOG.info('Adding package data')
-	array = results.get_package_array();
-	for pkg in array:
-	    self._add_package_to_cache(pkg)
+        # Clear the cache, then update it with fresh data
+        if replacecache:
+            self._pkgs_cache = {}
 
-	# cache is prepared now, we're ready
-	self._ready = True
+        # get the data
+        LOG.info('Adding package data')
+        array = results.get_package_array();
+        for pkg in array:
+            self._add_package_to_cache(pkg)
 
-	loop.quit()
+        # cache is prepared now, we're ready
+        self._ready = True
+
+    def _update_package_cache_async(self):
+        """ Async function to update the package cache with fresh
+        and up-to-date data from PackageKit """
+
+        # we never want source packages
+        pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
+
+        self.pktask.get_packages_async(pfilter, None, lambda prog, t, u: None,
+          None, lambda s, r, u: self._pkit_getpackages_finished(r, True), None)
+
 
     def _fill_package_cache(self, fast = False, force = False):
         """Build a package-cache, to allow fast searching of packages.
         If fast is false, the cache will be filled with fresh data, but
-        loading it might take longer."""
+        loading it might take longer.
+        This function is syncronous """
 
         # we never want source packages
         pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
@@ -199,6 +217,7 @@ class PackagekitInfo(PackageInfo):
 
         if force or not self._pkgs_cache:
             self._pkgs_cache = {}
+            self_ready = False
             if fast:
                 """ Use PackageKit cache to make loading the package cache faster.
                 To get fresh data, we need to run the non-fast mode async later. """
@@ -213,12 +232,10 @@ class PackagekitInfo(PackageInfo):
                     self._fill_package_cache(False, force)
                     return
             else:
-                self_ready = False
-                pkgs = []
-
-                loop = glib.MainLoop()
-                self.pktask.get_packages_async(pfilter, None, lambda prog, t, u: None, None, lambda s, r, u: self._pkit_search_finished(r, loop), None)
-                loop.run()
+                res = self.pktask.get_packages_sync(pfilter, None, lambda prog, t, u: None, None)
+                array = res.get_package_array();
+                for pkg in array:
+                    self._add_package_to_cache(pkg)
             if self._pkgs_cache:
                 self._ready = True
 
