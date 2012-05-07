@@ -487,37 +487,37 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                                    None, False)
 
     def on_search_terms_changed(self, terms):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
-    def on_db_reopen(self):
-        " stub implementation "
-        pass
+    def on_db_reopen(self, db):
+        """Stub implementation."""
+        LOG.debug("%r: on_db_reopen (db is %r).", self.__class__.__name__, db)
 
     def is_category_view_showing(self):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
     def is_applist_view_showing(self):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
     def is_app_details_view_showing(self):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
     def get_current_app(self):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
     def on_application_selected(self, widget, app):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
     def get_current_category(self):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
     def unset_current_category(self):
-        " stub implementation "
+        """Stub implementation."""
         pass
