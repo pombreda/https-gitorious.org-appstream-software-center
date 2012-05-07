@@ -4,6 +4,9 @@ software-center (5.2.2) UNRELEASED; urgency=low
   * lp:~mvo/software-center/whatsnew-leak-lp985389:
     - search filter fix for the case when the "installed-only"
       filter leaks into subsequent searches (LP: #985389)
+  * lp:~mvo/software-center/fix-lp994632:
+    - add a dep to ensure we get the correct ubuntu-sso-client-gtk
+      (LP: #994632)
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-crash-lp969732:
@@ -13,8 +16,7 @@ software-center (5.2.2) UNRELEASED; urgency=low
     - don't crash if we don't get a pkgversion object back 
       (LP: #870822)
 
-
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 30 Apr 2012 18:22:04 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 07 May 2012 16:19:45 -0400
 
 software-center (5.2.1) precise-proposed; urgency=low
 
