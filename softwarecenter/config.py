@@ -29,6 +29,7 @@ from paths import SOFTWARE_CENTER_CONFIG_FILE
 
 LOG = logging.getLogger(__name__)
 
+
 class SoftwareCenterConfig(SafeConfigParser):
 
     def __init__(self, config):
