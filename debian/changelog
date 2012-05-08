@@ -7,8 +7,24 @@ software-center (5.3.0) UNRELEASED; urgency=low
   * lp:~mvo/software-center/whatsnew-leak-lp985389:
     - search filter fix for the case when the "installed-only"
       filter leaks into subsequent searches (LP: #985389)
+  * lp:~mvo/software-center/fix-lp994632:
+    - add a dep to ensure we get the correct ubuntu-sso-client-gtk
+      (LP: #994632)
+  * lp:~mvo/software-center/proper-error-on-unknown-files:
+    - show a proper error message when attempting to open unknown
+      file types (LP: #944868)
+  * lp:~mvo/software-center/lp921799:
+    - fix crash when decoding screenshots JSON (LP: #921799)
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/fix-crash-lp969732:
+    - need to explicitly declare the needs-refresh signal in the 
+      AppTreeStore class to prevent a crash (LP: #969732)
+  * lp:~gary-lasker/software-center/fix-crash-lp870822:
+    - don't crash if we don't get a pkgversion object back 
+      (LP: #870822)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 30 Apr 2012 18:22:04 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 08 May 2012 00:13:23 -0400
 
 software-center (5.2.1) precise-proposed; urgency=low
 
