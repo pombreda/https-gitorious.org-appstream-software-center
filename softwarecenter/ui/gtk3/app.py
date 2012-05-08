@@ -1240,7 +1240,15 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 if not request.startswith('/'):
                 # we may have been given a relative path
                     request = os.path.join(os.getcwd(), request)
-                app = DebFileApplication(request)
+                try:
+                    app = DebFileApplication(request)
+                except ValueError as e:
+                    LOG.error("can not open %s: %s" % (request, e))
+                    from softwarecenter.ui.gtk3.dialogs import error
+                    error(None,
+                          _("Error"),
+                          _("The file “%s” could not be opened.") % request)
+                    app = None
             else:
                 # package from archive
                 # if there is a "/" in the string consider it as tuple
@@ -1261,8 +1269,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 else:
                     self.available_pane.init_view()
                     self.available_pane.show_app(app)
-            show_app(self, app)
-            return
+            if app:
+                show_app(self, app)
+                return
         elif len(packages) > 1:
             # turn multiple packages into a search with ","
             self.available_pane.init_view()

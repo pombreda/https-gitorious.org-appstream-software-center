@@ -7,6 +7,9 @@ software-center (5.2.2) UNRELEASED; urgency=low
   * lp:~mvo/software-center/fix-lp994632:
     - add a dep to ensure we get the correct ubuntu-sso-client-gtk
       (LP: #994632)
+  * lp:~mvo/software-center/proper-error-on-unknown-files:
+    - show a proper error message when attempting to open unknown
+      file types (LP: #944868)
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-crash-lp969732:
@@ -16,7 +19,7 @@ software-center (5.2.2) UNRELEASED; urgency=low
     - don't crash if we don't get a pkgversion object back 
       (LP: #870822)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 07 May 2012 16:19:45 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 08 May 2012 00:02:56 -0400
 
 software-center (5.2.1) precise-proposed; urgency=low
 
