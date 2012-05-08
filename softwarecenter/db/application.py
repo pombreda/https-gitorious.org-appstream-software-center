@@ -673,7 +673,11 @@ class AppDetails(GObject.GObject):
             # ignore read errors, most likely transient
             return
         if content is not None:
-            content = json.loads(content)
+            try:
+                content = json.loads(content)
+            except ValueError as e:
+                LOG.error("can not decode: '%s' (%s)" % (content, e))
+                content = None
 
         if isinstance(content, dict):
             # a list of screenshots as listsed online
