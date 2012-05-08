@@ -23,9 +23,11 @@ try:
 except ImportError:
     from ConfigParser import SafeConfigParser
 import os
+import logging
 
 from paths import SOFTWARE_CENTER_CONFIG_FILE
 
+LOG = logging.getLogger(__name__)
 
 class SoftwareCenterConfig(SafeConfigParser):
 
@@ -39,16 +41,23 @@ class SoftwareCenterConfig(SafeConfigParser):
         self.configfile = config
         try:
             self.read(self.configfile)
-        except:
+        except Exception as e:
             # don't crash on a corrupted config file
+            LOG.warn("Error while reading the config file: %s", e)
             pass
 
     def write(self):
         tmpname = self.configfile + ".new"
-        f = open(tmpname, "w")
-        SafeConfigParser.write(self, f)
-        f.close()
-        os.rename(tmpname, self.configfile)
+        try:
+            f = open(tmpname, "w")
+            SafeConfigParser.write(self, f)
+            f.close()
+            os.rename(tmpname, self.configfile)
+        except Exception as e:
+            # don't crash if there's an error when writing to the config file
+            # (LP: #996333)
+            LOG.warn("Error while writing the config file: %s", e)
+            pass
 
 
 _software_center_config = None
