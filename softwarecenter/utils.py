@@ -675,7 +675,8 @@ def make_string_from_list(base_str, item_list):
                                      item_list[-1])
     s = base_str % list_str
     return s
-    
+
+
 def ensure_file_writeable(file_path):
     """ This function checks for writeable access to a file and attempts to
         correct it if it is found to indeed be set as unwriteable
