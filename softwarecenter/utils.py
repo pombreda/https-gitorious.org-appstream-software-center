@@ -677,13 +677,15 @@ def make_string_from_list(base_str, item_list):
     return s
 
 
-def ensure_file_writeable(file_path):
+def ensure_file_writable_and_delete_if_not(file_path):
     """ This function checks for writeable access to a file and attempts to
         correct it if it is found to indeed be set as unwriteable
     """
     if os.path.exists(file_path) and not os.access(file_path, os.W_OK):
         try:
-            LOG.warn("attempting to fix non-writeable file: %s", file_path)
+            LOG.warn("encountered non-writeable file, attempting to fix "
+                     "by deleting: %s",
+                      file_path)
             os.remove(file_path)
         except Exception as e:
             LOG.exception("failed to fix non-writeable file '%s': %s",

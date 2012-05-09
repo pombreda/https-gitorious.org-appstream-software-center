@@ -50,9 +50,9 @@ class SoftwareCenterConfig(SafeConfigParser):
 
     def write(self):
         tmpname = self.configfile + ".new"
-        from utils import ensure_file_writeable
-        ensure_file_writeable(tmpname)
-        ensure_file_writeable(self.configfile)
+        from utils import ensure_file_writable_and_delete_if_not
+        ensure_file_writable_and_delete_if_not(tmpname)
+        ensure_file_writable_and_delete_if_not(self.configfile)
         try:
             f = open(tmpname, "w")
             SafeConfigParser.write(self, f)

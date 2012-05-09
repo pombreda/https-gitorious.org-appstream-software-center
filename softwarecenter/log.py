@@ -23,7 +23,7 @@ import logging.handlers
 import os.path
 
 from paths import SOFTWARE_CENTER_CACHE_DIR
-from utils import ensure_file_writeable
+from utils import ensure_file_writable_and_delete_if_not
 
 """ setup global logging for software-center """
 
@@ -111,7 +111,7 @@ if not os.access(SOFTWARE_CENTER_CACHE_DIR, os.W_OK):
     os.makedirs(SOFTWARE_CENTER_CACHE_DIR)
 
 # according to bug 688682 many people have a non-writeable logfile
-ensure_file_writeable(logfile_path)
+ensure_file_writable_and_delete_if_not(logfile_path)
 
 logfile_handler = logging.handlers.RotatingFileHandler(
     logfile_path, maxBytes=100 * 1000, backupCount=5)
