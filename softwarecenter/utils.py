@@ -245,6 +245,8 @@ def get_http_proxy_string_from_gsettings():
     if not key in Gio.Settings.list_schemas():
         raise ValueError("no key '%s'" % key)
     settings = Gio.Settings.new(key)
+    if not settings.get_boolean("enabled"):
+        return None
     if settings.get_string("host"):
         authentication = ""
         if settings.get_boolean("use-authentication"):
