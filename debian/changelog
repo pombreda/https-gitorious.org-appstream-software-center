@@ -20,6 +20,10 @@ software-center (5.2.2) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-crash-lp870822:
     - don't crash if we don't get a pkgversion object back 
       (LP: #870822)
+  
+  [ Robert Roth ]
+  * Escape markup for support info and license (LP: #993279)
+  * Ellipsize summary at trailing end (LP: #532072)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 08 May 2012 00:13:23 -0400
 

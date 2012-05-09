@@ -1475,11 +1475,11 @@ class AppDetailsView(Viewport):
             version = utf8(_("%s (unknown version)")) % utf8(
                 app_details.pkgname)
         if app_details.license:
-            license = app_details.license
+            license = GObject.markup_escape_text(app_details.license)
         else:
             license = _("Unknown")
         if app_details.maintenance_status:
-            support = app_details.maintenance_status
+            support = GObject.markup_escape_text(app_details.maintenance_status)
         else:
             support = _("Unknown")
         # regular label updates

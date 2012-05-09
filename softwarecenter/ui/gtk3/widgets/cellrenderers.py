@@ -183,7 +183,7 @@ class CellRendererAppView(Gtk.CellRendererText):
 
         if lw >= max_layout_width:
             layout.set_width((max_layout_width) * Pango.SCALE)
-            layout.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
+            layout.set_ellipsize(Pango.EllipsizeMode.END)
             lw = max_layout_width
 
         apptitle_extents = layout.get_line_readonly(0).get_pixel_extents()[1]
