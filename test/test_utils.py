@@ -158,7 +158,23 @@ class TestSCUtils(unittest.TestCase):
         self.assertEqual(
             make_string_from_list(base, l),
             "There was a problem posting this review to twister, factbook, identi.catz and baz (omg!)")
-        
+            
+    def test_ensure_file_writable_and_delete_if_not(self):
+        from softwarecenter.utils import ensure_file_writable_and_delete_if_not
+        from tempfile import NamedTemporaryFile
+        # first test that a non-writable file is deleted
+        test_file_not_writeable = NamedTemporaryFile()
+        os.chmod(test_file_not_writeable.name, 600)
+        self.assertFalse(os.access(test_file_not_writeable.name, os.W_OK))
+        ensure_file_writable_and_delete_if_not(test_file_not_writeable.name)
+        self.assertFalse(os.path.exists(test_file_not_writeable.name))
+        # then test that a writable file is not deleted
+        test_file_writeable = NamedTemporaryFile()
+        os.chmod(test_file_writeable.name, 400)
+        self.assertTrue(os.access(test_file_writeable.name, os.W_OK))
+        ensure_file_writable_and_delete_if_not(test_file_writeable.name)
+        self.assertTrue(os.path.exists(test_file_writeable.name))
+
 
 class TestExpungeCache(unittest.TestCase):
 
