@@ -44,11 +44,15 @@ class SoftwareCenterConfig(SafeConfigParser):
             self.read(self.configfile)
         except Exception as e:
             # don't crash on a corrupted config file
-            LOG.warn("Error while reading the config file: %s", e)
+            LOG.warn("Could not read the config file '%s': %s",
+                     self.configfile, e)
             pass
 
     def write(self):
         tmpname = self.configfile + ".new"
+        from utils import ensure_file_writeable
+        ensure_file_writeable(tmpname)
+        ensure_file_writeable(self.configfile)
         try:
             f = open(tmpname, "w")
             SafeConfigParser.write(self, f)
@@ -57,7 +61,8 @@ class SoftwareCenterConfig(SafeConfigParser):
         except Exception as e:
             # don't crash if there's an error when writing to the config file
             # (LP: #996333)
-            LOG.warn("Error while writing the config file: %s", e)
+            LOG.warn("Could not write the config file '%s': %s",
+                     self.configfile, e)
             pass
 
 
