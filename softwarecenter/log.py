@@ -98,7 +98,6 @@ logfile_path = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "software-center.log")
 
 # try to fix inaccessible s-c directory (#688682)
 if not os.access(SOFTWARE_CENTER_CACHE_DIR, os.W_OK):
-    print "!!!!"
     logging.warn("found not writable '%s' dir, trying to fix" %
                  SOFTWARE_CENTER_CACHE_DIR)
     # if we have to do more renames, soemthing else is wrong and its
