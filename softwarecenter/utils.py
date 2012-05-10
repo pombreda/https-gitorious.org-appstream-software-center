@@ -677,7 +677,7 @@ def make_string_from_list(base_str, item_list):
 def safe_makedirs(dir_path):
     """ This function can be used in place of a straight os.makedirs to
         handle the possibility of a race condition when more than one
-        process may porentially be creating the same directory (if this occurs,
+        process may potentially be creating the same directory (if this occurs,
         it will throw an OSError, see for example LP: #743003)
     """
     if not os.path.exists(dir_path):
