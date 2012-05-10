@@ -20,9 +20,12 @@ class TestLogging(unittest.TestCase):
         # and then start up the logger
         import softwarecenter.log
         softwarecenter.log # pyflakes
+        # check that the old directory was moved aside (renamed with a ".0" appended)
         self.assertTrue(os.path.exists(cache_dir + ".0"))
         self.assertFalse(os.path.exists(cache_dir + ".1"))
+        # and check that the new directory was created and is now writable
         self.assertTrue(os.path.exists(cache_dir))
+        self.assertTrue(os.access(cache_dir, os.W_OK))
 
 
 if __name__ == "__main__":
