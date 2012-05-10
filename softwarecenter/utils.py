@@ -28,6 +28,7 @@ import tempfile
 import traceback
 import time
 import xml.sax.saxutils
+import errno
 
 # py3 compat
 try:
@@ -684,13 +685,13 @@ def safe_makedirs(dir_path):
         try:
             os.makedirs(dir_path)
         except OSError as e:
-            if os.path.exists(dir_path):
+            if e.errno == errno.EEXIST:
                 # it seems that another process has already created this
                 # directory in the meantime, that's ok
                 pass
             else:
                 # the error is due to something else, so we want to raise it
-                raise OSError(e)
+                raise
 
 
 class SimpleFileDownloader(GObject.GObject):
