@@ -241,12 +241,18 @@ def get_http_proxy_string_from_gsettings():
     """
     # check if this is actually available and usable. if not
     # well ... it segfaults (thanks pygi)
-    key = "org.gnome.system.proxy.http"
-    if not key in Gio.Settings.list_schemas():
-        raise ValueError("no key '%s'" % key)
-    settings = Gio.Settings.new(key)
-    if not settings.get_boolean("enabled"):
+    schemas = ["org.gnome.system.proxy", "org.gnome.system.proxy.http"]
+    for schema in schemas:
+        if not schema in Gio.Settings.list_schemas():
+            raise ValueError("no schema '%s'" % schema)
+
+    # Check to see if proxy mode is set to none before checking for host
+    psettings = Gio.Settings.new("org.gnome.system.proxy");
+    if "none" in psettings.get_string("mode"):
         return None
+
+    # If proxy mode isn't "none" check to see if host and port is set
+    settings = Gio.Settings.new("org.gnome.system.proxy.http")
     if settings.get_string("host"):
         authentication = ""
         if settings.get_boolean("use-authentication"):
