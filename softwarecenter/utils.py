@@ -650,9 +650,11 @@ def get_lock(path):
         # implement me on non-apt system, I wish python had this in the stdlib
         pass
 
+
 def release_lock(lock):
     """ release a lock acquired with get_lock """
     os.close(lock)
+
 
 def make_string_from_list(base_str, item_list):
     """ This function takes a list of items and builds a nice human readable
@@ -674,6 +676,7 @@ def make_string_from_list(base_str, item_list):
                                      item_list[-1])
     s = base_str % list_str
     return s
+
 
 def safe_makedirs(dir_path):
     """ This function can be used in place of a straight os.makedirs to

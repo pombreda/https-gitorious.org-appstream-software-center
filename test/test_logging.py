@@ -1,17 +1,10 @@
 #!/usr/bin/python
 
-import datetime
-import glob
-import multiprocessing
 import os
-import subprocess
-import tempfile
-import time
 import unittest
 
 from testutils import setup_test_env
 setup_test_env()
-from softwarecenter.testutils import do_events
 
 
 class TestLogging(unittest.TestCase):
@@ -26,6 +19,7 @@ class TestLogging(unittest.TestCase):
         self.assertFalse(os.access(cache_dir, os.W_OK))
         # and then start up the logger
         import softwarecenter.log
+        softwarecenter.log # pyflakes
         self.assertTrue(os.path.exists(cache_dir + ".0"))
         self.assertFalse(os.path.exists(cache_dir + ".1"))
         self.assertTrue(os.path.exists(cache_dir))
