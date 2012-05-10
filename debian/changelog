@@ -22,10 +22,14 @@ software-center (5.2.2) UNRELEASED; urgency=low
       (LP: #870822)
   
   [ Robert Roth ]
-  * Escape markup for support info and license (LP: #993279)
-  * Ellipsize summary at trailing end (LP: #532072)
+  * lp:~evfool/software-center/bug532072:
+    - escape markup for support info and license (LP: #993279)
+    - ellipsize summary at trailing end (LP: #532072)
+  * lp:~evfool/software-center/lp626037:
+    - subtle background color tweak for consistency
+      between views (LP: #626037)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 08 May 2012 00:13:23 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 10 May 2012 17:07:29 -0400
 
 software-center (5.2.1) precise-proposed; urgency=low
 
