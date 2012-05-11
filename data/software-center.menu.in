@@ -435,7 +435,7 @@
       </Include>
     </Menu>
     <Menu>
-      <_Name>Painting &amp; Editing</_Name>
+      <_Name>Painting</_Name>
       <SCIcon>applications-painting</SCIcon>
       <Include>
         <And>
