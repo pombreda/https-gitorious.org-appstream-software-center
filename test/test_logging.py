@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import stat
 import unittest
 
 from testutils import setup_test_env
@@ -15,7 +16,7 @@ class TestLogging(unittest.TestCase):
         # make the test cache dir non-writeable
         import softwarecenter.paths
         cache_dir = softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR
-        os.chmod(cache_dir, 600)
+        os.chmod(cache_dir, stat.S_IRUSR)
         self.assertFalse(os.access(cache_dir, os.W_OK))
         # and then start up the logger
         import softwarecenter.log
