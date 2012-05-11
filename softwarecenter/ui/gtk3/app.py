@@ -965,7 +965,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.active_pane.searchentry.select_region(0, -1)
 
     def on_menuitem_software_sources_activate(self, widget):
-        self.window_main.set_sensitive(False)
         # run software-properties-gtk
         window = self.window_main.get_window()
         if hasattr(window, 'xid'):
@@ -988,7 +987,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # A return code of 1 means that the sources have changed
         if ret == 1:
             self.run_update_cache()
-        self.window_main.set_sensitive(True)
         # Stop monitoring
         return False
 
