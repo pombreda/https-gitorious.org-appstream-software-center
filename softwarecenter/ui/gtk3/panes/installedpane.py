@@ -350,7 +350,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             va.set_value(vadj)
 
     #~ @interrupt_build_and_wait
-    @wait_for_apt_cache_ready
     def _build_categorised_installedview(self, keep_state=False):
         LOG.debug('Rebuilding categorised installedview...')
 
@@ -705,6 +704,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.emit("app-list-changed", len(model))
         self.searchentry.show()
 
+    @wait_for_apt_cache_ready
     def display_overview_page(self, page, view_state):
         LOG.debug("view_state: %s" % view_state)
         if self.current_hostid:
