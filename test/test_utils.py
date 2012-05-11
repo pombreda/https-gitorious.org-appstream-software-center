@@ -4,6 +4,7 @@ import datetime
 import glob
 import multiprocessing
 import os
+import stat
 import subprocess
 import tempfile
 import time
@@ -164,13 +165,13 @@ class TestSCUtils(unittest.TestCase):
         from tempfile import NamedTemporaryFile
         # first test that a non-writable file is deleted
         test_file_not_writeable = NamedTemporaryFile()
-        os.chmod(test_file_not_writeable.name, 600)
+        os.chmod(test_file_not_writeable.name, stat.S_IRUSR)
         self.assertFalse(os.access(test_file_not_writeable.name, os.W_OK))
         ensure_file_writable_and_delete_if_not(test_file_not_writeable.name)
         self.assertFalse(os.path.exists(test_file_not_writeable.name))
         # then test that a writable file is not deleted
         test_file_writeable = NamedTemporaryFile()
-        os.chmod(test_file_writeable.name, 400)
+        os.chmod(test_file_writeable.name, stat.S_IRUSR|stat.S_IWUSR)
         self.assertTrue(os.access(test_file_writeable.name, os.W_OK))
         ensure_file_writable_and_delete_if_not(test_file_writeable.name)
         self.assertTrue(os.path.exists(test_file_writeable.name))
