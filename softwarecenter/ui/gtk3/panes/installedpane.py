@@ -350,6 +350,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             va.set_value(vadj)
 
     #~ @interrupt_build_and_wait
+    @wait_for_apt_cache_ready
     def _build_categorised_installedview(self, keep_state=False):
         LOG.debug('Rebuilding categorised installedview...')
 
