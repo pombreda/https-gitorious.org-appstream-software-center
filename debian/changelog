@@ -3,7 +3,10 @@
 
 software-center (5.3.0) UNRELEASED; urgency=low
 
-  * 
+  [ Robert Roth ]
+  * lp:~evfool/software-center/lp872760:
+    - Updated the category name for the RasterGraphics subcategory 
+      from Painting & Editing to Painting (LP: #872760)
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 May 2012 10:06:18 +0200
   
