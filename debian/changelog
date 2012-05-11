@@ -13,6 +13,11 @@ software-center (5.2.2) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp921799:
     - fix crash when decoding screenshots JSON (LP: #921799)
   
+  [ Ken VanDine ]
+  * lp:~ken-vandine/software-center/lp_982567:
+    - Check if the proxy is enabled, if the proxy host is set but not 
+      enabled we shouldn't attempt to use the proxy (LP: #982567)
+  
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-crash-lp969732:
     - need to explicitly declare the needs-refresh signal in the 
