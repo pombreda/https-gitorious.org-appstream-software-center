@@ -3,6 +3,15 @@
 
 software-center (5.3.0) UNRELEASED; urgency=low
 
+  [ Robert Roth ]
+  * lp:~evfool/software-center/lp872760:
+    - Updated the category name for the RasterGraphics subcategory 
+      from Painting & Editing to Painting (LP: #872760)
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 May 2012 10:06:18 +0200
+  
+software-center (5.2.2) UNRELEASED; urgency=low
+
   [ Michael Vogt ]
   * lp:~mvo/software-center/whatsnew-leak-lp985389:
     - search filter fix for the case when the "installed-only"
@@ -23,8 +32,22 @@ software-center (5.3.0) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-crash-lp870822:
     - don't crash if we don't get a pkgversion object back 
       (LP: #870822)
+  
+  [ Robert Roth ]
+  * lp:~evfool/software-center/bug532072:
+    - escape markup for support info and license (LP: #993279)
+    - ellipsize summary at trailing end (LP: #532072)
+  * lp:~evfool/software-center/lp626037:
+    - subtle background color tweak for consistency
+      between views (LP: #626037)
+  * lp:~evfool/software-center/lp835005:
+    - no need for the software-properties dialog to be modal
+      to software-center (LP: #835005)
+  * lp:~evfool/software-center/lp839389:
+    - don't display an "icon not found" image in the Unity
+      launcher when a report a review window is opened (LP: #839389)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 08 May 2012 00:13:23 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 10 May 2012 17:35:05 -0400
 
 software-center (5.2.1) precise-proposed; urgency=low
 
