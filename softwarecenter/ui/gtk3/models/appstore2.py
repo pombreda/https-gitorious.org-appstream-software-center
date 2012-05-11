@@ -33,6 +33,7 @@ from softwarecenter.utils import (
     SimpleFileDownloader,
     split_icon_ext,
     utf8,
+    unescape,
     )
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
@@ -248,8 +249,15 @@ class AppPropertiesHelper(GObject.GObject):
         for cat in self.all_categories:
             if cat.untranslated_name == catname:
                 return cat.name
-        # else just use plain gettext
-        return _(catname)
+        # try normal translation first
+        translated_catname = _(catname)
+        if translated_catname == catname:
+            # if no normal translation is found, try to find a escaped
+            # translation (LP: #872760)
+            translated_catname = _(GObject.markup_escape_text(catname))
+            # the parent expect the string unescaped
+            translated_catname = unescape(translated_catname)
+        return translated_catname
 
     def get_categories(self, doc):
         categories = doc.get_value(XapianValues.CATEGORIES).split(';') or []

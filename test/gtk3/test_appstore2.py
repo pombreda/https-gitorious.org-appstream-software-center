@@ -1,10 +1,11 @@
 #!/usr/bin/python
 
+import os
 import unittest
 import xapian
 
-from gi.repository import Gtk
-
+from gi.repository import Gtk, GObject
+from mock import patch
 
 from testutils import setup_test_env
 setup_test_env()
@@ -23,6 +24,20 @@ class TestAppstore(unittest.TestCase):
         self.cache = get_test_pkg_info()
         self.icons = get_test_gtk3_icon_cache()
         self.db = get_test_db()
+
+    def test_lp872760(self):
+        def monkey_(s):
+            translations = { 
+                "Painting &amp; Editing" : "translation for Painting &amp; "
+                                           "Editing",
+            }
+            return translations.get(s, s)
+        with patch("softwarecenter.ui.gtk3.models.appstore2._", new=monkey_):
+            model = AppListStore(self.db, self.cache, self.icons)
+            untranslated = "Painting & Editing"
+            translated = model._category_translate(untranslated)
+            print translated
+            self.assertNotEqual(untranslated, translated)
 
     def test_app_store(self):
         # get a enquire object
