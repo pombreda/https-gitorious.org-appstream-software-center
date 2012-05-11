@@ -965,7 +965,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.active_pane.searchentry.select_region(0, -1)
 
     def on_menuitem_software_sources_activate(self, widget):
-        self.window_main.set_sensitive(False)
         # run software-properties-gtk
         window = self.window_main.get_window()
         if hasattr(window, 'xid'):
@@ -988,7 +987,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # A return code of 1 means that the sources have changed
         if ret == 1:
             self.run_update_cache()
-        self.window_main.set_sensitive(True)
         # Stop monitoring
         return False
 
@@ -1240,7 +1238,15 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 if not request.startswith('/'):
                 # we may have been given a relative path
                     request = os.path.join(os.getcwd(), request)
-                app = DebFileApplication(request)
+                try:
+                    app = DebFileApplication(request)
+                except ValueError as e:
+                    LOG.error("can not open %s: %s" % (request, e))
+                    from softwarecenter.ui.gtk3.dialogs import error
+                    error(None,
+                          _("Error"),
+                          _("The file “%s” could not be opened.") % request)
+                    app = None
             else:
                 # package from archive
                 # if there is a "/" in the string consider it as tuple
@@ -1261,8 +1267,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 else:
                     self.available_pane.init_view()
                     self.available_pane.show_app(app)
-            show_app(self, app)
-            return
+            if app:
+                show_app(self, app)
+                return
         elif len(packages) > 1:
             # turn multiple packages into a search with ","
             self.available_pane.init_view()
