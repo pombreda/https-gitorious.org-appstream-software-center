@@ -127,14 +127,17 @@ class PendingStore(Gtk.ListStore):
         else:
             icon = get_icon_from_theme(self.icons, iconname=iconname,
                 iconsize=self.ICON_SIZE)
+        pulse = -1
+        # if transaction is waiting, switch to indeterminate progress
         if trans.is_waiting():
             status = trans.status_details
+            pulse = 1
         else:
             status = trans.get_status_description()
         status_text = self._render_status_text(appname, status)
         cancel_icon = self._get_cancel_icon(trans.cancellable)
         self.append([trans.tid, icon, appname, status_text,
-            float(trans.progress), -1, cancel_icon])
+            float(trans.progress), pulse, cancel_icon])
 
     def _on_cancellable_changed(self, trans, cancellable):
         #print "_on_allow_cancel: ", trans, allow_cancel
@@ -185,8 +188,10 @@ class PendingStore(Gtk.ListStore):
                 name = row[self.COL_NAME]
                 if trans.is_waiting():
                     st = trans.status_details
+                    row[self.COL_PULSE] = 1
                 else:
                     st = trans.get_status_description(status)
+                    row[self.COL_PULSE] = -1
                 row[self.COL_STATUS] = self._render_status_text(name, st)
 
     def _render_status_text(self, name, status):
