@@ -194,11 +194,18 @@ class UIReviewsList(Gtk.VBox):
             UI vbox out of them
         """
         self.logged_in_person = get_person_from_config()
+        is_first_for_version = None
         if self.reviews:
+            previous_review = None
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
+                if previous_review:
+                    is_first_for_version = previous_review.version != r.version
+                else:
+                    is_first_for_version = True
+                previous_review = r
                 review = UIReview(r, pkgversion, self.logged_in_person,
-                    self.useful_votes)
+                    self.useful_votes, is_first_for_version)
                 review.show_all()
                 self.vbox.pack_start(review, True, True, 0)
 
@@ -398,7 +405,8 @@ class UIReview(Gtk.VBox):
         useful/inappropriate etc
     """
     def __init__(self, review_data=None, app_version=None,
-                 logged_in_person=None, useful_votes=None):
+                 logged_in_person=None, useful_votes=None,
+                 first_for_version=True):
         GObject.GObject.__init__(self)
         self.set_spacing(StockEms.SMALL)
 
@@ -438,8 +446,8 @@ class UIReview(Gtk.VBox):
         self.usefulness_error = False
         self.delete_error = False
         self.modify_error = False
-
-        self.pack_start(self.version_label, False, False, 0)
+        if first_for_version:
+            self.pack_start(self.version_label, False, False, 0)
         self.pack_start(self.header, False, False, 0)
         self.pack_start(self.body, False, False, 0)
         self.pack_start(self.footer, False, False, StockEms.SMALL)
