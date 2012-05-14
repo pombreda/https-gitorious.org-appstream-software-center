@@ -32,6 +32,7 @@ from softwarecenter.utils import (
     ExecutionTime,
     SimpleFileDownloader,
     split_icon_ext,
+    capitalize_first_word,
     utf8,
     )
 from softwarecenter.backend import get_install_backend
@@ -188,9 +189,9 @@ class AppPropertiesHelper(GObject.GObject):
         # but "packages" are displayed with their summary as name
         if app.appname:
             appname = self.get_appname(doc)
-            summary = self.db.get_summary(doc)
+            summary = capitalize_first_word(self.db.get_summary(doc))
         else:
-            appname = self.db.get_summary(doc)
+            appname = capitalize_first_word(self.db.get_summary(doc))
             summary = self.get_pkgname(doc)
 
         return "%s\n<small>%s</small>" % (
