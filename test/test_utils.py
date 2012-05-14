@@ -158,7 +158,18 @@ class TestSCUtils(unittest.TestCase):
         self.assertEqual(
             make_string_from_list(base, l),
             "There was a problem posting this review to twister, factbook, identi.catz and baz (omg!)")
-        
+
+    def test_capitalize_first_word(self):
+        from softwarecenter.utils import capitalize_first_word
+        test_synopsis = "feature-rich console based todo list manager"
+        capitalized = capitalize_first_word(test_synopsis)
+        self.assertTrue(
+            capitalized == "Feature-rich console based todo list manager")
+        test_synopsis = "MPlayer's Movie Encoder"
+        capitalized = capitalize_first_word(test_synopsis)
+        self.assertTrue(
+            capitalized == "MPlayer's Movie Encoder")
+
 
 class TestExpungeCache(unittest.TestCase):
 

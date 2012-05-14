@@ -32,7 +32,7 @@ from softwarecenter.enums import PkgStates, XapianValues, Icons
 from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
-from softwarecenter.utils import utf8, split_icon_ext
+from softwarecenter.utils import utf8, split_icon_ext, capitalize_first_word
 from softwarecenter.region import get_region_cached, REGIONTAG
 
 LOG = logging.getLogger(__name__)
@@ -111,7 +111,7 @@ class Application(object):
                     appname = "%s (%s)" % (appname, db.get_pkgname(doc))
                 return appname
             else:
-                return db.get_summary(doc)
+                return capitalize_first_word(db.get_summary(doc))
 
     @staticmethod
     def get_display_summary(db, doc):
@@ -121,7 +121,7 @@ class Application(object):
         """
         if doc:
             if db.get_appname(doc):
-                return db.get_summary(doc)
+                return capitalize_first_word(db.get_summary(doc))
             else:
                 return db.get_pkgname(doc)
 
@@ -700,7 +700,7 @@ class AppDetails(GObject.GObject):
             return ver.summary
         # normal case
         if self._doc:
-            return self._db.get_summary(self._doc)
+            return capitalize_first_word(self._db.get_summary(self._doc))
         elif self._pkg:
             return self._pkg.candidate.summary
 
