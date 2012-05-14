@@ -42,8 +42,11 @@ software-center (5.2.2) UNRELEASED; urgency=low
   * lp:~evfool/software-center/867588:
     - capitalize the first letter of the package summary
       (LP: #867588)
+  * lp:~evfool/software-center/lp876657:
+    - make sure the search field does not disappear when an
+      install or remove is in progress (LP: #876657)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 13 May 2012 22:56:46 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 14 May 2012 01:09:19 -0400
 
 software-center (5.2.1) precise-proposed; urgency=low
 
