@@ -1,6 +1,6 @@
 *** DO NOT UPLOAD YET FROM THIS BRANCH, use the lp:software-center/5.2 
     BRANCH INSTEAD until "quantal" gets the first upload ***
-
+    
 software-center (5.3.0) UNRELEASED; urgency=low
 
   [ Robert Roth ]
@@ -24,6 +24,14 @@ software-center (5.2.2) UNRELEASED; urgency=low
       file types (LP: #944868)
   * lp:~mvo/software-center/lp921799:
     - fix crash when decoding screenshots JSON (LP: #921799)
+  * lp:~mvo/software-center/lp959612:
+    - fix crash when selecting the Installed view very quickly
+      after startup (LP: #959612)
+  
+  [ Ken VanDine ]
+  * lp:~ken-vandine/software-center/lp_982567:
+    - Check if the proxy is enabled, if the proxy host is set but not 
+      enabled we shouldn't attempt to use the proxy (LP: #982567)
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-crash-lp969732:
@@ -46,8 +54,14 @@ software-center (5.2.2) UNRELEASED; urgency=low
   * lp:~evfool/software-center/lp839389:
     - don't display an "icon not found" image in the Unity
       launcher when a report a review window is opened (LP: #839389)
+  * lp:~evfool/software-center/867588:
+    - capitalize the first letter of the package summary
+      (LP: #867588)
+  * lp:~evfool/software-center/lp876657:
+    - make sure the search field does not disappear when an
+      install or remove is in progress (LP: #876657)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 10 May 2012 17:35:05 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 14 May 2012 01:36:29 -0400
 
 software-center (5.2.1) precise-proposed; urgency=low
 
