@@ -1479,7 +1479,8 @@ class AppDetailsView(Viewport):
         else:
             license = _("Unknown")
         if app_details.maintenance_status:
-            support = GObject.markup_escape_text(app_details.maintenance_status)
+            support = GObject.markup_escape_text(
+                app_details.maintenance_status)
         else:
             support = _("Unknown")
         # regular label updates
