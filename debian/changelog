@@ -39,8 +39,11 @@ software-center (5.2.2) UNRELEASED; urgency=low
   * lp:~evfool/software-center/lp839389:
     - don't display an "icon not found" image in the Unity
       launcher when a report a review window is opened (LP: #839389)
+  * lp:~evfool/software-center/867588:
+    - capitalize the first letter of the package summary
+      (LP: #867588)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 10 May 2012 17:35:05 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 13 May 2012 22:56:46 -0400
 
 software-center (5.2.1) precise-proposed; urgency=low
 

@@ -120,6 +120,12 @@ def wait_for_apt_cache_ready(f):
     return wrapper
 
 
+def capitalize_first_word(string):
+    """ this takes a package synopsis and uppercases the first  word's first letter"""
+    if string[0].isalpha() and not string[0].isupper():
+        return string[0].capitalize() + string[1:]
+    return string
+    
 def normalize_package_description(desc):
     """ this takes a package description and normalizes it
         so that all uneeded \n are stripped away and all
