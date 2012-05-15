@@ -490,7 +490,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_installed_pane_created(self, widget):
         # set the main toolbar buttons sensitive
         self.global_pane.view_switcher.set_sensitive(True)
-        
+
     def _on_recommendations_opt_in(self, rec_panel):
         self._update_recommendations_menuitem(opted_in=True)
 
