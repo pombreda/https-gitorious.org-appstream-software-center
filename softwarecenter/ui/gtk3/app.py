@@ -398,14 +398,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.active_pane = self.available_pane
         self.window_main.connect("realize", self.on_realize)
 
-        # launchpad integration help, its ok if that fails
-        try:
-            from gi.repository import LaunchpadIntegration
-            LaunchpadIntegration.set_sourcepackagename("software-center")
-            LaunchpadIntegration.add_items(self.menu_help, 3, True, False)
-        except Exception, e:
-            LOG.debug("launchpad integration error: '%s'" % e)
-
     # helper
     def _run_software_center_agent(self):
         """ helper that triggers the update-software-center-agent helper """
