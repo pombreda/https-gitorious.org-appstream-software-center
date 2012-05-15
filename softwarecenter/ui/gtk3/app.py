@@ -490,6 +490,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.menuitem_recommendations.set_label(
                                             _(u"Turn On Recommendations…"))
 
+    @wait_for_apt_cache_ready
     def _upload_recommendations_profile(self):
         recommender_agent = self._get_recommender_agent()
         if recommender_agent.is_opted_in():
