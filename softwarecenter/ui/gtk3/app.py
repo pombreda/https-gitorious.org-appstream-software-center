@@ -296,8 +296,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                                 self.distro,
                                                 self.icons,
                                                 self.datadir)
-            #~ self.installed_pane.connect("installed-pane-created",
-                #~ self.on_installed_pane_created)
+            self.installed_pane.connect("installed-pane-created",
+                self.on_installed_pane_created)
             self.view_manager.register(self.installed_pane,
                 ViewPages.INSTALLED)
 
@@ -487,9 +487,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # set the main toolbar buttons sensitive
         self.global_pane.view_switcher.set_sensitive(True)
 
-    #~ def on_installed_pane_created(self, widget):
-        #~ pass
-
+    def on_installed_pane_created(self, widget):
+        # set the main toolbar buttons sensitive
+        self.global_pane.view_switcher.set_sensitive(True)
+        
     def _on_recommendations_opt_in(self, rec_panel):
         self._update_recommendations_menuitem(opted_in=True)
 
