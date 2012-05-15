@@ -1,5 +1,8 @@
 *** DO NOT UPLOAD YET FROM THIS BRANCH, use the lp:software-center/5.2 
-    BRANCH INSTEAD until "quantal" gets the first upload ***
+    BRANCH INSTEAD until "quantal" gets the first upload 
+    
+    ALSO DO NOT MERGE TRUNK BACK INTO 5.2, ONLY 5.2 INTO TRUNK
+***
     
 software-center (5.3.0) UNRELEASED; urgency=low
 
@@ -7,6 +10,10 @@ software-center (5.3.0) UNRELEASED; urgency=low
   * lp:~evfool/software-center/lp872760:
     - Updated the category name for the RasterGraphics subcategory 
       from Painting & Editing to Painting (LP: #872760)
+  
+  [ Sebastian Heinlein ]
+  * lp:~glatzor/software-center/remove-workaround-747172:
+    - remove old workaround that should be no longer needed (LP: #747172)
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 May 2012 10:06:18 +0200
   
