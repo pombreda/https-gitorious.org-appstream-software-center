@@ -23,7 +23,10 @@ import logging.handlers
 import os.path
 
 from paths import SOFTWARE_CENTER_CACHE_DIR
-from utils import ensure_file_writable_and_delete_if_not
+from utils import (
+    ensure_file_writable_and_delete_if_not,
+    safe_makedirs,
+)
 
 """ setup global logging for software-center """
 
@@ -93,8 +96,7 @@ root.addHandler(handler)
 handler.addFilter(NullFilterThatWarnsAboutRootLoggerUsage())
 
 # create log file
-if not os.path.exists(SOFTWARE_CENTER_CACHE_DIR):
-    os.makedirs(SOFTWARE_CENTER_CACHE_DIR)
+safe_makedirs(SOFTWARE_CENTER_CACHE_DIR)
 logfile_path = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "software-center.log")
 
 # try to fix inaccessible s-c directory (#688682)
@@ -108,7 +110,7 @@ if not os.access(SOFTWARE_CENTER_CACHE_DIR, os.W_OK):
         if not os.path.exists(target):
             os.rename(SOFTWARE_CENTER_CACHE_DIR, target)
             break
-    os.makedirs(SOFTWARE_CENTER_CACHE_DIR)
+    safe_makedirs(SOFTWARE_CENTER_CACHE_DIR)
 
 # according to bug 688682 many people have a non-writeable logfile
 ensure_file_writable_and_delete_if_not(logfile_path)

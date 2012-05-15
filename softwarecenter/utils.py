@@ -28,6 +28,7 @@ import tempfile
 import traceback
 import time
 import xml.sax.saxutils
+import errno
 
 # py3 compat
 try:
@@ -707,6 +708,28 @@ def ensure_file_writable_and_delete_if_not(file_path):
         except Exception as e:
             LOG.exception("failed to fix non-writeable file '%s': %s",
                           file_path, e)
+
+
+def safe_makedirs(dir_path):
+    """ This function can be used in place of a straight os.makedirs to
+        handle the possibility of a race condition when more than one
+        process may potentially be creating the same directory, it will
+        not fail if two processes try to create the same dir at the same
+        time
+    """
+    # avoid throwing an OSError, see for example LP: #743003
+    if not os.path.exists(dir_path):
+        try:
+            os.makedirs(dir_path)
+        except OSError as e:
+            print e
+            if e.errno == errno.EEXIST:
+                # it seems that another process has already created this
+                # directory in the meantime, that's ok
+                pass
+            else:
+                # the error is due to something else, so we want to raise it
+                raise
 
 
 class SimpleFileDownloader(GObject.GObject):

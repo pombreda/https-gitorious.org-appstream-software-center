@@ -6,9 +6,12 @@ import multiprocessing
 import os
 import stat
 import subprocess
+import shutil
 import tempfile
 import time
 import unittest
+
+from mock import patch
 
 from testutils import setup_test_env
 setup_test_env()
@@ -187,6 +190,28 @@ class TestSCUtils(unittest.TestCase):
         ensure_file_writable_and_delete_if_not(test_file_writeable.name)
         self.assertTrue(os.path.exists(test_file_writeable.name))
 
+    def test_safe_makedirs(self):
+        from softwarecenter.utils import safe_makedirs
+        from tempfile import mkdtemp
+        tmp = mkdtemp()
+        # create base dir
+        target = os.path.join(tmp, "foo", "bar")
+        safe_makedirs(target)
+        # we need the patch to ensure that the code is actually executed
+        with patch("os.path.exists") as mock_:
+            mock_.return_value = False
+            self.assertTrue(os.path.isdir(target))
+            # ensure that creating the base dir again does not crash
+            safe_makedirs(target)
+            self.assertTrue(os.path.isdir(target))
+            # ensure we still get regular errors like permission denied
+            # (stat.S_IRUSR)
+            os.chmod(os.path.join(tmp, "foo"), 0400)
+            self.assertRaises(OSError, safe_makedirs, target)
+            # set back to stat.(S_IRUSR|S_IWUSR|S_IXUSR) to make rmtree work
+            os.chmod(os.path.join(tmp, "foo"), 0700)
+        # cleanup
+        shutil.rmtree(tmp)
 
 class TestExpungeCache(unittest.TestCase):
 

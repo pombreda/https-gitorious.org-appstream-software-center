@@ -31,6 +31,9 @@ software-center (5.2.2) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-shutdown-crash-lp996333:
     - never crash when writing out the software center config file on
       shutdown (LP: #996333)
+  * lp:~gary-lasker/software-center/fix-makedirs-race-crashes:
+    - fix crash on race when creating the cache or config directories
+      (LP: #743003, LP: #621182)
   
   [ Robert Roth ]
   * lp:~evfool/software-center/bug532072:
