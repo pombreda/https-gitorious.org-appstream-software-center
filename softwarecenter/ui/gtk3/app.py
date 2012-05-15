@@ -275,7 +275,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
             # start with the toolbar buttons insensitive and don't make them
             # sensitive until the panel elements are ready
-            self.global_pane.view_switcher.set_sensitive(False)
+            #self.global_pane.view_switcher.set_sensitive(False)
 
             # available pane
             self.available_pane = AvailablePane(self.cache,
