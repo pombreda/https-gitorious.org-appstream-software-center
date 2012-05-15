@@ -34,6 +34,9 @@ software-center (5.2.2) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-makedirs-race-crashes:
     - fix crash on race when creating the cache or config directories
       (LP: #743003, LP: #621182)
+  * lp:~gary-lasker/software-center/fix-crash_lp973379:
+    - ensure that the cache is ready before using the recommender 
+      service (LP: #973379 )
   
   [ Robert Roth ]
   * lp:~evfool/software-center/bug532072:
