@@ -54,6 +54,8 @@ software-center (5.2.2) UNRELEASED; urgency=low
   * lp:~evfool/software-center/lp876657:
     - make sure the search field does not disappear when an
       install or remove is in progress (LP: #876657)
+  * lp:~evfool/software-center/lp987797:
+    - fix alignment in the reviews part of the appdetails (LP: #987797)
 
   [ Dave Morley ]
   * lp:~davmor2/software-center/add-performance:

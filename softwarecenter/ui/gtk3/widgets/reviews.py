@@ -114,18 +114,11 @@ class UIReviewsList(Gtk.VBox):
         label.set_padding(6, 6)
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
-        self.pack_start(label, False, False, 0)
+        self.header = Gtk.HBox()
+        self.header.pack_start(label, False, False, 0)
 
         # header
-        self.header = Gtk.HBox()
         self.header.set_spacing(StockEms.MEDIUM)
-
-        self.new_review = Link(_('Write your own review'))
-        self.new_review.connect('clicked', lambda w: self.emit('new-review'))
-        inner_vb = Gtk.VBox()
-        inner_vb.pack_start(self.new_review, False, False, StockEms.SMALL)
-        self.header.pack_start(inner_vb, False, False, 0)
-        self.pack_start(self.header, False, False, 0)
 
         # review sort method
         self.sort_combo = Gtk.ComboBoxText()
@@ -151,10 +144,17 @@ class UIReviewsList(Gtk.VBox):
             "changed", self._on_different_review_language_clicked)
         self.header.pack_end(self.review_language, False, True, 0)
 
+        self.pack_start(self.header, False, False, 0)
+        self.reviews_info_hbox = Gtk.HBox()
+        self.new_review = Link(_('Write your own review'))
+        self.new_review.connect('clicked', lambda w: self.emit('new-review'))
+        self.reviews_info_hbox.pack_start(
+            self.new_review, False, False, StockEms.SMALL)
+        self.pack_start(self.reviews_info_hbox, True, True, 0)
         # this is where the reviews end up
         self.vbox = Gtk.VBox()
         self.vbox.set_spacing(24)
-        self.pack_start(self.vbox, True, True, 0)
+        self.pack_end(self.vbox, True, True, 0)
 
         # ensure network state updates
         self.no_network_msg = None
@@ -214,7 +214,7 @@ class UIReviewsList(Gtk.VBox):
         self.install_first_label = Gtk.Label(label=s)
         self.install_first_label.set_use_markup(True)
         self.install_first_label.set_alignment(1.0, 0.5)
-        self.header.pack_start(self.install_first_label, False, False, 0)
+        self.reviews_info_hbox.pack_start(self.install_first_label, False, False, 0)
         self.install_first_label.show()
 
     # FIXME: this needs to be smarter in the future as we will
