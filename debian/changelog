@@ -1,4 +1,4 @@
-software-center (5.2.2) UNRELEASEDprecise-proposed; urgency=low
+software-center (5.2.2) precise-proposed; urgency=low
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/whatsnew-leak-lp985389:
@@ -71,7 +71,7 @@ software-center (5.2.2) UNRELEASEDprecise-proposed; urgency=low
     - test code change only! add memory and cpt stats to the
       test script 
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 May 2012 15:10:45 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 May 2012 20:22:02 +0200
 
 software-center (5.2.1) precise-proposed; urgency=low
 
