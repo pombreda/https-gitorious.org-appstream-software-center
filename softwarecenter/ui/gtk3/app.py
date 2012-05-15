@@ -272,7 +272,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 self.db, self.cache, self.icons)
             self.vbox1.pack_start(self.global_pane, False, False, 0)
             self.vbox1.reorder_child(self.global_pane, 1)
-            
+
             # start with the toolbar buttons insensitive and don't make them
             # sensitive until the panel elements are ready
             self.global_pane.view_switcher.set_sensitive(False)
