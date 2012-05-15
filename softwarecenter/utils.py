@@ -673,6 +673,42 @@ def release_lock(lock):
     os.close(lock)
 
 
+def make_string_from_list(base_str, item_list):
+    """ This function takes a list of items and builds a nice human readable
+        string with it of the form. Note that the base string needs a "%s".
+        Example return:
+          The base string with the list items a,b and c in it.
+        Note that base_str needs to be a ngettext string already, so the
+        example usage is:
+         l = ["foo", "bar"]
+         base_str = ngettext("This list: %s.", "This list: %s", len(l))
+         s = make_string_from_list(base_string, l)
+    """
+    list_str = item_list[0]
+    if len(item_list) > 1:
+        # TRANSLATORS: this is a generic list delimit char, e.g. "foo, bar"
+        list_str = _(", ").join(item_list[:-1])
+        # TRANSLATORS: this is the last part of a list, e.g. "foo, bar and baz"
+        list_str = _("%s and %s") % (list_str,
+                                     item_list[-1])
+    s = base_str % list_str
+    return s
+
+
+def ensure_file_writable_and_delete_if_not(file_path):
+    """ This function checks for writeable access to a file and attempts to
+        remove it if it is found to indeed be set as unwriteable
+    """
+    if os.path.exists(file_path) and not os.access(file_path, os.W_OK):
+        try:
+            LOG.warn("encountered non-writeable file, attempting to fix "
+                     "by deleting: %s" % file_path)
+            os.remove(file_path)
+        except Exception as e:
+            LOG.exception("failed to fix non-writeable file '%s': %s",
+                          file_path, e)
+
+
 class SimpleFileDownloader(GObject.GObject):
 
     LOG = logging.getLogger("softwarecenter.simplefiledownloader")
@@ -798,28 +834,6 @@ class SimpleFileDownloader(GObject.GObject):
         outputfile.write(content)
         outputfile.close()
         self.emit('file-download-complete', self.dest_file_path)
-
-
-def make_string_from_list(base_str, item_list):
-    """ This function takes a list of items and builds a nice human readable
-        string with it of the form. Note that the base string needs a "%s".
-        Example return:
-          The base string with the list items a,b and c in it.
-        Note that base_str needs to be a ngettext string already, so the
-        example usage is:
-         l = ["foo", "bar"]
-         base_str = ngettext("This list: %s.", "This list: %s", len(l))
-         s = make_string_from_list(base_string, l)
-    """
-    list_str = item_list[0]
-    if len(item_list) > 1:
-        # TRANSLATORS: this is a generic list delimit char, e.g. "foo, bar"
-        list_str = _(", ").join(item_list[:-1])
-        # TRANSLATORS: this is the last part of a list, e.g. "foo, bar and baz"
-        list_str = _("%s and %s") % (list_str,
-                                     item_list[-1])
-    s = base_str % list_str
-    return s
 
 
 # those helpers are packaging system specific
