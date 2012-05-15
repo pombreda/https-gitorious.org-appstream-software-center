@@ -214,7 +214,8 @@ class UIReviewsList(Gtk.VBox):
         self.install_first_label = Gtk.Label(label=s)
         self.install_first_label.set_use_markup(True)
         self.install_first_label.set_alignment(1.0, 0.5)
-        self.reviews_info_hbox.pack_start(self.install_first_label, False, False, 0)
+        self.reviews_info_hbox.pack_start(
+            self.install_first_label, False, False, 0)
         self.install_first_label.show()
 
     # FIXME: this needs to be smarter in the future as we will
