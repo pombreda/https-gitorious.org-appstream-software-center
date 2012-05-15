@@ -398,14 +398,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.active_pane = self.available_pane
         self.window_main.connect("realize", self.on_realize)
 
-        # launchpad integration help, its ok if that fails
-        try:
-            from gi.repository import LaunchpadIntegration
-            LaunchpadIntegration.set_sourcepackagename("software-center")
-            LaunchpadIntegration.add_items(self.menu_help, 3, True, False)
-        except Exception, e:
-            LOG.debug("launchpad integration error: '%s'" % e)
-
     # helper
     def _run_software_center_agent(self):
         """ helper that triggers the update-software-center-agent helper """
@@ -498,6 +490,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.menuitem_recommendations.set_label(
                                             _(u"Turn On Recommendations…"))
 
+    @wait_for_apt_cache_ready
     def _upload_recommendations_profile(self):
         recommender_agent = self._get_recommender_agent()
         if recommender_agent.is_opted_in():
