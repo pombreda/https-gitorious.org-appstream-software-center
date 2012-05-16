@@ -53,6 +53,7 @@ SOFTWARE_CENTER_WEBLIVE_HOST - overwrite default weblive server
 SOFTWARE_CENTER_DISTRO_CODENAME - overwrite "lsb_release -c -s" output
 SOFTWARE_CENTER_ARCHITECTURE - overwrite the current architecture
 SOFTWARE_CENTER_NO_SC_AGENT - disable the software-center-agent
+SOFTWARE_CENTER_DISABLE_SPAWN_HELPER - disable everything that is run via the "SpawnHelper", i.e. recommender-agent, software-center-agent, reviews
 SOFTWARE_CENTER_DEBUG_TABS - show notebook tabs for debugging
 SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK - disables certificates checking in webkit views (for use in test environments)
 SOFTWARE_CENTER_FORCE_NON_SSL - disable SSL (for use in test environments)

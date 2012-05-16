@@ -12,7 +12,7 @@ from testutils import get_mock_options, setup_test_env
 setup_test_env()
 
 import softwarecenter.paths
-
+from softwarecenter.db import DebFileApplication, DebFileOpenError
 from softwarecenter.enums import PkgStates, SearchSeparators
 from softwarecenter.ui.gtk3 import app
 
@@ -90,12 +90,26 @@ class ParsePackagesArgsTestCase(unittest.TestCase):
         """Pass several items, show the 'available' view."""
         self.do_check(apps=(self.pkg_name, 'firefox', 'software-center'))
 
+
+class ParsePackageArgsAsFileTestCase(unittest.TestCase):
+
     def test_item_is_a_file(self):
         """Pass an item that is an existing file."""
+        # pass a real deb here
+        fname = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             "..", "data", "test_debs", "gdebi-test1.deb")
+        assert os.path.exists(fname)
+        # test once as string and as list
+        for items in ( fname, [fname] ):
+            search_text, result_app = app.parse_packages_args(fname)
+            self.assertIsInstance(result_app, DebFileApplication)
+
+    def test_item_is_invalid_file(self):
+        """ Pass an invalid file item """
         fname = __file__
         assert os.path.exists(fname)
-        self.do_check(apps=(os.path.abspath(fname),), items=(fname,))
-
+        self.assertRaises(DebFileOpenError, app.parse_packages_args, fname)
+        
 
 class ParsePackagesWithAptPrefixTestCase(ParsePackagesArgsTestCase):
 
@@ -337,4 +351,7 @@ class ShowPackagesInstalledTestCase(ShowPackagesOnePackageTestCase):
 
 
 if __name__ == "__main__":
+    # avoid spawning recommender-agent, reviews, software-center-agent etc,
+    # cuts ~5s or so
+    os.environ["SOFTWARE_CENTER_DISABLE_SPAWN_HELPER"] = "1"
     unittest.main()

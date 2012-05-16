@@ -48,7 +48,7 @@ softwarecenter.netstatus.NETWORK_STATE
 
 # db imports
 from softwarecenter.db.application import Application
-from softwarecenter.db import DebFileApplication
+from softwarecenter.db import DebFileApplication, DebFileOpenError
 from softwarecenter.i18n import init_locale
 
 # misc imports
@@ -176,12 +176,8 @@ def parse_packages_args(packages):
             if not request.startswith('/'):
                 # we may have been given a relative path
                 request = os.path.abspath(request)
-            try:
-                app = DebFileApplication(request)
-            except ValueError:
-                LOG.exception('show_available_packages: can not build a '
-                    'DebFileApplication, forcing search:')
-                search_text = request
+            # will raise DebOpenFileError if request is invalid
+            app = DebFileApplication(request)
         else:
             # package from archive
             # if there is a "/" in the string consider it as tuple
@@ -1330,7 +1326,16 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             If the list of packages is only one element long show that,
             otherwise turn it into a comma seperated search
         """
-        search_text, app = parse_packages_args(packages)
+        try:
+            search_text, app = parse_packages_args(packages)
+        except DebFileOpenError as e:
+            LOG.exception("show_available_packages: can not open %r, error:",
+                          packages)
+            dialogs.error(None,
+                          _("Error"),
+                          _("The file “%s” could not be opened.") % e.path)
+            search_text = app = None
+
         LOG.info('show_available_packages: search_text is %r, app is %r.',
                  search_text, app)
 

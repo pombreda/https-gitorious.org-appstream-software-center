@@ -144,8 +144,7 @@ class AppView(Gtk.VBox):
         return combo
 
     def _get_combo_children(self):
-        model = self.sort_methods_combobox.get_model()
-        return len(model) if model is not None else None
+        return len(self.sort_methods_combobox.get_model())
 
     def _use_combobox_with_sort_by_search_ranking(self):
         if self._get_combo_children() == 4:

@@ -328,12 +328,7 @@ class UIReviewsList(Gtk.VBox):
 
     def get_active_review_language(self):
         model = self.review_language.get_model()
-        # the following may crash with:
-        # TypeError: 'NoneType' object has no attribute '__getitem__'
-        language = 'en'
-        if model is not None:
-            lang = model[self.review_language.get_active_iter()]
-            language = lang[COL_LANGCODE]
+        language = model[self.review_language.get_active_iter()][COL_LANGCODE]
         return language
 
     def get_all_review_ids(self):
