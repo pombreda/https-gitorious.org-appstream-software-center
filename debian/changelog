@@ -1,3 +1,11 @@
+software-center (5.2.3) UNRELEASED; urgency=low
+
+  * lp:~evfool/software-center/lp987801:
+    - Only show the version label once for each version in 
+      reviews (LP: #987801)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 16 May 2012 08:58:34 +0200
+
 software-center (5.2.2) precise-proposed; urgency=low
 
   [ Michael Vogt ]
