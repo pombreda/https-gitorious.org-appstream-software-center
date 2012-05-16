@@ -80,6 +80,10 @@ GtkViewport {
     padding: 0;
 }
 
+GtkTreeView {
+    background-color: @super-light-aubergine;
+}
+
 #toolbar-popup {
     padding: 0;
 }

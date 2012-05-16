@@ -1475,11 +1475,12 @@ class AppDetailsView(Viewport):
             version = utf8(_("%s (unknown version)")) % utf8(
                 app_details.pkgname)
         if app_details.license:
-            license = app_details.license
+            license = GObject.markup_escape_text(app_details.license)
         else:
             license = _("Unknown")
         if app_details.maintenance_status:
-            support = app_details.maintenance_status
+            support = GObject.markup_escape_text(
+                app_details.maintenance_status)
         else:
             support = _("Unknown")
         # regular label updates
@@ -2024,10 +2025,14 @@ class AppDetailsView(Viewport):
               self.app_details.pkg_state == PkgStates.INSTALLED and
               not self.addons_manager.addons_to_install and
               not self.addons_manager.addons_to_remove):
-            pkg = self.cache[self.app_details.pkgname].installed
-            install_size = GLib.format_size(pkg.installed_size)
-            # FIXME: this is not really a good indication of the size on disk
-            label_string += _("%s on disk") % (install_size)
+            pkg_version = self.cache[self.app_details.pkgname].installed
+            # we may not always get a pkg_version returned (LP: #870822),
+            # in that case, we'll just have to display "Unknown"
+            if pkg_version:
+                install_size = GLib.format_size(pkg_version.installed_size)
+                # FIXME: this is not really a good indication of the size
+                # on disk
+                label_string += _("%s on disk") % (install_size)
         elif total_install_size < 0:
             remove_size = GLib.format_size(-total_install_size)
             label_string += _("%s to be freed") % (remove_size)
