@@ -150,7 +150,13 @@ class HistoryPane(Gtk.VBox, BasePane):
         self.cell_text = Gtk.CellRendererText()
         self.column.pack_start(self.cell_text, True)
         self.column.set_cell_data_func(self.cell_text, self.render_cell_text)
+        self.cell_time = Gtk.CellRendererText()
+        self.cell_time.set_padding(6, 0)
+        self.cell_time.set_alignment(1.0, 0.5)
+        self.column.pack_end(self.cell_time, False)
+        self.column.set_cell_data_func(self.cell_time, self.render_cell_time)
 
+       
         # busy cursor
         self.busy_cursor = Gdk.Cursor.new(Gdk.CursorType.WATCH)
 
@@ -353,22 +359,7 @@ class HistoryPane(Gtk.VBox, BasePane):
         if isinstance(when, datetime.datetime):
             action = store.get_value(iter, self.COL_ACTION)
             pkg = store.get_value(iter, self.COL_PKG)
-            subs = {'pkgname': pkg,
-                    'color': '#8A8A8A',
-                    # Translators : time displayed in history, display hours
-                    # (0-12), minutes and AM/PM. %H should be used instead
-                    # of %I to display hours 0-24
-                    'time': when.time().strftime(_('%I:%M %p')),
-                   }
-            if action == self.INSTALLED:
-                text = _('%(pkgname)s <span color="%(color)s">'
-                    'installed %(time)s</span>') % subs
-            elif action == self.REMOVED:
-                text = _('%(pkgname)s <span color="%(color)s">'
-                    'removed %(time)s</span>') % subs
-            elif action == self.UPGRADED:
-                text = _('%(pkgname)s <span color="%(color)s">'
-                    'updated %(time)s</span>') % subs
+            text = pkg
         elif isinstance(when, datetime.date):
             today = datetime.date.today()
             monday = today - datetime.timedelta(days=today.weekday())
@@ -384,6 +375,27 @@ class HistoryPane(Gtk.VBox, BasePane):
                 else:
                     # Display the full date: day, month, year
                     text = when.strftime(_('%d %B %Y'))
+        cell.set_property('markup', text)
+
+    def render_cell_time(self, column, cell, store, iter, user_data):
+        when = store.get_value(iter, self.COL_WHEN)
+        text = ''
+        if isinstance(when, datetime.datetime):
+            action = store.get_value(iter, self.COL_ACTION)
+            # Translators : time displayed in history, display hours
+            # (0-12), minutes and AM/PM. %H should be used instead
+            # of %I to display hours 0-24
+            time_text = when.time().strftime(_('%I:%M %p'))
+            if self.filter is not self.ALL:
+                action_text = time_text
+            else:
+                if action == self.INSTALLED:
+                    action_text = _('installed %s') % time_text
+                elif action == self.REMOVED:
+                    action_text = _('removed %s') % time_text
+                elif action == self.UPGRADED:
+                    action_text = _('updated %s') % time_text
+            text = '<span color="%(color)s">%(action)s</span>'% {'color': '#8A8A8A', 'action': action_text } 
         cell.set_property('markup', text)
 
 
