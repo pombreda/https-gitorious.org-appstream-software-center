@@ -1168,9 +1168,9 @@ class AppDetailsView(Viewport):
         self.review_stats_widget = StarRatingsWidget()
         self.review_stats = Gtk.HBox()
         vb_inner.pack_start(
-            self.review_stats, False, False, 0)
+            self.review_stats, False, False, StockEms.SMALL)
         self.review_stats.pack_start(
-            self.review_stats_widget, False, False, StockEms.SMALL)
+            self.review_stats_widget, False, False, 0)
 
         #~ vb_inner.set_property("can-focus", True)
         self.title.a11y = vb_inner.get_accessible()
