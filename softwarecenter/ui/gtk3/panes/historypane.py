@@ -25,6 +25,7 @@ import datetime
 
 from gettext import gettext as _
 
+from softwarecenter.ui.gtk3.em import get_em
 from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
 from basepane import BasePane
 from softwarecenter.enums import Icons
@@ -49,8 +50,8 @@ class HistoryPane(Gtk.VBox, BasePane):
 
     (ALL, INSTALLED, REMOVED, UPGRADED) = range(4)
 
-    ICON_SIZE = 32
-    PADDING = 6
+    ICON_SIZE = 1.2 * get_em()
+    PADDING = 4
 
     # pages for the spinner notebook
     (PAGE_HISTORY_VIEW,
@@ -143,6 +144,7 @@ class HistoryPane(Gtk.VBox, BasePane):
         self.column = Gtk.TreeViewColumn(_('Date'))
         self.view.append_column(self.column)
         self.cell_icon = Gtk.CellRendererPixbuf()
+        self.cell_icon.set_padding(self.PADDING, self.PADDING/2)
         self.column.pack_start(self.cell_icon, False)
         self.column.set_cell_data_func(self.cell_icon, self.render_cell_icon)
         self.cell_text = Gtk.CellRendererText()
