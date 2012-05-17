@@ -4,6 +4,9 @@ import unittest
 from gi.repository import Gtk
 from mock import patch
 
+from testutils import setup_test_env
+setup_test_env()
+
 from softwarecenter.ui.gtk3.widgets import spinner
 
 
