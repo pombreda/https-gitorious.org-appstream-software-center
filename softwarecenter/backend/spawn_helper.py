@@ -86,6 +86,9 @@ class SpawnHelper(GObject.GObject):
         self.run(cmd)
 
     def run(self, cmd):
+        # only useful for debugging
+        if "SOFTWARE_CENTER_DISABLE_SPAWN_HELPER" in os.environ:
+            return
         self._cmd = cmd
         (pid, stdin, stdout, stderr) = GObject.spawn_async(
             cmd, flags=GObject.SPAWN_DO_NOT_REAP_CHILD,

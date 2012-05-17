@@ -1738,7 +1738,7 @@ class AppDetailsView(Viewport):
             # update all (but skip the addons calculation if this is a
             # DebFileApplication as this is not useful for this case and it
             # increases the view load time dramatically)
-            skip_update_addons = type(self.app) == DebFileApplication
+            skip_update_addons = isinstance(self.app, DebFileApplication)
             self._update_all(self.app_details,
                              skip_update_addons=skip_update_addons)
 
@@ -2013,7 +2013,7 @@ class AppDetailsView(Viewport):
             self.addons_manager.addons_to_remove,
             self.app.archive_suite)
         total_download_size, total_install_size = res
-        if res == (0, 0) and type(self.app) == DebFileApplication:
+        if res == (0, 0) and isinstance(self.app, DebFileApplication):
             total_install_size = self.app_details.installed_size
         if total_download_size > 0:
             download_size = GLib.format_size(total_download_size)

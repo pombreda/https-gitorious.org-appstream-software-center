@@ -31,6 +31,7 @@ DBusGMainLoop(set_as_default=True)
 import gettext
 import logging
 import os
+import re
 import subprocess
 import sys
 import xapian
@@ -47,30 +48,36 @@ softwarecenter.netstatus.NETWORK_STATE
 
 # db imports
 from softwarecenter.db.application import Application
-from softwarecenter.db import DebFileApplication
+from softwarecenter.db import DebFileApplication, DebFileOpenError
 from softwarecenter.i18n import init_locale
 
 # misc imports
 from softwarecenter.plugin import PluginManager
 from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIRS
-from softwarecenter.enums import (Icons,
-                                  PkgStates,
-                                  ViewPages,
-                                  AppActions,
-                                  DB_SCHEMA_VERSION,
-                                  MOUSE_EVENT_FORWARD_BUTTON,
-                                  MOUSE_EVENT_BACK_BUTTON,
-                                  SOFTWARE_CENTER_DEBUG_TABS,
-                                  SOFTWARE_CENTER_NAME_KEYRING,
-                                  SOFTWARE_CENTER_TOS_LINK,
+from softwarecenter.enums import (
+    AppActions,
+    DB_SCHEMA_VERSION,
+    Icons,
+    MOUSE_EVENT_FORWARD_BUTTON,
+    MOUSE_EVENT_BACK_BUTTON,
+    PkgStates,
+    SearchSeparators,
+    SOFTWARE_CENTER_DEBUG_TABS,
+    SOFTWARE_CENTER_NAME_KEYRING,
+    SOFTWARE_CENTER_TOS_LINK,
+    ViewPages,
 )
-from softwarecenter.utils import (clear_token_from_ubuntu_sso_sync,
-                                  get_http_proxy_string_from_gsettings,
-                                  wait_for_apt_cache_ready,
-                                  ExecutionTime,
-                                  is_unity_running)
-from softwarecenter.ui.gtk3.utils import (get_sc_icon_theme,
-                                          init_sc_css_provider)
+from softwarecenter.utils import (
+    clear_token_from_ubuntu_sso_sync,
+    get_http_proxy_string_from_gsettings,
+    wait_for_apt_cache_ready,
+    ExecutionTime,
+    is_unity_running,
+)
+from softwarecenter.ui.gtk3.utils import (
+    get_sc_icon_theme,
+    init_sc_css_provider,
+)
 from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
 try:
@@ -89,10 +96,14 @@ from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 from softwarecenter.ui.gtk3.panes.historypane import HistoryPane
 from softwarecenter.ui.gtk3.panes.globalpane import GlobalPane
 from softwarecenter.ui.gtk3.panes.pendingpane import PendingPane
-from softwarecenter.ui.gtk3.session.appmanager import (ApplicationManager,
-                                                       get_appmanager)
+from softwarecenter.ui.gtk3.session.appmanager import (
+    ApplicationManager,
+    get_appmanager,
+    )
 from softwarecenter.ui.gtk3.session.viewmanager import (
-    ViewManager, get_viewmanager)
+    ViewManager,
+    get_viewmanager,
+    )
 from softwarecenter.ui.gtk3.widgets.recommendations import (
     RecommendationsOptInDialog)
 
@@ -114,11 +125,73 @@ from softwarecenter.db.pkginfo import get_pkg_info
 from gi.repository import Gdk
 
 LOG = logging.getLogger(__name__)
+PACKAGE_PREFIX = 'apt:'
+# "apt:///" is a valid prefix for 'apt:pkgname' in alt+F2 in gnome
+PACKAGE_PREFIX_REGEX = re.compile('^%s(?:/{2,3})*' % PACKAGE_PREFIX)
+SEARCH_PREFIX = 'search:'
 
 
 # py3 compat
 def callable(func):
     return isinstance(func, collections.Callable)
+
+
+def parse_packages_args(packages):
+    search_text = ''
+    app = None
+
+    # avoid treating strings as sequences ('foo' should not be 'f', 'o', 'o')
+    if isinstance(packages, basestring):
+        packages = (packages,)
+
+    if not isinstance(packages, collections.Iterable):
+        LOG.warning('show_available_packages: argument is not an iterable %r',
+            packages)
+        return search_text, app
+
+    items = []  # make a copy of the given sequence
+    for arg in packages:
+        # support both "pkg1 pkg" and "pkg1,pkg2" (and "pkg1,pkg2 pkg3")
+        if "," in arg:
+            items.extend(arg.split(SearchSeparators.PACKAGE))
+        else:
+            items.append(arg)
+
+    if len(items) > 0:
+        # allow s-c to be called with a search term
+        if items[0].startswith(SEARCH_PREFIX):
+            # remove the initial search prefix
+            items[0] = items[0].replace(SEARCH_PREFIX, '', 1)
+            search_text = SearchSeparators.REGULAR.join(items)
+        else:
+            # strip away the initial apt: prefix, if present
+            items[0] = re.sub(PACKAGE_PREFIX_REGEX, '', items[0])
+            if len(items) > 1:
+                # turn multiple packages into a search with "," as separator
+                search_text = SearchSeparators.PACKAGE.join(items)
+
+    if not search_text and len(items) == 1:
+        request = items[0]
+        # are we dealing with a path?
+        if os.path.exists(request) and not os.path.isdir(request):
+            if not request.startswith('/'):
+                # we may have been given a relative path
+                request = os.path.abspath(request)
+            # will raise DebOpenFileError if request is invalid
+            app = DebFileApplication(request)
+        else:
+            # package from archive
+            # if there is a "/" in the string consider it as tuple
+            # of (pkgname, appname) for exact matching (used by
+            # e.g. unity
+            (pkgname, sep, appname) = request.partition("/")
+            if pkgname or appname:
+                app = Application(appname, pkgname)
+            else:
+                LOG.warning('show_available_packages: received %r but '
+                    'can not build an Application from it.', request)
+
+    return search_text, app
 
 
 class SoftwarecenterDbusController(dbus.service.Object):
@@ -160,13 +233,16 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     # the size of the icon for dialogs
     APP_ICON_SIZE = Gtk.IconSize.DIALOG
 
+    START_DBUS = True
+
     def __init__(self, datadir, xapian_base_path, options, args=None):
-        # setup dbus and exit if there is another instance already
-        # running
-        self.setup_dbus_or_bring_other_instance_to_front(args)
+        self.dbusControler = None
+        if self.START_DBUS:
+            # setup dbus and exit if there is another instance already running
+            self.setup_dbus_or_bring_other_instance_to_front(args)
 
         self.datadir = datadir
-        SimpleGtkbuilderApp.__init__(self,
+        super(SoftwareCenterAppGtk3, self).__init__(
                                      datadir + "/ui/gtk3/SoftwareCenter.ui",
                                      "software-center")
         gettext.bindtextdomain("software-center", "/usr/share/locale")
@@ -526,6 +602,18 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_review_stats_loaded(self, reviews):
         LOG.debug("on_review_stats_loaded: '%s'" % len(reviews))
 
+    def destroy(self):
+        """Destroy this instance and every used resource."""
+        self.window_main.destroy()
+
+        # remove global instances of Managers
+        self.app_manager.destroy()
+        self.view_manager.destroy()
+
+        if self.dbusControler is not None:
+            # ensure that the dbus controller is really gone
+            self.dbusControler.stop()
+
     def close_app(self):
         """ perform tasks like save-state etc when the application is
             exited
@@ -540,15 +628,14 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if hasattr(self, "glaunchpad"):
             self.glaunchpad.shutdown()
         self.save_state()
+        self.destroy()
+
         # this will not throw exceptions in pygi but "only" log via g_critical
         # to the terminal but it might in the future so we add a handler here
         try:
             Gtk.main_quit()
         except:
             LOG.exception("Gtk.main_quit failed")
-        # ensure that the dbus controller is really gone, just for good
-        # measure
-        self.dbusControler.stop()
         # exit here explictely to ensure that no further gtk event loops or
         # threads run and cause havoc on exit (LP: #914393)
         sys.exit(0)
@@ -1218,75 +1305,49 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             bus_name = dbus.service.BusName('com.ubuntu.Softwarecenter', bus)
             self.dbusControler = SoftwarecenterDbusController(self, bus_name)
 
+    @wait_for_apt_cache_ready
+    def show_app(self, app):
+        """Show 'app' in the installed pane if is installed.
+
+        If 'app' is not installed, show it in the available pane.
+
+        """
+        if (app.pkgname in self.cache and self.cache[app.pkgname].installed):
+            with ExecutionTime("installed_pane.init_view()"):
+                self.installed_pane.init_view()
+            with ExecutionTime("installed_pane.show_app()"):
+                self.installed_pane.show_app(app)
+        else:
+            self.available_pane.init_view()
+            self.available_pane.show_app(app)
+
     def show_available_packages(self, packages):
         """ Show packages given as arguments in the available_pane
             If the list of packages is only one element long show that,
             otherwise turn it into a comma seperated search
         """
-        # strip away the apt: prefix
-        if packages and packages[0].startswith("apt:///"):
-            # this is for 'apt:pkgname' in alt+F2 in gnome
-            packages[0] = packages[0].partition("apt:///")[2]
-        elif packages and packages[0].startswith("apt://"):
-            packages[0] = packages[0].partition("apt://")[2]
-        elif packages and packages[0].startswith("apt:"):
-            packages[0] = packages[0].partition("apt:")[2]
-
-        # allow s-c to be called with a search term
-        if packages and packages[0].startswith("search:"):
-            packages[0] = packages[0].partition("search:")[2]
-            self.available_pane.init_view()
-            self.available_pane.searchentry.set_text(" ".join(packages))
-            return
-
-        if len(packages) == 1:
-            request = packages[0]
-
-            # are we dealing with a path?
-            if os.path.exists(request) and not os.path.isdir(request):
-                if not request.startswith('/'):
-                # we may have been given a relative path
-                    request = os.path.join(os.getcwd(), request)
-                try:
-                    app = DebFileApplication(request)
-                except ValueError as e:
-                    LOG.error("can not open %s: %s" % (request, e))
-                    from softwarecenter.ui.gtk3.dialogs import error
-                    error(None,
+        try:
+            search_text, app = parse_packages_args(packages)
+        except DebFileOpenError as e:
+            LOG.exception("show_available_packages: can not open %r, error:",
+                          packages)
+            dialogs.error(None,
                           _("Error"),
-                          _("The file “%s” could not be opened.") % request)
-                    app = None
-            else:
-                # package from archive
-                # if there is a "/" in the string consider it as tuple
-                # of (pkgname, appname) for exact matching (used by
-                # e.g. unity
-                (pkgname, sep, appname) = packages[0].partition("/")
-                app = Application(appname, pkgname)
+                          _("The file “%s” could not be opened.") % e.path)
+            search_text = app = None
 
-            @wait_for_apt_cache_ready
-            def show_app(self, app):
-                # if the pkg is installed, show it in the installed pane
-                if (app.pkgname in self.cache and
-                    self.cache[app.pkgname].installed):
-                    with ExecutionTime("installed_pane.init_view()"):
-                        self.installed_pane.init_view()
-                    with ExecutionTime("installed_pane.show_app()"):
-                        self.installed_pane.show_app(app)
-                else:
-                    self.available_pane.init_view()
-                    self.available_pane.show_app(app)
-            if app:
-                show_app(self, app)
-                return
-        elif len(packages) > 1:
-            # turn multiple packages into a search with ","
+        LOG.info('show_available_packages: search_text is %r, app is %r.',
+                 search_text, app)
+
+        if search_text:
             self.available_pane.init_view()
-            self.available_pane.searchentry.set_text(",".join(packages))
-            return
-        # normal startup, show the lobby (it will have a spinner when
-        # its not ready yet) - it will also initialize the view
-        self.view_manager.set_active_view(ViewPages.AVAILABLE)
+            self.available_pane.searchentry.set_text(search_text)
+        elif app is not None:
+            self.show_app(app)
+        else:
+            # normal startup, show the lobby (it will have a spinner when
+            # its not ready yet) - it will also initialize the view
+            self.view_manager.set_active_view(ViewPages.AVAILABLE)
 
     def restore_state(self):
         if self.config.has_option("general", "size"):
