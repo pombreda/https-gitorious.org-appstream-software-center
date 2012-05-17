@@ -1264,7 +1264,7 @@ class AppDetailsView(Viewport):
         info_vb.pack_start(self.addon_view, False, False, 0)
 
         self.addons_statusbar = self.addons_manager.status_bar
-        self.addon_view.pack_start(self.addons_statusbar, False, False, 0)
+        self.addon_view.pack_end(self.addons_statusbar, False, False, 0)
         self.addon_view.connect('table-built', self._on_addon_table_built)
 
         self.addons_hbar = self._hbars[1]
