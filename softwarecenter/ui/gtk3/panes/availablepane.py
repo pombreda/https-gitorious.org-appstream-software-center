@@ -236,11 +236,6 @@ class AvailablePane(SoftwarePane):
         # again (LP: #851671)
         self.view_initialized = True
 
-        vm = get_viewmanager()
-        vm.display_page(
-            self, AvailablePane.Pages.LOBBY,
-            self.state, self.display_lobby_page)
-
         if window is not None:
             window.set_cursor(None)
 

@@ -1,14 +1,85 @@
-*** DO NOT UPLOAD YET FROM THIS BRANCH, use the lp:software-center/5.2 
-    BRANCH INSTEAD until "quantal" gets the first upload ***
+software-center (5.2.3) UNRELEASED; urgency=low
 
-software-center (5.3.0) UNRELEASED; urgency=low
+  * lp:~evfool/software-center/lp987801:
+    - Only show the version label once for each version in 
+      reviews (LP: #987801)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 16 May 2012 08:58:34 +0200
+
+software-center (5.2.2) precise-proposed; urgency=low
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/whatsnew-leak-lp985389:
     - search filter fix for the case when the "installed-only"
       filter leaks into subsequent searches (LP: #985389)
+  * lp:~mvo/software-center/fix-lp994632:
+    - add a dep to ensure we get the correct ubuntu-sso-client-gtk
+      (LP: #994632)
+  * lp:~mvo/software-center/proper-error-on-unknown-files:
+    - show a proper error message when attempting to open unknown
+      file types (LP: #944868)
+  * lp:~mvo/software-center/lp921799:
+    - fix crash when decoding screenshots JSON (LP: #921799)
+  * lp:~mvo/software-center/lp959612:
+    - fix crash when selecting the Installed view very quickly
+      after startup (LP: #959612)
+  
+  [ Ken VanDine ]
+  * lp:~ken-vandine/software-center/lp_982567:
+    - Check if the proxy is enabled, if the proxy host is set but not 
+      enabled we shouldn't attempt to use the proxy (LP: #982567)
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/fix-crash-lp969732:
+    - need to explicitly declare the needs-refresh signal in the 
+      AppTreeStore class to prevent a crash (LP: #969732)
+  * lp:~gary-lasker/software-center/fix-crash-lp870822:
+    - don't crash if we don't get a pkgversion object back 
+      (LP: #870822)
+  * lp:~gary-lasker/software-center/fix-shutdown-crash-lp996333:
+    - never crash when writing out the software center config file on
+      shutdown (LP: #996333)
+  * lp:~gary-lasker/software-center/fix-makedirs-race-crashes:
+    - fix crash on race when creating the cache or config directories
+      (LP: #743003, LP: #621182)
+  * lp:~gary-lasker/software-center/fix-crash_lp973379:
+    - ensure that the cache is ready before using the recommender 
+      service (LP: #973379 )
+  * lp:~gary-lasker/software-center/toolbar-buttons-insensitive-during-startup:
+    - set the toolbar buttons insensitive for the duration of time that the 
+      lobby panels are initializing (LP: #999486, LP: #994341)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 30 Apr 2012 18:22:04 -0400
+  [ Robert Roth ]
+  * lp:~evfool/software-center/bug532072:
+    - escape markup for support info and license (LP: #993279)
+    - ellipsize summary at trailing end (LP: #532072)
+  * lp:~evfool/software-center/lp626037:
+    - subtle background color tweak for consistency
+      between views (LP: #626037)
+  * lp:~evfool/software-center/lp835005:
+    - no need for the software-properties dialog to be modal
+      to software-center (LP: #835005)
+  * lp:~evfool/software-center/lp839389:
+    - don't display an "icon not found" image in the Unity
+      launcher when a report a review window is opened (LP: #839389)
+  * lp:~evfool/software-center/867588:
+    - capitalize the first letter of the package summary
+      (LP: #867588)
+  * lp:~evfool/software-center/lp876657:
+    - make sure the search field does not disappear when an
+      install or remove is in progress (LP: #876657)
+  * lp:~evfool/software-center/lp987797:
+    - fix alignment in the reviews part of the appdetails (LP: #987797)
+  * lp:~evfool/software-center/lp844768:
+    - show a indeterminate progress bar when software-center waits for
+      another packagemanager to exit (LP: #844768)
+
+  [ Dave Morley ]
+  * lp:~davmor2/software-center/add-performance:
+    - test code change only! add memory and cpt stats to the
+      test script 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 May 2012 20:22:02 +0200
 
 software-center (5.2.1) precise-proposed; urgency=low
 

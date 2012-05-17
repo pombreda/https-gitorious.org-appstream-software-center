@@ -273,6 +273,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.vbox1.pack_start(self.global_pane, False, False, 0)
             self.vbox1.reorder_child(self.global_pane, 1)
 
+            # start with the toolbar buttons insensitive and don't make them
+            # sensitive until the panel elements are ready
+            #self.global_pane.view_switcher.set_sensitive(False)
+
             # available pane
             self.available_pane = AvailablePane(self.cache,
                                                 self.db,
@@ -292,8 +296,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                                 self.distro,
                                                 self.icons,
                                                 self.datadir)
-            #~ self.installed_pane.connect("installed-pane-created",
-                #~ self.on_installed_pane_created)
+            self.installed_pane.connect("installed-pane-created",
+                self.on_installed_pane_created)
             self.view_manager.register(self.installed_pane,
                 ViewPages.INSTALLED)
 
@@ -480,9 +484,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                         "recommendations-opt-out",
                         self._on_recommendations_opt_out)
         self.menuitem_recommendations.set_sensitive(True)
+        # set the main toolbar buttons sensitive
+        self.global_pane.view_switcher.set_sensitive(True)
 
-    #~ def on_installed_pane_created(self, widget):
-        #~ pass
+    def on_installed_pane_created(self, widget):
+        # set the main toolbar buttons sensitive
+        self.global_pane.view_switcher.set_sensitive(True)
 
     def _on_recommendations_opt_in(self, rec_panel):
         self._update_recommendations_menuitem(opted_in=True)
@@ -498,6 +505,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.menuitem_recommendations.set_label(
                                             _(u"Turn On Recommendations…"))
 
+    @wait_for_apt_cache_ready
     def _upload_recommendations_profile(self):
         recommender_agent = self._get_recommender_agent()
         if recommender_agent.is_opted_in():
@@ -965,7 +973,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.active_pane.searchentry.select_region(0, -1)
 
     def on_menuitem_software_sources_activate(self, widget):
-        self.window_main.set_sensitive(False)
         # run software-properties-gtk
         window = self.window_main.get_window()
         if hasattr(window, 'xid'):
@@ -988,7 +995,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # A return code of 1 means that the sources have changed
         if ret == 1:
             self.run_update_cache()
-        self.window_main.set_sensitive(True)
         # Stop monitoring
         return False
 
@@ -1240,7 +1246,15 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 if not request.startswith('/'):
                 # we may have been given a relative path
                     request = os.path.join(os.getcwd(), request)
-                app = DebFileApplication(request)
+                try:
+                    app = DebFileApplication(request)
+                except ValueError as e:
+                    LOG.error("can not open %s: %s" % (request, e))
+                    from softwarecenter.ui.gtk3.dialogs import error
+                    error(None,
+                          _("Error"),
+                          _("The file “%s” could not be opened.") % request)
+                    app = None
             else:
                 # package from archive
                 # if there is a "/" in the string consider it as tuple
@@ -1261,8 +1275,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 else:
                     self.available_pane.init_view()
                     self.available_pane.show_app(app)
-            show_app(self, app)
-            return
+            if app:
+                show_app(self, app)
+                return
         elif len(packages) > 1:
             # turn multiple packages into a search with ","
             self.available_pane.init_view()

@@ -23,32 +23,49 @@ try:
 except ImportError:
     from ConfigParser import SafeConfigParser
 import os
+import logging
 
 from paths import SOFTWARE_CENTER_CONFIG_FILE
+
+LOG = logging.getLogger(__name__)
 
 
 class SoftwareCenterConfig(SafeConfigParser):
 
     def __init__(self, config):
         SafeConfigParser.__init__(self)
-        if not os.path.exists(os.path.dirname(config)):
-            os.makedirs(os.path.dirname(config))
+        from utils import safe_makedirs
+        safe_makedirs(os.path.dirname(config))
         # we always want this section, even on fresh installs
         self.add_section("general")
         # read the config
         self.configfile = config
         try:
             self.read(self.configfile)
-        except:
+        except Exception as e:
             # don't crash on a corrupted config file
+            LOG.warn("Could not read the config file '%s': %s",
+                     self.configfile, e)
             pass
 
     def write(self):
         tmpname = self.configfile + ".new"
-        f = open(tmpname, "w")
-        SafeConfigParser.write(self, f)
-        f.close()
-        os.rename(tmpname, self.configfile)
+        # see LP: #996333, its ok to remove the old configfile as
+        # its rewritten anyway
+        from utils import ensure_file_writable_and_delete_if_not
+        ensure_file_writable_and_delete_if_not(tmpname)
+        ensure_file_writable_and_delete_if_not(self.configfile)
+        try:
+            f = open(tmpname, "w")
+            SafeConfigParser.write(self, f)
+            f.close()
+            os.rename(tmpname, self.configfile)
+        except Exception as e:
+            # don't crash if there's an error when writing to the config file
+            # (LP: #996333)
+            LOG.warn("Could not write the config file '%s': %s",
+                     self.configfile, e)
+            pass
 
 
 _software_center_config = None
