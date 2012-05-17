@@ -29,22 +29,24 @@ SOFTWARE_CENTER_SSO_DESCRIPTION = _(
     "To reinstall previous purchases, sign in to the "
     "Ubuntu Single Sign-On account you used to pay for them.")
 
+SOFTWARE_CENTER_DEBUG_TABS = os.environ.get('SOFTWARE_CENTER_DEBUG_TABS',
+    False)
+
+SOFTWARE_CENTER_BUY_HOST = os.environ.get("SOFTWARE_CENTER_BUY_HOST",
+    "https://software-center.ubuntu.com")
 
 # buy-something base url
 #BUY_SOMETHING_HOST = "http://localhost:8000/"
-BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_AGENT_HOST") or \
- os.environ.get("SOFTWARE_CENTER_BUY_HOST") or \
- "https://software-center.ubuntu.com"
+BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_AGENT_HOST",
+    SOFTWARE_CENTER_BUY_HOST)
 
-BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_AGENT_HOST") \
-    or os.environ.get("SOFTWARE_CENTER_BUY_HOST") or \
-    "http://software-center.ubuntu.com"
+BUY_SOMETHING_HOST_ANONYMOUS = BUY_SOMETHING_HOST
 
 # recommender
-RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or \
-    "https://rec.ubuntu.com"
-#RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST") or \
-#   "https://rec.staging.ubuntu.com"
+RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST",
+    "https://rec.ubuntu.com")
+#RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST",
+#   "https://rec.staging.ubuntu.com")
 
 # for the sso login.  ussoc expects the USSOC_SERVICE_URL environment variable
 # to be a full path to the service root (including /api/1.0), not just the

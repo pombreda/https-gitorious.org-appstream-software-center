@@ -22,6 +22,8 @@ import os
 
 from gi.repository import Gtk, GObject
 
+from softwarecenter.enums import SOFTWARE_CENTER_DEBUG_TABS
+
 
 class SpinnerView(Gtk.Viewport):
     """
@@ -78,11 +80,12 @@ class SpinnerNotebook(Gtk.Notebook):
 
     def __init__(self, content, msg=""):
         Gtk.Notebook.__init__(self)
+        self._last_timeout_id = None
         self.spinner_view = SpinnerView(msg)
         # its critical to show() the spinner early as otherwise
         # gtk_notebook_set_active_page() will not switch to it
         self.spinner_view.show()
-        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+        if not SOFTWARE_CENTER_DEBUG_TABS:
             self.set_show_tabs(False)
         self.set_show_border(False)
         self.append_page(content, Gtk.Label("content"))
@@ -91,6 +94,7 @@ class SpinnerNotebook(Gtk.Notebook):
     def _unmask_view_spinner(self):
         # start is actually start_and_show()
         self.spinner_view.start_and_show()
+        self.set_current_page(self.SPINNER_PAGE)
         return False
 
     def show_spinner(self, msg=""):
@@ -100,11 +104,13 @@ class SpinnerNotebook(Gtk.Notebook):
         # "mask" the spinner view momentarily to prevent it from flashing into
         # view in the case of short delays where it isn't actually needed
         self.spinner_view.stop_and_hide()
-        GObject.timeout_add(100, self._unmask_view_spinner)
-        self.set_current_page(self.SPINNER_PAGE)
+        self._last_timeout_id = GObject.timeout_add(250,
+                                                    self._unmask_view_spinner)
 
     def hide_spinner(self):
         """ hide the spinner page again and show the content page """
+        if self._last_timeout_id is not None:
+            GObject.source_remove(self._last_timeout_id)
         self.spinner_view.stop_and_hide()
         self.set_current_page(self.CONTENT_PAGE)
 

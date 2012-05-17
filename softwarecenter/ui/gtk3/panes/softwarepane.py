@@ -22,20 +22,22 @@ from gi.repository import GObject
 from gi.repository import Gtk, Gdk
 #~ from gi.repository import Cairo
 import logging
-import os
 import xapian
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import Application
 from softwarecenter.db.enquire import AppEnquire
-from softwarecenter.enums import (SortMethods,
-                                  DEFAULT_SEARCH_LIMIT,
-                                  NonAppVisibility)
-
-from softwarecenter.utils import (ExecutionTime,
-                                  wait_for_apt_cache_ready,
-                                  utf8
-                                  )
+from softwarecenter.enums import (
+    DEFAULT_SEARCH_LIMIT,
+    NonAppVisibility,
+    SOFTWARE_CENTER_DEBUG_TABS,
+    SortMethods,
+)
+from softwarecenter.utils import (
+    ExecutionTime,
+    utf8,
+    wait_for_apt_cache_ready,
+)
 
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.widgets.actionbar import ActionBar
@@ -178,7 +180,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.back_forward = vm.get_global_backforward()
         # a notebook below
         self.notebook = Gtk.Notebook()
-        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+        if not SOFTWARE_CENTER_DEBUG_TABS:
             self.notebook.set_show_tabs(False)
         self.notebook.set_show_border(False)
         # make a spinner view to display while the applist is loading

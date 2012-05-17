@@ -60,8 +60,10 @@ from softwarecenter.enums import (Icons,
                                   DB_SCHEMA_VERSION,
                                   MOUSE_EVENT_FORWARD_BUTTON,
                                   MOUSE_EVENT_BACK_BUTTON,
+                                  SOFTWARE_CENTER_DEBUG_TABS,
+                                  SOFTWARE_CENTER_NAME_KEYRING,
                                   SOFTWARE_CENTER_TOS_LINK,
-                                  SOFTWARE_CENTER_NAME_KEYRING)
+)
 from softwarecenter.utils import (clear_token_from_ubuntu_sso_sync,
                                   get_http_proxy_string_from_gsettings,
                                   wait_for_apt_cache_ready,
@@ -172,7 +174,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         init_locale()
 
-        if "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+        if SOFTWARE_CENTER_DEBUG_TABS:
             self.notebook_view.set_show_tabs(True)
 
         # distro specific stuff
@@ -385,7 +387,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 self.menu_file.remove(self.separator_login)
         else:
             # running the agent will trigger a db reload so we do it later
-            GObject.timeout_add_seconds(30, self._run_software_center_agent)
+            GObject.timeout_add_seconds(3, self._run_software_center_agent)
 
         # keep the cache clean
         GObject.timeout_add_seconds(15, self._run_expunge_cache_helper)
@@ -459,8 +461,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             if proxy:
                 os.environ["http_proxy"] = proxy
             else:
-                if "http_proxy" in os.environ:
-                    del os.environ["http_proxy"]
+                os.environ.pop("http_proxy", None)
         except Exception as e:
             # if no gnome settings are installed, do not mess with
             # http_proxy
