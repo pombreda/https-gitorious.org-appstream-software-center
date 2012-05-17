@@ -201,6 +201,7 @@ class FeaturedTile(TileButton):
             GObject.markup_escape_text(label))
         self.title.set_alignment(0.0, 0.5)
         self.title.set_use_markup(True)
+        self.title.set_tooltip_text(label)
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
         self.content_right.pack_start(self.title, False, False, 0)
 
