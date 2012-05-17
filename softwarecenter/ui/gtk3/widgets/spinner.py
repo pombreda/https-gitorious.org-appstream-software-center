@@ -26,10 +26,13 @@ from softwarecenter.enums import SOFTWARE_CENTER_DEBUG_TABS
 
 
 class SpinnerView(Gtk.Viewport):
+    """A panel that contains a spinner with an optional legend.
+
+    The spinner is preset to a standard size and centered. An optional
+    label_text value can be specified for display with the spinner.
+
     """
-    a panel that contains a spinner preset to a standard size and centered
-    an optional label_text value can be specified for display with the spinner
-    """
+
     def __init__(self, label_text=""):
         Gtk.Viewport.__init__(self)
         self.spinner = Gtk.Spinner()
@@ -50,25 +53,22 @@ class SpinnerView(Gtk.Viewport):
         self.set_shadow_type(Gtk.ShadowType.NONE)
 
     def start_and_show(self):
-        """
-        start the spinner and show it
-        """
+        """Start the spinner and show it."""
         self.spinner.start()
         self.spinner.show()
 
     def stop_and_hide(self):
-        """
-        stop the spinner and hide it
-        """
+        """Stop the spinner and hide it."""
         self.spinner.stop()
         self.spinner.hide()
 
     def set_text(self, spinner_text=""):
-        """
-        useful for adding/removing/changing the label text after the spinner
-        instance has been created
-        """
+        """Add/remove/change this spinner's label text."""
         self.spinner_label.set_markup('<big>%s</big>' % spinner_text)
+
+    def get_text(self):
+        """Return the spinner's currently set label text."""
+        return self.spinner_label.get_text()
 
 
 class SpinnerNotebook(Gtk.Notebook):
@@ -95,6 +95,7 @@ class SpinnerNotebook(Gtk.Notebook):
         # start is actually start_and_show()
         self.spinner_view.start_and_show()
         self.set_current_page(self.SPINNER_PAGE)
+        self._last_timeout_id = None
         return False
 
     def show_spinner(self, msg=""):
