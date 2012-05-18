@@ -1,10 +1,18 @@
 software-center (5.2.3) UNRELEASED; urgency=low
 
+  [ Robert Roth ]
   * lp:~evfool/software-center/lp987801:
     - Only show the version label once for each version in 
       reviews (LP: #987801)
+  * lp:~evfool/software-center/lp874430:
+    - display tooltips for package titles in the application
+      tiles of the lobby view (LP: #874430)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 16 May 2012 08:58:34 +0200
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/lp872760-for-5.2:
+    - fix translations for certain category names (LP: #872760)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 18 May 2012 01:32:10 -0400
 
 software-center (5.2.2) precise-proposed; urgency=low
 
