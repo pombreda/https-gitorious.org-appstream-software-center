@@ -211,6 +211,8 @@ class PkgStates:
     UNKNOWN,
     ) = range(17)
 
+    NotAvailableStates = (NOT_FOUND, ERROR)
+
 
 # visibility of non applications in the search results
 class NonAppVisibility:

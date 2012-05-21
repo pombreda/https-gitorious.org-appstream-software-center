@@ -28,9 +28,12 @@ from gettext import gettext as _
 
 import softwarecenter.paths
 from softwarecenter.db.application import Application
-from softwarecenter.enums import (NonAppVisibility,
-                                  SortMethods,
-                                  TOP_RATED_CAROUSEL_LIMIT)
+from softwarecenter.enums import (
+    NonAppVisibility,
+    PkgStates,
+    SortMethods,
+    TOP_RATED_CAROUSEL_LIMIT,
+)
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.viewport import Viewport
@@ -337,6 +340,25 @@ class LobbyViewGtk(CategoriesViewGtk):
                            flags=['nonapps-visible'])
             self.emit("category-selected", cat)
 
+    def _pkg_available(self, pkgname):
+        try:
+            details = Application("", pkgname).get_details(self.db)
+        except:
+            available = False
+        else:
+            available = details.pkg_state not in PkgStates.NotAvailableStates
+        return available
+
+    def _filter_exhibits(self, exhibit_list):
+        result = []
+        # filter out those exhibits that are not available in this run
+        for exhibit in exhibit_list + [e]:
+            available = all(self._pkg_available(p) for p in
+                            exhibit.package_names.split(','))
+            if available:
+                result.append(exhibit)
+        return result
+
     def _append_banner_ads(self):
         exhibit_banner = ExhibitBanner()
         exhibit_banner.set_exhibits([FeaturedExhibit(),
@@ -345,8 +367,8 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         # query using the agent
         scagent = SoftwareCenterAgent()
-        scagent.connect(
-            "exhibits", lambda sca, l: exhibit_banner.set_exhibits(l))
+        scagent.connect("exhibits",
+            lambda _, l: exhibit_banner.set_exhibits(self._filter_exhibits(l)))
         scagent.query_exhibits()
 
         a = Gtk.Alignment()
