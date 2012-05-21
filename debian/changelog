@@ -8,6 +8,10 @@ software-center (5.2.3) UNRELEASED; urgency=low
     - display tooltips for package titles in the application
       tiles of the lobby view (LP: #874430)
 
+  [ Gabor Kelemen ]
+  * lp:~kelemeng/software-center/bug1001746:
+    - merge i18n fix (LP: #1001746)
+  
   [ Michael Vogt ]
   * lp:~mvo/software-center/lp872760-for-5.2:
     - fix translations for certain category names (LP: #872760)
