@@ -40,8 +40,11 @@ software-center (5.2.3) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-crash-lp1000238:
     - remove obsolete workaround for an old bug that has long since
       been fixed, this fixes a hard crash on Quantal (LP: #1000238) 
+  * lp:~gary-lasker/software-center/toolbar-buttons-insensitive-during-startup:
+    - re-enable the fix for LP: #999486, LP: #994341 that was inadvertently
+      disabled in the 5.2.2 release
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 May 2012 16:38:26 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 May 2012 17:23:47 -0400
 
 software-center (5.2.2) precise-proposed; urgency=low
 
