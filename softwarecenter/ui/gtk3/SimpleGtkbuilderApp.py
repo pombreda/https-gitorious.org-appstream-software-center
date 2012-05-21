@@ -23,9 +23,10 @@ from gi.repository import Gtk
 
 
 # based on SimpleGladeApp
-class SimpleGtkbuilderApp:
+class SimpleGtkbuilderApp(object):
 
     def __init__(self, path, domain):
+        super(SimpleGtkbuilderApp, self).__init__()
         self.builder = Gtk.Builder()
         self.builder.set_translation_domain(domain)
         self.builder.add_from_file(path)

@@ -210,7 +210,7 @@ class ScreenshotGallery(Gtk.VBox):
         self.screenshot.pack_start(self.button, True, False, 0)
 
         # unavailable layout
-        self.unavailable = Gtk.Label(label=self.NOT_AVAILABLE_STRING)
+        self.unavailable = Gtk.Label(label=_(self.NOT_AVAILABLE_STRING))
         self.unavailable.set_alignment(0.5, 0.5)
         # force the label state to INSENSITIVE so we get the nice
         # subtle etched in look
@@ -325,7 +325,7 @@ class ScreenshotGallery(Gtk.VBox):
         self.unavailable.show()
         self.button.hide()
         acc = self.get_accessible()
-        acc.set_name(self.NOT_AVAILABLE_STRING)
+        acc.set_name(_(self.NOT_AVAILABLE_STRING))
         acc.set_role(Atk.Role.LABEL)
 
     def display_image(self):
