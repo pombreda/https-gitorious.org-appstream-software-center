@@ -348,7 +348,7 @@ class ObjectWithSignals(object):
             callback(*args, **kwargs)
 
 
-class FakedCache(dict, ObjectWithSignals):
+class FakedCache(ObjectWithSignals, dict):
     """A faked cache."""
 
     def __init__(self, *a, **kw):
@@ -364,11 +364,9 @@ class FakedCache(dict, ObjectWithSignals):
 
     def get_addons(self, pkgname):
         """Return (recommended, suggested) addons for 'pkgname'."""
-        return ([],[])
+        return ([], [])
 
-    def get_total_size_on_install(self,pkgname, addons_to_install,
+    def get_total_size_on_install(self, pkgname, addons_to_install,
                                   addons_to_remove, archive_suite):
         """Return a fake (total_download_size, total_install_size) result."""
         return (0, 0)
-
-

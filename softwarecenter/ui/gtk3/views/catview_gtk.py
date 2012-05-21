@@ -344,11 +344,11 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     def _pkg_available(self, pkgname):
         try:
-            details = Application("", pkgname).get_details(self.db)
+            state = Application("", pkgname).get_details(self.db).pkg_state
         except:
             available = False
         else:
-            available = details.pkg_state not in PkgStates.NotAvailableStates
+            available = state not in (PkgStates.NOT_FOUND, PkgStates.ERROR)
         return available
 
     def _filter_and_set_exhibits(self, sca_client, exhibit_list):
@@ -365,7 +365,8 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _append_banner_ads(self):
         self.exhibit_banner = ExhibitBanner()
         self.exhibit_banner.set_exhibits([FeaturedExhibit()])
-        self.exhibit_banner.connect("show-exhibits-clicked", self._on_show_exhibits)
+        self.exhibit_banner.connect(
+            "show-exhibits-clicked", self._on_show_exhibits)
 
         # query using the agent
         scagent = SoftwareCenterAgent()
