@@ -722,7 +722,6 @@ def safe_makedirs(dir_path):
         try:
             os.makedirs(dir_path)
         except OSError as e:
-            print e
             if e.errno == errno.EEXIST:
                 # it seems that another process has already created this
                 # directory in the meantime, that's ok
