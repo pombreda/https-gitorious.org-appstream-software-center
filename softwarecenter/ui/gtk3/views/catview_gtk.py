@@ -227,6 +227,8 @@ class LobbyViewGtk(CategoriesViewGtk):
                  apps_filter, apps_limit=0):
         CategoriesViewGtk.__init__(self, datadir, desktopdir, cache, db, icons,
                                    apps_filter, apps_limit=0)
+        self.top_rated = None
+        self.exhibit_banner = None
 
         # sections
         self.departments = None
@@ -349,34 +351,31 @@ class LobbyViewGtk(CategoriesViewGtk):
             available = details.pkg_state not in PkgStates.NotAvailableStates
         return available
 
-    def _filter_exhibits(self, exhibit_list):
+    def _filter_and_set_exhibits(self, sca_client, exhibit_list):
         result = []
         # filter out those exhibits that are not available in this run
-        for exhibit in exhibit_list + [e]:
+        for exhibit in exhibit_list:
             available = all(self._pkg_available(p) for p in
                             exhibit.package_names.split(','))
             if available:
                 result.append(exhibit)
-        return result
+
+        self.exhibit_banner.set_exhibits(result)
 
     def _append_banner_ads(self):
-        exhibit_banner = ExhibitBanner()
-        exhibit_banner.set_exhibits([FeaturedExhibit(),
-                                    ])
-        exhibit_banner.connect("show-exhibits-clicked", self._on_show_exhibits)
+        self.exhibit_banner = ExhibitBanner()
+        self.exhibit_banner.set_exhibits([FeaturedExhibit()])
+        self.exhibit_banner.connect("show-exhibits-clicked", self._on_show_exhibits)
 
         # query using the agent
         scagent = SoftwareCenterAgent()
-        scagent.connect("exhibits",
-            lambda _, l: exhibit_banner.set_exhibits(self._filter_exhibits(l)))
+        scagent.connect("exhibits", self._filter_and_set_exhibits)
         scagent.query_exhibits()
 
         a = Gtk.Alignment()
         a.set_padding(0, StockEms.SMALL, 0, 0)
-        a.add(exhibit_banner)
-
+        a.add(self.exhibit_banner)
         self.vbox.pack_start(a, False, False, 0)
-        return
 
     def _append_departments(self):
         # set the departments section to use the label markup we have just
@@ -404,6 +403,8 @@ class LobbyViewGtk(CategoriesViewGtk):
     # FIXME: _update_{top_rated,whats_new,recommended_for_you}_content()
     #        duplicates a lot of code
     def _update_top_rated_content(self):
+        if self.top_rated is None:
+            return
         # remove any existing children from the grid widget
         self.top_rated.remove_all()
         # get top_rated category and docs

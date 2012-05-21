@@ -7,11 +7,18 @@ from mock import patch, Mock
 from testutils import setup_test_env
 setup_test_env()
 
+import softwarecenter.distro
+import softwarecenter.paths
+
+from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import SortMethods
 from softwarecenter.testutils import (
+    FakedCache,
     get_test_db,
     make_recommender_agent_recommend_me_dict,
+    ObjectWithSignals,
 )
+from softwarecenter.ui.gtk3.views import catview_gtk
 from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
 from softwarecenter.ui.gtk3.widgets.containers import FramedHeaderBox
 from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
@@ -271,11 +278,66 @@ class TestCatView(unittest.TestCase):
             while Gtk.events_pending():
                 Gtk.main_iteration()
 
+
+class ExhibitsTestCase(unittest.TestCase):
+    """The test suite for the exhibits carousel."""
+
+    def setUp(self):
+        self.datadir = softwarecenter.paths.datadir
+        self.desktopdir = softwarecenter.paths.APP_INSTALL_PATH
+        self.cache = FakedCache()
+        self.db = StoreDatabase(cache=self.cache)
+        self.lobby = catview_gtk.LobbyViewGtk(datadir=self.datadir,
+            desktopdir=self.desktopdir, cache=self.cache, db=self.db,
+            icons=None, apps_filter=None)
+        self.addCleanup(self.lobby.destroy)
+
+    def _get_banner_from_lobby(self):
+        return self.lobby.vbox.get_children()[-1].get_child()
+
+    def test_featured_exhibit_by_default(self):
+        """Show the featured exhibit before querying the remote service."""
+        self.lobby._append_banner_ads()
+
+        banner = self._get_banner_from_lobby()
+        self.assertEqual(1, len(banner.exhibits))
+        self.assertIsInstance(banner.exhibits[0], catview_gtk.FeaturedExhibit)
+
     def test_no_exhibit_if_not_available(self):
-        """Check if exhibit packages are available before adding to banner."""
-        ##from mock import Mock
-        ##e = Mock()
-        ##e.package_names = u'foobarbaz'
+        """The exhibit should not be shown if the package is not available."""
+        exhibit = Mock()
+        exhibit.package_names = u'foobarbaz'
+
+        sca = ObjectWithSignals()
+        sca.query_exhibits = lambda: sca.emit('exhibits', sca, [exhibit])
+
+        with patch.object(catview_gtk, 'SoftwareCenterAgent', lambda: sca):
+            self.lobby._append_banner_ads()
+
+        banner = self._get_banner_from_lobby()
+        self.assertEqual(1, len(banner.exhibits))
+        self.assertIsInstance(banner.exhibits[0], catview_gtk.FeaturedExhibit)
+
+    def test_exhibit_if_available(self):
+        """The exhibit should be shown if the package is not available."""
+        exhibit = Mock()
+        exhibit.package_names = u'foobarbaz'
+        exhibit.banner_url = 'banner'
+
+        pkg = Mock()
+        pkg.banner_url = ''
+        pkg.title_translated = ''
+        self.cache[u'foobarbaz'] = pkg
+
+        sca = ObjectWithSignals()
+        sca.query_exhibits = lambda: sca.emit('exhibits', sca, [exhibit])
+
+        with patch.object(catview_gtk, 'SoftwareCenterAgent', lambda: sca):
+            self.lobby._append_banner_ads()
+
+        banner = self._get_banner_from_lobby()
+        self.assertEqual(1, len(banner.exhibits))
+        self.assertIs(banner.exhibits[0], exhibit)
 
 
 if __name__ == "__main__":
