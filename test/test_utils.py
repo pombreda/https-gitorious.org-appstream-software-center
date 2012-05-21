@@ -4,10 +4,14 @@ import datetime
 import glob
 import multiprocessing
 import os
+import stat
 import subprocess
+import shutil
 import tempfile
 import time
 import unittest
+
+from mock import patch
 
 from testutils import setup_test_env
 setup_test_env()
@@ -169,7 +173,45 @@ class TestSCUtils(unittest.TestCase):
         capitalized = capitalize_first_word(test_synopsis)
         self.assertTrue(
             capitalized == "MPlayer's Movie Encoder")
+            
+    def test_ensure_file_writable_and_delete_if_not(self):
+        from softwarecenter.utils import ensure_file_writable_and_delete_if_not
+        from tempfile import NamedTemporaryFile
+        # first test that a non-writable file (0400) is deleted
+        test_file_not_writeable = NamedTemporaryFile()
+        os.chmod(test_file_not_writeable.name, stat.S_IRUSR)
+        self.assertFalse(os.access(test_file_not_writeable.name, os.W_OK))
+        ensure_file_writable_and_delete_if_not(test_file_not_writeable.name)
+        self.assertFalse(os.path.exists(test_file_not_writeable.name))
+        # then test that a writable file (0600) is not deleted
+        test_file_writeable = NamedTemporaryFile()
+        os.chmod(test_file_writeable.name, stat.S_IRUSR|stat.S_IWUSR)
+        self.assertTrue(os.access(test_file_writeable.name, os.W_OK))
+        ensure_file_writable_and_delete_if_not(test_file_writeable.name)
+        self.assertTrue(os.path.exists(test_file_writeable.name))
 
+    def test_safe_makedirs(self):
+        from softwarecenter.utils import safe_makedirs
+        from tempfile import mkdtemp
+        tmp = mkdtemp()
+        # create base dir
+        target = os.path.join(tmp, "foo", "bar")
+        safe_makedirs(target)
+        # we need the patch to ensure that the code is actually executed
+        with patch("os.path.exists") as mock_:
+            mock_.return_value = False
+            self.assertTrue(os.path.isdir(target))
+            # ensure that creating the base dir again does not crash
+            safe_makedirs(target)
+            self.assertTrue(os.path.isdir(target))
+            # ensure we still get regular errors like permission denied
+            # (stat.S_IRUSR)
+            os.chmod(os.path.join(tmp, "foo"), 0400)
+            self.assertRaises(OSError, safe_makedirs, target)
+            # set back to stat.(S_IRUSR|S_IWUSR|S_IXUSR) to make rmtree work
+            os.chmod(os.path.join(tmp, "foo"), 0700)
+        # cleanup
+        shutil.rmtree(tmp)
 
 class TestExpungeCache(unittest.TestCase):
 

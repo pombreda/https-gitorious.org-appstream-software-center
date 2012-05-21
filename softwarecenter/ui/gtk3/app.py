@@ -272,10 +272,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 self.db, self.cache, self.icons)
             self.vbox1.pack_start(self.global_pane, False, False, 0)
             self.vbox1.reorder_child(self.global_pane, 1)
-            
+
             # start with the toolbar buttons insensitive and don't make them
             # sensitive until the panel elements are ready
-            self.global_pane.view_switcher.set_sensitive(False)
+            #self.global_pane.view_switcher.set_sensitive(False)
 
             # available pane
             self.available_pane = AvailablePane(self.cache,
@@ -490,7 +490,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_installed_pane_created(self, widget):
         # set the main toolbar buttons sensitive
         self.global_pane.view_switcher.set_sensitive(True)
-        
+
     def _on_recommendations_opt_in(self, rec_panel):
         self._update_recommendations_menuitem(opted_in=True)
 
@@ -505,6 +505,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.menuitem_recommendations.set_label(
                                             _(u"Turn On Recommendations…"))
 
+    @wait_for_apt_cache_ready
     def _upload_recommendations_profile(self):
         recommender_agent = self._get_recommender_agent()
         if recommender_agent.is_opted_in():

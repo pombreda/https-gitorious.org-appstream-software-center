@@ -532,7 +532,7 @@ category_subcat = {
 'SportsGame': 'Games;Sports',
 '3DGraphics': 'Graphics;3D Graphics',
 'VectorGraphics': 'Graphics;Drawing',
-'RasterGraphics': 'Graphics;Painting',
+'RasterGraphics': 'Graphics;Painting & Editing',
 'Photography': 'Graphics;Photography',
 'Publishing': 'Graphics;Publishing',
 'Scanning': 'Graphics;Scanning & OCR',
