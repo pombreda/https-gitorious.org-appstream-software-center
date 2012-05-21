@@ -47,6 +47,7 @@ Depends: ${python:Depends},
          python-debtagshw,
          ubuntu-extras-keyring
 Recommends: lsb-release, 
+            gir1.2-launchpad-integration-3.0, 
             apt-xapian-index (>= 0.38ubuntu1), 
             update-notifier, 
             software-properties-gtk,

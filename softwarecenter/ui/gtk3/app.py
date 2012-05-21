@@ -273,6 +273,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.vbox1.pack_start(self.global_pane, False, False, 0)
             self.vbox1.reorder_child(self.global_pane, 1)
 
+            # start with the toolbar buttons insensitive and don't make them
+            # sensitive until the panel elements are ready
+            #self.global_pane.view_switcher.set_sensitive(False)
+
             # available pane
             self.available_pane = AvailablePane(self.cache,
                                                 self.db,
@@ -292,8 +296,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                                 self.distro,
                                                 self.icons,
                                                 self.datadir)
-            #~ self.installed_pane.connect("installed-pane-created",
-                #~ self.on_installed_pane_created)
+            self.installed_pane.connect("installed-pane-created",
+                self.on_installed_pane_created)
             self.view_manager.register(self.installed_pane,
                 ViewPages.INSTALLED)
 
@@ -398,6 +402,14 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.active_pane = self.available_pane
         self.window_main.connect("realize", self.on_realize)
 
+        # launchpad integration help, its ok if that fails
+        try:
+            from gi.repository import LaunchpadIntegration
+            LaunchpadIntegration.set_sourcepackagename("software-center")
+            LaunchpadIntegration.add_items(self.menu_help, 3, True, False)
+        except Exception, e:
+            LOG.debug("launchpad integration error: '%s'" % e)
+
     # helper
     def _run_software_center_agent(self):
         """ helper that triggers the update-software-center-agent helper """
@@ -472,9 +484,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                         "recommendations-opt-out",
                         self._on_recommendations_opt_out)
         self.menuitem_recommendations.set_sensitive(True)
+        # set the main toolbar buttons sensitive
+        self.global_pane.view_switcher.set_sensitive(True)
 
-    #~ def on_installed_pane_created(self, widget):
-        #~ pass
+    def on_installed_pane_created(self, widget):
+        # set the main toolbar buttons sensitive
+        self.global_pane.view_switcher.set_sensitive(True)
 
     def _on_recommendations_opt_in(self, rec_panel):
         self._update_recommendations_menuitem(opted_in=True)

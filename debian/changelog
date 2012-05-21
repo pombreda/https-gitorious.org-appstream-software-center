@@ -17,8 +17,33 @@ software-center (5.3.0) UNRELEASED; urgency=low
     - Drop Launchpad integration
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 May 2012 10:06:18 +0200
+
+software-center (5.2.3) UNRELEASED; urgency=low
+
+  [ Robert Roth ]
+  * lp:~evfool/software-center/lp987801:
+    - Only show the version label once for each version in 
+      reviews (LP: #987801)
+  * lp:~evfool/software-center/lp874430:
+    - display tooltips for package titles in the application
+      tiles of the lobby view (LP: #874430)
+
+  [ Gabor Kelemen ]
+  * lp:~kelemeng/software-center/bug1001746:
+    - merge i18n fix (LP: #1001746)
   
-software-center (5.2.2) UNRELEASED; urgency=low
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/lp872760-for-5.2:
+    - fix translations for certain category names (LP: #872760)
+
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/fix-crash-lp1000238:
+    - remove obsolete workaround for an old bug that has long since
+      been fixed, this fixes a hard crash on Quantal (LP: #1000238) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 May 2012 16:38:26 -0400
+
+software-center (5.2.2) precise-proposed; urgency=low
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/whatsnew-leak-lp985389:
@@ -57,7 +82,10 @@ software-center (5.2.2) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-crash_lp973379:
     - ensure that the cache is ready before using the recommender 
       service (LP: #973379 )
-  
+  * lp:~gary-lasker/software-center/toolbar-buttons-insensitive-during-startup:
+    - set the toolbar buttons insensitive for the duration of time that the 
+      lobby panels are initializing (LP: #999486, LP: #994341)
+
   [ Robert Roth ]
   * lp:~evfool/software-center/bug532072:
     - escape markup for support info and license (LP: #993279)
@@ -88,7 +116,7 @@ software-center (5.2.2) UNRELEASED; urgency=low
     - test code change only! add memory and cpt stats to the
       test script 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 14 May 2012 22:36:15 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 May 2012 20:22:02 +0200
 
 software-center (5.2.1) precise-proposed; urgency=low
 
