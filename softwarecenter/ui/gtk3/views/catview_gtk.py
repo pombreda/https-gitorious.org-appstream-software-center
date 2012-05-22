@@ -342,20 +342,11 @@ class LobbyViewGtk(CategoriesViewGtk):
                            flags=['nonapps-visible'])
             self.emit("category-selected", cat)
 
-    def _pkg_available(self, pkgname):
-        try:
-            state = Application("", pkgname).get_details(self.db).pkg_state
-        except:
-            available = False
-        else:
-            available = state not in (PkgStates.NOT_FOUND, PkgStates.ERROR)
-        return available
-
     def _filter_and_set_exhibits(self, sca_client, exhibit_list):
         result = []
         # filter out those exhibits that are not available in this run
         for exhibit in exhibit_list:
-            available = all(self._pkg_available(p) for p in
+            available = all(self.db.is_pkgname_known(p) for p in
                             exhibit.package_names.split(','))
             if available:
                 result.append(exhibit)
