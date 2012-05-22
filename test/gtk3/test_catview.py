@@ -27,9 +27,12 @@ from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
 
 class CatViewBaseTestCase(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.db = get_test_db()
+
     def setUp(self):
         self._cat = None
-        self.db = get_test_db()
         self.win = get_test_window_catview()
         self.notebook = self.win.get_child()
         self.lobby = self.win.get_data("lobby")
