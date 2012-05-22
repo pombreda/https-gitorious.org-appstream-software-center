@@ -40,6 +40,9 @@ software-center (5.2.3) UNRELEASED; urgency=low
     - Fixed the SpinnerNtebook show_spinner method so the spinner page is 
       not shown until the configured threshold is reached (250ms since 
       this branch). Plus proper test suite was added.
+  * lp:~nataliabidart/software-center/fix-986563:
+    - Filtered out those exhibits that do not their packages available 
+      in the db (LP: #986563)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 May 2012 17:23:47 -0400
 

@@ -424,7 +424,7 @@ app-popcon	4	# app-install .desktop popcon rank
         self.assertTrue(len(details.tags) > 2)
 
     def test_app_enquire(self):
-        db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
+        db = StoreDatabase(cache=self.cache)
         db.open()
         # test the AppEnquire engine
         enquirer = AppEnquire(self.cache, db)
@@ -432,6 +432,12 @@ app-popcon	4	# app-install .desktop popcon rank
                            nonblocking_load=False)
         self.assertTrue(len(enquirer.get_docids()) > 0)
         # FIXME: test more of the interface
+
+    def test_is_pkgname_known(self):
+        db = StoreDatabase(cache=self.cache)
+        db.open()
+        self.assertTrue(db.is_pkgname_known("apt"))
+        self.assertFalse(db.is_pkgname_known("i+am-not-a-pkg"))
 
 
 class UtilsTestCase(unittest.TestCase):

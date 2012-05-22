@@ -22,7 +22,7 @@ import xapian
 
 from gettext import gettext as _
 
-from softwarecenter.distro import get_distro
+import softwarecenter.distro
 
 from softwarecenter.enums import (SortMethods,
                                   Icons,
@@ -34,7 +34,7 @@ LOG = logging.getLogger(__name__)
 
 class ChannelsManager(object):
     def __init__(self, db, **kwargs):
-        self.distro = get_distro()
+        self.distro = softwarecenter.distro.get_distro()
         self.db = db
 
     # public
@@ -154,7 +154,7 @@ class SoftwareChannel(object):
         self.installed_only = installed_only
         self._channel_sort_mode = channel_sort_mode
         # distro specific stuff
-        self.distro = get_distro()
+        self.distro = softwarecenter.distro.get_distro()
         # configure the channel
         self._channel_display_name = self._get_display_name_for_channel(
             channel_name, channel_origin, channel_component)
@@ -351,7 +351,7 @@ def is_channel_available(channelname):
     return AptChannelsManager.channel_available(channelname)
 
 if __name__ == "__main__":
-    distro = get_distro()
+    distro = softwarecenter.distro.get_distro()
     channel = SoftwareChannel(distro.get_distro_channel_name(),
                               None, None)
     print(channel)

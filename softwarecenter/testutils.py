@@ -22,6 +22,8 @@ import sys
 import tempfile
 import time
 
+from collections import defaultdict
+
 from mock import Mock
 
 m_dbus = m_polkit = m_aptd = None
@@ -314,3 +316,57 @@ def make_recommend_app_data():
             {u'rating': 1.5, u'package_name': u'tucan'}],
         u'app': u'pitivi'}
     return recommend_app_data
+
+
+class ObjectWithSignals(object):
+    """A faked object that you can connect to and emit signals."""
+
+    def __init__(self, *a, **kw):
+        super(ObjectWithSignals, self).__init__()
+        self._callbacks = defaultdict(list)
+
+    def connect(self, signal, callback):
+        """Connect a signal with a callback."""
+        self._callbacks[signal].append(callback)
+
+    def disconnect(self, signal, callback):
+        """Connect a signal with a callback."""
+        self._callbacks[signal].remove(callback)
+        if len(self._callbacks[signal]) == 0:
+            self._callbacks.pop(signal)
+
+    def disconnect_by_func(self, callback):
+        """Disconnect 'callback' from every signal."""
+        # do not use iteritems since we may change the dict inside the for
+        for signal, callbacks in self._callbacks.items():
+            if callback in callbacks:
+                self.disconnect(signal, callback)
+
+    def emit(self, signal, *args, **kwargs):
+        """Emit 'signal' passing *args, **kwargs to every callback."""
+        for callback in self._callbacks[signal]:
+            callback(*args, **kwargs)
+
+
+class FakedCache(ObjectWithSignals, dict):
+    """A faked cache."""
+
+    def __init__(self, *a, **kw):
+        super(FakedCache, self).__init__()
+        self.ready = False
+
+    def open(self):
+        """Open this cache."""
+        self.ready = True
+
+    def component_available(self, distro_codename, component):
+        """Return whether 'component' is available in 'distro_codename'."""
+
+    def get_addons(self, pkgname):
+        """Return (recommended, suggested) addons for 'pkgname'."""
+        return ([], [])
+
+    def get_total_size_on_install(self, pkgname, addons_to_install,
+                                  addons_to_remove, archive_suite):
+        """Return a fake (total_download_size, total_install_size) result."""
+        return (0, 0)

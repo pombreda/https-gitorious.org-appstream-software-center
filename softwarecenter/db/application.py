@@ -24,9 +24,10 @@ import logging
 import os
 import re
 
+import softwarecenter.distro
+
 from gettext import gettext as _
 from softwarecenter.backend.channel import is_channel_available
-from softwarecenter.distro import get_distro
 from softwarecenter.enums import PkgStates, XapianValues, Icons
 
 from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
@@ -177,7 +178,7 @@ class AppDetails(GObject.GObject):
         self._db = db
         self._db.connect("reopen", self._on_db_reopen)
         self._cache = self._db._aptcache
-        self._distro = get_distro()
+        self._distro = softwarecenter.distro.get_distro()
         self._history = None
         # import here (intead of global) to avoid dbus dependency
         # in update-software-center (that imports application, but
@@ -298,7 +299,7 @@ class AppDetails(GObject.GObject):
         # try apt first
         if self._pkg:
             for origin in self._pkg.candidate.origins:
-                if (origin.origin == get_distro().get_distro_channel_name() and
+                if (origin.origin == self._distro.get_distro_channel_name() and
                     origin.trusted and origin.component):
                     return origin.component
         # then xapian
@@ -639,7 +640,7 @@ class AppDetails(GObject.GObject):
             self.emit("screenshots-available", self._screenshot_list)
             return
         # download it
-        distro = get_distro()
+        distro = self._distro
         url = distro.SCREENSHOT_JSON_URL % self._app.pkgname
         try:
             f = Gio.File.new_for_uri(url)

@@ -115,9 +115,7 @@ class AppPropertiesHelper(GObject.GObject):
         self.icons = icons
         self.icon_size = icon_size
 
-        # cache the 'missing icon' used in the treeview for apps without an
-        # icon
-        self._missing_icon = icons.load_icon(Icons.MISSING_APP, icon_size, 0)
+        self._missing_icon = None  # delay this until actually needed
         if global_icon_cache:
             self.icon_cache = _app_icon_cache
         else:
@@ -145,6 +143,14 @@ class AppPropertiesHelper(GObject.GObject):
             image_downloader.connect('file-download-complete',
                 on_image_download_complete, pkgname)
             image_downloader.download_file(url, icon_file_path)
+
+    @property
+    def missing_icon(self):
+        # cache the 'missing icon' used in treeviews for apps without an icon
+        if self._missing_icon is None:
+            self._missing_icon = self.icons.load_icon(Icons.MISSING_APP,
+                                                      self.icon_size, 0)
+        return self._missing_icon
 
     def update_availability(self, doc):
         doc.available = None
@@ -228,10 +234,10 @@ class AppPropertiesHelper(GObject.GObject):
                         self.get_pkgname(doc),
                         full_icon_file_name)
                     # display the missing icon while the real one downloads
-                    self.icon_cache[icon_name] = self._missing_icon
+                    self.icon_cache[icon_name] = self.missing_icon
         except GObject.GError as e:
             LOG.debug("get_icon returned '%s'" % e)
-        return self._missing_icon
+        return self.missing_icon
 
     def get_review_stats(self, doc):
         return self.review_loader.get_review_stats(self.get_application(doc))
