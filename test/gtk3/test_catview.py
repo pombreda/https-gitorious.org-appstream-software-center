@@ -34,13 +34,11 @@ class CatViewBaseTestCase(unittest.TestCase):
     def setUp(self):
         self._cat = None
         self.win = get_test_window_catview(self.db)
+        self.addCleanup(self.win.destroy)
         self.notebook = self.win.get_child()
         self.lobby = self.win.get_data("lobby")
         self.subcat_view = self.win.get_data("subcat")
         self.rec_panel = self.lobby.recommended_for_you_panel
-
-    def tearDown(self):
-        self.win.destroy()
 
     def _on_category_selected(self, subcatview, category):
         self._cat = category
