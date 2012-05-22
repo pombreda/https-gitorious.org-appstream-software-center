@@ -7,7 +7,7 @@ from testutils import setup_test_env
 setup_test_env()
 
 from softwarecenter.enums import PkgStates
-from softwarecenter.db.debfile import DebFileApplication
+from softwarecenter.db.debfile import DebFileApplication, DebFileOpenError
 from softwarecenter.testutils import get_test_db
 
 DEBFILE_PATH = './data/test_debs/gdebi-test9.deb'
@@ -22,6 +22,7 @@ DEBFILE_PATH_NOTADEB = './data/notadeb.txt'
 DEBFILE_PATH_CORRUPT = './data/test_debs/corrupt.deb'
 DEBFILE_NOT_INSTALLABLE = './data/test_debs/gdebi-test1.deb'
 
+
 class TestDebFileApplication(unittest.TestCase):
     """ Test the class DebFileApplication """
 
@@ -31,7 +32,7 @@ class TestDebFileApplication(unittest.TestCase):
     def test_get_name(self):
         debfileapplication = DebFileApplication(DEBFILE_PATH)
         debfiledetails = debfileapplication.get_details(self.db)
-        
+
         self.assertEquals(debfiledetails.name, DEBFILE_NAME)
 
     def test_get_description(self):
@@ -64,9 +65,10 @@ class TestDebFileApplication(unittest.TestCase):
         debfileapplication = DebFileApplication(DEBFILE_PATH_NOTFOUND)
         debfiledetails = debfileapplication.get_details(self.db)
         self.assertEquals(debfiledetails.pkg_state, PkgStates.NOT_FOUND)
-        
+
     def test_get_pkg_state_not_a_deb(self):
-        self.assertRaises(ValueError, DebFileApplication, DEBFILE_PATH_NOTADEB)
+        self.assertRaises(DebFileOpenError,
+                          DebFileApplication, DEBFILE_PATH_NOTADEB)
 
     def test_get_pkg_state_corrupt(self):
         debfileapplication = DebFileApplication(DEBFILE_PATH_CORRUPT)
@@ -87,12 +89,14 @@ class TestDebFileApplication(unittest.TestCase):
         debfileapplication = DebFileApplication(DEBFILE_PATH)
         debfiledetails = debfileapplication.get_details(self.db)
         self.assertEquals(debfiledetails.installed_size, 0)
-        
+
     def test_get_warning(self):
         debfileapplication = DebFileApplication(DEBFILE_PATH)
         debfiledetails = debfileapplication.get_details(self.db)
         self.assertEquals(debfiledetails.warning, DEBFILE_WARNING)
-        
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     unittest.main()
+

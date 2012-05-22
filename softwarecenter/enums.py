@@ -237,6 +237,12 @@ class TransactionTypes:
     REPAIR = "repair_dependencies"
 
 
+# Search separators
+class SearchSeparators:
+    REGULAR = " "
+    PACKAGE = ","
+
+
 # mouse event codes for back/forward buttons
 # TODO: consider whether we ought to get these values from gconf so that we
 #       can be sure to use the corresponding values used by Nautilus:

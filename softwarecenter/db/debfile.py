@@ -27,12 +27,28 @@ from softwarecenter.enums import PkgStates
 from softwarecenter.utils import ExecutionTime, utf8
 
 
+DEB_MIME_TYPE = 'application/x-debian-package'
+
+
+def is_deb_file(debfile):
+    mtype = guess_type(debfile)
+    return mtype is not None and DEB_MIME_TYPE in mtype
+
+
+class DebFileOpenError(Exception):
+    """ Raised if a DebFile fails to open """
+
+    def __init__(self, msg, path):
+        super(DebFileOpenError, self).__init__(msg)
+        self.path = path
+
+
 class DebFileApplication(Application):
 
     def __init__(self, debfile):
-        # sanity check
-        if not debfile.endswith(".deb"):
-            raise ValueError("Need a deb file, got '%s'" % debfile)
+        if not is_deb_file(debfile):
+            raise DebFileOpenError("Could not open %r." % debfile, debfile)
+
         # work out debname/appname
         debname = os.path.splitext(os.path.basename(debfile))[0]
         pkgname = debname.split('_')[0].lower()
@@ -50,7 +66,21 @@ class AppDetailsDebFile(AppDetails):
     def __init__(self, db, doc=None, application=None):
         super(AppDetailsDebFile, self).__init__(db, doc, application)
         if doc:
-            raise ValueError("doc must be None for deb files")
+            raise DebFileOpenError("AppDetailsDebFile: doc must be None.")
+
+        self._error = None
+        # check errors before creating the DebPackage
+        if not os.path.exists(self._app.request):
+            self._error = _("Not found")
+            self._error_not_found = utf8(_(u"The file \u201c%s\u201d "
+                "does not exist.")) % utf8(self._app.request)
+        elif not is_deb_file(self._app.request):
+            self._error = _("Not found")
+            self._error_not_found = utf8(_(u"The file \u201c%s\u201d "
+                "is not a software package.")) % utf8(self._app.request)
+
+        if self._error is not None:
+            return
 
         try:
             with ExecutionTime("create DebPackage"):
@@ -59,23 +89,10 @@ class AppDetailsDebFile(AppDetails):
                 self._deb = DebPackage(self._app.request, self._cache._cache)
         except:
             self._deb = None
-            self._pkg = None
-            if not os.path.exists(self._app.request):
-                self._error = _("Not found")
-                self._error_not_found = utf8(_(u"The file \u201c%s\u201d "
-                    "does not exist.")) % utf8(self._app.request)
-            else:
-                mimetype = guess_type(self._app.request)
-                if mimetype[0] != "application/x-debian-package":
-                    self._error = _("Not found")
-                    self._error_not_found = utf8(_(u"The file \u201c%s\u201d "
-                        "is not a software package.")) % utf8(
-                        self._app.request)
-                else:
-                    # deb files which are corrupt
-                    self._error = _("Internal Error")
-                    self._error_not_found = utf8(_(u"The file \u201c%s\u201d "
-                        "could not be opened.")) % utf8(self._app.request)
+            # deb files which are corrupt
+            self._error = _("Internal Error")
+            self._error_not_found = utf8(_(u"The file \u201c%s\u201d "
+                "could not be opened.")) % utf8(self._app.request)
             return
 
         if self.pkgname and self.pkgname != self._app.pkgname:

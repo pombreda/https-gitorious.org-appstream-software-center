@@ -406,9 +406,13 @@ installedsize	2	# installed size
 packagesize	3	# package size
 app-popcon	4	# app-install .desktop popcon rank
 """
-        open("axi-test-values","w").write(s)
+        fname = "axi-test-values"
+        with open(fname, "w") as f:
+            f.write(s)
+        self.addCleanup(os.remove, fname)
+
         #db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
-        axi_values = parse_axi_values_file("axi-test-values")
+        axi_values = parse_axi_values_file(fname)
         self.assertNotEqual(axi_values, {})
         print axi_values
 
@@ -428,7 +432,8 @@ app-popcon	4	# app-install .desktop popcon rank
                            nonblocking_load=False)
         self.assertTrue(len(enquirer.get_docids()) > 0)
         # FIXME: test more of the interface
-        
+
+
 class UtilsTestCase(unittest.TestCase):
 
     def test_utils_get_installed_package_list(self):
