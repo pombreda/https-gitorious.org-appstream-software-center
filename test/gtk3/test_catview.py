@@ -124,7 +124,7 @@ class RecommendationsTestCase(CatViewBaseTestCase):
         # for this test
         mock_get_recommender_opted_in.return_value = False
 
-        do_events_with_sleep()
+        do_events()
         self.assertEqual(self.rec_panel.spinner_notebook.get_current_page(),
                          FramedHeaderBox.CONTENT)
         self.assertTrue(self.rec_panel.opt_in_vbox.get_property("visible"))
@@ -138,12 +138,11 @@ class RecommendationsTestCase(CatViewBaseTestCase):
         # patch the recommender UUID value to insure that we are not opted-in
         # for this test
         mock_get_recommender_opted_in.return_value = False
-        # wait
-        do_events_with_sleep()
+
         # click the opt-in button to initiate the process,
         # this will show the spinner
         self.rec_panel.opt_in_button.emit('clicked')
-        do_events_with_sleep()
+        do_events()
         self.assertEqual(self.rec_panel.spinner_notebook.get_current_page(),
                          SpinnerNotebook.SPINNER_PAGE)
         self.assertTrue(self.rec_panel.opt_in_vbox.get_property("visible"))
@@ -157,14 +156,13 @@ class RecommendationsTestCase(CatViewBaseTestCase):
         # patch the recommender UUID value to insure that we are not opted-in
         # for this test
         mock_get_recommender_opted_in.return_value = False
-        # wait
-        do_events_with_sleep()
+
         # click the opt-in button to initiate the process,
         # this will show the spinner
         self.rec_panel.opt_in_button.emit('clicked')
-        do_events_with_sleep()
+        do_events()
         self.rec_panel._update_recommended_for_you_content()
-        do_events_with_sleep()
+        do_events()
         # we fake the callback from the agent here
         for_you = self.lobby.recommended_for_you_panel.recommended_for_you_cat
         for_you._recommend_me_result(None,
@@ -172,10 +170,11 @@ class RecommendationsTestCase(CatViewBaseTestCase):
         self.assertNotEqual(for_you.get_documents(self.db), [])
         self.assertEqual(self.rec_panel.spinner_notebook.get_current_page(),
                          SpinnerNotebook.CONTENT_PAGE)
-        do_events_with_sleep()
+        do_events()
         # test clicking recommended_for_you More button
         self.lobby.connect("category-selected", self._on_category_selected)
         self.lobby.recommended_for_you_panel.more.clicked()
+        # this is delayed for some reason so we need to sleep here
         do_events_with_sleep()
         self.assertNotEqual(self._cat, None)
         self.assertEqual(self._cat.name, "Recommended For You")
@@ -193,7 +192,7 @@ class RecommendationsTestCase(CatViewBaseTestCase):
         # we want to work in the "subcat" view
         self.notebook.next_page()
 
-        do_events_with_sleep()
+        do_events()
         visible = self.subcat_view.recommended_for_you_in_cat.get_property(
             "visible")
         self.assertFalse(visible)
@@ -212,9 +211,8 @@ class RecommendationsTestCase(CatViewBaseTestCase):
         self.notebook.next_page()
 
         rec_cat_panel = self.subcat_view.recommended_for_you_in_cat
-        do_events_with_sleep()
         rec_cat_panel._update_recommended_for_you_content()
-        do_events_with_sleep()
+        do_events()
         # we fake the callback from the agent here
         rec_cat_panel.recommended_for_you_cat._recommend_me_result(
                                 None,
@@ -229,16 +227,17 @@ class RecommendationsTestCase(CatViewBaseTestCase):
         self.assertEqual(rec_cat_panel.spinner_notebook.get_current_page(),
                          SpinnerNotebook.CONTENT_PAGE)
         # check that the tiles themselves are visible
-        do_events_with_sleep()
+        do_events()
         self.assertTrue(rec_cat_panel.recommended_for_you_content.get_property(
             "visible"))
         self.assertTrue(rec_cat_panel.recommended_for_you_content.get_children(
             )[0].title.get_property("visible"))
-        do_events_with_sleep()
+        do_events()
         # test clicking recommended_for_you More button
         self.subcat_view.connect(
             "category-selected", self._on_category_selected)
         rec_cat_panel.more.clicked()
+        # this is delayed for some reason so we need to sleep here
         do_events_with_sleep()
         self.assertNotEqual(self._cat, None)
         self.assertEqual(self._cat.name, "Recommended For You in Internet")
