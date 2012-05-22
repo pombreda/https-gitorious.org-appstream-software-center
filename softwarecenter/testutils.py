@@ -144,6 +144,12 @@ def do_events():
         main_loop.iteration()
 
 
+def do_events_with_sleep(iterations=5, sleep=0.1):
+        for i in range(iterations):
+            do_events()
+            time.sleep(sleep)
+
+
 def get_mock_app_from_real_app(real_app):
     """ take a application and return a app where the details are a mock
         of the real details so they can easily be modified
