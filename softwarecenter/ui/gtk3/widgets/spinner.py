@@ -111,6 +111,7 @@ class SpinnerNotebook(Gtk.Notebook):
         """ hide the spinner page again and show the content page """
         if self._last_timeout_id is not None:
             GObject.source_remove(self._last_timeout_id)
+            self._last_timeout_id = None
         self.spinner_view.stop_and_hide()
         self.set_current_page(self.CONTENT_PAGE)
 

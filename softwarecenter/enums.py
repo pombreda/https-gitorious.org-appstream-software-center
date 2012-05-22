@@ -45,7 +45,6 @@ BUY_SOMETHING_HOST_ANONYMOUS = BUY_SOMETHING_HOST
 # recommender
 RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST",
     "https://rec.ubuntu.com")
-#RECOMMENDER_HOST = os.environ.get("SOFTWARE_CENTER_RECOMMENDER_HOST",
 #   "https://rec.staging.ubuntu.com")
 
 # for the sso login.  ussoc expects the USSOC_SERVICE_URL environment variable
