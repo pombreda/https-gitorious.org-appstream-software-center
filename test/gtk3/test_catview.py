@@ -88,10 +88,9 @@ class TestCatView(unittest.TestCase):
         apps_filter = AppFilter(db, cache)
 
         from softwarecenter.distro import get_distro
-        import softwarecenter.paths
-        from softwarecenter.paths import APP_INSTALL_PATH
         from softwarecenter.ui.gtk3.views.catview_gtk import LobbyViewGtk
-        view = LobbyViewGtk(softwarecenter.paths.datadir, APP_INSTALL_PATH,
+        view = LobbyViewGtk(softwarecenter.paths.datadir,
+                            softwarecenter.paths.APP_INSTALL_PATH,
                             cache, db, icons, get_distro(), apps_filter)
         view.show()
 

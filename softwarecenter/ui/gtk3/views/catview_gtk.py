@@ -30,7 +30,6 @@ import softwarecenter.paths
 from softwarecenter.db.application import Application
 from softwarecenter.enums import (
     NonAppVisibility,
-    PkgStates,
     SortMethods,
     TOP_RATED_CAROUSEL_LIMIT,
 )
