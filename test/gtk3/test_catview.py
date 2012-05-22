@@ -323,11 +323,9 @@ class ExhibitsTestCase(unittest.TestCase):
         exhibit = Mock()
         exhibit.package_names = u'foobarbaz'
         exhibit.banner_url = 'banner'
+        exhibit.title_translated = ''
 
-        pkg = Mock()
-        pkg.banner_url = ''
-        pkg.title_translated = ''
-        self.cache[u'foobarbaz'] = pkg
+        self.cache[u'foobarbaz'] = Mock()
 
         sca = ObjectWithSignals()
         sca.query_exhibits = lambda: sca.emit('exhibits', sca, [exhibit])
@@ -345,11 +343,9 @@ class ExhibitsTestCase(unittest.TestCase):
         exhibit = Mock()
         exhibit.package_names = u'foobarbaz'
         exhibit.banner_url = 'banner'
+        exhibit.title_translated = ''
 
-        pkg = Mock()
-        pkg.banner_url = ''
-        pkg.title_translated = ''
-        self.cache[u'foobarbaz'] = pkg
+        self.cache[u'foobarbaz'] = Mock()
 
         # not available exhibit
         other = Mock()

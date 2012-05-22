@@ -234,6 +234,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.departments = None
         self.appcount = None
 
+        self.build(desktopdir)
+
         # ensure that on db-reopen we refresh the whats-new titles
         self.db.connect("reopen", self._on_db_reopen)
 
@@ -241,9 +243,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.reviews_loader = get_review_loader(self.cache)
         self.reviews_loader.connect(
             "refresh-review-stats-finished", self._on_refresh_review_stats)
-
-        self.build(desktopdir)
-        return
 
     def _on_db_reopen(self, db):
         self._update_whats_new_content()
@@ -275,7 +274,6 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         #self._append_video_clips()
         #self._append_top_of_the_pops
-        return
 
     #~ def _append_top_of_the_pops(self):
         #~ self.totp_hbox = Gtk.HBox(spacing=self.SPACING)
@@ -397,8 +395,6 @@ class LobbyViewGtk(CategoriesViewGtk):
     # FIXME: _update_{top_rated,whats_new,recommended_for_you}_content()
     #        duplicates a lot of code
     def _update_top_rated_content(self):
-        if self.top_rated is None:
-            return
         # remove any existing children from the grid widget
         self.top_rated.remove_all()
         # get top_rated category and docs
