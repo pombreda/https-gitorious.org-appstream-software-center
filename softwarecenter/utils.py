@@ -171,6 +171,8 @@ def normalize_package_description(desc):
             if in_blist:
                 in_blist = False
                 norm_description += '\n'
+            if not norm_description.endswith("\n"):
+                norm_description += " "
             norm_description += part + '\n'
         else:
             in_blist = False
