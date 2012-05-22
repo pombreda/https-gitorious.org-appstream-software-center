@@ -12,6 +12,20 @@ from softwarecenter.utils import normalize_package_description
 class TestAppDescriptionNormalize(unittest.TestCase):
     """ tests the description noramlization """
 
+    def test_description_parser_regression_test_merged_words(self):
+        # this is a regression test for the description parser
+        # there is a bug that the newline is stripped and two words
+        # are merged (LP: #983831)
+        s = """A test package
+
+ The goal is to test that multi-line descriptions are handled correctly,
+ especially with regards to sentences that span more than two lines and how
+ spaces and line wrapping is handled.
+"""
+        description_text = normalize_package_description(s)
+        self.assertEqual(
+            description_text,
+            """A test package\nThe goal is to test that multi-line descriptions are handled correctly, especially with regards to sentences that span more than two lines and how spaces and line wrapping is handled.""")            
     def test_description_parser_regression_test_moppet(self):
         # this is a regression test for the description parser
         # there is a bug that after GAME FEATURES the bullet list
