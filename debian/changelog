@@ -7,6 +7,9 @@ software-center (5.3.0) UNRELEASED; urgency=low
   * lp:~evfool/software-center/lp872760:
     - Updated the category name for the RasterGraphics subcategory 
       from Painting & Editing to Painting (LP: #872760)
+  * lp:~evfool/software-center/lp927426:
+    - Changed the reference to store to Software Center, as requested in 
+      bug LP: #927426
   
   [ Sebastian Heinlein ]
   * lp:~glatzor/software-center/remove-workaround-747172:
