@@ -110,13 +110,11 @@ class TestCatView(unittest.TestCase):
         self.assertFalse(view.whats_new_frame.get_property("visible"))
         self._p()
 
-    def test_recommended_for_you_opt_in_display(self):
+    @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
+    def test_recommended_for_you_opt_in_display(
+                                        self, mock_get_recommender_opted_in):
         # patch the recommender UUID value to ensure that we are not opted-in
         # for this test
-        recommender_opted_in_patcher = patch(
-            'softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
-        self.addCleanup(recommender_opted_in_patcher.stop)
-        mock_get_recommender_opted_in = recommender_opted_in_patcher.start()
         mock_get_recommender_opted_in.return_value = False
 
         # get the widgets we need
@@ -131,15 +129,13 @@ class TestCatView(unittest.TestCase):
         self.assertTrue(rec_panel.opt_in_vbox.get_property("visible"))
 
     # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.post_submit_profile')
-    def test_recommended_for_you_spinner_display(self, mock_query):
+    def test_recommended_for_you_spinner_display(self, mock_query, 
+                                                 mock_get_recommender_opted_in):
         # patch the recommender UUID value to insure that we are not opted-in
         # for this test
-        recommender_opted_in_patcher = patch(
-            'softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
-        self.addCleanup(recommender_opted_in_patcher.stop)
-        mock_get_recommender_opted_in = recommender_opted_in_patcher.start()
         mock_get_recommender_opted_in.return_value = False
 
         # get the widgets we need
@@ -157,16 +153,13 @@ class TestCatView(unittest.TestCase):
         self.assertTrue(rec_panel.opt_in_vbox.get_property("visible"))
 
     # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.post_submit_profile')
     def test_recommended_for_you_display_recommendations(self,
-            mock_query):
+            mock_query, mock_get_recommender_opted_in):
         # patch the recommender UUID value to insure that we are not opted-in
         # for this test
-        recommender_opted_in_patcher = patch(
-            'softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
-        self.addCleanup(recommender_opted_in_patcher.stop)
-        mock_get_recommender_opted_in = recommender_opted_in_patcher.start()
         mock_get_recommender_opted_in.return_value = False
 
         # get the widgets we need
@@ -197,16 +190,13 @@ class TestCatView(unittest.TestCase):
         self.assertEqual(self._cat.name, "Recommended For You")
 
     # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.query_recommend_me')
     def test_recommended_for_you_display_recommendations_not_opted_in(self,
-            mock_query):
+            mock_query, mock_get_recommender_opted_in):
         # patch the recommender UUID value to insure that we are not opted-in
         # for this test
-        recommender_opted_in_patcher = patch(
-            'softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
-        self.addCleanup(recommender_opted_in_patcher.stop)
-        mock_get_recommender_opted_in = recommender_opted_in_patcher.start()
         mock_get_recommender_opted_in.return_value = False
 
         # get the widgets we need
@@ -222,15 +212,13 @@ class TestCatView(unittest.TestCase):
             "visible"))
 
     # patch out the agent query method to avoid making the actual server call
+    @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.query_recommend_me')
-    def test_recommended_for_you_display_recommendations_opted_in(self, mock_query):
+    def test_recommended_for_you_display_recommendations_opted_in(
+        self, mock_query, mock_get_recommender_opted_in):
         # patch the recommender UUID value to insure that we are not opted-in
         # for this test
-        recommender_opted_in_patcher = patch(
-            'softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
-        self.addCleanup(recommender_opted_in_patcher.stop)
-        mock_get_recommender_opted_in = recommender_opted_in_patcher.start()
         mock_get_recommender_opted_in.return_value = True
 
         # get the widgets we need
