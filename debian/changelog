@@ -7,6 +7,8 @@ software-center (5.2.3) UNRELEASED; urgency=low
   * lp:~evfool/software-center/lp874430:
     - display tooltips for package titles in the application
       tiles of the lobby view (LP: #874430)
+  * lp:~evfool/software-center/lp983831:
+    - Avoid merging two words while normalizing description (LP: #983831)
 
   [ Gabor Kelemen ]
   * lp:~kelemeng/software-center/bug1001746:
