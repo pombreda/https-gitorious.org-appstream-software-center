@@ -1,4 +1,3 @@
-import time
 import unittest
 
 from gi.repository import Gtk
@@ -94,7 +93,6 @@ class TopAndWhatsNewTestCase(CatViewBaseTestCase):
         apps_filter = AppFilter(db, cache)
 
         from softwarecenter.distro import get_distro
-        import softwarecenter.paths
         from softwarecenter.paths import APP_INSTALL_PATH
         from softwarecenter.ui.gtk3.views.catview_gtk import LobbyViewGtk
         view = LobbyViewGtk(softwarecenter.paths.datadir, APP_INSTALL_PATH,
@@ -135,8 +133,8 @@ class RecommendationsTestCase(CatViewBaseTestCase):
     @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.post_submit_profile')
-    def test_recommended_for_you_spinner_display(self, mock_query, 
-                                                 mock_get_recommender_opted_in):
+    def test_recommended_for_you_spinner_display(
+                             self, mock_query, mock_get_recommender_opted_in):
         # patch the recommender UUID value to insure that we are not opted-in
         # for this test
         mock_get_recommender_opted_in.return_value = False
@@ -155,7 +153,7 @@ class RecommendationsTestCase(CatViewBaseTestCase):
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.post_submit_profile')
     def test_recommended_for_you_display_recommendations(self,
-            mock_query, mock_get_recommender_opted_in):
+                                   mock_query, mock_get_recommender_opted_in):
         # patch the recommender UUID value to insure that we are not opted-in
         # for this test
         mock_get_recommender_opted_in.return_value = False
@@ -196,8 +194,9 @@ class RecommendationsTestCase(CatViewBaseTestCase):
         self.notebook.next_page()
 
         do_events_with_sleep()
-        self.assertFalse(
-            self.subcat_view.recommended_for_you_in_cat.get_property("visible"))
+        visible = self.subcat_view.recommended_for_you_in_cat.get_property(
+            "visible")
+        self.assertFalse(visible)
 
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
