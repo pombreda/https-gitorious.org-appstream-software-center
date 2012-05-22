@@ -22,6 +22,7 @@ import sys
 import tempfile
 import time
 
+from mock import Mock
 
 m_dbus = m_polkit = m_aptd = None
 
@@ -145,7 +146,6 @@ def get_mock_app_from_real_app(real_app):
     """ take a application and return a app where the details are a mock
         of the real details so they can easily be modified
     """
-    from mock import Mock
     import copy
     app = copy.copy(real_app)
     db = get_test_db()
@@ -158,6 +158,16 @@ def get_mock_app_from_real_app(real_app):
     app.details = details_mock
     app.get_details = lambda db: app.details
     return app
+
+
+def get_mock_options():
+    """Return a mock suitable to act as SoftwareCenterAppGtk3's options."""
+    mock_options = Mock()
+    mock_options.display_navlog = False
+    mock_options.disable_apt_xapian_index = False
+    mock_options.disable_buy = False
+
+    return mock_options
 
 
 def setup_test_env():

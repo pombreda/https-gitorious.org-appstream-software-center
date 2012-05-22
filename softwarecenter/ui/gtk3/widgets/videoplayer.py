@@ -72,7 +72,11 @@ class VideoPlayer(Gtk.VBox):
     # uri property
     def _set_uri(self, v):
         self._uri = v or ""
-        self.webkit.load_uri(self._uri)
+        if self._uri:
+            # only load the uri if it's defined, otherwise we may get:
+            # Program received signal SIGSEGV, Segmentation fault.
+            # webkit_web_frame_load_uri () from /usr/lib/libwebkitgtk-3.0.so.0
+            self.webkit.load_uri(self._uri)
 
     def _get_uri(self):
         return self._uri

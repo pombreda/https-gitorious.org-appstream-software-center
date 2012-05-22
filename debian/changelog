@@ -44,6 +44,14 @@ software-center (5.2.3) UNRELEASED; urgency=low
     - re-enable the fix for LP: #999486, LP: #994341 that was inadvertently
       disabled in the 5.2.2 release
 
+  [ Natalia Bidart ]
+  * lp:~nataliabidart/software-center/fix-977931:
+    - Unified package string parsing into a single method that will be 
+      used from either the command line arguments, or from the dbus method 
+      'bringToFront'. This way, search will be consistent between all 
+      entry points. LP: #977931
+    - Also added proper test suites for the above.
+
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 May 2012 17:23:47 -0400
 
 software-center (5.2.2) precise-proposed; urgency=low
