@@ -149,6 +149,12 @@ def normalize_package_description(desc):
                 break
         return i
 
+    def maybe_add_space(prefix):
+        if not (prefix.endswith("\n") or prefix.endswith(" ")):
+            return " "
+        else:
+            return ""
+
     BULLETS = ('- ', '* ', 'o ')
     norm_description = ""
     in_blist = False
@@ -171,12 +177,10 @@ def normalize_package_description(desc):
             if in_blist:
                 in_blist = False
                 norm_description += '\n'
-            norm_description += part + '\n'
+            norm_description += maybe_add_space(norm_description) + part + '\n'
         else:
             in_blist = False
-            if not norm_description.endswith("\n"):
-                norm_description += " "
-            norm_description += part
+            norm_description += maybe_add_space(norm_description) + part
     return norm_description.strip()
 
 
@@ -722,7 +726,6 @@ def safe_makedirs(dir_path):
         try:
             os.makedirs(dir_path)
         except OSError as e:
-            print e
             if e.errno == errno.EEXIST:
                 # it seems that another process has already created this
                 # directory in the meantime, that's ok
