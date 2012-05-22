@@ -15,6 +15,9 @@ software-center (5.2.3) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * lp:~mvo/software-center/lp872760-for-5.2:
     - fix translations for certain category names (LP: #872760)
+  * lp:~mvo/software-center/lp987321:
+    - fix dependency to ensure that we have humanity-icon-theme
+      as we need it for the history view icons (LP: #987321)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-crash-lp1000238:
