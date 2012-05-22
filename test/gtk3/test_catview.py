@@ -91,9 +91,9 @@ class TopAndWhatsNewTestCase(CatViewBaseTestCase):
         apps_filter = AppFilter(db, cache)
 
         from softwarecenter.distro import get_distro
-        from softwarecenter.paths import APP_INSTALL_PATH
         from softwarecenter.ui.gtk3.views.catview_gtk import LobbyViewGtk
-        view = LobbyViewGtk(softwarecenter.paths.datadir, APP_INSTALL_PATH,
+        view = LobbyViewGtk(softwarecenter.paths.datadir,
+                            softwarecenter.paths.APP_INSTALL_PATH,
                             cache, db, icons, get_distro(), apps_filter)
         view.show()
 
@@ -281,18 +281,41 @@ class ExhibitsTestCase(unittest.TestCase):
         self.assertIsInstance(banner.exhibits[0], catview_gtk.FeaturedExhibit)
 
     def test_exhibit_if_available(self):
-        """The exhibit should be shown if the package is not available."""
+        """The exhibit should be shown if the package is available."""
         exhibit = Mock()
         exhibit.package_names = u'foobarbaz'
         exhibit.banner_url = 'banner'
+        exhibit.title_translated = ''
 
-        pkg = Mock()
-        pkg.banner_url = ''
-        pkg.title_translated = ''
-        self.cache[u'foobarbaz'] = pkg
+        self.cache[u'foobarbaz'] = Mock()
 
         sca = ObjectWithSignals()
         sca.query_exhibits = lambda: sca.emit('exhibits', sca, [exhibit])
+
+        with patch.object(catview_gtk, 'SoftwareCenterAgent', lambda: sca):
+            self.lobby._append_banner_ads()
+
+        banner = self._get_banner_from_lobby()
+        self.assertEqual(1, len(banner.exhibits))
+        self.assertIs(banner.exhibits[0], exhibit)
+
+    def test_exhibit_if_mixed_availability(self):
+        """The exhibit should be shown even if some are not available."""
+        # available exhibit
+        exhibit = Mock()
+        exhibit.package_names = u'foobarbaz'
+        exhibit.banner_url = 'banner'
+        exhibit.title_translated = ''
+
+        self.cache[u'foobarbaz'] = Mock()
+
+        # not available exhibit
+        other = Mock()
+        other.package_names = u'not-there'
+
+        sca = ObjectWithSignals()
+        sca.query_exhibits = lambda: sca.emit('exhibits', sca,
+                                              [exhibit, other])
 
         with patch.object(catview_gtk, 'SoftwareCenterAgent', lambda: sca):
             self.lobby._append_banner_ads()

@@ -30,7 +30,6 @@ import softwarecenter.paths
 from softwarecenter.db.application import Application
 from softwarecenter.enums import (
     NonAppVisibility,
-    PkgStates,
     SortMethods,
     TOP_RATED_CAROUSEL_LIMIT,
 )
@@ -234,6 +233,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.departments = None
         self.appcount = None
 
+        # build before connecting the signals to avoid race
+        self.build(desktopdir)
+
         # ensure that on db-reopen we refresh the whats-new titles
         self.db.connect("reopen", self._on_db_reopen)
 
@@ -241,9 +243,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.reviews_loader = get_review_loader(self.cache)
         self.reviews_loader.connect(
             "refresh-review-stats-finished", self._on_refresh_review_stats)
-
-        self.build(desktopdir)
-        return
 
     def _on_db_reopen(self, db):
         self._update_whats_new_content()
@@ -275,7 +274,6 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         #self._append_video_clips()
         #self._append_top_of_the_pops
-        return
 
     #~ def _append_top_of_the_pops(self):
         #~ self.totp_hbox = Gtk.HBox(spacing=self.SPACING)
@@ -342,24 +340,17 @@ class LobbyViewGtk(CategoriesViewGtk):
                            flags=['nonapps-visible'])
             self.emit("category-selected", cat)
 
-    def _pkg_available(self, pkgname):
-        try:
-            state = Application("", pkgname).get_details(self.db).pkg_state
-        except:
-            available = False
-        else:
-            available = state not in (PkgStates.NOT_FOUND, PkgStates.ERROR)
-        return available
-
     def _filter_and_set_exhibits(self, sca_client, exhibit_list):
         result = []
         # filter out those exhibits that are not available in this run
         for exhibit in exhibit_list:
-            available = all(self._pkg_available(p) for p in
+            available = all(self.db.is_pkgname_known(p) for p in
                             exhibit.package_names.split(','))
             if available:
                 result.append(exhibit)
 
+        # its ok if result is empty, since set_exhibits() will ignore
+        # empty lists
         self.exhibit_banner.set_exhibits(result)
 
     def _append_banner_ads(self):
@@ -404,8 +395,6 @@ class LobbyViewGtk(CategoriesViewGtk):
     # FIXME: _update_{top_rated,whats_new,recommended_for_you}_content()
     #        duplicates a lot of code
     def _update_top_rated_content(self):
-        if self.top_rated is None:
-            return
         # remove any existing children from the grid widget
         self.top_rated.remove_all()
         # get top_rated category and docs

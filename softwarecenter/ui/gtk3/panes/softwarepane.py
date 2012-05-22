@@ -22,20 +22,22 @@ from gi.repository import GObject
 from gi.repository import Gtk, Gdk
 #~ from gi.repository import Cairo
 import logging
-import os
 import xapian
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import Application
 from softwarecenter.db.enquire import AppEnquire
-from softwarecenter.enums import (SortMethods,
-                                  DEFAULT_SEARCH_LIMIT,
-                                  NonAppVisibility)
-
-from softwarecenter.utils import (ExecutionTime,
-                                  wait_for_apt_cache_ready,
-                                  utf8
-                                  )
+from softwarecenter.enums import (
+    DEFAULT_SEARCH_LIMIT,
+    NonAppVisibility,
+    SOFTWARE_CENTER_DEBUG_TABS,
+    SortMethods,
+)
+from softwarecenter.utils import (
+    ExecutionTime,
+    utf8,
+    wait_for_apt_cache_ready,
+)
 
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.widgets.actionbar import ActionBar
@@ -178,7 +180,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.back_forward = vm.get_global_backforward()
         # a notebook below
         self.notebook = Gtk.Notebook()
-        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+        if not SOFTWARE_CENTER_DEBUG_TABS:
             self.notebook.set_show_tabs(False)
         self.notebook.set_show_border(False)
         # make a spinner view to display while the applist is loading
@@ -487,37 +489,37 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                                    None, False)
 
     def on_search_terms_changed(self, terms):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
-    def on_db_reopen(self):
-        " stub implementation "
-        pass
+    def on_db_reopen(self, db):
+        """Stub implementation."""
+        LOG.debug("%r: on_db_reopen (db is %r).", self.__class__.__name__, db)
 
     def is_category_view_showing(self):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
     def is_applist_view_showing(self):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
     def is_app_details_view_showing(self):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
     def get_current_app(self):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
     def on_application_selected(self, widget, app):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
     def get_current_category(self):
-        " stub implementation "
+        """Stub implementation."""
         pass
 
     def unset_current_category(self):
-        " stub implementation "
+        """Stub implementation."""
         pass

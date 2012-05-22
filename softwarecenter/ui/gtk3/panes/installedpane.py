@@ -681,7 +681,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.app_details_view.refresh_app()
 
     def on_db_reopen(self, db):
-        LOG.debug("on_db_reopen")
+        super(InstalledPane, self).on_db_reopen(db)
         self._refresh_on_cache_or_db_change()
 
     def on_cache_ready(self, cache):
