@@ -30,6 +30,8 @@ software-center (5.2.3) UNRELEASED; urgency=low
   * lp:~evfool/software-center/lp874430:
     - display tooltips for package titles in the application
       tiles of the lobby view (LP: #874430)
+  * lp:~evfool/software-center/lp983831:
+    - Avoid merging two words while normalizing description (LP: #983831)
 
   [ Gabor Kelemen ]
   * lp:~kelemeng/software-center/bug1001746:
@@ -38,6 +40,9 @@ software-center (5.2.3) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * lp:~mvo/software-center/lp872760-for-5.2:
     - fix translations for certain category names (LP: #872760)
+  * lp:~mvo/software-center/lp987321:
+    - fix dependency to ensure that we have humanity-icon-theme
+      as we need it for the history view icons (LP: #987321)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-crash-lp1000238:
@@ -54,6 +59,13 @@ software-center (5.2.3) UNRELEASED; urgency=low
       'bringToFront'. This way, search will be consistent between all 
       entry points. LP: #977931
     - Also added proper test suites for the above.
+  * lp:~nataliabidart/software-center/fix-965093:
+    - Fixed the SpinnerNtebook show_spinner method so the spinner page is 
+      not shown until the configured threshold is reached (250ms since 
+      this branch). Plus proper test suite was added.
+  * lp:~nataliabidart/software-center/fix-986563:
+    - Filtered out those exhibits that do not their packages available 
+      in the db (LP: #986563)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 May 2012 17:23:47 -0400
 

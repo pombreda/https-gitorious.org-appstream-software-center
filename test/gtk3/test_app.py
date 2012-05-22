@@ -8,47 +8,13 @@ from functools import partial
 
 from mock import Mock
 
-from testutils import get_mock_options, setup_test_env
+from testutils import FakedCache, get_mock_options, setup_test_env
 setup_test_env()
 
 import softwarecenter.paths
 from softwarecenter.db import DebFileApplication, DebFileOpenError
 from softwarecenter.enums import PkgStates, SearchSeparators
 from softwarecenter.ui.gtk3 import app
-
-
-class FakedCache(dict):
-    """A faked cache."""
-
-    def __init__(self, *a, **kw):
-        super(FakedCache, self).__init__()
-        self._callbacks = defaultdict(list)
-        self.ready = False
-
-    def open(self):
-        """Open this cache."""
-        self.ready = True
-
-    def connect(self, signal, callback):
-        """Connect a signal with a callback."""
-        self._callbacks[signal].append(callback)
-
-    def disconnect_by_func(self, callback):
-        """Disconnect 'callback' from every signal."""
-        for signal, cb in self._callbacks.iteritems():
-            if cb == callback:
-                self._callbacks[signal].remove(callback)
-            if len(self._callbacks[signal]) == 0:
-                self._callbacks.pop(signal)
-
-    def get_addons(self, pkgname):
-        """Return (recommended, suggested) addons for 'pkgname'."""
-        return ([],[])
-
-    def get_total_size_on_install(self,pkgname, addons_to_install,
-                                  addons_to_remove, archive_suite):
-        """Return a fake (total_download_size, total_install_size) result."""
-        return (0, 0)
 
 
 class ParsePackagesArgsTestCase(unittest.TestCase):
@@ -109,7 +75,7 @@ class ParsePackageArgsAsFileTestCase(unittest.TestCase):
         fname = __file__
         assert os.path.exists(fname)
         self.assertRaises(DebFileOpenError, app.parse_packages_args, fname)
-        
+
 
 class ParsePackagesWithAptPrefixTestCase(ParsePackagesArgsTestCase):
 

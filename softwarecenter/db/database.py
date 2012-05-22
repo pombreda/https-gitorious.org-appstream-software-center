@@ -493,9 +493,10 @@ class StoreDatabase(GObject.GObject):
         return popcon
 
     def get_xapian_document(self, appname, pkgname):
-        """ Get the machting xapian document for appname, pkgname
+        """Get the machting xapian document for appname, pkgname.
 
-        If no document is found, raise a IndexError
+        If no document is found, raise a IndexError.
+
         """
         #LOG.debug("get_xapian_document app='%s' pkg='%s'" % (appname,
         #    pkgname))
@@ -517,9 +518,23 @@ class StoreDatabase(GObject.GObject):
         raise IndexError("No app '%s' for '%s' in database" % (appname,
             pkgname))
 
+    def is_pkgname_known(self, pkgname):
+        """Check if 'pkgname' is known to this database.
+
+        Note that even if this function returns True, it may mean that the
+        package needs  to be purchased first or is available in a
+        not-yet-enabled source.
+
+        """
+        # check cache first, then our own database
+        return (pkgname in self._aptcache or
+                any(self.xapiandb.postlist("AP" + pkgname)))
+
     def is_appname_duplicated(self, appname):
-        """Check if the given appname is stored multiple times in the db
-           This can happen for generic names like "Terminal"
+        """Check if the given appname is stored multiple times in the db.
+
+        This can happen for generic names like "Terminal".
+
         """
         for (i, m) in enumerate(self.xapiandb.postlist("AA" + appname)):
             if i > 0:

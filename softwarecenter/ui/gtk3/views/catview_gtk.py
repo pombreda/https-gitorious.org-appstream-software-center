@@ -28,9 +28,11 @@ from gettext import gettext as _
 
 import softwarecenter.paths
 from softwarecenter.db.application import Application
-from softwarecenter.enums import (NonAppVisibility,
-                                  SortMethods,
-                                  TOP_RATED_CAROUSEL_LIMIT)
+from softwarecenter.enums import (
+    NonAppVisibility,
+    SortMethods,
+    TOP_RATED_CAROUSEL_LIMIT,
+)
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.viewport import Viewport
@@ -224,10 +226,15 @@ class LobbyViewGtk(CategoriesViewGtk):
                  apps_filter, apps_limit=0):
         CategoriesViewGtk.__init__(self, datadir, desktopdir, cache, db, icons,
                                    apps_filter, apps_limit=0)
+        self.top_rated = None
+        self.exhibit_banner = None
 
         # sections
         self.departments = None
         self.appcount = None
+
+        # build before connecting the signals to avoid race
+        self.build(desktopdir)
 
         # ensure that on db-reopen we refresh the whats-new titles
         self.db.connect("reopen", self._on_db_reopen)
@@ -236,9 +243,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.reviews_loader = get_review_loader(self.cache)
         self.reviews_loader.connect(
             "refresh-review-stats-finished", self._on_refresh_review_stats)
-
-        self.build(desktopdir)
-        return
 
     def _on_db_reopen(self, db):
         self._update_whats_new_content()
@@ -270,7 +274,6 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         #self._append_video_clips()
         #self._append_top_of_the_pops
-        return
 
     #~ def _append_top_of_the_pops(self):
         #~ self.totp_hbox = Gtk.HBox(spacing=self.SPACING)
@@ -337,24 +340,34 @@ class LobbyViewGtk(CategoriesViewGtk):
                            flags=['nonapps-visible'])
             self.emit("category-selected", cat)
 
+    def _filter_and_set_exhibits(self, sca_client, exhibit_list):
+        result = []
+        # filter out those exhibits that are not available in this run
+        for exhibit in exhibit_list:
+            available = all(self.db.is_pkgname_known(p) for p in
+                            exhibit.package_names.split(','))
+            if available:
+                result.append(exhibit)
+
+        # its ok if result is empty, since set_exhibits() will ignore
+        # empty lists
+        self.exhibit_banner.set_exhibits(result)
+
     def _append_banner_ads(self):
-        exhibit_banner = ExhibitBanner()
-        exhibit_banner.set_exhibits([FeaturedExhibit(),
-                                    ])
-        exhibit_banner.connect("show-exhibits-clicked", self._on_show_exhibits)
+        self.exhibit_banner = ExhibitBanner()
+        self.exhibit_banner.set_exhibits([FeaturedExhibit()])
+        self.exhibit_banner.connect(
+            "show-exhibits-clicked", self._on_show_exhibits)
 
         # query using the agent
         scagent = SoftwareCenterAgent()
-        scagent.connect(
-            "exhibits", lambda sca, l: exhibit_banner.set_exhibits(l))
+        scagent.connect("exhibits", self._filter_and_set_exhibits)
         scagent.query_exhibits()
 
         a = Gtk.Alignment()
         a.set_padding(0, StockEms.SMALL, 0, 0)
-        a.add(exhibit_banner)
-
+        a.add(self.exhibit_banner)
         self.vbox.pack_start(a, False, False, 0)
-        return
 
     def _append_departments(self):
         # set the departments section to use the label markup we have just
