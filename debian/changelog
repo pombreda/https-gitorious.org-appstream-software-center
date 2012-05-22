@@ -36,6 +36,10 @@ software-center (5.2.3) UNRELEASED; urgency=low
       'bringToFront'. This way, search will be consistent between all 
       entry points. LP: #977931
     - Also added proper test suites for the above.
+  * lp:~nataliabidart/software-center/fix-965093:
+    - Fixed the SpinnerNtebook show_spinner method so the spinner page is 
+      not shown until the configured threshold is reached (250ms since 
+      this branch). Plus proper test suite was added.
 
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 May 2012 17:23:47 -0400
 

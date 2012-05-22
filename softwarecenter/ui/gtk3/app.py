@@ -62,8 +62,9 @@ from softwarecenter.enums import (
     MOUSE_EVENT_BACK_BUTTON,
     PkgStates,
     SearchSeparators,
-    SOFTWARE_CENTER_TOS_LINK,
+    SOFTWARE_CENTER_DEBUG_TABS,
     SOFTWARE_CENTER_NAME_KEYRING,
+    SOFTWARE_CENTER_TOS_LINK,
     ViewPages,
 )
 from softwarecenter.utils import (
@@ -249,7 +250,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         init_locale()
 
-        if "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+        if SOFTWARE_CENTER_DEBUG_TABS:
             self.notebook_view.set_show_tabs(True)
 
         # distro specific stuff
@@ -536,8 +537,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             if proxy:
                 os.environ["http_proxy"] = proxy
             else:
-                if "http_proxy" in os.environ:
-                    del os.environ["http_proxy"]
+                os.environ.pop("http_proxy", None)
         except Exception as e:
             # if no gnome settings are installed, do not mess with
             # http_proxy

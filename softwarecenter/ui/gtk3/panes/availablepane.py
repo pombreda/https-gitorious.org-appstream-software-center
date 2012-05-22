@@ -591,8 +591,8 @@ class AvailablePane(SoftwarePane):
                         self.display_search_page)
 
     def on_db_reopen(self, db):
-        " called when the database is reopened"
-        #print "on_db_open"
+        """Called when the database is reopened."""
+        super(AvailablePane, self).on_db_reopen(db)
         self.refresh_apps()
         if self.app_details_view:
             self.app_details_view.refresh_app()
