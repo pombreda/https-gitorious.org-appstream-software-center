@@ -360,6 +360,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             if available:
                 result.append(exhibit)
 
+        # its ok if result is empty, since set_exhibits() will ignore
+        # empty lists
         self.exhibit_banner.set_exhibits(result)
 
     def _append_banner_ads(self):

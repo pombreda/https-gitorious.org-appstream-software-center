@@ -319,7 +319,7 @@ class ExhibitsTestCase(unittest.TestCase):
         self.assertIsInstance(banner.exhibits[0], catview_gtk.FeaturedExhibit)
 
     def test_exhibit_if_available(self):
-        """The exhibit should be shown if the package is not available."""
+        """The exhibit should be shown if the package is available."""
         exhibit = Mock()
         exhibit.package_names = u'foobarbaz'
         exhibit.banner_url = 'banner'
@@ -331,6 +331,33 @@ class ExhibitsTestCase(unittest.TestCase):
 
         sca = ObjectWithSignals()
         sca.query_exhibits = lambda: sca.emit('exhibits', sca, [exhibit])
+
+        with patch.object(catview_gtk, 'SoftwareCenterAgent', lambda: sca):
+            self.lobby._append_banner_ads()
+
+        banner = self._get_banner_from_lobby()
+        self.assertEqual(1, len(banner.exhibits))
+        self.assertIs(banner.exhibits[0], exhibit)
+
+    def test_exhibit_if_mixed_availability(self):
+        """The exhibit should be shown even if some are not available."""
+        # available exhibit
+        exhibit = Mock()
+        exhibit.package_names = u'foobarbaz'
+        exhibit.banner_url = 'banner'
+
+        pkg = Mock()
+        pkg.banner_url = ''
+        pkg.title_translated = ''
+        self.cache[u'foobarbaz'] = pkg
+
+        # not available exhibit
+        other = Mock()
+        other.package_names = u'not-there'
+
+        sca = ObjectWithSignals()
+        sca.query_exhibits = lambda: sca.emit('exhibits', sca,
+                                              [exhibit, other])
 
         with patch.object(catview_gtk, 'SoftwareCenterAgent', lambda: sca):
             self.lobby._append_banner_ads()
