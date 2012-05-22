@@ -14,6 +14,7 @@ from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import SortMethods
 from softwarecenter.testutils import (
     do_events_with_sleep,
+    do_events,
     FakedCache,
     get_test_db,
     make_recommender_agent_recommend_me_dict,
@@ -33,7 +34,7 @@ class CatViewBaseTestCase(unittest.TestCase):
 
     def setUp(self):
         self._cat = None
-        self.win = get_test_window_catview()
+        self.win = get_test_window_catview(self.db)
         self.notebook = self.win.get_child()
         self.lobby = self.win.get_data("lobby")
         self.subcat_view = self.win.get_data("subcat")
@@ -57,7 +58,7 @@ class TopAndWhatsNewTestCase(CatViewBaseTestCase):
         # test clicking top_rated
         self.lobby.connect("category-selected", self._on_category_selected)
         self.lobby.top_rated_frame.more.clicked()
-        do_events_with_sleep()
+        do_events()
         self.assertNotEqual(self._cat, None)
         self.assertEqual(self._cat.name, "Top Rated")
         self.assertEqual(self._cat.sortmode, SortMethods.BY_TOP_RATED)
@@ -71,7 +72,7 @@ class TopAndWhatsNewTestCase(CatViewBaseTestCase):
         # test clicking new
         self.lobby.connect("category-selected", self._on_category_selected)
         self.lobby.whats_new_frame.more.clicked()
-        do_events_with_sleep()
+        do_events()
         self.assertNotEqual(self._cat, None)
         # encoding is utf-8 (since r2218, see category.py)
         self.assertEqual(self._cat.name, 'What\xe2\x80\x99s New')
@@ -111,9 +112,8 @@ class TopAndWhatsNewTestCase(CatViewBaseTestCase):
         win.add(scroll)
         win.show()
         # test visibility
-        do_events_with_sleep()
+        do_events()
         self.assertFalse(view.whats_new_frame.get_property("visible"))
-        do_events_with_sleep()
 
 
 class RecommendationsTestCase(CatViewBaseTestCase):
