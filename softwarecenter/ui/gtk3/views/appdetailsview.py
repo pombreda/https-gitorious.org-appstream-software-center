@@ -172,9 +172,6 @@ class PackageStatusBar(StatusBar):
             "changed", self._on_combo_multiple_versions_changed)
         self.progress = Gtk.ProgressBar()
 
-        # theme engine hint for bug #606942
-        self.progress.set_data("transparent-bg-hint", True)
-
         self.pkg_state = None
 
         self.hbox.pack_start(self.installed_icon, False, False, 0)
