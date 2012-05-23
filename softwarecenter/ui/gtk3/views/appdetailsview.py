@@ -1165,9 +1165,9 @@ class AppDetailsView(Viewport):
         self.review_stats_widget = StarRatingsWidget()
         self.review_stats = Gtk.HBox()
         vb_inner.pack_start(
-            self.review_stats, False, False, 0)
+            self.review_stats, False, False, StockEms.SMALL)
         self.review_stats.pack_start(
-            self.review_stats_widget, False, False, StockEms.SMALL)
+            self.review_stats_widget, False, False, 0)
 
         #~ vb_inner.set_property("can-focus", True)
         self.title.a11y = vb_inner.get_accessible()
@@ -1261,22 +1261,11 @@ class AppDetailsView(Viewport):
         info_vb.pack_start(self.addon_view, False, False, 0)
 
         self.addons_statusbar = self.addons_manager.status_bar
-        self.addon_view.pack_start(self.addons_statusbar, False, False, 0)
+        self.addon_view.pack_end(self.addons_statusbar, False, False, 0)
         self.addon_view.connect('table-built', self._on_addon_table_built)
 
         self.addons_hbar = self._hbars[1]
         info_vb.pack_start(self.addons_hbar, False, False, StockEms.SMALL)
-
-        # recommendations
-        catview = CategoriesViewGtk(
-            self.datadir, None, self.cache, self.db, self.icons, None)
-        self.recommended_for_app_panel = RecommendationsPanelDetails(catview)
-        self.recommended_for_app_panel.connect(
-            "application-activated",
-            self._on_recommended_application_activated)
-        self.recommended_for_app_panel.show_all()
-        self.info_vb.pack_start(self.recommended_for_app_panel, False,
-            False, 0)
 
         # package info
         self.info_keys = []
@@ -1305,6 +1294,17 @@ class AppDetailsView(Viewport):
         info_vb.pack_start(self.support_info, False, False, 0)
 
         vb.pack_start(self._hbars[2], False, False, 0)
+
+        # recommendations
+        catview = CategoriesViewGtk(
+            self.datadir, None, self.cache, self.db, self.icons, None)
+        self.recommended_for_app_panel = RecommendationsPanelDetails(catview)
+        self.recommended_for_app_panel.connect(
+            "application-activated",
+            self._on_recommended_application_activated)
+        self.recommended_for_app_panel.show_all()
+        self.info_vb.pack_start(self.recommended_for_app_panel, False,
+            False, 0)
 
         # reviews cascade
         self.reviews.connect("new-review", self._on_review_new)
