@@ -16,6 +16,14 @@ software-center (5.3.0) UNRELEASED; urgency=low
     - Aligned the star ratings widget vertically with the titles
     - Added some vertical padding before the star ratings widget to look 
        bette
+  * lp:~evfool/software-center/history-enhancements:
+    - display text-sized icons in history, not double-sized ones
+    - use padding between the icon and the package name
+    - right-align the time of the history action
+    - display the action +time (installed/updated/removed) if the 
+      filter is all changes, otherwise only display the time
+    - removed markup from the translatable string, to avoid translation
+      mistakes with markup
 
   [ Sebastian Heinlein ]
   * lp:~glatzor/software-center/remove-workaround-747172:
