@@ -20,6 +20,8 @@ software-center (5.2.3) UNRELEASED; urgency=low
   * lp:~mvo/software-center/lp987321:
     - fix dependency to ensure that we have humanity-icon-theme
       as we need it for the history view icons (LP: #987321)
+  * lp:~mvo/software-center/test-catview-cleanup:
+    - refactor unit tests for the catview
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-crash-lp1000238:
@@ -44,7 +46,7 @@ software-center (5.2.3) UNRELEASED; urgency=low
     - Filtered out those exhibits that do not their packages available 
       in the db (LP: #986563)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 May 2012 17:23:47 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 23 May 2012 01:36:52 -0400
 
 software-center (5.2.2) precise-proposed; urgency=low
 
