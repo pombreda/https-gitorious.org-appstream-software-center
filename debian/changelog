@@ -22,6 +22,8 @@ software-center (5.2.3) UNRELEASED; urgency=low
       as we need it for the history view icons (LP: #987321)
   * lp:~mvo/software-center/test-catview-cleanup:
     - refactor unit tests for the catview
+  * lp:~mvo/software-center/lp1002271:
+    - fix regresion in 5.2.2 (LP: #1002271) for empty descriptions
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-crash-lp1000238:

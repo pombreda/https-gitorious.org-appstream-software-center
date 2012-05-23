@@ -173,6 +173,8 @@ class TestSCUtils(unittest.TestCase):
         capitalized = capitalize_first_word(test_synopsis)
         self.assertTrue(
             capitalized == "MPlayer's Movie Encoder")
+        # ensure it does not crash for empty strings, LP: #1002271
+        self.assertEqual(capitalize_first_word(""), "")
             
     def test_ensure_file_writable_and_delete_if_not(self):
         from softwarecenter.utils import ensure_file_writable_and_delete_if_not
