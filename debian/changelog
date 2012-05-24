@@ -9,6 +9,8 @@ software-center (5.2.3) UNRELEASED; urgency=low
       tiles of the lobby view (LP: #874430)
   * lp:~evfool/software-center/lp983831:
     - Avoid merging two words while normalizing description (LP: #983831)
+  * lp:~evfool/software-center/lp822625:
+    - Set default value for reviewstats histogram (LP: #822625)
 
   [ Gabor Kelemen ]
   * lp:~kelemeng/software-center/bug1001746:
@@ -48,7 +50,7 @@ software-center (5.2.3) UNRELEASED; urgency=low
     - Filtered out those exhibits that do not their packages available 
       in the db (LP: #986563)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 23 May 2012 01:36:52 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 24 May 2012 15:09:46 -0400
 
 software-center (5.2.2.1) precise-proposed; urgency=low
 
