@@ -5,7 +5,11 @@ software-center (5.2.2.1) UNRELEASED; urgency=low
     - re-enable the fix for LP: #999486, LP: #994341 that was inadvertently
       disabled in the 5.2.2 release
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 23 May 2012 18:30:09 -0400
+  [ Michael Vogt }
+  * lp:~mvo/software-center/lp1002271:
+    - fix regression in 5.2.2 (LP: #1002271) for empty descriptions
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 23 May 2012 20:13:02 -0400
 
 software-center (5.2.2) precise-proposed; urgency=low
 
