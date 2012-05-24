@@ -50,6 +50,19 @@ software-center (5.2.3) UNRELEASED; urgency=low
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 23 May 2012 01:36:52 -0400
 
+software-center (5.2.2.1) precise-proposed; urgency=low
+
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/toolbar-buttons-insensitive-during-startup:
+    - re-enable the fix for LP: #999486, LP: #994341 that was inadvertently
+      disabled in the 5.2.2 release
+
+  [ Michael Vogt }
+  * lp:~mvo/software-center/lp1002271:
+    - fix regression in 5.2.2 (LP: #1002271) for empty descriptions
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 24 May 2012 09:30:16 +0200
+
 software-center (5.2.2) precise-proposed; urgency=low
 
   [ Michael Vogt ]
