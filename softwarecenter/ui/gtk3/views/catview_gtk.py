@@ -728,21 +728,24 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         #return
 
 
-def get_test_window_catview():
+def get_test_window_catview(db=None):
 
     def on_category_selected(view, cat):
         print "on_category_selected view: ", view
         print "on_category_selected cat: ", cat
 
-    from softwarecenter.db.pkginfo import get_pkg_info
-    cache = get_pkg_info()
-    cache.open()
+    if db is None:
+        from softwarecenter.db.pkginfo import get_pkg_info
+        cache = get_pkg_info()
+        cache.open()
 
-    from softwarecenter.db.database import StoreDatabase
-    xapian_base_path = "/var/cache/software-center"
-    pathname = os.path.join(xapian_base_path, "xapian")
-    db = StoreDatabase(pathname, cache)
-    db.open()
+        from softwarecenter.db.database import StoreDatabase
+        xapian_base_path = "/var/cache/software-center"
+        pathname = os.path.join(xapian_base_path, "xapian")
+        db = StoreDatabase(pathname, cache)
+        db.open()
+    else:
+        cache = db._aptcache
 
     import softwarecenter.paths
     datadir = softwarecenter.paths.datadir
