@@ -11,6 +11,9 @@ software-center (5.2.3) UNRELEASED; urgency=low
     - Avoid merging two words while normalizing description (LP: #983831)
   * lp:~evfool/software-center/lp822625:
     - Set default value for reviewstats histogram (LP: #822625)
+  * lp:~evfool/software-center/lp875874:
+    - Set word wrap with fallback to char wrapping for the review
+      text label (LP: #875874)
 
   [ Gabor Kelemen ]
   * lp:~kelemeng/software-center/bug1001746:
@@ -50,7 +53,7 @@ software-center (5.2.3) UNRELEASED; urgency=low
     - Filtered out those exhibits that do not their packages available 
       in the db (LP: #986563)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 24 May 2012 15:09:46 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 24 May 2012 15:36:41 -0400
 
 software-center (5.2.2.1) precise-proposed; urgency=low
 
