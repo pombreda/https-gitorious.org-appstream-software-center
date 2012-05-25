@@ -48,6 +48,9 @@ software-center (5.2.3) UNRELEASED; urgency=low
     - Avoid merging two words while normalizing description (LP: #983831)
   * lp:~evfool/software-center/lp822625:
     - Set default value for reviewstats histogram (LP: #822625)
+  * lp:~evfool/software-center/lp875874:
+    - Set word wrap with fallback to char wrapping for the review
+      text label (LP: #875874)
 
   [ Gabor Kelemen ]
   * lp:~kelemeng/software-center/bug1001746:
