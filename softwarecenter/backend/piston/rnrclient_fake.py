@@ -79,7 +79,8 @@ class RatingsAndReviewsAPI(PistonAPI):
             s = {'app_name': '',
                  'package_name': self._PACKAGE_NAMES[i],
                  'ratings_total': str(random.randrange(1, 200)),
-                 'ratings_average': str(random.randrange(0, 5))
+                 'ratings_average': str(random.randrange(0, 5)),
+                 'histogram': None
             }
             stats.append(s)
 
