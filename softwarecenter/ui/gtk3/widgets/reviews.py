@@ -659,6 +659,7 @@ class UIReview(Gtk.VBox):
         text = Gtk.Label()
         text.set_text(review_data.review_text)
         text.set_line_wrap(True)
+        text.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
         text.set_selectable(True)
         text.set_alignment(0, 0)
 
