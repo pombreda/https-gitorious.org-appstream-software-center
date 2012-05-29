@@ -357,7 +357,6 @@ class HistoryPane(Gtk.VBox, BasePane):
     def render_cell_text(self, column, cell, store, iter, user_data):
         when = store.get_value(iter, self.COL_WHEN)
         if isinstance(when, datetime.datetime):
-            action = store.get_value(iter, self.COL_ACTION)
             pkg = store.get_value(iter, self.COL_PKG)
             text = pkg
         elif isinstance(when, datetime.date):
