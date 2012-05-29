@@ -111,7 +111,6 @@ center no-repeat;
 
     def _log_debug_output(self, *args):
         LOG.info("uri changed: '%s'", self.wk.webkit.get_property("uri"))
-        
 
     def init_view(self):
         if self.wk is None:

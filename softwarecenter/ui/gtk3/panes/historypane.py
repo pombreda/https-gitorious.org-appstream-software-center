@@ -144,7 +144,7 @@ class HistoryPane(Gtk.VBox, BasePane):
         self.column = Gtk.TreeViewColumn(_('Date'))
         self.view.append_column(self.column)
         self.cell_icon = Gtk.CellRendererPixbuf()
-        self.cell_icon.set_padding(self.PADDING, self.PADDING/2)
+        self.cell_icon.set_padding(self.PADDING, self.PADDING / 2)
         self.column.pack_start(self.cell_icon, False)
         self.column.set_cell_data_func(self.cell_icon, self.render_cell_icon)
         self.cell_text = Gtk.CellRendererText()
@@ -156,7 +156,6 @@ class HistoryPane(Gtk.VBox, BasePane):
         self.column.pack_end(self.cell_time, False)
         self.column.set_cell_data_func(self.cell_time, self.render_cell_time)
 
-       
         # busy cursor
         self.busy_cursor = Gdk.Cursor.new(Gdk.CursorType.WATCH)
 
@@ -394,7 +393,8 @@ class HistoryPane(Gtk.VBox, BasePane):
                     action_text = _('removed %s') % time_text
                 elif action == self.UPGRADED:
                     action_text = _('updated %s') % time_text
-            text = '<span color="%(color)s">%(action)s</span>'% {'color': '#8A8A8A', 'action': action_text } 
+            text = ('<span color="%(color)s">%(action)s</span>' %
+                {'color': '#8A8A8A', 'action': action_text})
         cell.set_property('markup', text)
 
 
