@@ -303,7 +303,6 @@ class ExhibitsTestCase(unittest.TestCase):
         """The exhibit should be shown even if some are not available."""
         # available exhibit
         exhibit = Mock()
-        # the \n\r are a server bug #1004417
         exhibit.package_names = u'foobarbaz'
         exhibit.banner_url = 'banner'
         exhibit.title_translated = ''
