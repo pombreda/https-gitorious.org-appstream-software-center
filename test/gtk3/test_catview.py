@@ -304,7 +304,7 @@ class ExhibitsTestCase(unittest.TestCase):
         # available exhibit
         exhibit = Mock()
         # the \n\r are a server bug #1004417
-        exhibit.package_names = u'foobarbaz\n\r'
+        exhibit.package_names = u'foobarbaz'
         exhibit.banner_url = 'banner'
         exhibit.title_translated = ''
 

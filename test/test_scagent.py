@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from gi.repository import GObject
-from mock import patch
+from mock import Mock, patch
 import unittest
 
 from testutils import setup_test_env
@@ -51,6 +51,20 @@ class TestSCAgent(unittest.TestCase):
             mock_run_piston_helper.assert_called_with(
                 'SoftwareCenterAgentAPI', 'subscriptions_for_me',
                 complete_only=True)
+
+    def test_regression_lp1004417(self):
+        def on_exhibit_query_done(agent, result_list):
+            for result in result_list:
+                self.assertFalse(result.package_names.endswith("\n\r"))
+            self.loop.quit()
+        mock_ex = Mock()
+        mock_ex.package_names = "foo,bar\n\r"
+        results = [mock_ex]
+        sca = SoftwareCenterAgent()
+        sca.connect("exhibits", on_exhibit_query_done)
+        GObject.timeout_add(100, sca._on_exhibits_data_available, None, results)
+        self.loop.run()
+        self.assertFalse(self.error)
 
 
 if __name__ == "__main__":
