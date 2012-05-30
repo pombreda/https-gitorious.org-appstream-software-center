@@ -29,6 +29,9 @@ software-center (5.2.3) UNRELEASED; urgency=low
     - refactor unit tests for the catview
   * lp:~mvo/software-center/lp1002271:
     - fix regresion in 5.2.2 (LP: #1002271) for empty descriptions
+  * lp:~mvo/software-center/lp1005104:
+    - fix regression in 5.2.2 (LP: #1005104) in initial navigation
+      history
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-crash-lp1000238:
@@ -53,7 +56,7 @@ software-center (5.2.3) UNRELEASED; urgency=low
     - Filtered out those exhibits that do not their packages available 
       in the db (LP: #986563)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 24 May 2012 15:36:41 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 30 May 2012 10:58:26 -0400
 
 software-center (5.2.2.1) precise-proposed; urgency=low
 
