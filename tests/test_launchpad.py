@@ -1,8 +1,7 @@
 import unittest
 
-from gi.repository import GObject
-
 from tests.utils import (
+    do_events,
     setup_test_env,
 )
 setup_test_env()
@@ -21,9 +20,7 @@ class testUbuntuSSO(unittest.TestCase):
         lp.login = lambda u,p: True
         lp.login("user", "password")
         lp.emit("login-successful", None)
-        main_loop = GObject.main_context_default()
-        while main_loop.pending():
-            main_loop.iteration()
+        do_events()
         self.assertTrue(self._login_successful)
 
     def _monkey_get_subscribed_archives(self):

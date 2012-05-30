@@ -36,7 +36,7 @@ class TestRecommenderAgent(unittest.TestCase):
             recommender_agent.emit("submit-profile-finished",
                                    piston_submit_profile)
         mock_spawn_helper_run.side_effect = _patched_on_submit_profile_data
-        recommender_agent = RecommenderAgent(needs_auth=False)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("submit-profile-finished", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent._calc_profile_id = lambda profile: "i-am-random"
@@ -57,7 +57,7 @@ class TestRecommenderAgent(unittest.TestCase):
 
     def test_recagent_query_server_status(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(needs_auth=False)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("server-status", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_server_status()
@@ -67,7 +67,7 @@ class TestRecommenderAgent(unittest.TestCase):
     # FIXME: disabled for now as the server is not quite working
     def disabled_test_recagent_post_submit_profile(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(needs_auth=False)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("submit-profile-finished", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         db = get_test_db()
@@ -79,7 +79,7 @@ class TestRecommenderAgent(unittest.TestCase):
      # NOTE: this server call is currently not needed and not used
 #    def disabled_test_recagent_query_submit_anon_profile(self):
 #        # NOTE: This requires a working recommender host that is reachable
-#        recommender_agent = RecommenderAgent(needs_auth=False)
+#        recommender_agent = RecommenderAgent()
 #        recommender_agent.connect("submit-anon-profile", self.on_query_done)
 #        recommender_agent.connect("error", self.on_query_error)
 #        recommender_agent.query_submit_anon_profile(
@@ -92,7 +92,7 @@ class TestRecommenderAgent(unittest.TestCase):
     # FIXME: disabled for now as the server is not quite working
     def disabled_test_recagent_query_profile(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(needs_auth=False)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("profile", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_profile(pkgnames=["pitivi", "fretsonfire"])
@@ -102,7 +102,7 @@ class TestRecommenderAgent(unittest.TestCase):
     # FIXME: disabled for now as the server is not quite working
     def disabled_test_recagent_query_recommend_me(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(needs_auth=False)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-me", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_me()
@@ -111,7 +111,7 @@ class TestRecommenderAgent(unittest.TestCase):
 
     def test_recagent_query_recommend_app(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(needs_auth=False)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-app", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_app("pitivi")
@@ -121,7 +121,7 @@ class TestRecommenderAgent(unittest.TestCase):
     # disabled for now (2012-03-20) as the server is returning 504
     def disabled_test_recagent_query_recommend_all_apps(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(needs_auth=False)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-all-apps", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_all_apps()
@@ -130,7 +130,7 @@ class TestRecommenderAgent(unittest.TestCase):
 
     def test_recagent_query_recommend_top(self):
         # NOTE: This requires a working recommender host that is reachable
-        recommender_agent = RecommenderAgent(needs_auth=False)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-top", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_top()
@@ -142,7 +142,7 @@ class TestRecommenderAgent(unittest.TestCase):
         #       'cuz there definitely isn't a server here  :)
         fake_server = "https://test-no-server-here.staging.ubuntu.com"
         os.environ["SOFTWARE_CENTER_RECOMMENDER_HOST"] = fake_server
-        recommender_agent = RecommenderAgent(needs_auth=False)
+        recommender_agent = RecommenderAgent()
         recommender_agent.connect("recommend-top", self.on_query_done)
         recommender_agent.connect("error", self.on_query_error)
         recommender_agent.query_recommend_top()

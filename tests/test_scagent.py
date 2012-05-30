@@ -26,7 +26,7 @@ class TestSCAgent(unittest.TestCase):
         self.error = True
 
     def test_scagent_query_available(self):
-        sca = SoftwareCenterAgent(needs_auth=False)
+        sca = SoftwareCenterAgent()
         sca.connect("available", self.on_query_done)
         sca.connect("error", self.on_query_error)
         sca.query_available()
@@ -34,7 +34,7 @@ class TestSCAgent(unittest.TestCase):
         self.assertFalse(self.error)
 
     def test_scagent_query_exhibits(self):
-        sca = SoftwareCenterAgent(needs_auth=False)
+        sca = SoftwareCenterAgent()
         sca.connect("exhibits", self.on_query_done)
         sca.connect("error", self.on_query_error)
         sca.query_exhibits()
@@ -46,7 +46,7 @@ class TestSCAgent(unittest.TestCase):
             'softwarecenter.backend.spawn_helper.SpawnHelper.'
             'run_generic_piston_helper')
         with patch(run_generic_piston_helper_fn) as mock_run_piston_helper:
-            sca = SoftwareCenterAgent(needs_auth=False)
+            sca = SoftwareCenterAgent()
             sca.query_available_for_me()
 
             mock_run_piston_helper.assert_called_with(

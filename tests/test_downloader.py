@@ -1,10 +1,8 @@
-from gi.repository import GObject
-
 import os
-import time
 import unittest
 
 from tests.utils import (
+    do_events_with_sleep,
     setup_test_env,
 )
 setup_test_env()
@@ -41,11 +39,8 @@ class TestImageDownloader(unittest.TestCase):
     def test_download_unreachable(self):
         self.downloader.download_file("http://www.ubuntu.com/really-not-there",
                                       self.DOWNLOAD_FILENAME)
-        main_loop = GObject.main_context_default()
         while self._image_is_reachable is None:
-            while main_loop.pending():
-                main_loop.iteration()
-            time.sleep(0.1)
+            do_events_with_sleep()
         self.assertNotEqual(self._image_is_reachable, None)
         self.assertFalse(self._image_is_reachable)
         self.assertTrue(not os.path.exists(self.DOWNLOAD_FILENAME))
@@ -53,12 +48,9 @@ class TestImageDownloader(unittest.TestCase):
     def test_download_reachable(self):
         self.downloader.download_file("http://www.ubuntu.com",
                                       self.DOWNLOAD_FILENAME)
-        main_loop = GObject.main_context_default()
         while (self._image_downloaded_filename is None and
                not self._error):
-            while main_loop.pending():
-                main_loop.iteration()
-            time.sleep(0.1)
+            do_events_with_sleep()
         self.assertNotEqual(self._image_is_reachable, None)
         self.assertTrue(self._image_is_reachable)
         self.assertTrue(os.path.exists(self.DOWNLOAD_FILENAME))

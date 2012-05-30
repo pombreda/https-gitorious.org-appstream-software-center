@@ -146,15 +146,19 @@ def get_test_enquirer_matches(db, query=None, limit=20, sortmode=0):
 
 
 def do_events():
+    print '\n\n======================= do_events start =======================\n'
     main_loop = GObject.main_context_default()
     while main_loop.pending():
         main_loop.iteration()
+    print '\n\n=======================  do_events end  =======================\n'
 
 
 def do_events_with_sleep(iterations=5, sleep=0.1):
+    print '\n\n+++++++++++++++++++++++ do_events_with_sleep start +++++++++++++++++++++++\n'
     for i in range(iterations):
         do_events()
         time.sleep(sleep)
+    print '\n\n+++++++++++++++++++++++  do_events_with_sleep stop  +++++++++++++++++++++++\n'
 
 
 def get_mock_app_from_real_app(real_app):

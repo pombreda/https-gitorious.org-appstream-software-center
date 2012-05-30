@@ -123,8 +123,8 @@ class TestAppdetailsView(BaseViewTestCase):
                     "button visible error for state %s" % state)
             # regression test for #955005
             if state == PkgStates.NOT_FOUND:
-                self.assertFalse(self.view.review_stats.get_property("visible"))
-                self.assertFalse(self.view.reviews.get_property("visible"))
+                self.assertFalse(self.view.review_stats.get_visible())
+                self.assertFalse(self.view.reviews.get_visible())
 
     def test_app_icon_loading(self):
         # get icon
@@ -148,20 +148,21 @@ class TestAppdetailsView(BaseViewTestCase):
         self.view.show_app(app)
         self.view._add_where_is_it_commandline("apt")
         do_events()
-        self.view._add_where_is_it_launcher("/usr/share/applications/ubuntu-software-center.desktop")
+        self.view._add_where_is_it_launcher(
+            "/usr/share/applications/ubuntu-software-center.desktop")
         do_events()
 
     def test_reviews_page(self):
         # show s-c and click on more review
         app = Application("", "software-center")
         self.view.show_app(app)
-        self.assertEqual(view._reviews_server_page, 1)
+        self.assertEqual(self.view._reviews_server_page, 1)
         self.view._on_more_reviews_clicked(None)
-        self.assertEqual(view._reviews_server_page, 2)
+        self.assertEqual(self.view._reviews_server_page, 2)
         # show different app, ensure page is reset
         app = Application("", "apt")
         self.view.show_app(app)
-        self.assertEqual(view._reviews_server_page, 1)
+        self.assertEqual(self.view._reviews_server_page, 1)
 
     def test_human_readable_name_in_view(self):
         model = self.view.reviews.review_language.get_model()

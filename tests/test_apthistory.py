@@ -8,6 +8,7 @@ import unittest
 from gi.repository import GObject
 from tests.utils import (
     DATA_DIR,
+    do_events,
     setup_test_env,
 )
 setup_test_env()
@@ -25,9 +26,7 @@ class TestAptHistory(unittest.TestCase):
 
     def _get_apt_history(self):
         history = AptHistory(use_cache=False)
-        main_loop = GObject.main_context_default()
-        while main_loop.pending():
-           main_loop.iteration()
+        do_events()
         return history
 
     def test_history(self):

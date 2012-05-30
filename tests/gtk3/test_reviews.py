@@ -150,7 +150,7 @@ class TestGRatingsAndReviews(unittest.TestCase):
                       'consumer_secret': 'foobar',
                      }
         self.api = GRatingsAndReviews(mock_token)
-        self.addClenaup(self.api.shutdown)
+        self.addCleanup(self.api.shutdown)
 
     def make_review(self):
         review = Mock()

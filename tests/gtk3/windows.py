@@ -247,7 +247,7 @@ def get_test_window_availablepane():
     manager = appmanager.get_appmanager()
     if manager is None:
         # create global AppManager instance
-        manager = ApplicationManager(db, backend, icons)
+        manager = appmanager.ApplicationManager(db, backend, icons)
 
     navhistory_back_action = Gtk.Action("navhistory_back_action", "Back",
         "Back", None)

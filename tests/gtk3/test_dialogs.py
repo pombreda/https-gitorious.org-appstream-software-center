@@ -5,7 +5,7 @@ from tests.utils import setup_test_env
 setup_test_env()
 
 import softwarecenter.ui.gtk3.dialogs
-from tests.gtk3.windows import get_dependency_test_dialog
+from tests.gtk3.windows import get_test_window_dependency_dialog
 
 # window destory timeout
 TIMEOUT=200
@@ -14,8 +14,8 @@ TIMEOUT=200
 class TestDialogs(unittest.TestCase):
     """ basic tests for the various gtk3 dialogs """
 
-    def test_dependency_dialogs(self):
-        dia = get_dependency_test_dialog()
+    def get_test_window_dependency_dialog(self):
+        dia = get_test_window_dependency_dialog()
         GObject.timeout_add(TIMEOUT,
                             lambda: dia.response(Gtk.ResponseType.ACCEPT))
         dia.run()

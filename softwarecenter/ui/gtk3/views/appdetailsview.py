@@ -184,12 +184,15 @@ class PackageStatusBar(StatusBar):
         self.app_manager = get_appmanager()
 
         self.button.connect('clicked', self._on_button_clicked)
-        GObject.timeout_add(500, self._pulse_helper)
+        #####GObject.timeout_add(500, self._pulse_helper)
 
     def _pulse_helper(self):
+        print '\n\n\n======================== _pulse_helper, instance is', self
         if (self.pkg_state == PkgStates.INSTALLING_PURCHASED and
             self.progress.get_fraction() == 0.0):
+            print '=== _pulse_helper, calling pulse()'
             self.progress.pulse()
+        print '=== _pulse_helper, returning True'
         return True
 
     def _on_combo_multiple_versions_changed(self, combo):

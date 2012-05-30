@@ -120,7 +120,6 @@ class RecommendationsTestCase(CatViewBaseTestCase):
         # for this test
         mock_get_recommender_opted_in.return_value = False
 
-        do_events()
         self.assertEqual(self.rec_panel.spinner_notebook.get_current_page(),
                          FramedHeaderBox.CONTENT)
         self.assertTrue(self.rec_panel.opt_in_vbox.get_property("visible"))
@@ -227,12 +226,11 @@ class RecommendationsTestCase(CatViewBaseTestCase):
         self.assertEqual(rec_cat_panel.spinner_notebook.get_current_page(),
                          SpinnerNotebook.CONTENT_PAGE)
         # check that the tiles themselves are visible
-        do_events()
         self.assertTrue(rec_cat_panel.recommended_for_you_content.get_property(
             "visible"))
         self.assertTrue(rec_cat_panel.recommended_for_you_content.get_children(
             )[0].title.get_property("visible"))
-        do_events()
+
         # test clicking recommended_for_you More button
         self.subcat_view.connect(
             "category-selected", self._on_category_selected)
