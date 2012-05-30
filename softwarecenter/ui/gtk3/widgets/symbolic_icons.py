@@ -204,28 +204,3 @@ class PendingSymbolicIcon(SymbolicIcon, RotationAboutCenterAnimation):
             (self.BUBBLE_FONT_DESC, "white", count))
         self.layout.set_markup(m, -1)
         self.queue_draw()
-
-
-def get_test_symbolic_icons_window():
-    win = Gtk.Window()
-    win.set_border_width(20)
-    hb = Gtk.HBox(spacing=12)
-    win.add(hb)
-    ico = SymbolicIcon("available")
-    hb.add(ico)
-    ico = PendingSymbolicIcon("pending")
-    ico.start()
-    ico.set_transaction_count(33)
-    hb.add(ico)
-    ico = PendingSymbolicIcon("pending")
-    ico.start()
-    ico.set_transaction_count(1)
-    hb.add(ico)
-    win.show_all()
-    win.connect("destroy", Gtk.main_quit)
-    return win
-
-if __name__ == "__main__":
-    softwarecenter.paths.datadir = os.path.join(os.getcwd(), 'data')
-    win = get_test_symbolic_icons_window()
-    Gtk.main()

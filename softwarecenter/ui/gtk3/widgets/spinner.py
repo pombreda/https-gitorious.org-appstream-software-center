@@ -114,22 +114,3 @@ class SpinnerNotebook(Gtk.Notebook):
             self._last_timeout_id = None
         self.spinner_view.stop_and_hide()
         self.set_current_page(self.CONTENT_PAGE)
-
-
-def get_test_spinner_window():
-    label = Gtk.Label("foo")
-    spinner_notebook = SpinnerNotebook(label, "random msg")
-
-    window = Gtk.Window()
-    window.add(spinner_notebook)
-    window.set_size_request(600, 500)
-    window.set_position(Gtk.WindowPosition.CENTER)
-    window.show_all()
-    window.connect('destroy', Gtk.main_quit)
-    spinner_notebook.show_spinner("Loading for 1s ...")
-    GObject.timeout_add_seconds(1, lambda: spinner_notebook.hide_spinner())
-    return window
-
-if __name__ == "__main__":
-    win = get_test_spinner_window()
-    Gtk.main()

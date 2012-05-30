@@ -124,30 +124,3 @@ class PendingPane(Gtk.ScrolledWindow, BasePane):
 
     def get_callback_for_page(self, page_id, view_state):
         return None
-
-
-def get_test_window():
-
-    from softwarecenter.testutils import get_test_gtk3_icon_cache
-    icons = get_test_gtk3_icon_cache()
-
-    view = PendingPane(icons)
-
-    # gui
-    scroll = Gtk.ScrolledWindow()
-    scroll.add_with_viewport(view)
-
-    win = Gtk.Window()
-    win.add(scroll)
-    view.grab_focus()
-    win.set_size_request(500, 200)
-    win.show_all()
-    win.connect("destroy", Gtk.main_quit)
-
-    return win
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-
-    win = get_test_window()
-    Gtk.main()

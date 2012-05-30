@@ -23,11 +23,9 @@ from gettext import gettext as _
 
 from softwarecenter.ui.gtk3.dialogs import SimpleGtkbuilderDialog
 
-from softwarecenter.db.application import Application
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import Icons
 from softwarecenter.ui.gtk3.views.pkgnamesview import PackageNamesView
-import softwarecenter.ui.gtk3.dialogs
 
 LOG = logging.getLogger(__name__)
 
@@ -118,37 +116,4 @@ def _confirm_internal(*args):
     _DIALOG = dialog
     result = dialog.run()
     dialog.hide()
-    if result == Gtk.ResponseType.ACCEPT:
-        return True
-    return False
-
-
-def get_test_dialog():
-    import softwarecenter
-    from softwarecenter.db.application import Application
-    from softwarecenter.testutils import (
-        get_test_gtk3_icon_cache, get_test_db)
-
-    icons = get_test_gtk3_icon_cache()
-    db = get_test_db()
-
-    depends = ["apt", "synaptic"]
-    app = Application("", "software-center")
-    primary = "primary text"
-    button_text = "button_text"
-    dia = _get_confirm_internal_dialog(
-        parent=None, datadir=softwarecenter.paths.datadir, app=app,
-        db=db, icons=icons, primary=primary, button_text=button_text,
-        depends=depends, cache=db._aptcache)
-    return dia
-
-
-if __name__ == "__main__":
-
-    # test real remove dialog
-    from softwarecenter.testutils import (
-        get_test_gtk3_icon_cache, get_test_db)
-    icons = get_test_gtk3_icon_cache()
-    db = get_test_db()
-    app = Application("", "p7zip-full")
-    confirm_remove(None, softwarecenter.paths.datadir, app, db, icons)
+    return result == Gtk.ResponseType.ACCEPT

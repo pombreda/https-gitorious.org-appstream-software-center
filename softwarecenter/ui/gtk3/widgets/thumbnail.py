@@ -21,9 +21,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, Atk, Gio, GObject, GdkPixbuf
 
 import logging
-import os
 
-from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.utils import SimpleFileDownloader
 
 from imagedialog import SimpleShowImageDialog
@@ -472,80 +470,3 @@ class ThumbnailGallery(Gtk.HBox):
         thumb.set_state_flags(Gtk.StateFlags.SELECTED, False)
         self._prev = thumb
         self.emit("thumb-selected", thumb.id_)
-
-
-def get_test_screenshot_thumbnail_window():
-    icons = Gtk.IconTheme.get_default()
-    icons.append_search_path("/usr/share/app-install/icons/")
-
-    import softwarecenter.distro
-    distro = softwarecenter.distro.get_distro()
-
-    win = Gtk.Window()
-    win.set_border_width(10)
-
-    from gi.repository import Gdk
-    from softwarecenter.ui.gtk3.utils import init_sc_css_provider
-    from softwarecenter.ui.gtk3.widgets.containers import FramedBox
-    init_sc_css_provider(win, Gtk.Settings.get_default(),
-                         Gdk.Screen.get_default(), "data")
-
-    t = ScreenshotGallery(distro, icons)
-    t.connect('draw', t.draw)
-    frame = FramedBox()
-    frame.add(t)
-    win.set_data("screenshot_thumbnail_widget", t)
-
-    vb = Gtk.VBox(spacing=6)
-    win.add(vb)
-
-    b = Gtk.Button('A button for focus testing')
-    vb.pack_start(b, True, True, 0)
-    win.set_data("screenshot_button_widget", b)
-    vb.pack_start(frame, True, True, 0)
-
-    win.show_all()
-    win.connect('destroy', Gtk.main_quit)
-
-    return win
-
-if __name__ == '__main__':
-
-    app_n = 0
-
-    def testing_cycle_apps(_, thumb, apps, db):
-        global app_n
-        d = apps[app_n].get_details(db)
-
-        if app_n + 1 < len(apps):
-            app_n += 1
-        else:
-            app_n = 0
-
-        thumb.fetch_screenshots(d)
-        return True
-
-    logging.basicConfig(level=logging.DEBUG)
-
-    cache = get_pkg_info()
-    cache.open()
-
-    from softwarecenter.db.database import StoreDatabase
-    xapian_base_path = "/var/cache/software-center"
-    pathname = os.path.join(xapian_base_path, "xapian")
-    db = StoreDatabase(pathname, cache)
-    db.open()
-
-    w = get_test_screenshot_thumbnail_window()
-    t = w.get_data("screenshot_thumbnail_widget")
-    b = w.get_data("screenshot_button_widget")
-
-    from softwarecenter.db.application import Application
-    apps = [Application("Movie Player", "totem"),
-            Application("Comix", "comix"),
-            Application("Gimp", "gimp"),
-            Application("ACE", "uace")]
-
-    b.connect("clicked", testing_cycle_apps, t, apps, db)
-
-    Gtk.main()

@@ -716,6 +716,10 @@ class SubmitReviewsApp(BaseApp):
             self.quit(2)
 
     def _setup_details(self, widget, app, iconname, version, display_name):
+        if app is None:
+            logging.warning('Can not setup details since app is None.')
+            return
+
         # icon shazam
         try:
             icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
