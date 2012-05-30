@@ -53,19 +53,23 @@ class TestSCAgent(unittest.TestCase):
                 complete_only=True)
 
     def test_regression_lp1004417(self):
-        def on_exhibit_query_done(agent, result_list):
-            for result in result_list:
-                self.assertFalse(result.package_names.endswith("\n\r"))
-            self.loop.quit()
         mock_ex = Mock()
         mock_ex.package_names = "foo,bar\n\r"
         results = [mock_ex]
         sca = SoftwareCenterAgent()
-        sca.connect("exhibits", on_exhibit_query_done)
-        GObject.timeout_add(100, sca._on_exhibits_data_available, None, results)
-        self.loop.run()
-        self.assertFalse(self.error)
-
+        sca.emit = Mock()
+        sca._on_exhibits_data_available(None, results)
+        self.assertTrue(sca.emit.called)
+        # get the args to "emit()"
+        args, kwargs = sca.emit.call_args
+        # split the args up
+        scagent, exhibit_list = args
+        # and ensure we get the right list len
+        self.assertEqual(len(exhibit_list), 1)
+        # and the right data in the list
+        exhibit = exhibit_list[0]
+        self.assertEqual(exhibit.package_names, "foo,bar")
+        self.assertFalse(exhibit.package_names.endswith("\n\r"))
 
 if __name__ == "__main__":
     import logging
