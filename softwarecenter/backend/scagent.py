@@ -129,6 +129,9 @@ class SoftwareCenterAgent(GObject.GObject):
                         exhibit.html)
                 else:
                     exhibit.title_translated = ""
+            # ensure to fix #1004417
+            if exhibit.package_names:
+                exhibit.package_names = exhibit.package_names.strip()
         self.emit("exhibits", exhibits)
 
 if __name__ == "__main__":
