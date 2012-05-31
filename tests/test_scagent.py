@@ -1,7 +1,7 @@
 import unittest
 
 from gi.repository import GObject
-from mock import patch
+from mock import Mock, patch
 
 from tests.utils import (
     setup_test_env,
@@ -53,6 +53,24 @@ class TestSCAgent(unittest.TestCase):
                 'SoftwareCenterAgentAPI', 'subscriptions_for_me',
                 complete_only=True)
 
+    def test_regression_lp1004417(self):
+        mock_ex = Mock()
+        mock_ex.package_names = "foo,bar\n\r"
+        results = [mock_ex]
+        sca = SoftwareCenterAgent()
+        sca.emit = Mock()
+        sca._on_exhibits_data_available(None, results)
+        self.assertTrue(sca.emit.called)
+        # get the args to "emit()"
+        args, kwargs = sca.emit.call_args
+        # split the args up
+        scagent, exhibit_list = args
+        # and ensure we get the right list len
+        self.assertEqual(len(exhibit_list), 1)
+        # and the right data in the list
+        exhibit = exhibit_list[0]
+        self.assertEqual(exhibit.package_names, "foo,bar")
+        self.assertFalse(exhibit.package_names.endswith("\n\r"))
 
 if __name__ == "__main__":
     unittest.main()
