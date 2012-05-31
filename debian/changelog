@@ -35,7 +35,7 @@ software-center (5.3.0) UNRELEASED; urgency=low
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 May 2012 10:06:18 +0200
 
-software-center (5.2.3) UNRELEASED; urgency=low
+software-center (5.2.3) precise-proposed; urgency=low
 
   [ Robert Roth ]
   * lp:~evfool/software-center/lp987801:
@@ -66,6 +66,12 @@ software-center (5.2.3) UNRELEASED; urgency=low
     - refactor unit tests for the catview
   * lp:~mvo/software-center/lp1002271:
     - fix regresion in 5.2.2 (LP: #1002271) for empty descriptions
+  * lp:~mvo/software-center/lp1005104:
+    - fix regression in 5.2.2 (LP: #1005104) in initial navigation
+      history
+  * lp:~mvo/software-center/client-lp1004417:
+    - client side fix for when exhibit package names contain
+      extra whitespace (LP: #1004417)
 
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/fix-crash-lp1000238:
@@ -90,7 +96,7 @@ software-center (5.2.3) UNRELEASED; urgency=low
     - Filtered out those exhibits that do not their packages available 
       in the db (LP: #986563)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 23 May 2012 01:36:52 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 31 May 2012 10:07:45 +0200
 
 software-center (5.2.2.1) precise-proposed; urgency=low
 
