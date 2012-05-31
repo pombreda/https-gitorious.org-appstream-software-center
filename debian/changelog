@@ -1,4 +1,4 @@
-software-center (5.2.3) UNRELEASED; urgency=low
+software-center (5.2.3) precise-proposed; urgency=low
 
   [ Robert Roth ]
   * lp:~evfool/software-center/lp987801:
@@ -59,7 +59,7 @@ software-center (5.2.3) UNRELEASED; urgency=low
     - Filtered out those exhibits that do not their packages available 
       in the db (LP: #986563)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 31 May 2012 00:59:21 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 31 May 2012 10:07:45 +0200
 
 software-center (5.2.2.1) precise-proposed; urgency=low
 
