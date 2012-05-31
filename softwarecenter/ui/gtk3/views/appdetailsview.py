@@ -184,6 +184,7 @@ class PackageStatusBar(StatusBar):
         self.app_manager = get_appmanager()
 
         self.button.connect('clicked', self._on_button_clicked)
+        GObject.timeout_add(500, self._pulse_helper)
 
     def _pulse_helper(self):
         if (self.pkg_state == PkgStates.INSTALLING_PURCHASED and

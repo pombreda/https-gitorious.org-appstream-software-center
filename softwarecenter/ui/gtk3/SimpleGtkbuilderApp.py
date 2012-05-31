@@ -55,3 +55,4 @@ class SimpleGtkbuilderApp(object):
         This method is called by the default implementation of run()
         after a program is finished by pressing Control-C.
         """
+        pass
