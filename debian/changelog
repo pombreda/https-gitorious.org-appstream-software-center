@@ -32,6 +32,11 @@ software-center (5.3.0) UNRELEASED; urgency=low
   [ Robert Ancell ]
   * lp:~robert-ancell/software-center/no-lpi:
     - Drop Launchpad integration
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/piston-generic-helper-offline-mode:
+    - add support for offline mode to the generic helper just like
+      for piston_get_reviews_helper.py
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 May 2012 10:06:18 +0200
 
