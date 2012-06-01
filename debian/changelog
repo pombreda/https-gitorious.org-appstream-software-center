@@ -1,7 +1,4 @@
-    BRANCH INSTEAD until "quantal" gets the first upload 
-    
-    ALSO DO NOT MERGE TRUNK BACK INTO 5.2, ONLY 5.2 INTO TRUNK
-software-center (5.3.0) UNRELEASED; urgency=low
+software-center (5.3.0) quantal; urgency=low
 
   [ Robert Roth ]
   * lp:~evfool/software-center/lp872760:
@@ -38,7 +35,7 @@ software-center (5.3.0) UNRELEASED; urgency=low
     - add support for offline mode to the generic helper just like
       for piston_get_reviews_helper.py
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 May 2012 10:06:18 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Jun 2012 19:54:38 +0200
 
 software-center (5.2.3) UNRELEASEDprecise-proposed; urgency=low
 
