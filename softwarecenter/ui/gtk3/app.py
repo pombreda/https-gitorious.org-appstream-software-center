@@ -463,7 +463,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 self.menu_file.remove(self.separator_login)
         else:
             # running the agent will trigger a db reload so we do it later
-            GObject.timeout_add_seconds(30, self._run_software_center_agent)
+            GObject.timeout_add_seconds(3, self._run_software_center_agent)
 
         # keep the cache clean
         GObject.timeout_add_seconds(15, self._run_expunge_cache_helper)

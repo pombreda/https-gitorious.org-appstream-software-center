@@ -61,6 +61,13 @@ software-center (5.2.3) precise-proposed; urgency=low
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 31 May 2012 10:07:45 +0200
 
+software-center (5.2.2.2) precise-proposed; urgency=low
+
+  * tweak timeout for the software-center-agent for the HIB
+    (LP: #1007521)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Jun 2012 19:08:25 +0200
+
 software-center (5.2.2.1) precise-proposed; urgency=low
 
   [ Gary Lasker ]
