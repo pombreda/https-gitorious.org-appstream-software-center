@@ -126,8 +126,10 @@ from gi.repository import Gdk
 
 LOG = logging.getLogger(__name__)
 PACKAGE_PREFIX = 'apt:'
+FILE_PREFIX = 'file://'
 # "apt:///" is a valid prefix for 'apt:pkgname' in alt+F2 in gnome
 PACKAGE_PREFIX_REGEX = re.compile('^%s(?:/{2,3})*' % PACKAGE_PREFIX)
+FILE_PREFIX_REGEX = re.compile('^%s(?:/{2,3})*' % FILE_PREFIX)
 SEARCH_PREFIX = 'search:'
 
 
@@ -163,6 +165,9 @@ def parse_packages_args(packages):
             # remove the initial search prefix
             items[0] = items[0].replace(SEARCH_PREFIX, '', 1)
             search_text = SearchSeparators.REGULAR.join(items)
+        elif items[0].startswith(FILE_PREFIX):
+            # strip away the initial file: prefix, if present
+            items[0] = re.sub(FILE_PREFIX_REGEX, '', items[0])
         else:
             # strip away the initial apt: prefix, if present
             items[0] = re.sub(PACKAGE_PREFIX_REGEX, '', items[0])
