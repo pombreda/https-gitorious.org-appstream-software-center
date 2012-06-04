@@ -115,6 +115,7 @@ class TopAndWhatsNewTestCase(CatViewBaseTestCase):
 class RecommendationsTestCase(CatViewBaseTestCase):
     """The test suite for the recommendations ."""
 
+    @unittest.skip("Disabled because of race condition in test")
     @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
     def test_recommended_for_you_opt_in_display(
                                         self, mock_get_recommender_opted_in):
@@ -127,6 +128,7 @@ class RecommendationsTestCase(CatViewBaseTestCase):
                          FramedHeaderBox.CONTENT)
         self.assertTrue(self.rec_panel.opt_in_vbox.get_property("visible"))
 
+    @unittest.skip("Disabled because of race condition in test")
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
