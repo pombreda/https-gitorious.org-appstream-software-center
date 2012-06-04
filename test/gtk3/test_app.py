@@ -70,13 +70,37 @@ class ParsePackageArgsAsFileTestCase(unittest.TestCase):
             search_text, result_app = app.parse_packages_args(fname)
             self.assertIsInstance(result_app, DebFileApplication)
 
-    def test_item_with_file_prefix(self):
+    def test_item_with_file_prefix_one_slash(self):
+        """ Pass an existing filename with a file:/ prefix. """
+        # pass a real deb here
+        fname = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             "..", "data", "test_debs", "gdebi-test1.deb")
+        assert os.path.exists(fname)
+        fname = "file:/" + fname
+        # test once as string and as list
+        for items in ( fname, [fname] ):
+            search_text, result_app = app.parse_packages_args(fname)
+            self.assertIsInstance(result_app, DebFileApplication)
+
+    def test_item_with_file_prefix_two_slashes(self):
         """ Pass an existing filename with a file:// prefix. """
         # pass a real deb here
         fname = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                              "..", "data", "test_debs", "gdebi-test1.deb")
         assert os.path.exists(fname)
         fname = "file://" + fname
+        # test once as string and as list
+        for items in ( fname, [fname] ):
+            search_text, result_app = app.parse_packages_args(fname)
+            self.assertIsInstance(result_app, DebFileApplication)
+
+    def test_item_with_file_prefix_three_slashes(self):
+        """ Pass an existing filename with a file:/// prefix. """
+        # pass a real deb here
+        fname = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             "..", "data", "test_debs", "gdebi-test1.deb")
+        assert os.path.exists(fname)
+        fname = "file:///" + fname
         # test once as string and as list
         for items in ( fname, [fname] ):
             search_text, result_app = app.parse_packages_args(fname)
