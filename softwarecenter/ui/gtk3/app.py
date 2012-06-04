@@ -130,7 +130,6 @@ PACKAGE_PREFIX = 'apt:'
 FILE_PREFIX = 'file:'
 # "apt:///" is a valid prefix for 'apt:pkgname' in alt+F2 in gnome
 PACKAGE_PREFIX_REGEX = re.compile('^%s(?:/{2,3})*' % PACKAGE_PREFIX)
-FILE_PREFIX_REGEX = re.compile('^%s' % FILE_PREFIX)
 SEARCH_PREFIX = 'search:'
 
 
