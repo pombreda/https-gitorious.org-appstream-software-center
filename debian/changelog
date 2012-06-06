@@ -1,3 +1,11 @@
+software-center (5.2.4) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/lp970627:
+    - fix intermittent crash when expunging the cache (LP: #970627)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 05 Jun 2012 22:04:07 -0400
+
 software-center (5.2.3) precise-proposed; urgency=low
 
   [ Robert Roth ]
