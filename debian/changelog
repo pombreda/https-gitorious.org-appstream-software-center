@@ -7,8 +7,11 @@ software-center (5.2.4) UNRELEASED; urgency=low
     - fix crash when a downloaded image is invalid for whatever
       reason (network issues, proxy issues, pay-wall in between)
       (LP: #971776)
+  * lp:~mvo/software-center/lp967036-2:
+    - fix unicode error crash for people running with the
+      LANGUAGE=zh_CN.UTF-8 or zh_TW.UTF-8 (LP: #967036)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 06 Jun 2012 00:37:22 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 06 Jun 2012 01:00:18 -0400
 
 software-center (5.2.3) precise-proposed; urgency=low
 
