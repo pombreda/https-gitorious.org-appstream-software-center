@@ -46,7 +46,22 @@ software-center (5.3.0) quantal; urgency=low
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Jun 2012 19:54:38 +0200
 
-software-center (5.2.3) UNRELEASEDprecise-proposed; urgency=low
+software-center (5.2.4) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/lp970627:
+    - fix intermittent crash when expunging the cache (LP: #970627)
+  * lp:~mvo/software-center/lp971776:
+    - fix crash when a downloaded image is invalid for whatever
+      reason (network issues, proxy issues, pay-wall in between)
+      (LP: #971776)
+  * lp:~mvo/software-center/lp967036-2:
+    - fix unicode error crash for people running with the
+      LANGUAGE=zh_CN.UTF-8 or zh_TW.UTF-8 (LP: #967036)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 06 Jun 2012 01:00:18 -0400
+
+software-center (5.2.3) precise-proposed; urgency=low
 
   [ Robert Roth ]
   * lp:~evfool/software-center/lp987801:
@@ -107,7 +122,7 @@ software-center (5.2.3) UNRELEASEDprecise-proposed; urgency=low
     - Filtered out those exhibits that do not their packages available 
       in the db (LP: #986563)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 31 May 2012 10:07:45 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 04 Jun 2012 08:53:25 +0200
 
 software-center (5.2.2.2) precise-proposed; urgency=low
 

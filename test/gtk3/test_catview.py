@@ -116,8 +116,9 @@ class RecommendationsTestCase(CatViewBaseTestCase):
     """The test suite for the recommendations ."""
 
     # FIXME: reenable
+    @unittest.skip("Disabled because of race condition in test")
     @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
-    def disabled_test_recommended_for_you_opt_in_display(
+    def test_recommended_for_you_opt_in_display(
                                         self, mock_get_recommender_opted_in):
         # patch the recommender UUID value to ensure that we are not opted-in
         # for this test
@@ -129,11 +130,12 @@ class RecommendationsTestCase(CatViewBaseTestCase):
         self.assertTrue(self.rec_panel.opt_in_vbox.get_property("visible"))
 
     # FIXME: reenable
+    @unittest.skip("Disabled because of race condition in test")
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
            '.post_submit_profile')
-    def disabled_test_recommended_for_you_spinner_display(
+    def test_recommended_for_you_spinner_display(
                              self, mock_query, mock_get_recommender_opted_in):
         # patch the recommender UUID value to insure that we are not opted-in
         # for this test
