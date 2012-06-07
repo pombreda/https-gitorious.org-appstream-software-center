@@ -121,14 +121,15 @@ class AppPropertiesHelper(GObject.GObject):
         else:
             self.icon_cache = {}
 
-    def _on_image_download_complete(self, downloader, image_file_path, pkgname):
+    def _on_image_download_complete(
+            self, downloader, image_file_path, pkgname):
         LOG.debug("download for '%s' complete" % image_file_path)
         try:
             pb = GdkPixbuf.Pixbuf.new_from_file_at_size(image_file_path,
                                                         self.icon_size,
                                                         self.icon_size)
         except GObject.GError as e:
-            LOG.warn("Failed to get image file for '%s' (%s)", 
+            LOG.warn("Failed to get image file for '%s' (%s)",
                      image_file_path, e)
             return
         # replace the icon in the icon_cache now that we've got the real
