@@ -699,6 +699,7 @@ class AvailablePane(SoftwarePane):
     def display_previous_purchases(self, page, view_state):
         self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
         self.app_view.set_header_labels(_("Previous Purchases"), None)
+        self.notebook.set_current_page(AvailablePane.Pages.LIST)
 
         # clear any search terms
         if self.state.search_term or self.searchentry.get_text():
@@ -706,7 +707,6 @@ class AvailablePane(SoftwarePane):
 
         self.refresh_apps()
         self.cat_view.stop_carousels()
-        return True
 
     def on_subcategory_activated(self, subcat_view, category):
         LOG.debug("on_subcategory_activated: %s %s" % (
