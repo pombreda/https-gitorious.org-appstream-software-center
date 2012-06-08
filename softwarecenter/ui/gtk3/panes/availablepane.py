@@ -538,6 +538,7 @@ class AvailablePane(SoftwarePane):
         self.searchentry.clear_with_no_signal()
         self.apps_limit = 0
         self.apps_search_term = ""
+        self.state.search_term = ""
 
     def _is_custom_list_search(self, search_term):
         return (search_term and
@@ -702,8 +703,7 @@ class AvailablePane(SoftwarePane):
         self.notebook.set_current_page(AvailablePane.Pages.LIST)
 
         # clear any search terms
-        if self.state.search_term or self.searchentry.get_text():
-            self._clear_search()
+        self._clear_search()
 
         self.refresh_apps()
         self.action_bar.clear()
