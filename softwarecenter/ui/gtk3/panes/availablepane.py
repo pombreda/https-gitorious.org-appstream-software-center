@@ -48,6 +48,7 @@ from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
 from softwarepane import SoftwarePane
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
+from softwarecenter.backend.channel import SoftwareChannel
 from softwarecenter.backend.unitylauncher import (UnityLauncher,
                                                   UnityLauncherInfo,
                                                   TransactionDetails)
@@ -698,14 +699,14 @@ class AvailablePane(SoftwarePane):
     def display_previous_purchases(self, page, view_state):
         self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
         self.app_view.set_header_labels(_("Previous Purchases"), None)
-        self.notebook.set_current_page(AvailablePane.Pages.LIST)
+
         # clear any search terms
-        self._clear_search()
-        # do not emit app-list-changed here, this is done async when
-        # the new model is ready
-        self.refresh_apps(query=self.previous_purchases_query)
-        self.action_bar.clear()
+        if self.state.search_term or self.searchentry.get_text():
+            self._clear_search()
+
+        self.refresh_apps()
         self.cat_view.stop_carousels()
+        return True
 
     def on_subcategory_activated(self, subcat_view, category):
         LOG.debug("on_subcategory_activated: %s %s" % (
@@ -761,7 +762,8 @@ class AvailablePane(SoftwarePane):
         """ called to activate the previous purchases view """
         #print cat_view, name, query
         LOG.debug("on_previous_purchases_activated with query: %s" % query)
-        self.previous_purchases_query = query
+        self.state.channel = SoftwareChannel(_("Previous Purchases"),
+                                             None, None, channel_query=query)
         vm = get_viewmanager()
         vm.display_page(self, AvailablePane.Pages.LIST, self.state,
                         self.display_previous_purchases)
