@@ -34,6 +34,7 @@ from softwarecenter.utils import (
     split_icon_ext,
     capitalize_first_word,
     utf8,
+    unescape,
     )
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
@@ -114,36 +115,48 @@ class AppPropertiesHelper(GObject.GObject):
         self.icons = icons
         self.icon_size = icon_size
 
-        # cache the 'missing icon' used in the treeview for apps without an
-        # icon
-        self._missing_icon = icons.load_icon(Icons.MISSING_APP, icon_size, 0)
+        self._missing_icon = None  # delay this until actually needed
         if global_icon_cache:
             self.icon_cache = _app_icon_cache
         else:
             self.icon_cache = {}
 
+    def _on_image_download_complete(
+            self, downloader, image_file_path, pkgname):
+        LOG.debug("download for '%s' complete" % image_file_path)
+        try:
+            pb = GdkPixbuf.Pixbuf.new_from_file_at_size(image_file_path,
+                                                        self.icon_size,
+                                                        self.icon_size)
+        except GObject.GError as e:
+            LOG.warn("Failed to get image file for '%s' (%s)",
+                     image_file_path, e)
+            return
+        # replace the icon in the icon_cache now that we've got the real
+        # one
+        icon_file = split_icon_ext(os.path.basename(image_file_path))
+        self.icon_cache[icon_file] = pb
+        self.emit("needs-refresh", pkgname)
+
     def _download_icon_and_show_when_ready(self, url, pkgname, icon_file_name):
         LOG.debug("did not find the icon locally, must download %s" %
             icon_file_name)
-
-        def on_image_download_complete(downloader, image_file_path, pkgname):
-            LOG.debug("download for '%s' complete" % image_file_path)
-            pb = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file_path,
-                                                        self.icon_size,
-                                                        self.icon_size)
-            # replace the icon in the icon_cache now that we've got the real
-            # one
-            icon_file = split_icon_ext(os.path.basename(image_file_path))
-            self.icon_cache[icon_file] = pb
-            self.emit("needs-refresh", pkgname)
 
         if url is not None:
             icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
                 icon_file_name)
             image_downloader = SimpleFileDownloader()
             image_downloader.connect('file-download-complete',
-                on_image_download_complete, pkgname)
+                                     self._on_image_download_complete, pkgname)
             image_downloader.download_file(url, icon_file_path)
+
+    @property
+    def missing_icon(self):
+        # cache the 'missing icon' used in treeviews for apps without an icon
+        if self._missing_icon is None:
+            self._missing_icon = self.icons.load_icon(Icons.MISSING_APP,
+                                                      self.icon_size, 0)
+        return self._missing_icon
 
     def update_availability(self, doc):
         doc.available = None
@@ -163,6 +176,7 @@ class AppPropertiesHelper(GObject.GObject):
         if doc.installed is None:
             pkgname = self.get_pkgname(doc)
             doc.installed = (self.is_available(doc) and
+                             pkgname in self.cache and
                              self.cache[pkgname].is_installed)
         return doc.installed
 
@@ -226,10 +240,10 @@ class AppPropertiesHelper(GObject.GObject):
                         self.get_pkgname(doc),
                         full_icon_file_name)
                     # display the missing icon while the real one downloads
-                    self.icon_cache[icon_name] = self._missing_icon
+                    self.icon_cache[icon_name] = self.missing_icon
         except GObject.GError as e:
             LOG.debug("get_icon returned '%s'" % e)
-        return self._missing_icon
+        return self.missing_icon
 
     def get_review_stats(self, doc):
         return self.review_loader.get_review_stats(self.get_application(doc))
@@ -249,8 +263,15 @@ class AppPropertiesHelper(GObject.GObject):
         for cat in self.all_categories:
             if cat.untranslated_name == catname:
                 return cat.name
-        # else just use plain gettext
-        return _(catname)
+        # try normal translation first
+        translated_catname = _(catname)
+        if translated_catname == catname:
+            # if no normal translation is found, try to find a escaped
+            # translation (LP: #872760)
+            translated_catname = _(GObject.markup_escape_text(catname))
+            # the parent expect the string unescaped
+            translated_catname = unescape(translated_catname)
+        return translated_catname
 
     def get_categories(self, doc):
         categories = doc.get_value(XapianValues.CATEGORIES).split(';') or []

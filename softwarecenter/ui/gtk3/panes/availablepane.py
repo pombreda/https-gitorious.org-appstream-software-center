@@ -236,6 +236,12 @@ class AvailablePane(SoftwarePane):
         # again (LP: #851671)
         self.view_initialized = True
 
+        # important to "seed" the initial history stack (LP: #1005104)
+        vm = get_viewmanager()
+        vm.display_page(
+            self, AvailablePane.Pages.LOBBY,
+            self.state, self.display_lobby_page)
+
         if window is not None:
             window.set_cursor(None)
 
@@ -591,8 +597,8 @@ class AvailablePane(SoftwarePane):
                         self.display_search_page)
 
     def on_db_reopen(self, db):
-        " called when the database is reopened"
-        #print "on_db_open"
+        """Called when the database is reopened."""
+        super(AvailablePane, self).on_db_reopen(db)
         self.refresh_apps()
         if self.app_details_view:
             self.app_details_view.refresh_app()

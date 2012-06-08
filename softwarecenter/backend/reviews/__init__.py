@@ -66,6 +66,7 @@ class ReviewStats(object):
         self.ratings_total = 0
         self.rating_spread = [0, 0, 0, 0, 0]
         self.dampened_rating = 3.00
+        self.histogram = None
 
     def __repr__(self):
         return ("<ReviewStats '%s' ratings_average='%s' ratings_total='%s'"

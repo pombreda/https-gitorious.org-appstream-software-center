@@ -1,13 +1,41 @@
-    BRANCH INSTEAD until "quantal" gets the first upload 
-    
-    ALSO DO NOT MERGE TRUNK BACK INTO 5.2, ONLY 5.2 INTO TRUNK
-software-center (5.3.0) UNRELEASED; urgency=low
+software-center (5.3.1) UNRELEASEDquantal; urgency=low
+
+  [ Robert Roth ]
+  * lp:~evfool/software-center/lp752376:
+    - Updated the code to also work with file:// style deb filenames
+      (LP: LP #752376)
+
+  [ Gary Lasker ]
+  * debian/control:
+    - remove recommends for gir1.2-launchpad-integration-3.0 as it is no
+      longer needed (many thanks Robert Ancell) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 07 Jun 2012 17:46:52 -0400
+
+software-center (5.3.0) quantal; urgency=low
 
   [ Robert Roth ]
   * lp:~evfool/software-center/lp872760:
     - Updated the category name for the RasterGraphics subcategory 
       from Painting & Editing to Painting (LP: #872760)
-  
+  * lp:~evfool/software-center/lp927426:
+    - Changed the reference to store to Software Center, as requested in 
+      bug LP: #927426
+  * lp:~evfool/software-center/specs-update:
+    - Moved the recommended applications section after the package details
+    - Moved the addon status bar after the addons list
+    - Aligned the star ratings widget vertically with the titles
+    - Added some vertical padding before the star ratings widget to look 
+       bette
+  * lp:~evfool/software-center/history-enhancements:
+    - display text-sized icons in history, not double-sized ones
+    - use padding between the icon and the package name
+    - right-align the time of the history action
+    - display the action +time (installed/updated/removed) if the 
+      filter is all changes, otherwise only display the time
+    - removed markup from the translatable string, to avoid translation
+      mistakes with markup
+
   [ Sebastian Heinlein ]
   * lp:~glatzor/software-center/remove-workaround-747172:
     - remove old workaround that should be no longer needed (LP: #747172)
@@ -15,10 +43,113 @@ software-center (5.3.0) UNRELEASED; urgency=low
   [ Robert Ancell ]
   * lp:~robert-ancell/software-center/no-lpi:
     - Drop Launchpad integration
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/piston-generic-helper-offline-mode:
+    - add support for offline mode to the generic helper just like
+      for piston_get_reviews_helper.py
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 May 2012 10:06:18 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Jun 2012 19:54:38 +0200
+
+software-center (5.2.4) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/lp970627:
+    - fix intermittent crash when expunging the cache (LP: #970627)
+  * lp:~mvo/software-center/lp971776:
+    - fix crash when a downloaded image is invalid for whatever
+      reason (network issues, proxy issues, pay-wall in between)
+      (LP: #971776)
+  * lp:~mvo/software-center/lp967036-2:
+    - fix unicode error crash for people running with the
+      LANGUAGE=zh_CN.UTF-8 or zh_TW.UTF-8 (LP: #967036)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 06 Jun 2012 01:00:18 -0400
+
+software-center (5.2.3) precise-proposed; urgency=low
+
+  [ Robert Roth ]
+  * lp:~evfool/software-center/lp987801:
+    - Only show the version label once for each version in 
+      reviews (LP: #987801)
+  * lp:~evfool/software-center/lp874430:
+    - display tooltips for package titles in the application
+      tiles of the lobby view (LP: #874430)
+  * lp:~evfool/software-center/lp983831:
+    - Avoid merging two words while normalizing description (LP: #983831)
+  * lp:~evfool/software-center/lp822625:
+    - Set default value for reviewstats histogram (LP: #822625)
+  * lp:~evfool/software-center/lp875874:
+    - Set word wrap with fallback to char wrapping for the review
+      text label (LP: #875874)
+
+  [ Gabor Kelemen ]
+  * lp:~kelemeng/software-center/bug1001746:
+    - merge i18n fix (LP: #1001746)
   
-software-center (5.2.2) UNRELEASED; urgency=low
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/lp872760-for-5.2:
+    - fix translations for certain category names (LP: #872760)
+  * lp:~mvo/software-center/lp987321:
+    - fix dependency to ensure that we have humanity-icon-theme
+      as we need it for the history view icons (LP: #987321)
+  * lp:~mvo/software-center/test-catview-cleanup:
+    - refactor unit tests for the catview
+  * lp:~mvo/software-center/lp1002271:
+    - fix regresion in 5.2.2 (LP: #1002271) for empty descriptions
+  * lp:~mvo/software-center/lp1005104:
+    - fix regression in 5.2.2 (LP: #1005104) in initial navigation
+      history
+  * lp:~mvo/software-center/client-lp1004417:
+    - client side fix for when exhibit package names contain
+      extra whitespace (LP: #1004417)
+
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/fix-crash-lp1000238:
+    - remove obsolete workaround for an old bug that has long since
+      been fixed, this fixes a hard crash on Quantal (LP: #1000238) 
+  * lp:~gary-lasker/software-center/toolbar-buttons-insensitive-during-startup:
+    - re-enable the fix for LP: #999486, LP: #994341 that was inadvertently
+      disabled in the 5.2.2 release
+
+  [ Natalia Bidart ]
+  * lp:~nataliabidart/software-center/fix-977931:
+    - Unified package string parsing into a single method that will be 
+      used from either the command line arguments, or from the dbus method 
+      'bringToFront'. This way, search will be consistent between all 
+      entry points. LP: #977931
+    - Also added proper test suites for the above.
+  * lp:~nataliabidart/software-center/fix-965093:
+    - Fixed the SpinnerNtebook show_spinner method so the spinner page is 
+      not shown until the configured threshold is reached (250ms since 
+      this branch). Plus proper test suite was added.
+  * lp:~nataliabidart/software-center/fix-986563:
+    - Filtered out those exhibits that do not their packages available 
+      in the db (LP: #986563)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 04 Jun 2012 08:53:25 +0200
+
+software-center (5.2.2.2) precise-proposed; urgency=low
+
+  * tweak timeout for the software-center-agent for the HIB
+    (LP: #1007521)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Jun 2012 19:08:25 +0200
+
+software-center (5.2.2.1) precise-proposed; urgency=low
+
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/toolbar-buttons-insensitive-during-startup:
+    - re-enable the fix for LP: #999486, LP: #994341 that was inadvertently
+      disabled in the 5.2.2 release
+
+  [ Michael Vogt }
+  * lp:~mvo/software-center/lp1002271:
+    - fix regression in 5.2.2 (LP: #1002271) for empty descriptions
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 24 May 2012 09:30:16 +0200
+
+software-center (5.2.2) precise-proposed; urgency=low
 
   [ Michael Vogt ]
   * lp:~mvo/software-center/whatsnew-leak-lp985389:
@@ -57,7 +188,10 @@ software-center (5.2.2) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/fix-crash_lp973379:
     - ensure that the cache is ready before using the recommender 
       service (LP: #973379 )
-  
+  * lp:~gary-lasker/software-center/toolbar-buttons-insensitive-during-startup:
+    - set the toolbar buttons insensitive for the duration of time that the 
+      lobby panels are initializing (LP: #999486, LP: #994341)
+
   [ Robert Roth ]
   * lp:~evfool/software-center/bug532072:
     - escape markup for support info and license (LP: #993279)
@@ -88,7 +222,7 @@ software-center (5.2.2) UNRELEASED; urgency=low
     - test code change only! add memory and cpt stats to the
       test script 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 14 May 2012 22:36:15 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 May 2012 20:22:02 +0200
 
 software-center (5.2.1) precise-proposed; urgency=low
 

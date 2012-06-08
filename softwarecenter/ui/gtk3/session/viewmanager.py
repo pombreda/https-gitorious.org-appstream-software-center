@@ -69,6 +69,11 @@ class ViewManager(GObject.GObject):
         else:
             _viewmanager = self
 
+    def destroy(self):
+        """Destroy the global instance."""
+        global _viewmanager
+        _viewmanager = None
+
     def on_search_terms_changed(self, widget, new_text):
         pane = self.get_current_view_widget()
         if hasattr(pane, "on_search_terms_changed"):

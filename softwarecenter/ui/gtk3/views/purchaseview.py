@@ -109,6 +109,9 @@ center no-repeat;
         self._oauth_token = None
         self.config = get_config()
 
+    def _log_debug_output(self, *args):
+        LOG.info("uri changed: '%s'", self.wk.webkit.get_property("uri"))
+
     def init_view(self):
         if self.wk is None:
             self.wk = ScrolledWebkitWindow()
@@ -117,6 +120,10 @@ center no-repeat;
             self.wk.webkit.connect("create-web-view", self._on_create_web_view)
             self.wk.webkit.connect("close-web-view", self._on_close_web_view)
             self.wk.webkit.connect("console-message", self._on_console_message)
+
+            # check if the user wants url debugging
+            if os.environ.get("SOFTWARE_CENTER_DEBUG_WEBKIT"):
+                self.wk.webkit.connect("notify::uri", self._log_debug_output)
 
             # a possible way to do IPC (script or title change)
             self.wk.webkit.connect("script-alert", self._on_script_alert)

@@ -172,9 +172,6 @@ class PackageStatusBar(StatusBar):
             "changed", self._on_combo_multiple_versions_changed)
         self.progress = Gtk.ProgressBar()
 
-        # theme engine hint for bug #606942
-        self.progress.set_data("transparent-bg-hint", True)
-
         self.pkg_state = None
 
         self.hbox.pack_start(self.installed_icon, False, False, 0)
@@ -1168,9 +1165,9 @@ class AppDetailsView(Viewport):
         self.review_stats_widget = StarRatingsWidget()
         self.review_stats = Gtk.HBox()
         vb_inner.pack_start(
-            self.review_stats, False, False, 0)
+            self.review_stats, False, False, StockEms.SMALL)
         self.review_stats.pack_start(
-            self.review_stats_widget, False, False, StockEms.SMALL)
+            self.review_stats_widget, False, False, 0)
 
         #~ vb_inner.set_property("can-focus", True)
         self.title.a11y = vb_inner.get_accessible()
@@ -1264,22 +1261,11 @@ class AppDetailsView(Viewport):
         info_vb.pack_start(self.addon_view, False, False, 0)
 
         self.addons_statusbar = self.addons_manager.status_bar
-        self.addon_view.pack_start(self.addons_statusbar, False, False, 0)
+        self.addon_view.pack_end(self.addons_statusbar, False, False, 0)
         self.addon_view.connect('table-built', self._on_addon_table_built)
 
         self.addons_hbar = self._hbars[1]
         info_vb.pack_start(self.addons_hbar, False, False, StockEms.SMALL)
-
-        # recommendations
-        catview = CategoriesViewGtk(
-            self.datadir, None, self.cache, self.db, self.icons, None)
-        self.recommended_for_app_panel = RecommendationsPanelDetails(catview)
-        self.recommended_for_app_panel.connect(
-            "application-activated",
-            self._on_recommended_application_activated)
-        self.recommended_for_app_panel.show_all()
-        self.info_vb.pack_start(self.recommended_for_app_panel, False,
-            False, 0)
 
         # package info
         self.info_keys = []
@@ -1308,6 +1294,17 @@ class AppDetailsView(Viewport):
         info_vb.pack_start(self.support_info, False, False, 0)
 
         vb.pack_start(self._hbars[2], False, False, 0)
+
+        # recommendations
+        catview = CategoriesViewGtk(
+            self.datadir, None, self.cache, self.db, self.icons, None)
+        self.recommended_for_app_panel = RecommendationsPanelDetails(catview)
+        self.recommended_for_app_panel.connect(
+            "application-activated",
+            self._on_recommended_application_activated)
+        self.recommended_for_app_panel.show_all()
+        self.info_vb.pack_start(self.recommended_for_app_panel, False,
+            False, 0)
 
         # reviews cascade
         self.reviews.connect("new-review", self._on_review_new)
@@ -1738,7 +1735,7 @@ class AppDetailsView(Viewport):
             # update all (but skip the addons calculation if this is a
             # DebFileApplication as this is not useful for this case and it
             # increases the view load time dramatically)
-            skip_update_addons = type(self.app) == DebFileApplication
+            skip_update_addons = isinstance(self.app, DebFileApplication)
             self._update_all(self.app_details,
                              skip_update_addons=skip_update_addons)
 
@@ -2013,7 +2010,7 @@ class AppDetailsView(Viewport):
             self.addons_manager.addons_to_remove,
             self.app.archive_suite)
         total_download_size, total_install_size = res
-        if res == (0, 0) and type(self.app) == DebFileApplication:
+        if res == (0, 0) and isinstance(self.app, DebFileApplication):
             total_install_size = self.app_details.installed_size
         if total_download_size > 0:
             download_size = GLib.format_size(total_download_size)

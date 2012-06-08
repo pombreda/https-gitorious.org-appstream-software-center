@@ -159,6 +159,9 @@ if __name__ == "__main__":
                         help="setup alternative datadir")
     parser.add_argument("--ignore-cache", action="store_true", default=False,
                         help="force ignore cache")
+    parser.add_argument("--disable-offline-mode", action="store_true", 
+                        default=False,
+                        help="force disable offline mode")
     parser.add_argument("--needs-auth", default=False, action="store_true",
                         help="need oauth credentials")
     parser.add_argument("--output", default="pickle",
@@ -213,8 +216,14 @@ if __name__ == "__main__":
     try:
         piston_reply = f(**kwargs)
     except httplib2.ServerNotFoundError as e:
-        LOG.warn(e)
-        sys.exit(1)
+        if not args.disable_offline_mode:
+            # switch to offline mode and try again from the cache
+            try:
+                api._offline_mode = True
+                piston_reply = f(**kwargs)
+            except Exception as e:
+                LOG.warn(e)
+                sys.exit(1)
     except APIError as e:
         LOG.warn(e)
         sys.exit(1)

@@ -406,9 +406,13 @@ installedsize	2	# installed size
 packagesize	3	# package size
 app-popcon	4	# app-install .desktop popcon rank
 """
-        open("axi-test-values","w").write(s)
+        fname = "axi-test-values"
+        with open(fname, "w") as f:
+            f.write(s)
+        self.addCleanup(os.remove, fname)
+
         #db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
-        axi_values = parse_axi_values_file("axi-test-values")
+        axi_values = parse_axi_values_file(fname)
         self.assertNotEqual(axi_values, {})
         print axi_values
 
@@ -420,7 +424,7 @@ app-popcon	4	# app-install .desktop popcon rank
         self.assertTrue(len(details.tags) > 2)
 
     def test_app_enquire(self):
-        db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
+        db = StoreDatabase(cache=self.cache)
         db.open()
         # test the AppEnquire engine
         enquirer = AppEnquire(self.cache, db)
@@ -428,7 +432,14 @@ app-popcon	4	# app-install .desktop popcon rank
                            nonblocking_load=False)
         self.assertTrue(len(enquirer.get_docids()) > 0)
         # FIXME: test more of the interface
-        
+
+    def test_is_pkgname_known(self):
+        db = StoreDatabase(cache=self.cache)
+        db.open()
+        self.assertTrue(db.is_pkgname_known("apt"))
+        self.assertFalse(db.is_pkgname_known("i+am-not-a-pkg"))
+
+
 class UtilsTestCase(unittest.TestCase):
 
     def test_utils_get_installed_package_list(self):
