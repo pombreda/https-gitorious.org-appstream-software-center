@@ -706,6 +706,7 @@ class AvailablePane(SoftwarePane):
             self._clear_search()
 
         self.refresh_apps()
+        self.action_bar.clear()
         self.cat_view.stop_carousels()
 
     def on_subcategory_activated(self, subcat_view, category):
