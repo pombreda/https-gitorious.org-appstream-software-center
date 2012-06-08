@@ -702,10 +702,8 @@ class AvailablePane(SoftwarePane):
         header_strings = self._get_header_for_view_state(view_state)
         self.app_view.set_header_labels(*header_strings)
         self.notebook.set_current_page(AvailablePane.Pages.LIST)
-
         # clear any search terms
         self._clear_search()
-
         self.refresh_apps()
         self.action_bar.clear()
         self.cat_view.stop_carousels()
