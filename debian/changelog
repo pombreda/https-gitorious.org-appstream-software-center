@@ -64,7 +64,14 @@ software-center (5.2.4) UNRELEASED; urgency=low
     - fix unicode error crash for people running with the
       LANGUAGE=zh_CN.UTF-8 or zh_TW.UTF-8 (LP: #967036)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 06 Jun 2012 01:00:18 -0400
+  [ Gary Lasker ]
+  * debian/control:
+    - update vcs link to point to the 5.2 branch 
+  * lp:~gary-lasker/software-center/previous-purchase-sorting-lp873104:
+     - return correct results when sorting the list of previous
+       purchases (LP: #873104)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 07 Jun 2012 16:13:41 -0400
 
 software-center (5.2.3) precise-proposed; urgency=low
 
