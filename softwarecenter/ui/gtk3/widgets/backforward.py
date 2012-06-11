@@ -161,20 +161,3 @@ class ButtonPart(Gtk.Button):
 
         for child in self:
             self.propagate_draw(child, cr)
-
-
-# this is used in the automatic tests as well
-def get_test_backforward_window():
-    win = Gtk.Window()
-    win.set_border_width(20)
-    win.connect("destroy", lambda x: Gtk.main_quit())
-    win.set_default_size(300, 100)
-    backforward = BackForwardButton()
-    win.add(backforward)
-    return win
-
-if __name__ == "__main__":
-    win = get_test_backforward_window()
-    win.show_all()
-
-    Gtk.main()

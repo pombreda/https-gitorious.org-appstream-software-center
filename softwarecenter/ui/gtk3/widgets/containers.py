@@ -573,30 +573,3 @@ class FramedHeaderBox(FramedBox):
         # paint the containers children
         for child in self:
             self.propagate_draw(child, cr)
-
-
-# this is used in the automatic tests
-def get_test_container_window():
-    win = Gtk.Window()
-    win.set_size_request(500, 300)
-    f = FlowableGrid()
-
-    import buttons
-
-    for i in range(10):
-        t = buttons.CategoryTile("test", "folder")
-        f.add_child(t)
-
-    scroll = Gtk.ScrolledWindow()
-    scroll.add_with_viewport(f)
-
-    win.add(scroll)
-    win.show_all()
-
-    win.connect("destroy", lambda x: Gtk.main_quit())
-    return win
-
-if __name__ == '__main__':
-    win = get_test_container_window()
-    win.show_all()
-    Gtk.main()

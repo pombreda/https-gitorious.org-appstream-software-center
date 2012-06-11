@@ -112,26 +112,3 @@ class HardwareRequirementsBox(Gtk.HBox):
     @property
     def hw_labels(self):
         return self.get_children()
-
-
-def get_test_window():
-    win = Gtk.Window()
-    win.set_size_request(300, 200)
-
-    HW_TEST_RESULT = {
-        'hardware::gps': 'yes',
-        'hardware::video:opengl': 'no',
-    }
-
-    # add it
-    hwbox = HardwareRequirementsBox()
-    hwbox.set_hardware_requirements(HW_TEST_RESULT)
-    win.add(hwbox)
-
-    win.show_all()
-    win.connect("destroy", Gtk.main_quit)
-    return win
-
-if __name__ == "__main__":
-    win = get_test_window()
-    Gtk.main()

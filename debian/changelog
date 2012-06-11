@@ -9,6 +9,22 @@ software-center (5.3.1) UNRELEASEDquantal; urgency=low
   * debian/control:
     - remove recommends for gir1.2-launchpad-integration-3.0 as it is no
       longer needed (many thanks Robert Ancell) 
+  
+  [ Natalia Bidart ]
+  * lp:~nataliabidart/software-center/the-organizer:
+    + Tests cleanup:
+      - Renamed test/ dir to tests/.
+      - Moved the testutils module to tests/utils.py.
+      - Removed all unnecessary logging setup per test file.
+      - Removed all unnecessary shebangs in test files.
+      - Isolated test code into tests/ directory, including moving all the
+        get_test_window_foo from the gtk3 production modules to
+        tests/gtk3/windows.py module.
+      - Removed all the calls to Gtk.main() in gtk3 tests since that blocks the
+        execution of the suite.
+      - Pep8 and pyflakes fixes in the files already modified in this branch.
+      - Minor bug fix in the softwarecenter/log.py module when trying to 
+        create a log dir with proper perms.
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 07 Jun 2012 17:46:52 -0400
 

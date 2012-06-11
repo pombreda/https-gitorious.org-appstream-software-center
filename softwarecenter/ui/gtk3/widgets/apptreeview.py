@@ -12,7 +12,6 @@ from cellrenderers import (CellRendererAppView,
 
 from softwarecenter.ui.gtk3.em import em, StockEms
 from softwarecenter.enums import (AppActions, Icons)
-from softwarecenter.utils import ExecutionTime
 from softwarecenter.backend import get_install_backend
 from softwarecenter.netstatus import (get_network_watcher,
                                       network_state_is_connected)
@@ -660,58 +659,3 @@ class AppTreeView(Gtk.TreeView):
         if not res:
             return False
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
-
-
-def get_test_window():
-    import softwarecenter.log
-    softwarecenter.log.root.setLevel(level=logging.DEBUG)
-    softwarecenter.log.add_filters_from_string("performance")
-    fmt = logging.Formatter("%(name)s - %(message)s", None)
-    softwarecenter.log.handler.setFormatter(fmt)
-
-    from softwarecenter.testutils import (
-        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache,
-        get_test_categories)
-
-    cache = get_test_pkg_info()
-    db = get_test_db()
-    icons = get_test_gtk3_icon_cache()
-
-    # create a filter
-    from softwarecenter.db.appfilter import AppFilter
-    filter = AppFilter(db, cache)
-    filter.set_supported_only(False)
-    filter.set_installed_only(True)
-
-    # get the TREEstore
-    from softwarecenter.ui.gtk3.models.appstore2 import AppTreeStore
-    store = AppTreeStore(db, cache, icons)
-
-    # populate from data
-    cats = get_test_categories(db)
-    for cat in cats[:3]:
-        with ExecutionTime("query cat '%s'" % cat.name):
-            docs = db.get_docs_from_query(cat.query)
-            store.set_category_documents(cat, docs)
-
-    # ok, this is confusing - the AppView contains the AppTreeView that
-    #                         is a tree or list depending on the model
-    from softwarecenter.ui.gtk3.views.appview import AppView
-    app_view = AppView(db, cache, icons, show_ratings=True)
-    app_view.set_model(store)
-
-    box = Gtk.VBox()
-    box.pack_start(app_view, True, True, 0)
-
-    win = Gtk.Window()
-    win.add(box)
-    win.connect("destroy", lambda x: Gtk.main_quit())
-    win.set_size_request(600, 400)
-    win.show_all()
-
-    return win
-
-
-if __name__ == "__main__":
-    win = get_test_window()
-    Gtk.main()

@@ -25,8 +25,6 @@ import ConfigParser
 import logging
 import os
 import json
-import sys
-import urllib
 
 from gi.repository import WebKit as webkit
 
@@ -402,44 +400,3 @@ def _generate_events(view):
 #     # for debugging only
 #    def _on_key_press(dialog, event):
 #        print event, event.keyval
-
-
-def get_test_window_purchaseview():
-    #url = "http://www.animiertegifs.de/java-scripts/alertbox.php"
-    url = "http://www.ubuntu.cohtml=DUMMY_m"
-    #d = PurchaseDialog(app=None, url="http://spiegel.de")
-    from softwarecenter.enums import BUY_SOMETHING_HOST
-    url = BUY_SOMETHING_HOST + "/subscriptions/en/ubuntu/maverick/+new/?%s" % (
-        urllib.urlencode({
-                'archive_id': "mvo/private-test",
-                'arch': "i386",
-                }))
-    # use cmdline if available
-    if len(sys.argv) > 1:
-        url = sys.argv[1]
-    # useful for debugging
-    #d.connect("key-press-event", _on_key_press)
-    #GObject.timeout_add_seconds(1, _generate_events, d)
-
-    widget = PurchaseView()
-    from mock import Mock
-    widget.config = Mock()
-
-    win = Gtk.Window()
-    win.set_data("view", widget)
-    win.add(widget)
-    win.set_size_request(600, 500)
-    win.set_position(Gtk.WindowPosition.CENTER)
-    win.show_all()
-    win.connect('destroy', Gtk.main_quit)
-
-    widget.initiate_purchase(app=None, iconname=None, url=url)
-    #widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
-
-    return win
-
-if __name__ == "__main__":
-    import softwarecenter.paths
-    softwarecenter.paths.datadir = "./data"
-    win = get_test_window_purchaseview()
-    Gtk.main()

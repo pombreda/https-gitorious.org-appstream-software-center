@@ -69,34 +69,3 @@ class GlobalPane(Gtk.Toolbar):
         item.add(widget)
         self.insert(item, pos)
         return item
-
-
-def get_test_window():
-
-    from softwarecenter.testutils import (get_test_db,
-                                          get_test_datadir,
-                                          get_test_gtk3_viewmanager,
-                                          get_test_pkg_info,
-                                          get_test_gtk3_icon_cache,
-                                          )
-    vm = get_test_gtk3_viewmanager()
-    db = get_test_db()
-    cache = get_test_pkg_info()
-    datadir = get_test_datadir()
-    icons = get_test_gtk3_icon_cache()
-
-    p = GlobalPane(vm, datadir, db, cache, icons)
-
-    win = Gtk.Window()
-    win.set_size_request(400, 200)
-    win.set_data("pane", p)
-    win.connect("destroy", Gtk.main_quit)
-    win.add(p)
-    win.show_all()
-    return win
-
-if __name__ == "__main__":
-
-    win = get_test_window()
-
-    Gtk.main()

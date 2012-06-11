@@ -152,25 +152,3 @@ class SearchEntry(Gtk.Entry):
                 self.set_icon_from_pixbuf(Gtk.EntryIconPosition.SECONDARY, pb)
         else:
             self.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, None)
-
-
-def on_entry_changed(self, terms):
-    print(terms)
-
-
-def get_test_searchentry_window():
-    icons = Gtk.IconTheme.get_default()
-    entry = SearchEntry(icons)
-    entry.connect("terms-changed", on_entry_changed)
-
-    win = Gtk.Window()
-    win.connect("destroy", Gtk.main_quit)
-    win.add(entry)
-    win.set_size_request(400, 400)
-    win.show_all()
-    win.entry = entry
-    return win
-
-if __name__ == "__main__":
-    win = get_test_searchentry_window()
-    Gtk.main()
