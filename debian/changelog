@@ -14,6 +14,9 @@ software-center (5.2.4) UNRELEASED; urgency=low
   [ Gary Lasker ]
   * debian/control:
     - update vcs link to point to the 5.2 branch 
+  * lp:~gary-lasker/software-center/previous-purchase-sorting-lp873104:
+     - return correct results when sorting the list of previous
+       purchases (LP: #873104)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 07 Jun 2012 16:13:41 -0400
 
