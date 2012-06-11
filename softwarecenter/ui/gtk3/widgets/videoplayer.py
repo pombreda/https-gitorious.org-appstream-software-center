@@ -18,7 +18,6 @@
 
 import logging
 import subprocess
-import sys
 
 from gettext import gettext as _
 from gi.repository import Gdk
@@ -156,50 +155,3 @@ class VideoPlayerGtk3(Gtk.VBox):
             xid = self.player.movie_window.get_window().get_xid()
             imagesink.set_xwindow_id(xid)
             Gdk.threads_leave()
-
-
-def get_test_videoplayer_window():
-
-    # youtube example fragment
-    html_youtube = """<iframe width="640" height="390"
-src="http://www.youtube.com/embed/h3oBU0NZJuA" frameborder="0"
-allowfullscreen></iframe>"""
-    # vimeo example video fragment
-    html_vimeo = """<iframe
-src="http://player.vimeo.com/video/2891554?title=0&amp;byline=0&amp;portrait=0"
-width="400" height="308" frameborder="0" webkitAllowFullScreen
-allowFullScreen></iframe><p><a href="http://vimeo.com/2891554">
-Supertuxkart 0.6</a> from <a href="http://vimeo.com/user1183699">
-constantin pelikan</a> on <a href="http://vimeo.com">Vimeo</a>.</p>"""
-    # dailymotion example video fragment
-    html_dailymotion = """<iframe frameborder="0" width="480" height="270"
-src="http://www.dailymotion.com/embed/video/xm4ysu"></iframe>"""
-    html_dailymotion2 = """<iframe frameborder="0" width="480" height="379"
-src="http://www.dailymotion.com/embed/video/xdiktp"></iframe>"""
-
-    html_youtube  # pyflakes
-    html_dailymotion  # pyflakes
-    html_dailymotion2  # pyflakes
-
-    win = Gtk.Window.new(Gtk.WindowType.TOPLEVEL)
-    win.set_default_size(500, 400)
-    win.connect("destroy", Gtk.main_quit)
-    player = VideoPlayer()
-    win.add(player)
-    if len(sys.argv) < 2:
-        #player.uri = "http://upload.wikimedia.org/wikipedia/commons/9/9b/" \
-        #    "Pentagon_News_Sample.ogg"
-        #player.uri = "http://people.canonical.com/~mvo/totem.html"
-        player.load_html_string(html_vimeo)
-    else:
-        player.uri = sys.argv[1]
-    win.show_all()
-    return win
-
-if __name__ == "__main__":
-    logging.basicConfig()
-    Gdk.threads_init()
-    # Gst.init(sys.argv)
-
-    win = get_test_videoplayer_window()
-    Gtk.main()

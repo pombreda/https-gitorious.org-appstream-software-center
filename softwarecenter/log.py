@@ -22,8 +22,8 @@ import logging
 import logging.handlers
 import os.path
 
-from paths import SOFTWARE_CENTER_CACHE_DIR
-from utils import (
+import softwarecenter.paths
+from softwarecenter.utils import (
     ensure_file_writable_and_delete_if_not,
     safe_makedirs,
 )
@@ -96,22 +96,24 @@ root.addHandler(handler)
 handler.addFilter(NullFilterThatWarnsAboutRootLoggerUsage())
 
 # create log file
-safe_makedirs(SOFTWARE_CENTER_CACHE_DIR)
-logfile_path = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "software-center.log")
+safe_makedirs(softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR)
 
 # try to fix inaccessible s-c directory (#688682)
-if not os.access(SOFTWARE_CENTER_CACHE_DIR, os.W_OK):
+if not os.access(softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR, os.W_OK):
     logging.warn("found not writable '%s' dir, trying to fix" %
-                 SOFTWARE_CENTER_CACHE_DIR)
+                 softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR)
     # if we have to do more renames, soemthing else is wrong and its
     # ok to crash later to learn about the problem
     for i in range(10):
-        target = "%s.%s" % (SOFTWARE_CENTER_CACHE_DIR, i)
+        target = "%s.%s" % (softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR, i)
         if not os.path.exists(target):
-            os.rename(SOFTWARE_CENTER_CACHE_DIR, target)
+            softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR = target
             break
-    safe_makedirs(SOFTWARE_CENTER_CACHE_DIR)
+    safe_makedirs(softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR)
 
+
+logfile_path = os.path.join(softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR,
+                            "software-center.log")
 # according to bug 688682 many people have a non-writeable logfile
 ensure_file_writable_and_delete_if_not(logfile_path)
 

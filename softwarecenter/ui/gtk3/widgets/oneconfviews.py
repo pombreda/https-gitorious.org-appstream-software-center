@@ -127,39 +127,3 @@ class OneConfViews(Gtk.TreeView):
             return 1
         else:
             return -1
-
-
-def get_test_window():
-
-    w = OneConfViews(Gtk.IconTheme.get_default())
-    w.show()
-
-    win = Gtk.Window()
-    win.set_data("pane", w)
-    win.add(w)
-    win.set_size_request(400, 600)
-    win.connect("destroy", lambda x: Gtk.main_quit())
-
-    # init the view
-    w.register_computer("AAAAA", "NameA")
-    w.register_computer("ZZZZZ", "NameZ")
-    w.register_computer("DDDDD", "NameD")
-    w.register_computer("CCCCC", "NameC")
-    w.register_computer("", "This computer should be first")
-    w.select_first()
-
-    GObject.timeout_add_seconds(5, w.register_computer, "EEEEE", "NameE")
-
-    def print_selected_hostid(widget, hostid, hostname):
-        print "%s selected for %s" % (hostid, hostname)
-
-    w.connect("computer-changed", print_selected_hostid)
-
-    w.remove_computer("DDDDD")
-    win.show_all()
-    return win
-
-
-if __name__ == "__main__":
-    win = get_test_window()
-    Gtk.main()

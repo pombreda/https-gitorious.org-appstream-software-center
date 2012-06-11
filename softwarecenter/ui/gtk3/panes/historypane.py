@@ -393,38 +393,6 @@ class HistoryPane(Gtk.VBox, BasePane):
                     action_text = _('removed %s') % time_text
                 elif action == self.UPGRADED:
                     action_text = _('updated %s') % time_text
-            text = ('<span color="%(color)s">%(action)s</span>' %
-                {'color': '#8A8A8A', 'action': action_text})
+            color = {'color': '#8A8A8A', 'action': action_text}
+            text = '<span color="%(color)s">%(action)s</span>' % color
         cell.set_property('markup', text)
-
-
-def get_test_window():
-
-    from softwarecenter.testutils import (get_test_db,
-                                          get_test_gtk3_viewmanager,
-                                          get_test_pkg_info,
-                                          get_test_gtk3_icon_cache,
-                                          )
-    # needed because available pane will try to get it
-    vm = get_test_gtk3_viewmanager()
-    vm  # make pyflakes happy
-    db = get_test_db()
-    cache = get_test_pkg_info()
-    icons = get_test_gtk3_icon_cache()
-
-    widget = HistoryPane(cache, db, None, icons, None)
-    widget.show()
-
-    win = Gtk.Window()
-    win.add(widget)
-    win.set_size_request(600, 500)
-    win.set_position(Gtk.WindowPosition.CENTER)
-    win.show_all()
-    win.connect('destroy', Gtk.main_quit)
-
-    widget.init_view()
-    return win
-
-if __name__ == '__main__':
-    win = get_test_window()
-    Gtk.main()
