@@ -39,6 +39,7 @@ import glob
 
 import webbrowser
 
+from os.path import normpath
 from gettext import gettext as _
 
 # purely to initialize the netstatus
@@ -126,6 +127,7 @@ from gi.repository import Gdk
 
 LOG = logging.getLogger(__name__)
 PACKAGE_PREFIX = 'apt:'
+FILE_PREFIX = 'file:'
 # "apt:///" is a valid prefix for 'apt:pkgname' in alt+F2 in gnome
 PACKAGE_PREFIX_REGEX = re.compile('^%s(?:/{2,3})*' % PACKAGE_PREFIX)
 SEARCH_PREFIX = 'search:'
@@ -163,6 +165,11 @@ def parse_packages_args(packages):
             # remove the initial search prefix
             items[0] = items[0].replace(SEARCH_PREFIX, '', 1)
             search_text = SearchSeparators.REGULAR.join(items)
+        elif items[0].startswith(FILE_PREFIX):
+            # strip away the initial file: prefix, if present
+            items[0] = items[0].replace(FILE_PREFIX, '', 1)
+            # normalize the path to strip duplicate path separators, etc
+            items[0] = normpath(items[0])
         else:
             # strip away the initial apt: prefix, if present
             items[0] = re.sub(PACKAGE_PREFIX_REGEX, '', items[0])
@@ -463,7 +470,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 self.menu_file.remove(self.separator_login)
         else:
             # running the agent will trigger a db reload so we do it later
-            GObject.timeout_add_seconds(30, self._run_software_center_agent)
+            GObject.timeout_add_seconds(3, self._run_software_center_agent)
 
         # keep the cache clean
         GObject.timeout_add_seconds(15, self._run_expunge_cache_helper)

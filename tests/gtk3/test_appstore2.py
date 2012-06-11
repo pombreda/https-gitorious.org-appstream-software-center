@@ -1,7 +1,7 @@
 import unittest
 import xapian
 
-from mock import patch
+from mock import Mock, patch
 
 from tests.utils import (
     do_events,
@@ -16,13 +16,14 @@ from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
 from softwarecenter.db.enquire import AppEnquire
 
 
-class TestAppstore(unittest.TestCase):
+class AppStoreTestCase(unittest.TestCase):
     """ test the appstore """
 
-    def setUp(self):
-        self.cache = get_test_pkg_info()
-        self.icons = get_test_gtk3_icon_cache()
-        self.db = get_test_db()
+    @classmethod
+    def setUpClass(cls):
+        cls.cache = get_test_pkg_info()
+        cls.icons = get_test_gtk3_icon_cache()
+        cls.db = get_test_db()
 
     def test_lp872760(self):
         def monkey_(s):
@@ -68,6 +69,12 @@ class TestAppstore(unittest.TestCase):
         model.clear()
         self.assertEqual(model.current_matches, None)
 
+    def test_lp971776(self):
+        """ ensure that refresh is not called for invalid image files """
+        model = AppListStore(self.db, self.cache, self.icons)
+        model.emit = Mock()
+        model._on_image_download_complete(None, "xxx", "software-center")
+        self.assertFalse(model.emit.called)
 
 if __name__ == "__main__":
     unittest.main()

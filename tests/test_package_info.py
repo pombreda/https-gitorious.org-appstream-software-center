@@ -65,6 +65,7 @@ class TestPkgInfoAptCache(unittest.TestCase):
         pkginfo = self.pkginfo
         self.assertTrue(len(pkginfo.get_addons("firefox")) > 0)
 
+    @unittest.skip("disabled due to invalid fixture data")
     def test_removal(self):
         pkginfo = self.pkginfo
         pkg = pkginfo['coreutils']

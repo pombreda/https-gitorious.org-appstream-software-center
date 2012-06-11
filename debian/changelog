@@ -1,7 +1,18 @@
-    BRANCH INSTEAD until "quantal" gets the first upload 
-    
-    ALSO DO NOT MERGE TRUNK BACK INTO 5.2, ONLY 5.2 INTO TRUNK
-software-center (5.3.0) UNRELEASED; urgency=low
+software-center (5.3.1) UNRELEASEDquantal; urgency=low
+
+  [ Robert Roth ]
+  * lp:~evfool/software-center/lp752376:
+    - Updated the code to also work with file:// style deb filenames
+      (LP: LP #752376)
+
+  [ Gary Lasker ]
+  * debian/control:
+    - remove recommends for gir1.2-launchpad-integration-3.0 as it is no
+      longer needed (many thanks Robert Ancell) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 07 Jun 2012 17:46:52 -0400
+
+software-center (5.3.0) quantal; urgency=low
 
   [ Robert Roth ]
   * lp:~evfool/software-center/lp872760:
@@ -32,8 +43,35 @@ software-center (5.3.0) UNRELEASED; urgency=low
   [ Robert Ancell ]
   * lp:~robert-ancell/software-center/no-lpi:
     - Drop Launchpad integration
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/piston-generic-helper-offline-mode:
+    - add support for offline mode to the generic helper just like
+      for piston_get_reviews_helper.py
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 May 2012 10:06:18 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Jun 2012 19:54:38 +0200
+
+software-center (5.2.4) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/lp970627:
+    - fix intermittent crash when expunging the cache (LP: #970627)
+  * lp:~mvo/software-center/lp971776:
+    - fix crash when a downloaded image is invalid for whatever
+      reason (network issues, proxy issues, pay-wall in between)
+      (LP: #971776)
+  * lp:~mvo/software-center/lp967036-2:
+    - fix unicode error crash for people running with the
+      LANGUAGE=zh_CN.UTF-8 or zh_TW.UTF-8 (LP: #967036)
+
+  [ Gary Lasker ]
+  * debian/control:
+    - update vcs link to point to the 5.2 branch 
+  * lp:~gary-lasker/software-center/previous-purchase-sorting-lp873104:
+     - return correct results when sorting the list of previous
+       purchases (LP: #873104)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 07 Jun 2012 16:13:41 -0400
 
 software-center (5.2.3) precise-proposed; urgency=low
 
@@ -96,7 +134,14 @@ software-center (5.2.3) precise-proposed; urgency=low
     - Filtered out those exhibits that do not their packages available 
       in the db (LP: #986563)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 31 May 2012 10:07:45 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 04 Jun 2012 08:53:25 +0200
+
+software-center (5.2.2.2) precise-proposed; urgency=low
+
+  * tweak timeout for the software-center-agent for the HIB
+    (LP: #1007521)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Jun 2012 19:08:25 +0200
 
 software-center (5.2.2.1) precise-proposed; urgency=low
 
