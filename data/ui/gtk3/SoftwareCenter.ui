@@ -487,6 +487,7 @@ Konstantin Datz - Icon
                         <property name="use_underline">True</property>
                         <property name="image">image1</property>
                         <property name="use_stock">False</property>
+                        <accelerator key="F1" signal="activate"/>
                         <signal name="activate" handler="on_menuitem_help_activate" swapped="no"/>
                       </object>
                     </child>
