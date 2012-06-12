@@ -18,7 +18,11 @@ software-center (5.2.4) UNRELEASED; urgency=low
      - return correct results when sorting the list of previous
        purchases (LP: #873104)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 07 Jun 2012 16:13:41 -0400
+  [ Robert Roth ]
+  * lp:~evfool/software-center/lp1011605:
+    - update copyright date in the About window (LP: #1011605)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 11 Jun 2012 22:41:49 -0400
 
 software-center (5.2.3) precise-proposed; urgency=low
 
