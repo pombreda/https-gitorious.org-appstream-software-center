@@ -150,9 +150,6 @@ setup(name="software-center", version=VERSION,
                   # xapian
                   ('share/apt-xapian-index/plugins',
                    glob.glob("apt-xapian-index-plugin/*.py")),
-                  # apport
-                  ('share/apport/package-hooks/',
-                   ['debian/source_software-center.py']),
                   # extra software channels (can be distro specific)
                   ('/usr/share/app-install/channels/',
                    glob.glob("data/channels/%s/*" % DISTRO)),
