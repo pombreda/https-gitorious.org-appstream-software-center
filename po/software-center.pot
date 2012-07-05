@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-05-02 23:41+0200\n"
+"POT-Creation-Date: 2012-07-05 18:28+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -226,7 +226,7 @@ msgid "Drawing"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:44
-msgid "Painting &amp; Editing"
+msgid "Painting"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:45
@@ -278,7 +278,7 @@ msgid "Themes &amp; Tweaks"
 msgstr ""
 
 #: ../data/software-center.menu.in.h:57
-#: ../softwarecenter/ui/gtk3/models/appstore2.py:267
+#: ../softwarecenter/ui/gtk3/models/appstore2.py:268
 msgid "System"
 msgstr ""
 
@@ -297,8 +297,8 @@ msgstr ""
 #: ../softwarecenter/backend/channel.py:235
 #: ../softwarecenter/distro/Ubuntu.py:129
 #: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1480
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1484
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2035
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1485
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2040
 msgid "Unknown"
 msgstr ""
 
@@ -321,7 +321,7 @@ msgid "Other"
 msgstr ""
 
 #: ../softwarecenter/backend/channel.py:322
-#: ../softwarecenter/ui/gtk3/panes/availablepane.py:332
+#: ../softwarecenter/ui/gtk3/panes/availablepane.py:327
 #: ../softwarecenter/ui/gtk3/panes/viewswitcher.py:81
 msgid "All Software"
 msgstr ""
@@ -355,6 +355,7 @@ msgid ""
 msgstr ""
 
 #: ../softwarecenter/backend/installbackend_impl/aptd.py:796
+#: ../softwarecenter/ui/gtk3/app.py:1247
 #: ../softwarecenter/ui/gtk3/views/appdetailsview.py:427
 #: ../softwarecenter/ui/gtk3/views/appdetailsview.py:434
 msgid "Error"
@@ -387,12 +388,12 @@ msgid ""
 "There isn’t a software package called “%s” in your current software sources."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:796
+#: ../softwarecenter/db/application.py:800
 #, python-format
 msgid "Version %s or later not available."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:809
+#: ../softwarecenter/db/application.py:813
 #, python-format
 msgid "Available from the \"%s\" source."
 msgstr ""
@@ -400,16 +401,16 @@ msgstr ""
 #. Translators: the visible string is constructed
 #. concatenating the following 3 strings like this:
 #. Available from the following sources: %s, ... %s, %s.
-#: ../softwarecenter/db/application.py:815
+#: ../softwarecenter/db/application.py:819
 msgid "Available from the following sources: "
 msgstr ""
 
-#: ../softwarecenter/db/application.py:818
+#: ../softwarecenter/db/application.py:822
 #, python-format
 msgid "\"%s\", "
 msgstr ""
 
-#: ../softwarecenter/db/application.py:819
+#: ../softwarecenter/db/application.py:823
 #, python-format
 msgid "\"%s\"."
 msgstr ""
@@ -455,7 +456,7 @@ msgid ""
 "raising a bug report for this issue with the maintainer of that application"
 msgstr ""
 
-#: ../softwarecenter/db/pkginfo_impl/packagekit.py:67
+#: ../softwarecenter/db/pkginfo_impl/packagekit.py:66
 msgid "Unknown repository"
 msgstr ""
 
@@ -852,13 +853,13 @@ msgid "Sorry, this software is not available in your region."
 msgstr ""
 
 #. less than 2 minute ago
-#: ../softwarecenter/utils.py:490
+#: ../softwarecenter/utils.py:508
 msgid "a few minutes ago"
 msgstr ""
 
 #. dont be fussy
 #. less than an hour ago
-#: ../softwarecenter/utils.py:493
+#: ../softwarecenter/utils.py:511
 #, python-format
 msgid "%(min)i minute ago"
 msgid_plural "%(min)i minutes ago"
@@ -866,7 +867,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. less than a day ago
-#: ../softwarecenter/utils.py:498
+#: ../softwarecenter/utils.py:516
 #, python-format
 msgid "%(hours)i hour ago"
 msgid_plural "%(hours)i hours ago"
@@ -874,7 +875,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. less than a week ago
-#: ../softwarecenter/utils.py:502
+#: ../softwarecenter/utils.py:520
 #, python-format
 msgid "%(days)i day ago"
 msgid_plural "%(days)i days ago"
@@ -882,12 +883,12 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. TRANSLATORS: this is a generic list delimit char, e.g. "foo, bar"
-#: ../softwarecenter/utils.py:830
+#: ../softwarecenter/utils.py:848
 msgid ", "
 msgstr ""
 
 #. TRANSLATORS: this is the last part of a list, e.g. "foo, bar and baz"
-#: ../softwarecenter/utils.py:832
+#: ../softwarecenter/utils.py:850
 #, python-format
 msgid "%s and %s"
 msgstr ""
@@ -1109,7 +1110,7 @@ msgstr ""
 msgid "Internal Error"
 msgstr ""
 
-#: ../softwarecenter/db/debfile.py:77
+#: ../softwarecenter/db/debfile.py:77 ../softwarecenter/ui/gtk3/app.py:1248
 #, python-format
 msgid "The file “%s” could not be opened."
 msgstr ""
@@ -1390,7 +1391,7 @@ msgstr ""
 msgid "Dependency"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/models/appstore2.py:75
+#: ../softwarecenter/ui/gtk3/models/appstore2.py:76
 msgid "Uncategorized"
 msgstr ""
 
@@ -1408,22 +1409,22 @@ msgstr ""
 msgid "Get Software"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/panes/availablepane.py:265
+#: ../softwarecenter/ui/gtk3/panes/availablepane.py:260
 msgid "Failure in the purchase process."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/panes/availablepane.py:266
+#: ../softwarecenter/ui/gtk3/panes/availablepane.py:261
 msgid "Sorry, something went wrong. Your payment has been cancelled."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/panes/availablepane.py:489
+#: ../softwarecenter/ui/gtk3/panes/availablepane.py:484
 #, python-format
 msgid "Install %(amount)s Item"
 msgid_plural "Install %(amount)s Items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk3/panes/availablepane.py:699
+#: ../softwarecenter/ui/gtk3/panes/availablepane.py:694
 msgid "Previous Purchases"
 msgstr ""
 
@@ -1732,61 +1733,62 @@ msgid "%s (unknown version)"
 msgstr ""
 
 #. Update total size label
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1507
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1556
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1508
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1557
 msgid "Calculating..."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1586
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1587
 msgid "This program is run from a terminal: "
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1587
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1588
 msgid "These programs are run from a terminal: "
 msgstr ""
 
 #. display launcher location
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1612
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1613
 msgid "Find it in the menu: "
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1760
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1761
 msgid "Version unknown"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1761
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1762
 msgid ""
 "The version of the application can not be detected. Entering a review is not "
 "possible."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1773
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1774
 msgid "Origin unknown"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1774
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:1775
 msgid ""
 "The origin of the application can not be detected. Entering a review is not "
 "possible."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2019
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2020
 #, python-format
 msgid "%s to download, "
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2022
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2023
 #, python-format
 msgid "%s when installed"
 msgstr ""
 
-#. FIXME: this is not really a good indication of the size on disk
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2030
+#. FIXME: this is not really a good indication of the size
+#. on disk
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2035
 #, python-format
 msgid "%s on disk"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2033
+#: ../softwarecenter/ui/gtk3/views/appdetailsview.py:2038
 #, python-format
 msgid "%s to be freed"
 msgstr ""
@@ -2172,7 +2174,7 @@ msgstr[1] ""
 msgid "Trying suggestion ..."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk3/widgets/searchentry.py:60
+#: ../softwarecenter/ui/gtk3/widgets/searchentry.py:61
 msgid "Search"
 msgstr ""
 
