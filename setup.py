@@ -8,6 +8,7 @@ import os
 import re
 from subprocess import call
 import sys
+import pkg_resources
 
 from distutils.core import setup
 from DistUtilsExtra.command import (build_extra, build_i18n, build_help,

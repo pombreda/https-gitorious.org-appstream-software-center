@@ -49,23 +49,23 @@ LOG = logging.getLogger("softwarecenter")
 
 if __name__ == "__main__":
 
-    parser = OptionParser("usage: %prog [options] [package-name | apturl | deb-file]", 
+    parser = OptionParser("usage: %prog [options] [package-name | apturl | deb-file]",
                           version="%prog "+VERSION)
     parser.add_option("--debug", action="store_true",
                       help="enable debug mode", default=False)
-    parser.add_option("--debug-filter", 
+    parser.add_option("--debug-filter",
                       help="show only specific messages. supported currently: "
                            "'softwarecenter.performance'")
     parser.add_option("--force-rtl", action="store_true",
-                      help="force rtl mode (useful for debugging)", 
+                      help="force rtl mode (useful for debugging)",
                       default=False)
     parser.add_option("--display-navlog", action="store_true",
-                      help="display a navigation history log (useful for debugging)", 
+                      help="display a navigation history log (useful for debugging)",
                       default=False)
     # FIXME:  REMOVE THIS option once launchpad integration is enabled
     #         by default
     parser.add_option("--enable-lp", action="store_true",
-                      help="enable launchpad integration (for development use)", 
+                      help="enable launchpad integration (for development use)",
                       default=False)
     parser.add_option("--disable-buy", action="store_true",
                       help="disable support to buy software",
@@ -79,8 +79,8 @@ if __name__ == "__main__":
     parser.add_option("--dummy-backend", action="store_true",
                       help="run with a dummy backend, this will not actually install or remove anything and is useful for testing",
                       default=False)
-    parser.add_option("--packagekit-backend", action="store_true",
-                      help="use PackageKit backend (experimental)", 
+    parser.add_option("--aptd-backend", action="store_true",
+                      help="use APTDaemon backend)",
                       default=False)
 
     (options, args) = parser.parse_args()
@@ -88,21 +88,28 @@ if __name__ == "__main__":
     # statup time measure implies "performance" in debug filters
     if options.measure_startup_time:
         options.debug_filter = "performance,traceback"
-    
+
     if options.debug_filter:
         softwarecenter.log.add_filters_from_string(options.debug_filter)
         # implies general debug
         options.debug = True
-        
+
     if options.debug:
         softwarecenter.log.root.setLevel(level=logging.DEBUG)
     else:
         softwarecenter.log.root.setLevel(level=logging.INFO)
-    
-    # packagekit
-    if options.packagekit_backend:
-        softwarecenter.enums.USE_PACKAGEKIT_BACKEND = True
+
+    # Enable the PackageKit backend by default
+    softwarecenter.enums.USE_PACKAGEKIT_BACKEND = True
+
+    # Aptdaemon
+    if options.aptd_backend:
+        softwarecenter.enums.USE_PACKAGEKIT_BACKEND = False
+
+    if softwarecenter.enums.USE_PACKAGEKIT_BACKEND:
         logging.info("Using PackageKit backend")
+    else:
+        logging.info("Using Aptdaemon backend")
 
     # dummy backend
     if options.dummy_backend:
@@ -136,7 +143,7 @@ if __name__ == "__main__":
     else:
         # WARN the user!! Do not remove this
         LOG.warning("SOFTWARE_CENTER_FORCE_DISABLE_CERTS_CHECK " +
-                    "has been specified, all purchase transactions " + 
+                    "has been specified, all purchase transactions " +
                     "are now INSECURE and UNENCRYPTED!!")
 
     # create the app
@@ -144,7 +151,7 @@ if __name__ == "__main__":
     with ExecutionTime("create SoftwareCenterApp"):
         app = SoftwareCenterAppGtk3(datadir, xapian_base_path, options, args)
 
-    # DEBUG/PROFILE mode 
+    # DEBUG/PROFILE mode
     if options.measure_startup_time:
         logger = logging.getLogger("softwarecenter.performance")
         with ExecutionTime("show() & gtk events until visible"):
