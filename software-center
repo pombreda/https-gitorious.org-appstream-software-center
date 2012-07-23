@@ -40,6 +40,8 @@ from softwarecenter.version import *
 import softwarecenter.log
 import softwarecenter.paths
 
+from softwarecenter.distro import get_distro
+
 from optparse import OptionParser
 
 # Enable Xapian's CJK tokenizer (see LP: #745243)
@@ -117,6 +119,10 @@ if __name__ == "__main__":
         from softwarecenter.testutils import start_dummy_backend, stop_dummy_backend
         start_dummy_backend()
         atexit.register(stop_dummy_backend)
+
+    # Use AXI only on Debian & Ubuntu
+    distro = get_distro()
+    options.disable_apt_xapian_index = not distro.USE_AXI
 
     # override text direction for testing purposes
     if options.force_rtl:
