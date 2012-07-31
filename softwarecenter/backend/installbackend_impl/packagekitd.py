@@ -55,27 +55,28 @@ class PackagekitTransaction(BaseTransaction):
         """
         self._trans.connect('notify::role', self._emit,
             'role-changed', 'role')
-        self._trans.connect('notify::status', self._emit,
+        self._trans.connect('notify::status', self._status_changed,
             'status-changed', 'status')
         self._trans.connect('notify::percentage', self._emit,
             'progress-changed', 'percentage')
-        # SC UI does not support subprogress:
-        #self._trans.connect('notify::subpercentage', self._emit,
-        #    'progress-changed', 'subpercentage')
+        # TODO: Handle item-progress ??
+          #self._trans.connect('notify::item-progress', self._emit,
+          #    'progress-changed', 'item-progress')
         self._trans.connect('notify::percentage', self._emit,
             'progress-changed', 'percentage')
         self._trans.connect('notify::allow-cancel', self._emit,
             'cancellable-changed', 'allow-cancel')
 
-        # connect the delete:
-        proxy = dbus.SystemBus().get_object('org.freedesktop.PackageKit',
-            self.tid)
-        trans = dbus.Interface(proxy, 'org.freedesktop.PackageKit.Transaction')
-        trans.connect_to_signal("Destroy", self._remove)
-
     def _emit(self, *args):
         prop, what = args[-1], args[-2]
         self.emit(what, self._trans.get_property(prop))
+
+    def _status_changed (self, *args):
+        prop, what = args[-1], args[-2]
+        if self._trans.get_property(prop) == packagekit.status.ENUM_FINISHED:
+            self._remove
+        else:
+            self.emit(what, self._trans.get_property(prop))
 
     @property
     def tid(self):
@@ -102,8 +103,8 @@ class PackagekitTransaction(BaseTransaction):
         return self.meta_data.get('sc_appname',
             packagekit.role_enum_to_localised_present(role))
 
-    def get_status_description(self, status=packagekit.StatusEnum.UNKNOWN):
-        if status is packagekit.StatusEnum.UNKNOWN:
+    def get_status_description(self, status=packagekit.InfoEnum.UNKNOWN):
+        if status is packagekit.InfoEnum.UNKNOWN:
             status = self._trans.get_property('status')
 
         return packagekit.info_enum_to_localised_present(status)
