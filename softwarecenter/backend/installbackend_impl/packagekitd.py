@@ -106,6 +106,7 @@ class PackagekitTransaction(BaseTransaction):
     def get_status_description(self, status=packagekit.InfoEnum.UNKNOWN):
         if status is packagekit.InfoEnum.UNKNOWN:
             status = self._trans.get_property('status')
+        status = packagekit.InfoEnum(status)
 
         return packagekit.info_enum_to_localised_present(status)
 
