@@ -103,12 +103,11 @@ class PackagekitTransaction(BaseTransaction):
         return self.meta_data.get('sc_appname',
             packagekit.role_enum_to_localised_present(role))
 
-    def get_status_description(self, status=packagekit.InfoEnum.UNKNOWN):
-        if status is packagekit.InfoEnum.UNKNOWN:
+    def get_status_description(self, status=packagekit.StatusEnum.UNKNOWN):
+        if status is packagekit.StatusEnum.UNKNOWN:
             status = self._trans.get_property('status')
-        status = packagekit.InfoEnum(status)
 
-        return packagekit.info_enum_to_localised_present(status)
+        return packagekit.status_enum_to_string(status) # TODO: Localize!
 
     def is_waiting(self):
         """ return true if a time consuming task is taking place """
