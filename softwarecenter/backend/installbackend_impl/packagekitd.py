@@ -250,9 +250,10 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         # temporary hack
         pkgnames = self._fix_pkgnames(pkgnames)
 
-        self.pkclient.remove_packages_async(pkgnames,
+        self.pkclient.remove_packages_async(packagekit.TransactionFlagEnum.NONE,
+                    pkgnames,
                     False,  # allow deps
-                    False,  # autoremove
+                    True,  # autoremove
                     None,  # cancellable
                     self._on_progress_changed,
                     None,  # progress data
@@ -287,11 +288,7 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
 
         LOG.debug("Installing multiple packages: " + str(pkgnames))
 
-        # FIXME we set the only_trusted flag, which will prevent
-        # PackageKit from installing untrusted packages
-        # (in general, all enabled repos should have GPG signatures,
-        # which is enough for being marked "trusted", but still)
-        self.pkclient.install_packages_async(True,  # only trusted
+        self.pkclient.install_packages_async(packagekit.TransactionFlagEnum.NONE
                     pkgnames,
                     None,  # cancellable
                     self._on_progress_changed,
