@@ -120,6 +120,7 @@ class PackagekitInfo(PackageInfo):
         super(PackagekitInfo, self).__init__()
         self.pktask = packagekit.Task()
         self.pktask.set_locale(make_locale_string())
+        self.pktask.set_simulate(True) # we don't want write-access here, only simulate
         self._cache_pkg_filter_none = {} # temporary hack for decent testing
         self._cache_pkg_filter_newest = {} # temporary hack for decent testing
         self._cache_details = {} # temporary hack for decent testing
@@ -146,23 +147,6 @@ class PackagekitInfo(PackageInfo):
 
         if self._ready:
             self.emit("cache-ready")
-
-    def _prefill_descriptions_helper(self, batch):
-        if not batch:
-            return
-
-        ids = [p.get_id() for p in batch]
-
-        try:
-            result = self.pktask.get_details(ids, None, self._on_progress_changed, None)
-            details = result.get_details_array()
-        except GObject.GError as e:
-            LOG.info('Cannot get details when prefilling cache cache: %s' % e)
-            return
-
-        for detail in details:
-            packageid = detail.get_property('package-id')
-            self._cache_details[packageid] = detail
 
     def _add_package_to_cache(self, pkg):
         self._pkgs_cache.update({ pkg.get_name() : pkg })
@@ -357,7 +341,8 @@ class PackagekitInfo(PackageInfo):
         if not p:
             return []
         autoremove = False
-        res = self.pktask.simulate_remove_packages((p.package.get_id(),),
+        # simulate RemovePackages()
+        res = self.pktask.remove_packages((p.package.get_id(),),
                                             autoremove, None,
                                             self._on_progress_changed, None,
         )
@@ -371,7 +356,8 @@ class PackagekitInfo(PackageInfo):
         p = self.get_candidate(pkg.name)
         if not p:
             return []
-        res = self.pktask.simulate_install_packages((p.package.get_id(),),
+        # simulate InstallPackages()
+        res = self.pktask.install_packages((p.package.get_id(),),
                                             None,
                                             self._on_progress_changed, None,
         )
