@@ -342,10 +342,11 @@ class PackagekitInfo(PackageInfo):
             return []
         autoremove = False
         # simulate RemovePackages()
-        res = self.pktask.remove_packages((p.package.get_id(),),
-                                            autoremove, None,
-                                            self._on_progress_changed, None,
-        )
+        res = self.pktask.remove_packages_sync((p.package.get_id(),),
+                                            True,
+                                            autoremove,
+                                            None,
+                                            self._on_progress_changed, None)
         if not res:
             return []
         return [p.get_name() for p in res.get_package_array() if p.get_name() != pkg.name]
@@ -357,10 +358,9 @@ class PackagekitInfo(PackageInfo):
         if not p:
             return []
         # simulate InstallPackages()
-        res = self.pktask.install_packages((p.package.get_id(),),
+        res = self.pktask.install_packages_sync((p.package.get_id(),),
                                             None,
-                                            self._on_progress_changed, None,
-        )
+                                            self._on_progress_changed, None)
         if not res:
             return []
         return [p.get_name() for p in res.get_package_array() if (p.get_name() != pkg.name) and p.get_info() == packagekit.InfoEnum.INSTALLED]
@@ -407,9 +407,11 @@ class PackagekitInfo(PackageInfo):
 
         pkgs = result.get_details_array()
         if not pkgs:
+            LOG.debug("no details found for %s", packageid)
             return None
         packageid = pkgs[0].get_property('package-id')
         self._cache_details[packageid] = pkgs[0]
+        LOG.debug("returning package details for %s", packageid)
         return pkgs[0]
 
     def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):

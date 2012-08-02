@@ -146,7 +146,7 @@ class PackagekitTransactionsWatcher(BaseTransactionsWatcher):
 
     def __init__(self):
         super(PackagekitTransactionsWatcher, self).__init__()
-        self.pktask = packagekit.Task()
+        self.pkclient = packagekit.Client()
 
         bus = dbus.SystemBus()
         proxy = bus.get_object('org.freedesktop.PackageKit',
@@ -170,7 +170,7 @@ class PackagekitTransactionsWatcher(BaseTransactionsWatcher):
         if tid not in PackagekitTransactionsWatcher._tlist.keys():
             LOG.debug("Trying to setup %s" % tid)
             if not trans:
-                trans = self.pktask.get_progress(tid, None)
+                trans = self.pkclient.get_progress(tid, None)
             trans = PackagekitTransaction(trans)
             LOG.debug("Add return new transaction %s %s" % (tid, trans))
             PackagekitTransactionsWatcher._tlist[tid] = trans
@@ -219,7 +219,7 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         # this is public exposed
         self.pending_transactions = {}
 
-        self.pktask = packagekit.Task()
+        self.pkclient = packagekit.Client()
         self.pkginfo = get_pkg_info()
         self.pkginfo.open()
 
@@ -251,7 +251,7 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         # temporary hack
         pkgnames = self._fix_pkgnames(pkgnames)
 
-        self.pktask.remove_packages_async(pkgnames,
+        self.pkclient.remove_packages_async(pkgnames,
                     False,  # allow deps
                     False,  # autoremove
                     None,  # cancellable
@@ -292,7 +292,7 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         # PackageKit from installing untrusted packages
         # (in general, all enabled repos should have GPG signatures,
         # which is enough for being marked "trusted", but still)
-        self.pktask.install_packages_async(True,  # only trusted
+        self.pkclient.install_packages_async(True,  # only trusted
                     pkgnames,
                     None,  # cancellable
                     self._on_progress_changed,

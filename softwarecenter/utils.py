@@ -155,8 +155,11 @@ def capitalize_first_word(string):
     """ this takes a package synopsis and uppercases the first  word's
         first letter
     """
-    if string[0].isalpha() and not string[0].isupper():
-        return string[0].capitalize() + string[1:]
+    if string is "":
+        LOG.warning("tried to capitalize empty string!")
+    else:
+        if string[0].isalpha() and not string[0].isupper():
+            return string[0].capitalize() + string[1:]
     return string
 
 
