@@ -288,7 +288,7 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
 
         LOG.debug("Installing multiple packages: " + str(pkgnames))
 
-        self.pkclient.install_packages_async(packagekit.TransactionFlagEnum.NONE
+        self.pkclient.install_packages_async(packagekit.TransactionFlagEnum.NONE,
                     pkgnames,
                     None,  # cancellable
                     self._on_progress_changed,
