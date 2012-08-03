@@ -23,11 +23,14 @@ from gi.repository import GLib as glib
 from gi.repository import Gio as gio
 import logging
 import locale
+import os
 
 from gettext import gettext as _
 
 from softwarecenter.db.pkginfo import PackageInfo, _Version
 from softwarecenter.distro import get_distro
+from softwarecenter.db.database import StoreDatabase
+from softwarecenter.paths import XAPIAN_BASE_PATH
 
 LOG = logging.getLogger('softwarecenter.db.packagekit')
 
@@ -140,12 +143,13 @@ class PackagekitInfo(PackageInfo):
         self.emit("cache-invalid")
         if not self._ready or not self._pkgs_cache:
             self._fill_package_cache_from_cache(force = True)
-            # Start async update of package-cache, as the data which was
-            # loaded before (in fast-mode) might not be fully up-to-date
             self._update_package_cache()
 
         if self._ready:
             self.emit("cache-ready")
+
+    def prefill_cache(self, wanted_pkgs = None, prefill_descriptions = False, only_newest = False):
+        pass
 
     def update_installed_status(self, pkgname, installed):
         pkgs = self._get_packages(pkgname)
@@ -336,8 +340,10 @@ class PackagekitInfo(PackageInfo):
 
     """ private methods """
 
-    def _add_package_to_cache(self, pkg):
-        self._pkgs_cache.update({ pkg.get_name() : pkg })
+    def _add_package_to_cache(self, pkg, cache = None):
+        if cache is None:
+            cache = self._pkgs_cache
+        cache.update({ pkg.get_name() : pkg })
 
 
     def _fill_package_cache_from_cache(self, force = False):
@@ -374,33 +380,59 @@ class PackagekitInfo(PackageInfo):
         # we never want source packages
         pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
 
-        # TODO: we can do this smarter by creating calls only for the packages in our software-db
-        res = self.pkclient.get_packages_async(pfilter,
-                                               None, # cancellable
-                                               lambda prog, t, u: None, # progress callback
-                                               None, # progress user data,
-                                               self._on_get_packages_ready,
-                                               None
-        )
+        pathname = os.path.join(XAPIAN_BASE_PATH, "xapian")
+        db = StoreDatabase(pathname, self)
+        db.open()
 
-    def _on_get_packages_ready(self, source, result, data=None):
-        LOG.debug("getPackages() done %s %s", source, result)
-        results = self.pkclient.generic_finish(result)
+        docs = db.get_docs_from_query("")
+        wanted_pkgs = list()
+        for doc in docs:
+            wanted_pkgs.append(db.get_pkgname(doc))
+
+        if len(wanted_pkgs) is 0:
+            LOG.warning("no packages to process!")
+            return
+
+        # we never want source packages
+        pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
+
+        cache = {}
+        #steps = len(wanted_pkgs) + 0.5 // 100
+        steps = 0
+        for i in xrange(0, len(wanted_pkgs), 100):
+            steps = steps + 1
+
+        # Start async update of package-cache, as the data which was
+        # loaded before (from on-disk cache) might not be fully up-to-date
+        for i in xrange(0, len(wanted_pkgs), 100):
+            res = self.pkclient.resolve_async(pfilter,
+                                              wanted_pkgs[i:i+100],
+                                              None, # cancellable
+                                              lambda prog, t, u: None, # progress callback
+                                              None, # progress user data,
+                                              self._on_packages_resolve_ready,
+                                              (steps, cache)
+            )
+
+    def _on_packages_resolve_ready(self, source, result, (steps, cache)):
+        LOG.debug("packages resolved done %s %s", source, result)
+        try:
+            results = self.pkclient.generic_finish(result)
+        except Exception as e:
+            LOG.error("Unable to fetch packages: %s", str(e))
+
         if not results:
             LOG.debug("unable to fetch results")
             return;
 
         # update package cache
-        self._pkgs_cache = {}
         sack = results.get_package_sack()
         array = sack.get_array()
         for pkg in array:
-            self._add_package_to_cache(pkg)
+            self._add_package_to_cache(pkg, cache)
+        steps = steps - 1
+        LOG.debug("Steps count: %i" % steps)
 
-        if self._pkgs_cache:
-                self._ready = True
-        if self._ready:
-            self.emit("cache-ready")
         LOG.debug("updated package-info cache")
 
     def _get_package_details(self, packageid, cache=USE_CACHE):
@@ -410,9 +442,7 @@ class PackagekitInfo(PackageInfo):
 
         task = packagekit.Task()
         try:
-            LOG.debug("running PkTask....")
             result = task.get_details_sync((packageid,), None, self._on_progress_changed, None)
-            LOG.debug("PkTask completed!")
         except GObject.GError as e:
             return None
 
