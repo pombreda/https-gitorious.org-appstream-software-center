@@ -394,7 +394,7 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         # update package cache
         sack = results.get_package_sack()
         array = sack.get_array()
-        if not array.len is 0:
+        if len(array) == 0:
                 LOG.error("unable to get package results")
                 return;
         pkg = array[0]

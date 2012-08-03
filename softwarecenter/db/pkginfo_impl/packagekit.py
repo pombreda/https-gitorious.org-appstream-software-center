@@ -139,88 +139,13 @@ class PackagekitInfo(PackageInfo):
         LOG.info("packagekit.cache.open()")
         self.emit("cache-invalid")
         if not self._ready or not self._pkgs_cache:
-            self._fill_package_cache(fast = True, force = True)
+            self._fill_package_cache_from_cache(force = True)
             # Start async update of package-cache, as the data which was
             # loaded before (in fast-mode) might not be fully up-to-date
-            self._update_package_cache_async()
+            self._update_package_cache()
 
         if self._ready:
             self.emit("cache-ready")
-
-    def _add_package_to_cache(self, pkg):
-        self._pkgs_cache.update({ pkg.get_name() : pkg })
-
-    def _pkit_getpackages_finished(self, res, replacecache = False):
-        try:
-            results = self.pkclient.generic_finish(res)
-        except GObject.GError as e:
-            LOG.info('failed to search: %s' % e);
-            loop.quit()
-            return
-
-        error_code = results.get_error_code();
-        if error_code is not None:
-            #TODO
-            print "Got ERROR!"
-
-        # Clear the cache, then update it with fresh data
-        if replacecache:
-            self._pkgs_cache = {}
-
-        # get the data
-        LOG.info('Adding package data')
-        array = results.get_package_array();
-        for pkg in array:
-            self._add_package_to_cache(pkg)
-
-        # cache is prepared now, we're ready
-        self._ready = True
-
-    def _update_package_cache_async(self):
-        """ Async function to update the package cache with fresh
-        and up-to-date data from PackageKit """
-
-        # we never want source packages
-        pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
-
-        self.pkclient.get_packages_async(pfilter, None, lambda prog, t, u: None,
-          None, lambda s, r, u: self._pkit_getpackages_finished(r, True), None)
-
-
-    def _fill_package_cache(self, fast = False, force = False):
-        """Build a package-cache, to allow fast searching of packages.
-        If fast is false, the cache will be filled with fresh data, but
-        loading it might take longer.
-        This function is syncronous """
-
-        # we never want source packages
-        pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
-        #if only_newest:
-         #pfilter |= 1 << packagekit.FilterEnum.NOT_INSTALLED
-
-        if force or not self._pkgs_cache:
-            self._pkgs_cache = {}
-            self_ready = False
-            if fast:
-                """ Use PackageKit cache to make loading the package cache faster.
-                To get fresh data, we need to run the non-fast mode async later. """
-                fp = gio.File.new_for_path("/var/lib/PackageKit/system.package-list")
-                if fp.query_exists(None):
-                    pksack = packagekit.PackageSack()
-                    pksack.add_packages_from_file (fp)
-                    array = pksack.get_array()
-                    for pkg in array:
-                        self._add_package_to_cache(pkg)
-                else:
-                    self._fill_package_cache(False, force)
-                    return
-            else:
-                res = self.pkclient.get_packages_sync(pfilter, None, lambda prog, t, u: None, None)
-                array = res.get_package_array();
-                for pkg in array:
-                    self._add_package_to_cache(pkg)
-            if self._pkgs_cache:
-                self._ready = True
 
     def update_installed_status(self, pkgname, installed):
         pkgs = self._get_packages(pkgname)
@@ -305,6 +230,9 @@ class PackagekitInfo(PackageInfo):
         return self.get_size(pkgname)
 
     def get_origins(self, pkgname, cache=USE_CACHE):
+        out = set()
+        out.add(PkOrigin(None))
+        return out
         self._get_repolist()
         # FIXME: this is wrong, as cache is not about NOT_INSTALLED; and if we
         # don't use the cache, we use NOT_INSTALLED (which is possibly wrong
@@ -407,13 +335,84 @@ class PackagekitInfo(PackageInfo):
         return details.get_property('license')
 
     """ private methods """
+
+    def _add_package_to_cache(self, pkg):
+        self._pkgs_cache.update({ pkg.get_name() : pkg })
+
+
+    def _fill_package_cache_from_cache(self, force = False):
+        """Build a package-cache, to allow fast searching of packages."""
+
+        # we never want source packages
+        pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
+        #if only_newest:
+         #pfilter |= 1 << packagekit.FilterEnum.NOT_INSTALLED
+
+        if force or not self._pkgs_cache:
+            self_ready = False
+
+            self._pkgs_cache = {}
+            """ Use PackageKit cache to make loading the package cache faster.
+            To get fresh data, we need to run _update_package_cache later. """
+            fp = gio.File.new_for_path("/var/lib/PackageKit/system.package-list")
+            if fp.query_exists(None):
+                pksack = packagekit.PackageSack()
+                pksack.add_packages_from_file (fp)
+                array = pksack.get_array()
+                for pkg in array:
+                    self._add_package_to_cache(pkg)
+
+            if self._pkgs_cache:
+                self._ready = True
+
+    def _update_package_cache(self):
+        """Update the cache with fresh data from PackageKit """
+
+        # we are not ready if the cache is invalid
+        if not self._pkgs_cache:
+            self._ready = False
+        # we never want source packages
+        pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
+
+        # TODO: we can do this smarter by creating calls only for the packages in our software-db
+        res = self.pkclient.get_packages_async(pfilter,
+                                               None, # cancellable
+                                               lambda prog, t, u: None, # progress callback
+                                               None, # progress user data,
+                                               self._on_get_packages_ready,
+                                               None
+        )
+
+    def _on_get_packages_ready(self, source, result, data=None):
+        LOG.debug("getPackages() done %s %s", source, result)
+        results = self.pkclient.generic_finish(result)
+        if not results:
+            LOG.debug("unable to fetch results")
+            return;
+
+        # update package cache
+        self._pkgs_cache = {}
+        sack = results.get_package_sack()
+        array = sack.get_array()
+        for pkg in array:
+            self._add_package_to_cache(pkg)
+
+        if self._pkgs_cache:
+                self._ready = True
+        if self._ready:
+            self.emit("cache-ready")
+        LOG.debug("updated package-info cache")
+
     def _get_package_details(self, packageid, cache=USE_CACHE):
         LOG.debug("package_details %s", packageid) #, self._cache.keys()
         if cache and (packageid in self._cache_details.keys()):
             return self._cache_details[packageid]
 
+        task = packagekit.Task()
         try:
-            result = self.pkclient.get_details((packageid,), None, self._on_progress_changed, None)
+            LOG.debug("running PkTask....")
+            result = task.get_details_sync((packageid,), None, self._on_progress_changed, None)
+            LOG.debug("PkTask completed!")
         except GObject.GError as e:
             return None
 
