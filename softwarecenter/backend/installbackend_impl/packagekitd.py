@@ -72,8 +72,7 @@ class PackagekitTransaction(BaseTransaction):
         self.emit(what, self._trans.get_property(prop))
 
     def _status_changed (self, *args):
-        prop, what = args[-1], args[-2]
-        if self._trans.get_property(prop) == packagekit.status.ENUM_FINISHED:
+        if self._trans.get_property("status") == packagekit.status.ENUM_FINISHED:
             self._remove
         else:
             self.emit(what, self._trans.get_property(prop))
@@ -250,15 +249,15 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         # temporary hack
         pkgnames = self._fix_pkgnames(pkgnames)
 
-        self.pkclient.remove_packages_async(packagekit.TransactionFlagEnum.NONE,
-                    pkgnames,
+        task = packagekit.Task()
+        task.remove_packages_async(pkgnames,
                     False,  # allow deps
                     True,  # autoremove
                     None,  # cancellable
                     self._on_progress_changed,
                     None,  # progress data
                     self._on_remove_ready,  # callback ready
-                    None  # callback data
+                    task  # callback data
         )
         self.emit("transaction-started", pkgnames[0], appnames[0], 0,
             TransactionTypes.REMOVE)
@@ -288,13 +287,13 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
 
         LOG.debug("Installing multiple packages: " + str(pkgnames))
 
-        self.pkclient.install_packages_async(packagekit.TransactionFlagEnum.NONE,
-                    pkgnames,
+        task = packagekit.Task()
+        task.install_packages_async(pkgnames,
                     None,  # cancellable
                     self._on_progress_changed,
                     None,  # progress data
                     self._on_install_ready,  # GAsyncReadyCallback
-                    None  # ready data
+                    task  # ready data
         )
         self.emit("transaction-started", pkgnames[0], appnames[0], 0,
             TransactionTypes.INSTALL)
@@ -386,10 +385,24 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
 
         self.emit('transactions-changed', self.pending_transactions)
 
-    def _on_install_ready(self, source, result, data=None):
+    def _on_install_ready(self, source, result, task):
         LOG.debug("install done %s %s", source, result)
+        results = task.generic_finish(result)
+        if not results:
+            LOG.debug("unable to fetch results")
+            return;
+        # update package cache
+        sack = results.get_package_sack()
+        array = sack.get_array()
+        if not array.len is 0:
+                LOG.error("unable to get package results")
+                return;
+        pkg = array[0]
+        infoCache = get_pkg_info()
+        infoCache.update_installed_status(pkg.get_name(), True)
+        LOG.debug("updated package-info cache for %s" % pkg.get_name())
 
-    def _on_remove_ready(self, source, result, data=None):
+    def _on_remove_ready(self, source, result, task):
         LOG.debug("remove done %s %s", source, result)
 
     def _fix_pkgnames(self, pkgnames):

@@ -118,9 +118,8 @@ class PackagekitInfo(PackageInfo):
 
     def __init__(self):
         super(PackagekitInfo, self).__init__()
-        self.pktask = packagekit.Task()
-        self.pktask.set_locale(make_locale_string())
-        self.pktask.set_simulate(True) # we don't want write-access here, only simulate
+        self.pkclient = packagekit.Client()
+        self.pkclient.set_locale(make_locale_string())
         self._cache_pkg_filter_none = {} # temporary hack for decent testing
         self._cache_pkg_filter_newest = {} # temporary hack for decent testing
         self._cache_details = {} # temporary hack for decent testing
@@ -153,7 +152,7 @@ class PackagekitInfo(PackageInfo):
 
     def _pkit_getpackages_finished(self, res, replacecache = False):
         try:
-            results = self.pktask.generic_finish(res)
+            results = self.pkclient.generic_finish(res)
         except GObject.GError as e:
             LOG.info('failed to search: %s' % e);
             loop.quit()
@@ -184,7 +183,7 @@ class PackagekitInfo(PackageInfo):
         # we never want source packages
         pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
 
-        self.pktask.get_packages_async(pfilter, None, lambda prog, t, u: None,
+        self.pkclient.get_packages_async(pfilter, None, lambda prog, t, u: None,
           None, lambda s, r, u: self._pkit_getpackages_finished(r, True), None)
 
 
@@ -216,20 +215,31 @@ class PackagekitInfo(PackageInfo):
                     self._fill_package_cache(False, force)
                     return
             else:
-                res = self.pktask.get_packages_sync(pfilter, None, lambda prog, t, u: None, None)
+                res = self.pkclient.get_packages_sync(pfilter, None, lambda prog, t, u: None, None)
                 array = res.get_package_array();
                 for pkg in array:
                     self._add_package_to_cache(pkg)
             if self._pkgs_cache:
                 self._ready = True
 
+    def update_installed_status(self, pkgname, installed):
+        pkgs = self._get_packages(pkgname)
+        if pkgs is None:
+            return
+        for p in pkgs:
+            if installed:
+                if p.get_info() == packagekit.InfoEnum.AVAILABLE:
+                    p.set_property("status", packagekit.InfoEnum.INSTALLED)
+            else:
+                p.set_property("status", packagekit.InfoEnum.AVAILABLE)
+
     def is_installed(self, pkgname):
         pkgs = self._get_packages(pkgname)
         if pkgs is None:
             return False
         for p in pkgs:
-	    if p.get_info() == packagekit.InfoEnum.INSTALLED:
-		return True
+            if p.get_info() == packagekit.InfoEnum.INSTALLED:
+                return True
         return False
 
     def is_upgradable(self, pkgname):
@@ -278,7 +288,7 @@ class PackagekitInfo(PackageInfo):
         p = self._get_one_package(pkgname)
         if not p:
             return []
-        res = self.pktask.get_files((p.get_id(),), None, self._on_progress_changed, None)
+        res = self.pkclient.get_files((p.get_id(),), None, self._on_progress_changed, None)
         files = res.get_files_array()
         if not files:
             return []
@@ -342,8 +352,9 @@ class PackagekitInfo(PackageInfo):
             return []
         autoremove = False
         # simulate RemovePackages()
-        res = self.pktask.remove_packages_sync((p.package.get_id(),),
-                                            True,
+        res = self.pkclient.remove_packages(packagekit.TransactionFlagEnum.SIMULATE,
+                                            (p.package.get_id(),),
+                                            True, # allow deps
                                             autoremove,
                                             None,
                                             self._on_progress_changed, None)
@@ -358,7 +369,8 @@ class PackagekitInfo(PackageInfo):
         if not p:
             return []
         # simulate InstallPackages()
-        res = self.pktask.install_packages_sync((p.package.get_id(),),
+        res = self.pkclient.install_packages(packagekit.TransactionFlagEnum.SIMULATE,
+                                            (p.package.get_id(),),
                                             None,
                                             self._on_progress_changed, None)
         if not res:
@@ -401,7 +413,7 @@ class PackagekitInfo(PackageInfo):
             return self._cache_details[packageid]
 
         try:
-            result = self.pktask.get_details((packageid,), None, self._on_progress_changed, None)
+            result = self.pkclient.get_details((packageid,), None, self._on_progress_changed, None)
         except GObject.GError as e:
             return None
 
@@ -464,7 +476,7 @@ class PackagekitInfo(PackageInfo):
             return self._repocache
 
         pfilter = 1 << pfilter
-        result = self.pktask.get_repo_list(pfilter,
+        result = self.pkclient.get_repo_list(pfilter,
                                            None,
                                            self._on_progress_changed, None)
         repos = result.get_repo_detail_array()
