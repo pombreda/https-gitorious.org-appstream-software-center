@@ -371,6 +371,11 @@ class PackagekitInfo(PackageInfo):
             if self._pkgs_cache:
                 self._ready = True
 
+    class PkResolveHelper:
+        def __init__(self, steps):
+            self.steps = steps
+            self.cache = {}
+
     def _update_package_cache(self):
         """Update the cache with fresh data from PackageKit """
 
@@ -396,11 +401,10 @@ class PackagekitInfo(PackageInfo):
         # we never want source packages
         pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
 
-        cache = {}
+        helper = self.PkResolveHelper(0)
         #steps = len(wanted_pkgs) + 0.5 // 100
-        steps = 0
         for i in xrange(0, len(wanted_pkgs), 100):
-            steps = steps + 1
+            helper.steps = helper.steps + 1
 
         # Start async update of package-cache, as the data which was
         # loaded before (from on-disk cache) might not be fully up-to-date
@@ -411,11 +415,12 @@ class PackagekitInfo(PackageInfo):
                                               lambda prog, t, u: None, # progress callback
                                               None, # progress user data,
                                               self._on_packages_resolve_ready,
-                                              (steps, cache)
+                                              helper
             )
 
-    def _on_packages_resolve_ready(self, source, result, (steps, cache)):
-        LOG.debug("packages resolved done %s %s", source, result)
+    def _on_packages_resolve_ready(self, source, result, helper):
+        LOG.debug("packages resolve done %s %s", source, result)
+        results = None
         try:
             results = self.pkclient.generic_finish(result)
         except Exception as e:
@@ -429,9 +434,12 @@ class PackagekitInfo(PackageInfo):
         sack = results.get_package_sack()
         array = sack.get_array()
         for pkg in array:
-            self._add_package_to_cache(pkg, cache)
-        steps = steps - 1
-        LOG.debug("Steps count: %i" % steps)
+            self._add_package_to_cache(pkg, helper.cache)
+        helper.steps = helper.steps - 1
+        LOG.debug("Steps count: %i" % helper.steps)
+
+        if helper.steps is 0:
+            self._pkgs_cache = helper.cache
 
         LOG.debug("updated package-info cache")
 
