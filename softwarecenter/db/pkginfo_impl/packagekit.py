@@ -440,8 +440,9 @@ class PackagekitInfo(PackageInfo):
 
         if helper.steps is 0:
             self._pkgs_cache = helper.cache
-
-        LOG.debug("updated package-info cache")
+            LOG.debug("updated package-info cache")
+        else:
+            LOG.debug("processed package batch")
 
     def _get_package_details(self, packageid, cache=USE_CACHE):
         LOG.debug("package_details %s", packageid) #, self._cache.keys()

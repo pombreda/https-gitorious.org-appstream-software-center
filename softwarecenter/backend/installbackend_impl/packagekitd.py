@@ -55,7 +55,7 @@ class PackagekitTransaction(BaseTransaction):
         """
         self._trans.connect('notify::role', self._emit,
             'role-changed', 'role')
-        self._trans.connect('notify::status', self._status_changed,
+        self._trans.connect('notify::status', self._emit,
             'status-changed', 'status')
         self._trans.connect('notify::percentage', self._emit,
             'progress-changed', 'percentage')
@@ -67,15 +67,15 @@ class PackagekitTransaction(BaseTransaction):
         self._trans.connect('notify::allow-cancel', self._emit,
             'cancellable-changed', 'allow-cancel')
 
+        # connect the delete (required to update information if e.g. the daemon crashes)
+        proxy = dbus.SystemBus().get_object('org.freedesktop.PackageKit',
+                                             self.tid)
+        trans = dbus.Interface(proxy, 'org.freedesktop.PackageKit.Transaction')
+        trans.connect_to_signal("Destroy", self._remove)
+
     def _emit(self, *args):
         prop, what = args[-1], args[-2]
         self.emit(what, self._trans.get_property(prop))
-
-    def _status_changed (self, *args):
-        if self._trans.get_property("status") == packagekit.status.ENUM_FINISHED:
-            self._remove
-        else:
-            self.emit(what, self._trans.get_property(prop))
 
     @property
     def tid(self):
