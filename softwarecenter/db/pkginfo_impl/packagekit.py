@@ -401,16 +401,29 @@ class PackagekitInfo(PackageInfo):
         # we never want source packages
         pfilter = 1 << packagekit.FilterEnum.NOT_SOURCE
 
-        helper = self.PkResolveHelper(0)
-        #steps = len(wanted_pkgs) + 0.5 // 100
-        for i in xrange(0, len(wanted_pkgs), 100):
-            helper.steps = helper.steps + 1
-
         # Start async update of package-cache, as the data which was
         # loaded before (from on-disk cache) might not be fully up-to-date
-        for i in xrange(0, len(wanted_pkgs), 100):
+        pkDaemonConf = glib.KeyFile()
+        ret = pkDaemonConf.load_from_file("/etc/PackageKit/PackageKit.conf", glib.KeyFileFlags.NONE)
+        # set maxItems to 100 by default
+        maxItems = 100
+        if ret:
+            try:
+                maxItems = pkDaemonConf.get_integer("Daemon", "MaximumItemsToResolve")
+            except Exception as e:
+                LOG.error("Unable to read PackageKit daemon config: %s", str(e))
+                maxItems = 100
+
+        LOG.debug("maximum packages to resolve %i", maxItems)
+
+        helper = self.PkResolveHelper(0)
+        #steps = len(wanted_pkgs) + 0.5 // 100
+        for i in xrange(0, len(wanted_pkgs), maxItems):
+            helper.steps = helper.steps + 1
+
+        for i in xrange(0, len(wanted_pkgs), maxItems):
             res = self.pkclient.resolve_async(pfilter,
-                                              wanted_pkgs[i:i+100],
+                                              wanted_pkgs[i:i+maxItems],
                                               None, # cancellable
                                               lambda prog, t, u: None, # progress callback
                                               None, # progress user data,
