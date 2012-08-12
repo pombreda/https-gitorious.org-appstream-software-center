@@ -411,7 +411,10 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         for p in pkgnames:
             if not is_pk_id(p):
                 candidate = self.pkginfo[p].candidate
-                p = candidate.package.get_id()
+                if candidate is None:
+                    LOG.error("candidate for '%s' is None!", p)
+                else:
+                    p = candidate.package.get_id()
             res.append(p)
         return res
 
